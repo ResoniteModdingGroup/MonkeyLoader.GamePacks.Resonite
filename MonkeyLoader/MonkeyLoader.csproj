@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -35,5 +35,9 @@
     <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\$(AssemblyTitle).xml" />
     <Message Text="Copied $(TargetName).xml to $(ResonitePath)\$(AssemblyTitle).xml" Importance="high" />
   </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.3.0-prerelease.2" />
+  </ItemGroup>
 
 </Project>
