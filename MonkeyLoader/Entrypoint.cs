@@ -15,7 +15,7 @@ namespace Doorstop
     {
         public static void HelloMethod()
         {
-            File.WriteAllText("test.log", "Hello from new FrooxEngine.Engine static constructor");
+            File.AppendAllText("test.log", $"[{DateTime.Now}] Hello from new FrooxEngine.Engine static constructor{Environment.NewLine}");
         }
 
         public static void Start()
@@ -29,7 +29,7 @@ namespace Doorstop
             {
                 var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
 
-                DebugLog.Log("MonkeyLoader", LogLevel.Trace, string.Join(", ", frooxEngine.Modules.Select(m => m.Name)));
+                File.AppendAllText("test.log", $"[{DateTime.Now}] " + string.Join(", ", frooxEngine.Modules.Select(m => m.Name)) + Environment.NewLine);
 
                 var engine = frooxEngine.MainModule.Types.FirstOrDefault(t => t.Name == "Engine");
                 var engineCCtor = engine.GetStaticConstructor();
@@ -42,7 +42,7 @@ namespace Doorstop
 
                 Assembly.Load(ms.ToArray());
 
-                DebugLog.Log("MonkeyLoader", LogLevel.Trace, "Loaded FrooxEngine from Memory");
+                File.AppendAllText("test.log", $"[{DateTime.Now}] Loaded FrooxEngine from Memory{Environment.NewLine}");
             }
             catch (Exception ex)
             {
