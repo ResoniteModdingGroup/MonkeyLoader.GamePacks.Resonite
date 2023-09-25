@@ -1,6 +1,9 @@
-﻿using Mono.Cecil;
+﻿using MonkeyLoader;
+using MonkeyLoader.Game;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using MonoMod.Core.Platforms;
 using MonoMod.Logs;
 using MonoMod.Utils;
 using System;
