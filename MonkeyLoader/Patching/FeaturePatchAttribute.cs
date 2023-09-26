@@ -28,5 +28,7 @@ namespace MonkeyLoader.Patching
         {
             PatchSeverity = patchSeverity;
         }
+
+        public TFeature GetFeature() => new();
     }
 }
