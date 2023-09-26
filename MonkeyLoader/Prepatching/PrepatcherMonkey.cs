@@ -21,6 +21,11 @@ namespace MonkeyLoader.Prepatching
     public abstract class PrepatcherMonkey
     {
         /// <summary>
+        /// Gets the <see cref="MonkeyLogger"/> that this pre-patcher can use to log messages to game-specific channels.
+        /// </summary>
+        public MonkeyLogger Logger { get; internal set; }
+
+        /// <summary>
         /// Gets the relative path to this assembly file.
         /// </summary>
         public string PrepatcherAssemblyFilename { get; internal set; } = string.Empty;

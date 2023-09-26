@@ -34,6 +34,11 @@ namespace MonkeyLoader.Prepatching
         public string LinkedAssemblyFilename { get; internal set; } = string.Empty;
 
         /// <summary>
+        /// Gets the <see cref="MonkeyLogger"/> that this pre-patcher can use to log messages to game-specific channels.
+        /// </summary>
+        public MonkeyLogger Logger { get; internal set; }
+
+        /// <summary>
         /// Can patch the linked assembly before and after the other patch methods have been called.<br/>
         /// Return <c>true</c> to indicate that any patching has happened.
         /// </summary>
