@@ -12,7 +12,7 @@ namespace MonkeyLoader
         public LocationConfiguration Locations { get; private set; }
         public MonkeyLogger Logger { get; private set; }
 
-        public IEnumerable<MonkeyMod> Mods
+        public IEnumerable<Monkey> Mods
         {
             get
             {
