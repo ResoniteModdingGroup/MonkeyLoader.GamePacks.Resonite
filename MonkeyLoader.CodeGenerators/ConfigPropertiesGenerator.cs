@@ -16,8 +16,6 @@ namespace MonkeyLoader.CodeGenerators
             var builder = new StringBuilder();
             var configKeyType = context.Compilation.GetTypeByMetadataName("MonkeyLoader.Config.ModConfigKey`1");
 
-            context.
-
             foreach (var derivedClassDef in configsReceiver.Classes)
             {
                 var filename = derivedClassDef.FullMetadataName();
@@ -30,20 +28,23 @@ namespace MonkeyLoader.CodeGenerators
                 foreach (var configKeyField in derivedClassDef.GetMembers()
                     .Where(member => member is IFieldSymbol field && field.IsStatic)
                     .Cast<IFieldSymbol>()
-                    .Select(field => field.Type.TryGetBaseType(configKeyType!))
-                    .Where(f => f is not null))
+                    .Select(field => (field, type: (INamedTypeSymbol)field.Type.TryGetBaseType(configKeyType!)!))
+                    .Where(f => f.type is not null))
                 {
-                    builder.Append($"        {(configKeyField.DeclaredAccessibility switch { Accessibility.Public => "public", Accessibility.Internal => "internal", _ => "private" })} ");
-                    builder.AppendLine($"{configKeyField.");
+                    builder.Append($"        {(configKeyField.field.DeclaredAccessibility switch { Accessibility.Public => "public", Accessibility.Internal => "internal", _ => "private" })} ");
+                    builder.AppendLine($"{configKeyField.type.TypeParameters.First().TryFullName()} {configKeyField.field.Name} {{ get; set; }}");
                 }
 
-                //derivedClassDef.GetMembers().Where(symbol => symbol is IFieldSymbol fieldSymbol && fieldSymbol.Type.).Cast<IFieldSymbol>()
-            }
-            }
+                builder.AppendLine("    }");
+                builder.AppendLine("}");
 
-            public void Initialize(GeneratorInitializationContext context)
-            {
-                context.RegisterForSyntaxNotifications(() => configsReceiver);
+                context.AddSource(filename, builder.ToString());
             }
         }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForSyntaxNotifications(() => configsReceiver);
+        }
     }
+}

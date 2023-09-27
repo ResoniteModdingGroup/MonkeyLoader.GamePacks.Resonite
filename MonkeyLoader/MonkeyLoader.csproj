@@ -29,6 +29,16 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude the output of source generators from the compilation -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
     <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\$(AssemblyFileName)" />
     <Message Text="Copied $(TargetFileName) to $(ResonitePath)\$(AssemblyFileName)" Importance="high" />
@@ -43,6 +53,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Zio" Version="0.16.2" />
+    <ProjectReference Include="..\MonkeyLoader.CodeGenerators\MonkeyLoader.CodeGenerators.csproj"
+            OutputItemType="Analyzer"
+            ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
 </Project>

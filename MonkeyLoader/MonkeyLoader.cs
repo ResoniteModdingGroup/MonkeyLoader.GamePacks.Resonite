@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MonkeyLoader.Prepatching;
+using Mono.Cecil;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,6 +26,18 @@ namespace MonkeyLoader
         public MonkeyLoader(LocationConfiguration? locations = null)
         {
             Locations = locations ?? new();
+        }
+
+        private void prepatch(IEnumerable<EarlyMonkey> prePatchers)
+        {
+            // should be case insensitive
+            var assemblyDefinitions = new Dictionary<string, AssemblyDefinition>();
+            var neededDefinitions = new Dictionary<string, AssemblyDefinition>();
+
+            foreach (var prePatcher in prePatchers)
+            {
+                neededDefinitions.Clear();
+            }
         }
     }
 }
