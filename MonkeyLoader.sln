@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader", "MonkeyLoade
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.ConsoleTest", "MonkeyLoader.ConsoleTest\MonkeyLoader.ConsoleTest.csproj", "{15303CB3-F51F-433F-B167-2E85F3A84045}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.CodeGenerators", "MonkeyLoader.CodeGenerators\MonkeyLoader.CodeGenerators.csproj", "{863BC416-73D8-489B-BA54-0C5BF1938609}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{15303CB3-F51F-433F-B167-2E85F3A84045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15303CB3-F51F-433F-B167-2E85F3A84045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15303CB3-F51F-433F-B167-2E85F3A84045}.Release|Any CPU.Build.0 = Release|Any CPU
+		{863BC416-73D8-489B-BA54-0C5BF1938609}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{863BC416-73D8-489B-BA54-0C5BF1938609}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{863BC416-73D8-489B-BA54-0C5BF1938609}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{863BC416-73D8-489B-BA54-0C5BF1938609}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
