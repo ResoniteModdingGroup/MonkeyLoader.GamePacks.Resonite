@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MonkeyLoader.Config
+namespace MonkeyLoader.Configuration
 {
     /// <summary>
     /// Represents an interface for mod configurations.
@@ -18,7 +18,7 @@ namespace MonkeyLoader.Config
         /// <summary>
         /// Gets the mod that owns this configuration definition.
         /// </summary>
-        //ResoniteModBase Owner { get; }
+        Monkey Owner { get; }
 
         /// <summary>
         /// Gets the semantic version for this configuration definition. This is used to check if the defined and saved configs are compatible.

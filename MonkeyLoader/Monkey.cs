@@ -1,4 +1,6 @@
-﻿namespace MonkeyLoader
+﻿using MonkeyLoader.Logging;
+
+namespace MonkeyLoader
 {
     public sealed class Monkey
     {

@@ -1,6 +1,6 @@
 ﻿// Adapted from the NeosModLoader project.
 
-namespace MonkeyLoader.Config
+namespace MonkeyLoader.Configuration
 {
     /// <summary>
     /// Defines options for the handling of incompatible configuration versions.

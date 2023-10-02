@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace MonkeyLoader.Config
+namespace MonkeyLoader.Configuration
 {
     internal class ModLoaderConfiguration
     {

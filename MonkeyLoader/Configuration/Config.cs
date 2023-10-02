@@ -10,15 +10,13 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Config
+namespace MonkeyLoader.Configuration
 {
     /// <summary>
     /// The configuration for a mod. Each mod has zero or one configuration. The configuration object will never be reassigned once initialized.
     /// </summary>
-    public class ModConfig : IModConfigDefinition
+    public class Config : IConfigDefinition
     {
-        private static readonly string ConfigDirectory = Path.Combine(PlatformHelper.MainDirectory, "nml_config");
-        private static readonly JsonSerializer jsonSerializer = CreateJsonSerializer();
         private static readonly string VALUES_JSON_KEY = "values";
         private static readonly string VERSION_JSON_KEY = "version";
 
@@ -40,7 +38,7 @@ namespace MonkeyLoader.Config
         private Stopwatch saveTimer = new Stopwatch();
 
         /// <inheritdoc/>
-        public ISet<ModConfigKey> ConfigurationItemDefinitions => Definition.ConfigurationItemDefinitions;
+        public ISet<ConfigKey> ConfigurationItemDefinitions => Definition.ConfigurationItemDefinitions;
 
         /// <inheritdoc/>
         public ResoniteModBase Owner => Definition.Owner;
@@ -51,7 +49,7 @@ namespace MonkeyLoader.Config
         internal LoadedResoniteMod LoadedResoniteMod { get; private set; }
         private bool AutoSave => Definition.AutoSave;
 
-        private ModConfig(LoadedResoniteMod loadedResoniteMod, ModConfigurationDefinition definition)
+        private Config(LoadedResoniteMod loadedResoniteMod, ModConfigurationDefinition definition)
         {
             LoadedResoniteMod = loadedResoniteMod;
             Definition = definition;
@@ -63,7 +61,7 @@ namespace MonkeyLoader.Config
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public object GetValue(ModConfigKey key)
+        public object GetValue(ConfigKey key)
         {
             if (TryGetValue(key, out object? value))
             {
@@ -82,7 +80,7 @@ namespace MonkeyLoader.Config
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public T? GetValue<T>(ModConfigKey<T> key)
+        public T? GetValue<T>(ConfigKey<T> key)
         {
             if (TryGetValue(key, out T? value))
             {
@@ -99,10 +97,10 @@ namespace MonkeyLoader.Config
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is defined.</returns>
-        public bool IsKeyDefined(ModConfigKey key)
+        public bool IsKeyDefined(ConfigKey key)
         {
             // if a key has a non-null defining key it's guaranteed a real key. Lets check for that.
-            ModConfigKey? definingKey = key.DefiningKey;
+            ConfigKey? definingKey = key.DefiningKey;
             if (definingKey != null)
             {
                 return true;
@@ -149,9 +147,9 @@ namespace MonkeyLoader.Config
         /// <param name="eventLabel">A custom label you may assign to this change event.</param>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
-        public void Set(ModConfigKey key, object? value, string? eventLabel = null)
+        public void Set(ConfigKey key, object? value, string? eventLabel = null)
         {
-            if (!Definition.TryGetDefiningKey(key, out ModConfigKey? definingKey))
+            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
             {
                 throw new KeyNotFoundException($"{key.Name} is not defined in the config definition for {LoadedResoniteMod.ResoniteMod.Name}");
             }
@@ -174,7 +172,7 @@ namespace MonkeyLoader.Config
             }
 
             definingKey.Set(value);
-            FireConfigurationChangedEvent(definingKey, eventLabel);
+            FireConfigChangedEvent(definingKey, eventLabel);
         }
 
         /// <summary>
@@ -187,11 +185,11 @@ namespace MonkeyLoader.Config
         /// <param name="eventLabel">A custom label you may assign to this change event.</param>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
-        public void Set<T>(ModConfigKey<T> key, T value, string? eventLabel = null)
+        public void Set<T>(ConfigKey<T> key, T value, string? eventLabel = null)
         {
             // the reason we don't fall back to untyped Set() here is so we can skip the type check
 
-            if (!Definition.TryGetDefiningKey(key, out ModConfigKey? definingKey))
+            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
             {
                 throw new KeyNotFoundException($"{key.Name} is not defined in the config definition for {LoadedResoniteMod.ResoniteMod.Name}");
             }
@@ -202,7 +200,7 @@ namespace MonkeyLoader.Config
             }
 
             definingKey.Set(value);
-            FireConfigurationChangedEvent(definingKey, eventLabel);
+            FireConfigChangedEvent(definingKey, eventLabel);
         }
 
         /// <summary>
@@ -211,9 +209,9 @@ namespace MonkeyLoader.Config
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue(ModConfigKey key, out object? value)
+        public bool TryGetValue(ConfigKey key, out object? value)
         {
-            if (!Definition.TryGetDefiningKey(key, out ModConfigKey? definingKey))
+            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
             {
                 // not in definition
                 value = null;
@@ -242,7 +240,7 @@ namespace MonkeyLoader.Config
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue<T>(ModConfigKey<T> key, out T? value)
+        public bool TryGetValue<T>(ConfigKey<T> key, out T? value)
         {
             if (TryGetValue(key, out object? valueObject))
             {
@@ -262,9 +260,9 @@ namespace MonkeyLoader.Config
         /// <param name="key">The key to remove the value for.</param>
         /// <returns><c>true</c> if a value was successfully found and removed, <c>false</c> if there was no value to remove.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public bool Unset(ModConfigKey key)
+        public bool Unset(ConfigKey key)
         {
-            if (Definition.TryGetDefiningKey(key, out ModConfigKey? definingKey))
+            if (Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
             {
                 return definingKey!.Unset();
             }
@@ -279,7 +277,7 @@ namespace MonkeyLoader.Config
             Directory.CreateDirectory(ConfigDirectory);
         }
 
-        internal static ModConfig? LoadConfigForMod(LoadedResoniteMod mod)
+        internal static Config? LoadConfigForMod(LoadedResoniteMod mod)
         {
             ModConfigurationDefinition? definition = mod.ResoniteMod.BuildConfigurationDefinition();
             if (definition == null)
@@ -303,7 +301,7 @@ namespace MonkeyLoader.Config
                     {
                         case IncompatibleConfigHandling.Clobber:
                             Logger.WarnInternal($"{mod.ResoniteMod.Name} saved config version is {version} which is incompatible with mod's definition version {definition.Version}. Clobbering old config and starting fresh.");
-                            return new ModConfig(mod, definition);
+                            return new Config(mod, definition);
 
                         case IncompatibleConfigHandling.ForceLoad:
                             // continue processing
@@ -315,7 +313,7 @@ namespace MonkeyLoader.Config
                             throw new ModConfigurationException($"{mod.ResoniteMod.Name} saved config version is {version} which is incompatible with mod's definition version {definition.Version}");
                     }
                 }
-                foreach (ModConfigKey key in definition.ConfigurationItemDefinitions)
+                foreach (ConfigKey key in definition.ConfigurationItemDefinitions)
                 {
                     string keyName = key.Name;
                     try
@@ -338,7 +336,7 @@ namespace MonkeyLoader.Config
             catch (FileNotFoundException)
             {
                 // return early
-                return new ModConfig(mod, definition);
+                return new Config(mod, definition);
             }
             catch (Exception e)
             {
@@ -347,7 +345,7 @@ namespace MonkeyLoader.Config
                 throw new ModConfigurationException($"Error loading config for {mod.ResoniteMod.Name}", e);
             }
 
-            return new ModConfig(mod, definition);
+            return new Config(mod, definition);
         }
 
         internal static void RegisterShutdownHook(Harmony harmony)
@@ -360,7 +358,7 @@ namespace MonkeyLoader.Config
                     Logger.ErrorInternal("Could not find method Engine.Shutdown(). Will not be able to autosave configs on close!");
                     return;
                 }
-                MethodInfo patch = AccessTools.DeclaredMethod(typeof(ModConfig), nameof(ShutdownHook));
+                MethodInfo patch = AccessTools.DeclaredMethod(typeof(Config), nameof(ShutdownHook));
                 if (patch == null)
                 {
                     Logger.ErrorInternal("Could not find method ModConfiguration.ShutdownHook(). Will not be able to autosave configs on close!");
@@ -379,7 +377,7 @@ namespace MonkeyLoader.Config
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is the defining key.</returns>
-        internal bool IsKeyDefiningKey(ModConfigKey key)
+        internal bool IsKeyDefiningKey(ConfigKey key)
         {
             // a key is the defining key if and only if its DefiningKey property references itself
             return ReferenceEquals(key, key.DefiningKey); // this is safe because we'll throw a NRE if key is null
@@ -469,57 +467,6 @@ namespace MonkeyLoader.Config
             return true;
         }
 
-        private static JsonSerializer CreateJsonSerializer()
-        {
-            JsonSerializerSettings settings = new()
-            {
-                MaxDepth = 32,
-                ReferenceLoopHandling = ReferenceLoopHandling.Error,
-                DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
-            };
-            List<JsonConverter> converters = new();
-            IList<JsonConverter> defaultConverters = settings.Converters;
-            if (defaultConverters != null && defaultConverters.Count() != 0)
-            {
-                Logger.DebugFuncInternal(() => $"Using {defaultConverters.Count()} default json converters");
-                converters.AddRange(defaultConverters);
-            }
-            converters.Add(new EnumConverter());
-            converters.Add(new ResonitePrimitiveConverter());
-            settings.Converters = converters;
-            return JsonSerializer.Create(settings);
-        }
-
-        private static string GetModConfigPath(LoadedResoniteMod mod)
-        {
-            string filename = Path.ChangeExtension(Path.GetFileName(mod.ModAssembly.File), ".json");
-            return Path.Combine(ConfigDirectory, filename);
-        }
-
-        private static void ShutdownHook()
-        {
-            int count = 0;
-            ModLoader.Mods()
-                .Select(mod => mod.GetConfiguration())
-                .Where(config => config != null)
-                .Where(config => config!.AutoSave)
-                .Where(config => config!.AnyValuesSet())
-                .Do(config =>
-                {
-                    try
-                    {
-                        // synchronously save the config
-                        config!.SaveInternal();
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.ErrorInternal($"Error saving configuration for {config!.Owner.Name}:\n{e}");
-                    }
-                    count += 1;
-                });
-            Logger.MsgInternal($"Configs saved for {count} mods.");
-        }
-
         private bool AnyValuesSet()
         {
             return ConfigurationItemDefinitions
@@ -527,11 +474,11 @@ namespace MonkeyLoader.Config
                 .Any();
         }
 
-        private void FireConfigurationChangedEvent(ModConfigKey key, string? label)
+        private void FireConfigChangedEvent(ConfigKey key, string? label)
         {
             try
             {
-                OnAnyConfigurationChanged?.SafeInvoke(new ConfigurationChangedEvent(this, key, label));
+                OnAnyConfigurationChanged?.SafeInvoke(new ConfigChangedEvent(this, key, label));
             }
             catch (Exception e)
             {
@@ -540,7 +487,7 @@ namespace MonkeyLoader.Config
 
             try
             {
-                OnThisConfigurationChanged?.SafeInvoke(new ConfigurationChangedEvent(this, key, label));
+                OnThisConfigurationChanged?.SafeInvoke(new ConfigChangedEvent(this, key, label));
             }
             catch (Exception e)
             {
@@ -561,7 +508,7 @@ namespace MonkeyLoader.Config
             };
 
             JObject valueMap = new();
-            foreach (ModConfigKey key in ConfigurationItemDefinitions)
+            foreach (ConfigKey key in ConfigurationItemDefinitions)
             {
                 if (key.TryGetValue(out object? value))
                 {
@@ -594,18 +541,18 @@ namespace MonkeyLoader.Config
         /// <summary>
         /// Called if any config value for any mod changed.
         /// </summary>
-        public static event ConfigurationChangedEventHandler? OnAnyConfigurationChanged;
+        public static event ConfigChangedEventHandler? OnAnyConfigurationChanged;
 
         /// <summary>
         /// The delegate that is called for configuration change events.
         /// </summary>
-        /// <param name="configurationChangedEvent">The event containing details about the configuration change</param>
-        public delegate void ConfigurationChangedEventHandler(ConfigurationChangedEvent configurationChangedEvent);
+        /// <param name="ConfigChangedEvent">The event containing details about the configuration change</param>
+        public delegate void ConfigChangedEventHandler(ConfigChangedEvent ConfigChangedEvent);
 
         /// <summary>
         /// Called if one of the values in this mod's config changed.
         /// </summary>
-        public event ConfigurationChangedEventHandler? OnThisConfigurationChanged;
+        public event ConfigChangedEventHandler? OnThisConfigurationChanged;
     }
 
     /// <summary>
@@ -616,13 +563,13 @@ namespace MonkeyLoader.Config
         internal bool AutoSave;
 
         // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
-        private Dictionary<ModConfigKey, ModConfigKey> configurationItemDefinitionsSelfMap;
+        private Dictionary<ConfigKey, ConfigKey> configurationItemDefinitionsSelfMap;
 
         /// <inheritdoc/>
-        public ISet<ModConfigKey> ConfigurationItemDefinitions
+        public ISet<ConfigKey> ConfigurationItemDefinitions
         {
             // clone the collection because I don't trust giving public API users shallow copies one bit
-            get => new HashSet<ModConfigKey>(configurationItemDefinitionsSelfMap.Keys);
+            get => new HashSet<ConfigKey>(configurationItemDefinitionsSelfMap.Keys);
         }
 
         /// <inheritdoc/>
@@ -631,21 +578,21 @@ namespace MonkeyLoader.Config
         /// <inheritdoc/>
         public Version Version { get; private set; }
 
-        internal ModConfigurationDefinition(ResoniteModBase owner, Version version, HashSet<ModConfigKey> configurationItemDefinitions, bool autoSave)
+        internal ModConfigurationDefinition(ResoniteModBase owner, Version version, HashSet<ConfigKey> configurationItemDefinitions, bool autoSave)
         {
             Owner = owner;
             Version = version;
             AutoSave = autoSave;
 
-            configurationItemDefinitionsSelfMap = new Dictionary<ModConfigKey, ModConfigKey>(configurationItemDefinitions.Count);
-            foreach (ModConfigKey key in configurationItemDefinitions)
+            configurationItemDefinitionsSelfMap = new Dictionary<ConfigKey, ConfigKey>(configurationItemDefinitions.Count);
+            foreach (ConfigKey key in configurationItemDefinitions)
             {
                 key.DefiningKey = key; // early init this property for the defining key itself
                 configurationItemDefinitionsSelfMap.Add(key, key);
             }
         }
 
-        internal bool TryGetDefiningKey(ModConfigKey key, out ModConfigKey? definingKey)
+        internal bool TryGetDefiningKey(ConfigKey key, out ConfigKey? definingKey)
         {
             if (key.DefiningKey != null)
             {

@@ -1,16 +1,15 @@
-﻿using MonkeyLoader.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader
+namespace MonkeyLoader.Logging
 {
     /// <summary>
     /// Contains the logging functionality mods and patchers can use to log messages to game-specific channels.
     /// </summary>
-    public class MonkeyLogger
+    public sealed class MonkeyLogger
     {
         /// <summary>
         /// Gets or sets the <see cref="ILoggingHandler"/> used to send logging requests to the game-specific channels.

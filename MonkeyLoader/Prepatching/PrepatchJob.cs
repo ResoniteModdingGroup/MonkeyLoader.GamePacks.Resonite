@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿using MonkeyLoader.Logging;
+using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.IO;

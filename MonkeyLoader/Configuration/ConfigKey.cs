@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace MonkeyLoader.Config
+namespace MonkeyLoader.Configuration
 {
     /// <summary>
     /// Represents an untyped mod configuration key.
     /// </summary>
-    public abstract class ModConfigKey
+    public abstract class ConfigKey
     {
         /// <summary>
         /// Each configuration item has exactly ONE defining key, and that is the key defined by the mod.
@@ -17,7 +17,7 @@ namespace MonkeyLoader.Config
         /// <para/>
         /// This is a non-null self-reference for the defining key itself as soon as the definition is done initializing.
         /// </summary>
-        internal ModConfigKey? DefiningKey;
+        internal ConfigKey? DefiningKey;
 
         internal bool HasValue;
 
@@ -38,7 +38,7 @@ namespace MonkeyLoader.Config
         /// </summary>
         public string Name { get; private set; }
 
-        internal ModConfigKey(string name, string? description, bool internalAccessOnly)
+        internal ConfigKey(string name, string? description, bool internalAccessOnly)
         {
             Name = name ?? throw new ArgumentNullException("Configuration key name must not be null");
             Description = description;
@@ -53,7 +53,7 @@ namespace MonkeyLoader.Config
         /// <returns><c>true</c> if the other object is equal to this.</returns>
         public override bool Equals(object obj)
         {
-            return obj is ModConfigKey key &&
+            return obj is ConfigKey key &&
                    Name == key.Name;
         }
 
@@ -115,21 +115,21 @@ namespace MonkeyLoader.Config
     /// Represents a typed mod configuration key.
     /// </summary>
     /// <typeparam name="T">The type of this key's value.</typeparam>
-    public class ModConfigKey<T> : ModConfigKey
+    public class ConfigKey<T> : ConfigKey
     {
         private readonly Func<T>? ComputeDefault;
 
         private readonly Predicate<T?>? IsValueValid;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ModConfigKey{T}"/> class with the given parameters.
+        /// Creates a new instance of the <see cref="ConfigKey{T}"/> class with the given parameters.
         /// </summary>
         /// <param name="name">The mod-unique name of this config item.</param>
         /// <param name="description">The human-readable description of this config item.</param>
         /// <param name="computeDefault">The function that computes a default value for this key. Otherwise <c>default(<typeparamref name="T"/>)</c> will be used.</param>
         /// <param name="internalAccessOnly">If <c>true</c>, only the owning mod should have access to this config item.</param>
         /// <param name="valueValidator">The function that checks if the given value is valid for this configuration item. Otherwise everything will be accepted.</param>
-        public ModConfigKey(string name, string? description = null, Func<T>? computeDefault = null, bool internalAccessOnly = false, Predicate<T?>? valueValidator = null) : base(name, description, internalAccessOnly)
+        public ConfigKey(string name, string? description = null, Func<T>? computeDefault = null, bool internalAccessOnly = false, Predicate<T?>? valueValidator = null) : base(name, description, internalAccessOnly)
         {
             ComputeDefault = computeDefault;
             IsValueValid = valueValidator;
