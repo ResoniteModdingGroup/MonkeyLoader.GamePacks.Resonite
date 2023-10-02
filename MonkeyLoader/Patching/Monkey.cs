@@ -1,8 +1,8 @@
 ﻿using MonkeyLoader.Logging;
 
-namespace MonkeyLoader
+namespace MonkeyLoader.Patching
 {
-    public sealed class Monkey
+    public abstract class Monkey
     {
         /// <summary>
         /// Gets the <see cref="MonkeyLogger"/> that this pre-patcher can use to log messages to game-specific channels.

@@ -1,6 +1,7 @@
 // Adapted from the NeosModLoader project.
 
 using HarmonyLib;
+using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +27,7 @@ namespace MonkeyLoader.Configuration
         // The naughty list is global, while the actual debouncing is per-configuration.
         private static ISet<string> naughtySavers = new HashSet<string>();
 
-        private readonly ModConfigurationDefinition Definition;
+        private readonly ConfigurationDefinition Definition;
 
         // time that save must not be called for a save to actually go through
         private int debounceMilliseconds = 3000;
@@ -41,7 +42,7 @@ namespace MonkeyLoader.Configuration
         public ISet<ConfigKey> ConfigurationItemDefinitions => Definition.ConfigurationItemDefinitions;
 
         /// <inheritdoc/>
-        public ResoniteModBase Owner => Definition.Owner;
+        public Mod Owner => Definition.Owner;
 
         /// <inheritdoc/>
         public Version Version => Definition.Version;
@@ -49,7 +50,7 @@ namespace MonkeyLoader.Configuration
         internal LoadedResoniteMod LoadedResoniteMod { get; private set; }
         private bool AutoSave => Definition.AutoSave;
 
-        private Config(LoadedResoniteMod loadedResoniteMod, ModConfigurationDefinition definition)
+        private Config(LoadedResoniteMod loadedResoniteMod, ConfigurationDefinition definition)
         {
             LoadedResoniteMod = loadedResoniteMod;
             Definition = definition;
@@ -279,7 +280,7 @@ namespace MonkeyLoader.Configuration
 
         internal static Config? LoadConfigForMod(LoadedResoniteMod mod)
         {
-            ModConfigurationDefinition? definition = mod.ResoniteMod.BuildConfigurationDefinition();
+            ConfigurationDefinition? definition = mod.ResoniteMod.BuildConfigurationDefinition();
             if (definition == null)
             {
                 // if there's no definition, then there's nothing for us to do here
@@ -310,7 +311,7 @@ namespace MonkeyLoader.Configuration
                         case IncompatibleConfigHandling.Error: // fall through to default
                         default:
                             mod.AllowSavingConfiguration = false;
-                            throw new ModConfigurationException($"{mod.ResoniteMod.Name} saved config version is {version} which is incompatible with mod's definition version {definition.Version}");
+                            throw new ConfigLoadException($"{mod.ResoniteMod.Name} saved config version is {version} which is incompatible with mod's definition version {definition.Version}");
                     }
                 }
                 foreach (ConfigKey key in definition.ConfigurationItemDefinitions)
@@ -329,7 +330,7 @@ namespace MonkeyLoader.Configuration
                     {
                         // I know not what exceptions the JSON library will throw, but they must be contained
                         mod.AllowSavingConfiguration = false;
-                        throw new ModConfigurationException($"Error loading {key.ValueType()} config key \"{keyName}\" for {mod.ResoniteMod.Name}", e);
+                        throw new ConfigLoadException($"Error loading {key.ValueType()} config key \"{keyName}\" for {mod.ResoniteMod.Name}", e);
                     }
                 }
             }
@@ -342,7 +343,7 @@ namespace MonkeyLoader.Configuration
             {
                 // I know not what exceptions the JSON library will throw, but they must be contained
                 mod.AllowSavingConfiguration = false;
-                throw new ModConfigurationException($"Error loading config for {mod.ResoniteMod.Name}", e);
+                throw new ConfigLoadException($"Error loading config for {mod.ResoniteMod.Name}", e);
             }
 
             return new Config(mod, definition);
@@ -553,81 +554,5 @@ namespace MonkeyLoader.Configuration
         /// Called if one of the values in this mod's config changed.
         /// </summary>
         public event ConfigChangedEventHandler? OnThisConfigurationChanged;
-    }
-
-    /// <summary>
-    /// Defines a mod configuration. This should be defined by a <see cref="ResoniteMod"/> using the <see cref="ResoniteMod.DefineConfiguration(ModConfigurationDefinitionBuilder)"/> method.
-    /// </summary>
-    public class ModConfigurationDefinition : IModConfigurationDefinition
-    {
-        internal bool AutoSave;
-
-        // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
-        private Dictionary<ConfigKey, ConfigKey> configurationItemDefinitionsSelfMap;
-
-        /// <inheritdoc/>
-        public ISet<ConfigKey> ConfigurationItemDefinitions
-        {
-            // clone the collection because I don't trust giving public API users shallow copies one bit
-            get => new HashSet<ConfigKey>(configurationItemDefinitionsSelfMap.Keys);
-        }
-
-        /// <inheritdoc/>
-        public ResoniteModBase Owner { get; private set; }
-
-        /// <inheritdoc/>
-        public Version Version { get; private set; }
-
-        internal ModConfigurationDefinition(ResoniteModBase owner, Version version, HashSet<ConfigKey> configurationItemDefinitions, bool autoSave)
-        {
-            Owner = owner;
-            Version = version;
-            AutoSave = autoSave;
-
-            configurationItemDefinitionsSelfMap = new Dictionary<ConfigKey, ConfigKey>(configurationItemDefinitions.Count);
-            foreach (ConfigKey key in configurationItemDefinitions)
-            {
-                key.DefiningKey = key; // early init this property for the defining key itself
-                configurationItemDefinitionsSelfMap.Add(key, key);
-            }
-        }
-
-        internal bool TryGetDefiningKey(ConfigKey key, out ConfigKey? definingKey)
-        {
-            if (key.DefiningKey != null)
-            {
-                // we've already cached the defining key
-                definingKey = key.DefiningKey;
-                return true;
-            }
-
-            // first time we've seen this key instance: we need to hit the map
-            if (configurationItemDefinitionsSelfMap.TryGetValue(key, out definingKey))
-            {
-                // initialize the cache for this key
-                key.DefiningKey = definingKey;
-                return true;
-            }
-            else
-            {
-                // not a real key
-                definingKey = null;
-                return false;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Represents an <see cref="Exception"/> encountered while loading a mod's configuration file.
-    /// </summary>
-    public class ModConfigurationException : Exception
-    {
-        internal ModConfigurationException(string message) : base(message)
-        {
-        }
-
-        internal ModConfigurationException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
     }
 }

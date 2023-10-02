@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using System;
 using System.Collections.Generic;

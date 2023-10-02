@@ -1,5 +1,6 @@
 ﻿using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Prepatching;
 using Mono.Cecil;
 using System;
@@ -14,7 +15,7 @@ namespace MonkeyLoader
     {
         public ConfigManager ConfigManager { get; private set; }
         public bool HasLoadedMods { get; private set; }
-        public LocationConfiguration Locations { get; private set; }
+        public LocationConfigSection Locations { get; private set; }
         public MonkeyLogger Logger { get; private set; }
         //public IEnumerable<Monkey> Mods
         //{
