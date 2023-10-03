@@ -1,8 +1,11 @@
 ﻿using MonkeyLoader.Configuration;
+using MonkeyLoader.Logging;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
+using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,13 +13,41 @@ using Zio;
 
 namespace MonkeyLoader.Meta
 {
+    /// <summary>
+    /// Contains all the metadata and references to loaded patchers from a mod file.
+    /// </summary>
     public sealed class Mod
     {
+        private readonly HashSet<string> authors;
         private readonly List<EarlyMonkey> earlyMonkeys = new();
         private readonly List<Monkey> monkeys = new();
+        private readonly HashSet<string> tags;
+
+        /// <summary>
+        /// Gets the names of the authors of this mod.
+        /// </summary>
+        public IEnumerable<string> Authors
+        {
+            get
+            {
+                foreach (var author in Authors)
+                    yield return author;
+            }
+        }
+
+        /// <summary>
+        /// Gets the config to be used by this mod.
+        /// </summary>
         public Config Config { get; }
+
+        /// <summary>
+        /// Gets the description of this mod.
+        /// </summary>
         public string Description { get; }
 
+        /// <summary>
+        /// Gets the available <see cref="EarlyMonkey"/>s of this mod.
+        /// </summary>
         public IEnumerable<EarlyMonkey> EarlyMonkeys
         {
             get
@@ -26,8 +57,41 @@ namespace MonkeyLoader.Meta
             }
         }
 
+        /// <summary>
+        /// Gets the readonly file system of this mod's file.
+        /// </summary>
         public IFileSystem FileSystem { get; }
 
+        /// <summary>
+        /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
+        /// <c>null</c> if it wasn't given or doesn't exist.
+        /// </summary>
+        public UPath? IconPath { get; }
+
+        /// <summary>
+        /// Gets the Url to the mod's icon on the web.<br/>
+        /// <c>null</c> if it wasn't given or was invalid.
+        /// </summary>
+        public Uri? IconUrl { get; }
+
+        /// <summary>
+        /// Gets the unique identifier of this mod.
+        /// </summary>
+        public string Id { get; }
+
+        /// <summary>
+        /// Gets the absolute file path to this mod's file.
+        /// </summary>
+        public string Location { get; }
+
+        /// <summary>
+        /// Gets the logger to be used by this mod.
+        /// </summary>
+        public MonkeyLogger Logger { get; }
+
+        /// <summary>
+        /// Gets the available <see cref="Monkey"/>s of this mod.
+        /// </summary>
         public IEnumerable<Monkey> Monkeys
         {
             get
@@ -37,7 +101,104 @@ namespace MonkeyLoader.Meta
             }
         }
 
-        public string Name { get; }
+        /// <summary>
+        /// Gets the Url to this mod's project website.<br/>
+        /// <c>null</c> if it wasn't given or was invalid.
+        /// </summary>
+        public Uri? ProjectUrl { get; }
+
+        /// <summary>
+        /// Gets the release notes for this mod's version.
+        /// </summary>
+        public string ReleaseNotes { get; }
+
+        /// <summary>
+        /// Gets the tags of this mod.
+        /// </summary>
+        public IEnumerable<string> Tags
+        {
+            get
+            {
+                foreach (var tag in tags)
+                    yield return tag;
+            }
+        }
+
+        /// <summary>
+        /// Gets the nice identifier of this mod.
+        /// </summary>
+        public string Title { get; }
+
+        /// <summary>
+        /// Gets this mod's version.
+        /// </summary>
         public Version Version { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="Mod"/> instance with the given <paramref name="logger"/> and <paramref name="fileSystem"/> for the <paramref name="location"/>.<br/>
+        /// The metadata gets loaded from a <c>.nuspec</c> file, which must be at the root of the file system.
+        /// </summary>
+        /// <param name="logger">The logger to be used by the mod.</param>
+        /// <param name="location">The absolute file path to the mod's file.</param>
+        /// <param name="fileSystem">The file system of the mod's file.</param>
+        /// <exception cref="FileNotFoundException">When there's no <c>.nuspec</c> file at the root of the file system.</exception>
+        public Mod(MonkeyLogger logger, string location, IFileSystem fileSystem)
+        {
+            Logger = logger;
+            Location = location;
+            FileSystem = fileSystem;
+            Config = new Config(this);
+
+            if (!(fileSystem.EnumerateFiles("", "*.nuspec").SingleOrDefault() is UPath nuspecPath))
+                throw new FileNotFoundException("Couldn't find required .nuspec file at the root of the mod's file system.", location);
+
+            using var nuspecStream = fileSystem.OpenFile(nuspecPath, FileMode.Open, FileAccess.Read);
+            var nuspecReader = new NuspecReader(nuspecStream);
+
+            Id = nuspecReader.GetId();
+            Title = nuspecReader.GetTitle();
+            Version = nuspecReader.GetVersion().Version;
+            Description = nuspecReader.GetDescription();
+            ReleaseNotes = nuspecReader.GetReleaseNotes();
+
+            var iconPath = nuspecReader.GetIcon();
+            if (fileSystem.FileExists(iconPath))
+                IconPath = iconPath;
+            else if (!string.IsNullOrWhiteSpace(iconPath))
+                logger.Warn(() => $"Icon Path [{iconPath}] is set but the file doesn't exist for mod: {location}");
+
+            var iconUrl = nuspecReader.GetIconUrl();
+            if (Uri.TryCreate(iconUrl, UriKind.RelativeOrAbsolute, out var iconUri))
+                IconUrl = iconUri;
+            else if (!string.IsNullOrWhiteSpace(iconUrl))
+                logger.Warn(() => $"Icon Url [{iconUrl}] is set but is invalid for mod: {location}");
+
+            var projectUrl = nuspecReader.GetProjectUrl();
+            if (Uri.TryCreate(projectUrl, UriKind.RelativeOrAbsolute, out var projectUri))
+                ProjectUrl = projectUri;
+            else if (!string.IsNullOrWhiteSpace(projectUrl))
+                logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
+
+            tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+        }
+
+        /// <summary>
+        /// Efficiently checks, whether a given name is listed as an author for this mod.
+        /// </summary>
+        /// <param name="author">The name to check for.</param>
+        /// <returns><c>true</c> if the given name is listed as an author for this mod.</returns>
+        public bool HasAuthor(string author) => authors.Contains(author);
+
+        /// <summary>
+        /// Efficiently checks, whether a given tag is listed for this mod.
+        /// </summary>
+        /// <param name="tag">The tag to check for.</param>
+        /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
+        public bool HasTag(string tag) => tags.Contains(tag);
+
+        internal void LoadMonkeys()
+        {
+        }
     }
 }
