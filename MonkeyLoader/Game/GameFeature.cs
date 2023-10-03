@@ -6,12 +6,19 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Game
 {
+    /// <summary>
+    /// Base type for all feature definitions.
+    /// </summary>
     public abstract class GameFeature
     {
+        /// <summary>
+        /// Gets the description of the feature.
+        /// </summary>
         public abstract string Description { get; }
-        public abstract string Name { get; }
 
-        protected GameFeature()
-        { }
+        /// <summary>
+        /// Gets the name of the feature.
+        /// </summary>
+        public abstract string Name { get; }
     }
 }
