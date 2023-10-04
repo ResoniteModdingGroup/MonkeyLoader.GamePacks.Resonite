@@ -52,6 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" />
     <ProjectReference Include="..\MonkeyLoader\MonkeyLoader.csproj" />
   </ItemGroup>
 

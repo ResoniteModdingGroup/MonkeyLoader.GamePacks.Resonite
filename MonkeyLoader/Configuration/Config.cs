@@ -119,6 +119,10 @@ namespace MonkeyLoader.Configuration
             return false;
         }
 
+        public TSection LoadSection<TSection>() where TSection : ConfigSection
+        {
+        }
+
         /// <summary>
         /// Persist this configuration to disk.<br/>
         /// This method is not called automatically.<br/>

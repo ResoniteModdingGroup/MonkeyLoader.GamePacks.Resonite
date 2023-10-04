@@ -1,4 +1,5 @@
-﻿using MonkeyLoader.Configuration;
+﻿using HarmonyLib;
+using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
@@ -36,7 +37,7 @@ namespace MonkeyLoader.Meta
         }
 
         /// <summary>
-        /// Gets the config to be used by this mod.
+        /// Gets the config that this mod's (pre-)patcher(s) can use to load <see cref="ConfigSection"/>s.
         /// </summary>
         public Config Config { get; }
 
@@ -63,6 +64,11 @@ namespace MonkeyLoader.Meta
         public IFileSystem FileSystem { get; }
 
         /// <summary>
+        /// Gets the <see cref="HarmonyLib.Harmony"/> instance to be used by this mod's (pre-)patcher(s).
+        /// </summary>
+        public Harmony Harmony { get; }
+
+        /// <summary>
         /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
         /// <c>null</c> if it wasn't given or doesn't exist.
         /// </summary>
@@ -87,7 +93,12 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the logger to be used by this mod.
         /// </summary>
-        public MonkeyLogger Logger { get; }
+        public MonkeyLogger Logger => MonkeyLoader.Logger;
+
+        /// <summary>
+        /// Gets the <see cref="T:MonkeyLoader.MonkeyLoader"/> instance that loaded this mod.
+        /// </summary>
+        public MonkeyLoader MonkeyLoader { get; }
 
         /// <summary>
         /// Gets the available <see cref="Monkey"/>s of this mod.
@@ -135,16 +146,17 @@ namespace MonkeyLoader.Meta
         public Version Version { get; }
 
         /// <summary>
-        /// Creates a new <see cref="Mod"/> instance with the given <paramref name="logger"/> and <paramref name="fileSystem"/> for the <paramref name="location"/>.<br/>
+        /// Creates a new <see cref="Mod"/> instance with the given <paramref name="monkeyLoader"/> and <paramref name="fileSystem"/> for the <paramref name="location"/>.<br/>
         /// The metadata gets loaded from a <c>.nuspec</c> file, which must be at the root of the file system.
         /// </summary>
-        /// <param name="logger">The logger to be used by the mod.</param>
+        /// <param name="monkeyLoader">The loader instance that loaded this mod.</param>
         /// <param name="location">The absolute file path to the mod's file.</param>
         /// <param name="fileSystem">The file system of the mod's file.</param>
         /// <exception cref="FileNotFoundException">When there's no <c>.nuspec</c> file at the root of the file system.</exception>
-        public Mod(MonkeyLogger logger, string location, IFileSystem fileSystem)
+        public Mod(MonkeyLoader monkeyLoader, string location, IFileSystem fileSystem)
         {
-            Logger = logger;
+            MonkeyLoader = monkeyLoader;
+
             Location = location;
             FileSystem = fileSystem;
             Config = new Config(this);
@@ -181,6 +193,8 @@ namespace MonkeyLoader.Meta
 
             tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+
+            Harmony = new Harmony(Id);
         }
 
         /// <summary>
@@ -196,9 +210,5 @@ namespace MonkeyLoader.Meta
         /// <param name="tag">The tag to check for.</param>
         /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
         public bool HasTag(string tag) => tags.Contains(tag);
-
-        internal void LoadMonkeys()
-        {
-        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using MonkeyLoader.Logging;
+﻿using MonkeyLoader.Configuration;
+using MonkeyLoader.Logging;
+using MonkeyLoader.Meta;
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
@@ -9,8 +11,9 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Prepatching
 {
     /// <summary>
-    /// Base class for any pre-patchers. Must have a parameterless constructor.
-    /// Relevant methods must be overridden by the deriving class and decorated with attributes.
+    /// Represents the base class for pre-patchers that modify a game's assemblies in memory before they get loaded.<br/>
+    /// Game assemblies and their types must not be directly referenced from these.<br/>
+    /// Must have a parameterless constructor. Relevant methods must be overridden by the deriving class and decorated with attributes.
     /// </summary>
     /// <remarks>
     /// For <see cref="PatchAssembly">PatchAssembly</see> this is <see cref="TargetAssemblyAttribute">TargetAssembly</see> attributes,
@@ -22,9 +25,19 @@ namespace MonkeyLoader.Prepatching
     public abstract class EarlyMonkey
     {
         /// <summary>
+        /// Gets the <see cref="Configuration.Config"/> that this pre-patcher can use to load <see cref="ConfigSection"/>s.
+        /// </summary>
+        public Config Config => Mod.Config;
+
+        /// <summary>
         /// Gets the <see cref="MonkeyLogger"/> that this pre-patcher can use to log messages to game-specific channels.
         /// </summary>
-        public MonkeyLogger Logger { get; internal set; }
+        public MonkeyLogger Logger => Mod.Logger;
+
+        /// <summary>
+        /// Gets the mod that this pre-patcher is a part of.
+        /// </summary>
+        public Mod Mod { get; internal set; }
 
         /// <summary>
         /// Gets the full name of this pre-patcher's <see cref="Type"/>.

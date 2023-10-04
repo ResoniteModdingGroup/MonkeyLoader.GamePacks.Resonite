@@ -1,6 +1,7 @@
 ﻿using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
+using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using Mono.Cecil;
 using NuGet.Packaging;
@@ -19,18 +20,24 @@ namespace MonkeyLoader
 {
     public sealed class MonkeyLoader
     {
+        private readonly HashSet<Mod> mods;
+
         public ConfigManager ConfigManager { get; private set; }
+        public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
         public bool HasLoadedMods { get; private set; }
         public LocationConfigSection Locations { get; private set; }
         public MonkeyLogger Logger { get; private set; }
-        //public IEnumerable<Monkey> Mods
-        //{
-        //    get
-        //    {
-        //        foreach (var mod in mods)
-        //            yield return mod;
-        //    }
-        //}
+
+        public IEnumerable<Mod> Mods
+        {
+            get
+            {
+                foreach (var mod in mods)
+                    yield return mod;
+            }
+        }
+
+        public IEnumerable<Monkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
 
         public MonkeyLoader(LocationConfiguration? locations = null)
         {

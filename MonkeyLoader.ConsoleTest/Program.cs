@@ -4,7 +4,7 @@ using System;
 
 namespace MonkeyLoader.ConsoleTest
 {
-    [FeaturePatch<TestFeature>((PatchSeverity)0)]
+    [FeaturePatch<TestFeature>((PatchCompatibility)0)]
     internal class Program
     {
         private static void Main(string[] args)

@@ -17,14 +17,14 @@ namespace MonkeyLoader.Patching
         /// <summary>
         /// Gets how severely the feature is affected by the patch.
         /// </summary>
-        public PatchSeverity PatchSeverity { get; }
+        public PatchCompatibility PatchSeverity { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FeaturePatchAttribute{TFeature}"/> attribute
-        /// with the given <see cref="Patching.PatchSeverity"/>.
+        /// with the given <see cref="Patching.PatchCompatibility"/>.
         /// </summary>
         /// <param name="patchSeverity">How severely the feature is affected by the patch.</param>
-        public FeaturePatchAttribute(PatchSeverity patchSeverity)
+        public FeaturePatchAttribute(PatchCompatibility patchSeverity)
         {
             PatchSeverity = patchSeverity;
         }
