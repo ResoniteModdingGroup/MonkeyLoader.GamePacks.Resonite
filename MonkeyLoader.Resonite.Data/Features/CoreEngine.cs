@@ -10,7 +10,7 @@ namespace MonkeyLoader.Resonite.Features
     /// <summary>
     /// Anything affecting the core Engine class.
     /// </summary>
-    public class Engine : GameFeature
+    public class CoreEngine : GameFeature
     {
         /// <inheritdoc/>
         public override string Description { get; } = "Anything affecting the core Engine class.";
@@ -22,7 +22,7 @@ namespace MonkeyLoader.Resonite.Features
     /// <summary>
     /// The Engine's initialization process.
     /// </summary>
-    public class EngineInitialization : Engine
+    public class EngineInitialization : CoreEngine
     {
         /// <inheritdoc/>
         public override string Description { get; } = "The Engine's initialization process.";

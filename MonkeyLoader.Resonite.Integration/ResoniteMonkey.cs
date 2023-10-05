@@ -15,18 +15,49 @@ namespace MonkeyLoader.Resonite
     /// Game assemblies and their types can be directly referenced from these.<br/>
     /// Contains useful overridable methods that are hooked to different points in the game's lifecycle.
     /// </remarks>
-    public abstract class ResoniteMonkey : Monkey
+    public abstract class ResoniteMonkey<TMonkey> : Monkey<TMonkey>, IResoniteMonkey
+        where TMonkey : ResoniteMonkey<TMonkey>, new()
     {
+        void IResoniteMonkey.OnEngineReady() => OnEngineReady();
+
+        void IResoniteMonkey.OnEngineShutdown(string reason) => OnEngineShutdown(reason);
+
+        void IResoniteMonkey.OnEngineShutdownRequested() => OnEngineShutdownRequested();
+
         /// <summary>
-        /// Called right after <see cref="Engine"/>.<see cref="Engine.Initialize">Initialize</see> is done.
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
         /// </summary>
-        protected internal virtual void OnEngineInitialized()
+        protected internal virtual void OnEngineReady()
         { }
 
         /// <summary>
-        /// Called when the <see cref="Engine"/> is shutting down.
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
         /// </summary>
-        protected internal virtual void OnEngineShutdown()
+        protected internal virtual void OnEngineShutdown(string reason)
         { }
+
+        /// <summary>
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
+        /// </summary>
+        protected internal virtual void OnEngineShutdownRequested()
+        { }
+    }
+
+    internal interface IResoniteMonkey
+    {
+        /// <summary>
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
+        /// </summary>
+        void OnEngineReady();
+
+        /// <summary>
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
+        /// </summary>
+        void OnEngineShutdown(string reason);
+
+        /// <summary>
+        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
+        /// </summary>
+        void OnEngineShutdownRequested();
     }
 }

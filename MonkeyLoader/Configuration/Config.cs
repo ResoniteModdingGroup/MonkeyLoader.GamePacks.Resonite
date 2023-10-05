@@ -483,7 +483,7 @@ namespace MonkeyLoader.Configuration
         {
             try
             {
-                OnAnyConfigurationChanged?.SafeInvoke(new ConfigChangedEvent(this, key, label));
+                OnAnyConfigurationChanged?.TryInvokeAll(new ConfigChangedEvent(this, key, label));
             }
             catch (Exception e)
             {
@@ -492,7 +492,7 @@ namespace MonkeyLoader.Configuration
 
             try
             {
-                OnThisConfigurationChanged?.SafeInvoke(new ConfigChangedEvent(this, key, label));
+                OnThisConfigurationChanged?.TryInvokeAll(new ConfigChangedEvent(this, key, label));
             }
             catch (Exception e)
             {
