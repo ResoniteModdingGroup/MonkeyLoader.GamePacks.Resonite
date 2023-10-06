@@ -86,6 +86,11 @@ namespace MonkeyLoader.Meta
         public string Id { get; }
 
         /// <summary>
+        /// Gets the <see cref="MonkeyLoader"/> instance that loaded this mod.
+        /// </summary>
+        public MonkeyLoader Loader { get; }
+
+        /// <summary>
         /// Gets the absolute file path to this mod's file.
         /// </summary>
         public string Location { get; }
@@ -93,12 +98,11 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the logger to be used by this mod.
         /// </summary>
-        public MonkeyLogger Logger => MonkeyLoader.Logger;
-
-        /// <summary>
-        /// Gets the <see cref="T:MonkeyLoader.MonkeyLoader"/> instance that loaded this mod.
-        /// </summary>
-        public MonkeyLoader MonkeyLoader { get; }
+        /// <remarks>
+        /// Every mod instance has its own logger and can thus have a different <see cref="LoggingLevel"/>.<br/>
+        /// They do all share the <see cref="Loader">Loader's</see> <see cref="MonkeyLoader.LoggingHandler">LoggingHandler</see> though.
+        /// </remarks>
+        public MonkeyLogger Logger { get; }
 
         /// <summary>
         /// Gets the available <see cref="Monkey"/>s of this mod.
@@ -155,19 +159,21 @@ namespace MonkeyLoader.Meta
         /// <exception cref="FileNotFoundException">When there's no <c>.nuspec</c> file at the root of the file system.</exception>
         public Mod(MonkeyLoader monkeyLoader, string location, IFileSystem fileSystem)
         {
-            MonkeyLoader = monkeyLoader;
-
-            Location = location;
-            FileSystem = fileSystem;
-            Config = new Config(this);
-
             if (!(fileSystem.EnumerateFiles("", "*.nuspec").SingleOrDefault() is UPath nuspecPath))
                 throw new FileNotFoundException("Couldn't find required .nuspec file at the root of the mod's file system.", location);
 
             using var nuspecStream = fileSystem.OpenFile(nuspecPath, FileMode.Open, FileAccess.Read);
             var nuspecReader = new NuspecReader(nuspecStream);
 
+            Loader = monkeyLoader;
             Id = nuspecReader.GetId();
+            Harmony = new Harmony(Id);
+            Logger = new MonkeyLogger(monkeyLoader.Logger, Id);
+
+            Location = location;
+            FileSystem = fileSystem;
+            Config = new Config(this);
+
             Title = nuspecReader.GetTitle();
             Version = nuspecReader.GetVersion().Version;
             Description = nuspecReader.GetDescription();
@@ -177,24 +183,22 @@ namespace MonkeyLoader.Meta
             if (fileSystem.FileExists(iconPath))
                 IconPath = iconPath;
             else if (!string.IsNullOrWhiteSpace(iconPath))
-                logger.Warn(() => $"Icon Path [{iconPath}] is set but the file doesn't exist for mod: {location}");
+                Logger.Warn(() => $"Icon Path [{iconPath}] is set but the file doesn't exist for mod: {location}");
 
             var iconUrl = nuspecReader.GetIconUrl();
-            if (Uri.TryCreate(iconUrl, UriKind.RelativeOrAbsolute, out var iconUri))
+            if (Uri.TryCreate(iconUrl, UriKind.Absolute, out var iconUri))
                 IconUrl = iconUri;
             else if (!string.IsNullOrWhiteSpace(iconUrl))
-                logger.Warn(() => $"Icon Url [{iconUrl}] is set but is invalid for mod: {location}");
+                Logger.Warn(() => $"Icon Url [{iconUrl}] is set but is invalid for mod: {location}");
 
             var projectUrl = nuspecReader.GetProjectUrl();
-            if (Uri.TryCreate(projectUrl, UriKind.RelativeOrAbsolute, out var projectUri))
+            if (Uri.TryCreate(projectUrl, UriKind.Absolute, out var projectUri))
                 ProjectUrl = projectUri;
             else if (!string.IsNullOrWhiteSpace(projectUrl))
-                logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
+                Logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
 
             tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
-
-            Harmony = new Harmony(Id);
         }
 
         /// <summary>

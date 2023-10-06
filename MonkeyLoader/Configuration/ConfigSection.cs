@@ -26,6 +26,12 @@ namespace MonkeyLoader.Configuration
         public abstract string Name { get; }
 
         /// <summary>
+        /// Gets the semantic version for this config section.<br/>
+        /// This is used to check if the defined and saved configs are compatible.
+        /// </summary>
+        public abstract Version Version { get; }
+
+        /// <summary>
         /// Gets all <see cref="ConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
         /// </summary>
         /// <remarks>

@@ -5,6 +5,7 @@ using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +17,7 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// The configuration for a mod. Each mod has zero or one configuration. The configuration object will never be reassigned once initialized.
     /// </summary>
-    public class Config : IConfigDefinition
+    public sealed class Config
     {
         private static readonly string VALUES_JSON_KEY = "values";
         private static readonly string VERSION_JSON_KEY = "version";
@@ -27,7 +28,8 @@ namespace MonkeyLoader.Configuration
         // The naughty list is global, while the actual debouncing is per-configuration.
         private static ISet<string> naughtySavers = new HashSet<string>();
 
-        private readonly ConfigurationDefinition Definition;
+        // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
+        private readonly Dictionary<ConfigKey, ConfigKey> configurationItemDefinitionsSelfMap = new();
 
         // time that save must not be called for a save to actually go through
         private int debounceMilliseconds = 3000;
@@ -38,23 +40,19 @@ namespace MonkeyLoader.Configuration
         // used to track how frequenly Save() is being called
         private Stopwatch saveTimer = new Stopwatch();
 
-        /// <inheritdoc/>
-        public ISet<ConfigKey> ConfigurationItemDefinitions => Definition.ConfigurationItemDefinitions;
+        /// <summary>
+        /// Gets the set of configuration keys defined in this configuration definition.
+        /// </summary>
+        // clone the collection because I don't trust giving public API users shallow copies one bit
+        public ISet<ConfigKey> ConfigurationItemDefinitions
+            => new HashSet<ConfigKey>(configurationItemDefinitionsSelfMap.Keys);
 
-        /// <inheritdoc/>
-        public Mod Owner => Definition.Owner;
+        /// <summary>
+        /// Gets the mod that owns this config.
+        /// </summary>
+        public Mod Mod { get; }
 
-        /// <inheritdoc/>
-        public Version Version => Definition.Version;
-
-        internal LoadedResoniteMod LoadedResoniteMod { get; private set; }
-        private bool AutoSave => Definition.AutoSave;
-
-        private Config(LoadedResoniteMod loadedResoniteMod, ConfigurationDefinition definition)
-        {
-            LoadedResoniteMod = loadedResoniteMod;
-            Definition = definition;
-        }
+        internal Config(Mod mod) => Mod = mod;
 
         /// <summary>
         /// Get a value, throwing a <see cref="KeyNotFoundException"/> if the key is not found.
@@ -64,14 +62,10 @@ namespace MonkeyLoader.Configuration
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         public object GetValue(ConfigKey key)
         {
-            if (TryGetValue(key, out object? value))
-            {
+            if (TryGetValue(key, out var value))
                 return value!;
-            }
             else
-            {
-                throw new KeyNotFoundException($"{key.Name} not found in {LoadedResoniteMod.ResoniteMod.Name} configuration");
-            }
+                throwKeyNotFound(key);
         }
 
         /// <summary>
@@ -83,14 +77,10 @@ namespace MonkeyLoader.Configuration
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         public T? GetValue<T>(ConfigKey<T> key)
         {
-            if (TryGetValue(key, out T? value))
-            {
+            if (TryGetValue(key, out var value))
                 return value;
-            }
             else
-            {
-                throw new KeyNotFoundException($"{key.Name} not found in {LoadedResoniteMod.ResoniteMod.Name} configuration");
-            }
+                throwKeyNotFound(key);
         }
 
         /// <summary>
@@ -99,25 +89,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is defined.</returns>
         public bool IsKeyDefined(ConfigKey key)
-        {
-            // if a key has a non-null defining key it's guaranteed a real key. Lets check for that.
-            ConfigKey? definingKey = key.DefiningKey;
-            if (definingKey != null)
-            {
-                return true;
-            }
-
-            // okay, the defining key was null, so lets try to get the defining key from the hashtable instead
-            if (Definition.TryGetDefiningKey(key, out definingKey))
-            {
-                // we might as well set this now that we have the real defining key
-                key.DefiningKey = definingKey;
-                return true;
-            }
-
-            // there was no definition
-            return false;
-        }
+            => TryGetDefiningKey(key, out _);
 
         public TSection LoadSection<TSection>() where TSection : ConfigSection
         {
@@ -154,10 +126,8 @@ namespace MonkeyLoader.Configuration
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
         public void Set(ConfigKey key, object? value, string? eventLabel = null)
         {
-            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
-            {
-                throw new KeyNotFoundException($"{key.Name} is not defined in the config definition for {LoadedResoniteMod.ResoniteMod.Name}");
-            }
+            if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
+                throwKeyNotFound(key);
 
             if (value == null)
             {
@@ -194,10 +164,8 @@ namespace MonkeyLoader.Configuration
         {
             // the reason we don't fall back to untyped Set() here is so we can skip the type check
 
-            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
-            {
-                throw new KeyNotFoundException($"{key.Name} is not defined in the config definition for {LoadedResoniteMod.ResoniteMod.Name}");
-            }
+            if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
+                throwKeyNotFound(key);
 
             if (!definingKey!.Validate(value))
             {
@@ -209,6 +177,36 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
+        /// Tries to get the defining key in this config for the given key.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <param name="definingKey">The defining key in this config when this returns <c>true</c>, otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the key is defined in this config.</returns>
+        public bool TryGetDefiningKey(ConfigKey key, [NotNullWhen(true)] out ConfigKey? definingKey)
+        {
+            if (key.DefiningKey != null)
+            {
+                // we've already cached the defining key
+                definingKey = key.DefiningKey;
+                return true;
+            }
+
+            // first time we've seen this key instance: we need to hit the map
+            if (configurationItemDefinitionsSelfMap.TryGetValue(key, out definingKey))
+            {
+                // initialize the cache for this key
+                key.DefiningKey = definingKey;
+                return true;
+            }
+            else
+            {
+                // not a real key
+                definingKey = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Tries to get a value, returning <c>default</c> if the key is not found.
         /// </summary>
         /// <param name="key">The key to get the value for.</param>
@@ -216,27 +214,21 @@ namespace MonkeyLoader.Configuration
         /// <returns><c>true</c> if the value was read successfully.</returns>
         public bool TryGetValue(ConfigKey key, out object? value)
         {
-            if (!Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
+            if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
             {
                 // not in definition
                 value = null;
                 return false;
             }
 
-            if (definingKey!.TryGetValue(out object? valueObject))
-            {
-                value = valueObject;
+            if (definingKey!.TryGetValue(out value))
                 return true;
-            }
-            else if (definingKey.TryComputeDefault(out value))
-            {
+
+            if (definingKey.TryComputeDefault(out value))
                 return true;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
+
+            value = null;
+            return false;
         }
 
         /// <summary>
@@ -267,14 +259,10 @@ namespace MonkeyLoader.Configuration
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         public bool Unset(ConfigKey key)
         {
-            if (Definition.TryGetDefiningKey(key, out ConfigKey? definingKey))
-            {
-                return definingKey!.Unset();
-            }
-            else
-            {
-                throw new KeyNotFoundException($"{key.Name} is not defined in the config definition for {LoadedResoniteMod.ResoniteMod.Name}");
-            }
+            if (!TryGetDefiningKey(key, out var definingKey))
+                throwKeyNotFound(key);
+
+            return definingKey.Unset();
         }
 
         internal static void EnsureDirectoryExists()
@@ -542,6 +530,9 @@ namespace MonkeyLoader.Configuration
 
             Logger.DebugFuncInternal(() => $"Saved ModConfiguration for \"{LoadedResoniteMod.ResoniteMod.Name}\" in {stopwatch.ElapsedMilliseconds}ms");
         }
+
+        private void throwKeyNotFound(ConfigKey key)
+                                                                                                                                                                    => throw new KeyNotFoundException($"Key [{key.Name}] not found in config for [{Mod.Id}]!");
 
         /// <summary>
         /// Called if any config value for any mod changed.

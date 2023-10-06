@@ -3,16 +3,16 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Patching
 {
     /// <summary>
-    /// Represents the base class for patchers that run after a game's assemblies have been loaded.
+    /// Represents the base class for patchers that run after a game's assemblies have been loaded.<br/>
+    /// All mod defined derivatives must derive from <see cref="Monkey{TMonkey}"/> or from another class derived from it.
     /// </summary>
     /// <remarks>
-    /// Game assemblies and their types can be directly referenced from these.<br/>
-    /// Game tooling packs should expand this with useful overridable methods
-    /// that are hooked to different points in the game's lifecycle.
+    /// Game assemblies and their types can be directly referenced from these.
     /// </remarks>
     public abstract class Monkey
     {
@@ -46,7 +46,14 @@ namespace MonkeyLoader.Patching
         { }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Represents the base class for patchers that run after a game's assemblies have been loaded.<br/>
+    /// </summary>
+    /// <remarks>
+    /// Game assemblies and their types can be directly referenced from these.<br/>
+    /// Game tooling packs should expand this with useful overridable methods
+    /// that are hooked to different points in the game's lifecycle.
+    /// </remarks>
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
     public abstract class Monkey<TMonkey> : Monkey where TMonkey : Monkey<TMonkey>, new()
     {

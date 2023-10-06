@@ -23,6 +23,8 @@ namespace MonkeyLoader.Resonite
         [HarmonyPrefix]
         private static void initializePrefix()
         {
+            Mod.Loader.LoggingHandler = new ResoniteLoggingHandler();
+
             Engine.Current.OnReady += onEngineReady;
             Engine.Current.OnShutdownRequest += onEngineShutdownRequested;
             Engine.Current.OnShutdown += onEngineShutdown;
@@ -32,14 +34,14 @@ namespace MonkeyLoader.Resonite
         {
             try
             {
-                Mod.MonkeyLoader.Monkeys
+                Mod.Loader.Monkeys
                     .SelectCastable<Monkey, IResoniteMonkey>()
                     .Select(resMonkey => (Delegate)resMonkey.OnEngineReady)
                     .TryInvokeAll();
             }
             catch (AggregateException ex)
             {
-                Logger.Warn(() => $"The EngineReady hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => $"The EngineReady hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
             }
         }
 
@@ -47,29 +49,31 @@ namespace MonkeyLoader.Resonite
         {
             try
             {
-                Mod.MonkeyLoader.Monkeys
-                .SelectCastable<Monkey, IResoniteMonkey>()
-                .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdown)
-                .TryInvokeAll();
+                Mod.Loader.Monkeys
+                    .SelectCastable<Monkey, IResoniteMonkey>()
+                    .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdown)
+                    .TryInvokeAll();
             }
             catch (AggregateException ex)
             {
-                Logger.Warn(() => $"The EngineShutdown hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => $"The EngineShutdown hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
             }
+
+            Mod.Loader.Shutdown();
         }
 
         private static void onEngineShutdownRequested(string reason)
         {
             try
             {
-                Mod.MonkeyLoader.Monkeys
-                .SelectCastable<Monkey, IResoniteMonkey>()
-                .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdownRequested)
-                .TryInvokeAll(reason);
+                Mod.Loader.Monkeys
+                    .SelectCastable<Monkey, IResoniteMonkey>()
+                    .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdownRequested)
+                    .TryInvokeAll(reason);
             }
             catch (AggregateException ex)
             {
-                Logger.Warn(() => $"The EngineShutdownRequested hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => $"The EngineShutdownRequested hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
             }
         }
     }

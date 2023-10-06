@@ -12,9 +12,9 @@ namespace MonkeyLoader.Logging
     public sealed class MonkeyLogger
     {
         /// <summary>
-        /// Gets or sets the <see cref="ILoggingHandler"/> used to send logging requests to the game-specific channels.
+        /// Gets the identifier that's added to this logger's messages to determine the source.
         /// </summary>
-        public ILoggingHandler Handler { get; set; }
+        public string Identifier { get; }
 
         /// <summary>
         /// Gets or sets the current <see cref="LoggingLevel"/> used to filter requests.
@@ -22,12 +22,38 @@ namespace MonkeyLoader.Logging
         public LoggingLevel Level { get; set; }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="MonkeyLogger"/> class with the given <see cref="ILoggingHandler"/> to handle requests.
+        /// Gets the <see cref="MonkeyLoader"/> instance that this logger works for.
         /// </summary>
-        /// <param name="handler">The <see cref="ILoggingHandler"/> used to send logging requests to the game-specific channels.</param>
-        public MonkeyLogger(ILoggingHandler handler)
+        public MonkeyLoader Loader { get; }
+
+        /// <summary>
+        /// Gets the <see cref="ILoggingHandler"/> used to send logging requests to the game-specific channels.<br/>
+        /// Messages need to be queued when this is <c>null</c> and they would've been logged.
+        /// </summary>
+        private ILoggingHandler? handler => Loader.LoggingHandler;
+
+        /// <summary>
+        /// Creates a new logger instance starting with the same <see cref="Level">LoggingLevel</see>
+        /// as the given <paramref name="logger"/> instance and owned by the same <see cref="Loader">MonkeyLoader</see>.
+        /// </summary>
+        /// <param name="logger">The logger instance to copy.</param>
+        /// <param name="extraIdentifier">The extra identifier to append to the <paramref name="logger"/>'s.</param>
+        public MonkeyLogger(MonkeyLogger logger, string extraIdentifier)
         {
-            Handler = handler;
+            Level = logger.Level;
+            Loader = logger.Loader;
+            Identifier = $"{logger.Identifier}|{extraIdentifier}";
+        }
+
+        /// <summary>
+        /// Creates a new logger instance starting with <see cref="LoggingLevel.Info"/> working for the given loader.
+        /// </summary>
+        /// <param name="loader">The loader that this logger works for.</param>
+        internal MonkeyLogger(MonkeyLoader loader)
+        {
+            Loader = loader;
+            Level = LoggingLevel.Info;
+            Identifier = "MonkeyLoader";
         }
 
         /// <summary>
@@ -74,6 +100,27 @@ namespace MonkeyLoader.Logging
         /// <param name="messageProducer">The producer to log if possible.</param>
         public void Warn(Func<object> messageProducer) => logInternal(LoggingLevel.Warn, messageProducer);
 
+        internal void FlushDeferredMessages()
+        {
+            lock (Loader.DeferredMessages)
+            {
+                while (Loader.DeferredMessages.Count > 0)
+                {
+                    var deferredMessage = Loader.DeferredMessages.Dequeue();
+                    logLevelToLogger(deferredMessage.LoggingLevel)(() => deferredMessage.Message);
+                }
+            }
+        }
+
+        private Action<Func<object>> deferMessage(LoggingLevel level)
+        {
+            return (Func<object> messageProducer) =>
+            {
+                lock (Loader.DeferredMessages)
+                    Loader.DeferredMessages.Enqueue(new DeferredMessage(level, messageProducer()));
+            };
+        }
+
         private void logInternal(LoggingLevel level, Func<object> messageProducer)
         {
             if (!ShouldLog(level))
@@ -84,14 +131,17 @@ namespace MonkeyLoader.Logging
 
         private Action<Func<object>> logLevelToLogger(LoggingLevel level)
         {
+            if (handler is null)
+                return deferMessage(level);
+
             return level switch
             {
-                LoggingLevel.Fatal => Handler.Fatal,
-                LoggingLevel.Error => Handler.Error,
-                LoggingLevel.Warn => Handler.Warn,
-                LoggingLevel.Info => Handler.Info,
-                LoggingLevel.Debug => Handler.Debug,
-                LoggingLevel.Trace => Handler.Trace,
+                LoggingLevel.Fatal => handler.Fatal,
+                LoggingLevel.Error => handler.Error,
+                LoggingLevel.Warn => handler.Warn,
+                LoggingLevel.Info => handler.Info,
+                LoggingLevel.Debug => handler.Debug,
+                LoggingLevel.Trace => handler.Trace,
                 _ => _ => { }
             };
         }
@@ -111,6 +161,18 @@ namespace MonkeyLoader.Logging
         }
 
         private Func<object> makeMessageProducer(LoggingLevel level, Func<object> messageProducer)
-            => () => $"{logLevelToString(level)} [MonkeyLoader] {messageProducer()}";
+            => () => $"{logLevelToString(level)} [{Identifier}] {messageProducer()}";
+
+        internal readonly struct DeferredMessage
+        {
+            public readonly LoggingLevel LoggingLevel;
+            public readonly object Message;
+
+            public DeferredMessage(LoggingLevel level, object message)
+            {
+                LoggingLevel = level;
+                Message = message;
+            }
+        }
     }
 }

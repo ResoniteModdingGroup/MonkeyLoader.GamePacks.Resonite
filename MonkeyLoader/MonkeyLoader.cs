@@ -4,7 +4,6 @@ using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using Mono.Cecil;
-using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -13,21 +12,44 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Zio;
 using Zio.FileSystems;
 
 namespace MonkeyLoader
 {
     public sealed class MonkeyLoader
     {
-        private readonly HashSet<Mod> mods;
+        private readonly HashSet<Mod> mods = new();
+        private ILoggingHandler? loggingHandler;
 
         public ConfigManager ConfigManager { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="EarlyMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// </summary>
         public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
+
         public bool HasLoadedMods { get; private set; }
         public LocationConfigSection Locations { get; private set; }
-        public MonkeyLogger Logger { get; private set; }
+        public MonkeyLogger Logger { get; }
 
+        /// <summary>
+        /// Gets or sets the logging handler used by the loader and all <see cref="Mods">Mods</see>.
+        /// </summary>
+        public ILoggingHandler? LoggingHandler
+        {
+            get => loggingHandler;
+            set
+            {
+                loggingHandler = value;
+
+                if (value is not null)
+                    Logger.FlushDeferredMessages();
+            }
+        }
+
+        /// <summary>
+        /// Gets all loaded <see cref="Mod"/>s.
+        /// </summary>
         public IEnumerable<Mod> Mods
         {
             get
@@ -37,7 +59,17 @@ namespace MonkeyLoader
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="Monkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// </summary>
         public IEnumerable<Monkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
+
+        internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
+
+        public MonkeyLoader()
+        {
+            Logger = new(this);
+        }
 
         public MonkeyLoader(LocationConfiguration? locations = null)
         {
@@ -77,6 +109,16 @@ namespace MonkeyLoader
         }
 
         /// <summary>
+        /// Should be called by the game integration or application using this as a library when things are shutting down.<br/>
+        /// Saves the configs of all mods etc.
+        /// </summary>
+        public void Shutdown()
+        {
+            foreach (var mod in mods)
+                mod.Config.Save();
+        }
+
+        /// <summary>
         /// Attempts to load the given <paramref name="file"/> as a <paramref name="mod"/>.
         /// </summary>
         /// <param name="file">The path to the file to load as a mod.</param>
@@ -93,7 +135,7 @@ namespace MonkeyLoader
             {
                 var fileSystem = new ZipArchiveFileSystem(file, ZipArchiveMode.Read, isCaseSensitive: true);
 
-                mod = new Mod(Logger, file, fileSystem);
+                mod = new Mod(this, file, fileSystem);
                 return true;
             }
             catch (Exception ex)

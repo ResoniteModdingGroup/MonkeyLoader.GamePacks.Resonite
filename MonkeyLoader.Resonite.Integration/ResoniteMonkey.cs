@@ -20,9 +20,9 @@ namespace MonkeyLoader.Resonite
     {
         void IResoniteMonkey.OnEngineReady() => OnEngineReady();
 
-        void IResoniteMonkey.OnEngineShutdown(string reason) => OnEngineShutdown(reason);
+        void IResoniteMonkey.OnEngineShutdown() => OnEngineShutdown();
 
-        void IResoniteMonkey.OnEngineShutdownRequested() => OnEngineShutdownRequested();
+        void IResoniteMonkey.OnEngineShutdownRequested(string reason) => OnEngineShutdownRequested(reason);
 
         /// <summary>
         /// Called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
@@ -33,13 +33,14 @@ namespace MonkeyLoader.Resonite
         /// <summary>
         /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
         /// </summary>
-        protected internal virtual void OnEngineShutdown(string reason)
+        protected internal virtual void OnEngineShutdown()
         { }
 
         /// <summary>
         /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
         /// </summary>
-        protected internal virtual void OnEngineShutdownRequested()
+        /// <param name="reason">The reason for the shutdown request. Seems to always be <c>Quitting</c>.</param>
+        protected internal virtual void OnEngineShutdownRequested(string reason)
         { }
     }
 
@@ -53,11 +54,12 @@ namespace MonkeyLoader.Resonite
         /// <summary>
         /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
         /// </summary>
-        void OnEngineShutdown(string reason);
+        void OnEngineShutdown();
 
         /// <summary>
         /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
         /// </summary>
-        void OnEngineShutdownRequested();
+        /// <param name="reason">The reason for the shutdown request. Seems to always be <c>Quitting</c>.</param>
+        void OnEngineShutdownRequested(string reason);
     }
 }
