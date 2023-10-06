@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zio.FileSystems;
+using static MonkeyLoader.Configuration.Config;
 
 namespace MonkeyLoader
 {
@@ -146,6 +147,18 @@ namespace MonkeyLoader
             return false;
         }
 
+        internal void FireConfigChangedEvent(ConfigChangedEvent configChangedEvent)
+        {
+            try
+            {
+                OnAnyConfigChanged?.TryInvokeAll(configChangedEvent);
+            }
+            catch (AggregateException ex)
+            {
+                Logger.Error(() => ex.Format("Some OnAnyConfigurationChanged event subscribers threw an exception:"));
+            }
+        }
+
         private void prepatch(IEnumerable<EarlyMonkey> prePatchers)
         {
             // should be case insensitive
@@ -157,5 +170,11 @@ namespace MonkeyLoader
                 neededDefinitions.Clear();
             }
         }
+
+        /// <summary>
+        /// Called when the value of any of this loader's configs changes.<br/>
+        /// This gets fired <i>after</i> the source config's <see cref="Config.OnChanged">ConfigurationChanged</see> event.
+        /// </summary>
+        public event ConfigChangedEventHandler? OnAnyConfigChanged;
     }
 }

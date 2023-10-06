@@ -13,6 +13,16 @@ namespace MonkeyLoader
     public static class EnumerableExtensions
     {
         /// <summary>
+        /// Formats an <see cref="AggregateException"/> with a message and a list of
+        /// all <see cref="AggregateException.InnerExceptions">inner</see> <see cref="Exception"/>s.
+        /// </summary>
+        /// <param name="ex">The exception to format.</param>
+        /// <param name="message">The message to prepend.</param>
+        /// <returns>The formatted message and exceptions.</returns>
+        public static string Format(this AggregateException ex, string message)
+            => $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}";
+
+        /// <summary>
         /// Tries to cast every item from the <paramref name="source"/> to <typeparamref name="TTo"/>.
         /// </summary>
         /// <typeparam name="TFrom">The items in the source sequence.</typeparam>

@@ -41,6 +41,8 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public Config Config { get; }
 
+        public string ConfigPath { get; }
+
         /// <summary>
         /// Gets the description of this mod.
         /// </summary>
@@ -172,7 +174,6 @@ namespace MonkeyLoader.Meta
 
             Location = location;
             FileSystem = fileSystem;
-            Config = new Config(this);
 
             Title = nuspecReader.GetTitle();
             Version = nuspecReader.GetVersion().Version;
@@ -199,6 +200,9 @@ namespace MonkeyLoader.Meta
 
             tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+
+            ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
+            Config = new Config(this);
         }
 
         /// <summary>

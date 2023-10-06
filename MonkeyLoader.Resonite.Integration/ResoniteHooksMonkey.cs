@@ -41,7 +41,7 @@ namespace MonkeyLoader.Resonite
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => $"The EngineReady hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => ex.Format("Some EngineReady hooks threw an Exception:"));
             }
         }
 
@@ -56,7 +56,7 @@ namespace MonkeyLoader.Resonite
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => $"The EngineShutdown hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => ex.Format("Some EngineShutdown hooks threw an Exception:"));
             }
 
             Mod.Loader.Shutdown();
@@ -73,8 +73,7 @@ namespace MonkeyLoader.Resonite
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => $"The EngineShutdownRequested hook failed for some mods.{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}");
+                Logger.Error(() => ex.Format("Some EngineShutdownRequested hooks threw an Exception:"));
             }
         }
     }
-}

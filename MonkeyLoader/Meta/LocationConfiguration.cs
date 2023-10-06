@@ -17,8 +17,33 @@ namespace MonkeyLoader.Meta
         public readonly ConfigKey<string> LibsKey = new("Libs", "Paths to check for dependency libraries.", () => "./MonkeyLoader/Libs");
         public readonly ConfigKey<List<ModLoadingLocation>> ModsKey = new("Mods", "Paths to check for mods.", () => new() { new ModLoadingLocation("./MonkeyLoader/Mods", true, "\\.disabled") });
 
+        public string Configs
+        {
+            get => Config.GetValue(ConfigsKey);
+            set => Config.Set(ConfigsKey, value);
+        }
+
         /// <inheritdoc/>
         public override string Description { get; } = "Contains definitions for which paths will be searched for certain resources.";
+
+        public string GamePacks
+        {
+            get => Config.GetValue(GamePacksKey);
+            set => Config.Set(GamePacksKey, value);
+        }
+
+        public string Libs
+        {
+            get => Config.GetValue(LibsKey);
+            set => Config.Set(LibsKey, value);
+        }
+
+        // do something to make list changes fire config changed too?
+        public List<ModLoadingLocation> Mods
+        {
+            get => Config.GetValue(ModsKey);
+            set => Config.Set(ModsKey, value);
+        }
 
         /// <inheritdoc/>
         public override string Name { get; } = "Locations";
