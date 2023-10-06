@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MonkeyLoader.Configuration
@@ -33,12 +32,6 @@ namespace MonkeyLoader.Configuration
             converters.Add(new ResonitePrimitiveConverter());
             settings.Converters = converters;
             return JsonSerializer.Create(settings);
-        }
-
-        private static string GetModConfigPath(LoadedResoniteMod mod)
-        {
-            string filename = Path.ChangeExtension(Path.GetFileName(mod.ModAssembly.File), ".json");
-            return Path.Combine(ConfigDirectory, filename);
         }
 
         private static void ShutdownHook()

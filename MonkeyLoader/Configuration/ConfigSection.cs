@@ -77,7 +77,10 @@ namespace MonkeyLoader.Configuration
             keys = new(getConfigKeys());
 
             foreach (var key in keys)
+            {
+                key.Section = this;
                 key.DefiningKey = key;
+            }
         }
 
         /// <summary>
@@ -111,11 +114,11 @@ namespace MonkeyLoader.Configuration
 
         internal void LoadSection(JObject source)
         {
-            Version version;
+            Version serializedVersion;
 
             try
             {
-                version = new Version((string)source[nameof(Version)]!);
+                serializedVersion = new Version((string)source[nameof(Version)]!);
             }
             catch (Exception ex)
             {
@@ -124,24 +127,7 @@ namespace MonkeyLoader.Configuration
                 throw new ConfigLoadException($"Error loading version for section [{Name}]!", ex);
             }
 
-            if (!areVersionsCompatible(version, Version))
-            {
-                switch (incompatibilityHandling)
-                {
-                    case IncompatibleConfigHandling.Clobber:
-                        Config.Logger.Warn(() => $"Saved section [{Name}] version [{version}] is incompatible with mod's version [{Version}]. Clobbering old config and starting fresh.");
-                        return;
-
-                    case IncompatibleConfigHandling.ForceLoad:
-                        // continue processing
-                        break;
-
-                    case IncompatibleConfigHandling.Error: // fall through to default
-                    default:
-                        Saveable = false;
-                        throw new ConfigLoadException($"Saved section [{Name}] version [{version}] is incompatible with mod's version [{Version}]!");
-                }
-            }
+            validateCompatibility(serializedVersion);
 
             foreach (var key in Keys)
             {
@@ -159,7 +145,7 @@ namespace MonkeyLoader.Configuration
                 {
                     // I know not what exceptions the JSON library will throw, but they must be contained
                     Saveable = false;
-                    throw new ConfigLoadException($"Error loading key [{key.Name}] of type [{key.ValueType}]!", ex);
+                    throw new ConfigLoadException($"Error loading key [{key.Name}] of type [{key.ValueType}] in section [{key.Section.Name}]!", ex);
                 }
             }
         }
@@ -207,6 +193,28 @@ namespace MonkeyLoader.Configuration
 
             // none of the checks failed!
             return true;
+        }
+
+        private void validateCompatibility(Version serializedVersion)
+        {
+            if (!areVersionsCompatible(serializedVersion, Version))
+            {
+                switch (incompatibilityHandling)
+                {
+                    case IncompatibleConfigHandling.Clobber:
+                        Config.Logger.Warn(() => $"Saved section [{Name}] version [{serializedVersion}] is incompatible with mod's version [{Version}]. Clobbering old config and starting fresh.");
+                        return;
+
+                    case IncompatibleConfigHandling.ForceLoad:
+                        // continue processing
+                        break;
+
+                    case IncompatibleConfigHandling.Error: // fall through to default
+                    default:
+                        Saveable = false;
+                        throw new ConfigLoadException($"Saved section [{Name}] version [{serializedVersion}] is incompatible with mod's version [{Version}]!");
+                }
+            }
         }
     }
 }

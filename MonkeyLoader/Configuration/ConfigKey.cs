@@ -45,6 +45,8 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public abstract Type ValueType { get; }
 
+        internal ConfigSection Section { get; set; }
+
         internal ConfigKey(string name, string? description, bool internalAccessOnly)
         {
             if (string.IsNullOrWhiteSpace(name))

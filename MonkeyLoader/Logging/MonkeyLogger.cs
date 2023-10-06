@@ -117,7 +117,7 @@ namespace MonkeyLoader.Logging
             return (Func<object> messageProducer) =>
             {
                 lock (Loader.DeferredMessages)
-                    Loader.DeferredMessages.Enqueue(new DeferredMessage(level, messageProducer()));
+                    Loader.DeferredMessages.Enqueue(new DeferredMessage(this, level, messageProducer()));
             };
         }
 
@@ -165,11 +165,13 @@ namespace MonkeyLoader.Logging
 
         internal readonly struct DeferredMessage
         {
+            public readonly MonkeyLogger Logger;
             public readonly LoggingLevel LoggingLevel;
             public readonly object Message;
 
-            public DeferredMessage(LoggingLevel level, object message)
+            public DeferredMessage(MonkeyLogger logger, LoggingLevel level, object message)
             {
+                Logger = logger;
                 LoggingLevel = level;
                 Message = message;
             }

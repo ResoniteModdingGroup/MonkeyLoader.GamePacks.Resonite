@@ -13,16 +13,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zio.FileSystems;
-using static MonkeyLoader.Configuration.Config;
 
 namespace MonkeyLoader
 {
-    public sealed class MonkeyLoader
+    /// <summary>
+    /// The root of all mod loading.
+    /// </summary>
+    public sealed class MonkeyLoader : IConfigOwner
     {
         private readonly HashSet<Mod> mods = new();
         private ILoggingHandler? loggingHandler;
 
+        /// <summary>
+        /// Gets the config that this loader uses to load <see cref="ConfigSection"/>s.
+        /// </summary>
+        public Config Config { get; }
+
         public ConfigManager ConfigManager { get; private set; }
+
+        /// <summary>
+        /// Gets the path where the loader's config file should be.
+        /// </summary>
+        public string ConfigPath { get; }
 
         /// <summary>
         /// Gets the <see cref="EarlyMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
@@ -30,7 +42,16 @@ namespace MonkeyLoader
         public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
         public bool HasLoadedMods { get; private set; }
+        MonkeyLoader IConfigOwner.Loader => this;
+
+        /// <summary>
+        /// Gets the configuration for which paths will be searched for certain resources.
+        /// </summary>
         public LocationConfigSection Locations { get; private set; }
+
+        /// <summary>
+        /// Gets the logger used by the loader and "inherited" by everything loaded by it.
+        /// </summary>
         public MonkeyLogger Logger { get; }
 
         /// <summary>
@@ -67,46 +88,46 @@ namespace MonkeyLoader
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
 
-        public MonkeyLoader()
+        public MonkeyLoader(string configPath = "MonkeyLoader.json")
         {
             Logger = new(this);
+            ConfigPath = configPath;
+
+            Config = new Config(this);
+            Locations = Config.LoadSection<LocationConfigSection>();
         }
 
-        public MonkeyLoader(LocationConfiguration? locations = null)
-        {
-            Locations = locations ?? new();
-        }
-
+        /// <summary>
+        /// Loads all mods from the <see cref="LocationConfigSection">configured</see> <see cref="ModLoadingLocation">locations</see>.
+        /// </summary>
+        /// <returns>All successfully loaded mods.</returns>
         public IEnumerable<Mod> LoadAllMods()
-             => Locations.Mods.SelectMany(path => LoadMods(path));
-
-        public IEnumerable<Mod> LoadMods(string directory)
         {
-            var files = Enumerable.Empty<string>();
-
-            try
+            return Locations.Mods.SelectMany(location =>
             {
-                directory = Path.GetFullPath(directory);
-
-                if (!Directory.Exists(directory))
+                try
                 {
-                    Directory.CreateDirectory(directory);
-
-                    yield break;
+                    return location.Search();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(() => $"Exception while searching files at location {location}:{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
                 }
 
-                files = Directory.GetDirectories(directory);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(() => $"Exception while trying to enumerate files at: {directory}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
-            }
+                return Enumerable.Empty<string>();
+            })
+            .TrySelect<string, Mod>(TryLoadMod);
+        }
 
-            foreach (var file in files)
-            {
-                if (TryLoadMod(file, out var mod))
-                    yield return mod;
-            }
+        /// <summary>
+        /// Loads the mod from the given path, making no checks.
+        /// </summary>
+        /// <returns>The loaded mod.</returns>
+        public Mod LoadMod(string path)
+        {
+            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read, isCaseSensitive: true);
+
+            return new Mod(this, path, fileSystem);
         }
 
         /// <summary>
@@ -120,28 +141,26 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Attempts to load the given <paramref name="file"/> as a <paramref name="mod"/>.
+        /// Attempts to load the given <paramref name="path"/> as a <paramref name="mod"/>.
         /// </summary>
-        /// <param name="file">The path to the file to load as a mod.</param>
+        /// <param name="path">The path to the file to load as a mod.</param>
         /// <param name="mod">The resulting mod when successful, or null when not.</param>
         /// <returns><c>true</c> when the file was successfully loaded.</returns>
-        public bool TryLoadMod(string file, [NotNullWhen(true)] out Mod? mod)
+        public bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
         {
             mod = null;
 
-            if (!File.Exists(file))
+            if (!File.Exists(path))
                 return false;
 
             try
             {
-                var fileSystem = new ZipArchiveFileSystem(file, ZipArchiveMode.Read, isCaseSensitive: true);
-
-                mod = new Mod(this, file, fileSystem);
+                mod = LoadMod(path);
                 return true;
             }
             catch (Exception ex)
             {
-                Logger.Error(() => $"Exception while trying to load mod: {file}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                Logger.Error(() => $"Exception while trying to load mod: {path}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
             }
 
             return false;
@@ -175,6 +194,6 @@ namespace MonkeyLoader
         /// Called when the value of any of this loader's configs changes.<br/>
         /// This gets fired <i>after</i> the source config's <see cref="Config.OnChanged">ConfigurationChanged</see> event.
         /// </summary>
-        public event ConfigChangedEventHandler? OnAnyConfigChanged;
+        public event Config.ConfigChangedEventHandler? OnAnyConfigChanged;
     }
 }

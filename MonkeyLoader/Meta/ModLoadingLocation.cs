@@ -77,5 +77,9 @@ namespace MonkeyLoader.Meta
         public IEnumerable<string> Search()
             => Directory.EnumerateFiles(Path, "*.nupkg", Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                     .Where(path => !ignorePatterns.Any(pattern => pattern.IsMatch(path)));
+
+        /// <inheritdoc/>
+        public override string ToString()
+            => $"[Recursive: {Recursive}, Path: {Path}, Excluding: {{ {string.Join(" ", ignorePatterns.Select(p => p.ToString()))} }}]";
     }
 }

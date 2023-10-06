@@ -17,7 +17,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Contains all the metadata and references to loaded patchers from a mod file.
     /// </summary>
-    public sealed class Mod
+    public sealed class Mod : IConfigOwner
     {
         private readonly HashSet<string> authors;
         private readonly List<EarlyMonkey> earlyMonkeys = new();
@@ -41,6 +41,9 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public Config Config { get; }
 
+        /// <summary>
+        /// Gets the path where this mod's config file should be.
+        /// </summary>
         public string ConfigPath { get; }
 
         /// <summary>

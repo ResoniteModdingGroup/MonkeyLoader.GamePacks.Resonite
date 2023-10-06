@@ -63,7 +63,7 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets the mod that owns this config.
         /// </summary>
-        public Mod Mod { get; }
+        public IConfigOwner Owner { get; }
 
         /// <summary>
         /// Gets all loaded sections of this config.
@@ -77,10 +77,10 @@ namespace MonkeyLoader.Configuration
             }
         }
 
-        internal Config(Mod mod)
+        internal Config(IConfigOwner owner)
         {
-            Mod = mod;
-            Logger = new MonkeyLogger(mod.Logger, "Config");
+            Owner = owner;
+            Logger = new MonkeyLogger(owner.Logger, "Config");
 
             loadedConfigSections = loadConfig();
         }
@@ -179,15 +179,15 @@ namespace MonkeyLoader.Configuration
             if (value is null)
             {
                 if (Util.CannotBeNull(definingKey!.ValueType))
-                    throwArgumentException($"Cannot assign null to key [{definingKey.Name}] of type [{definingKey.ValueType}]!", nameof(value));
+                    throwArgumentException($"Cannot assign null to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
             }
             else if (!definingKey.ValueType.IsAssignableFrom(value.GetType()))
             {
-                throwArgumentException($"Cannot assign [{value.GetType()}] to key [{definingKey.Name}] of type [{definingKey.ValueType}]!", nameof(value));
+                throwArgumentException($"Cannot assign [{value.GetType()}] to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
             }
 
             if (!definingKey.Validate(value))
-                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}]!", nameof(value));
+                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
             var oldValue = GetValue(key);
             definingKey.Set(value);
@@ -213,7 +213,7 @@ namespace MonkeyLoader.Configuration
                 throwKeyNotFound(key);
 
             if (!definingKey.Validate(value))
-                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}]!", nameof(value));
+                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
             var oldValue = GetValue(key);
             definingKey.Set(value);
@@ -306,7 +306,7 @@ namespace MonkeyLoader.Configuration
             return definingKey.Unset();
         }
 
-        internal void EnsureDirectoryExists() => Directory.CreateDirectory(Mod.Loader.Locations.Configs);
+        internal void EnsureDirectoryExists() => Directory.CreateDirectory(Owner.Loader.Locations.Configs);
 
         /// <summary>
         /// Checks if the given key is the defining key.
@@ -398,17 +398,17 @@ namespace MonkeyLoader.Configuration
                 Logger.Error(() => ex.Format("Some OnThisConfigurationChanged event subscriber threw an exception:"));
             }
 
-            Mod.Loader.FireConfigChangedEvent(configChangedEvent);
+            Owner.Loader.FireConfigChangedEvent(configChangedEvent);
         }
 
         private JObject? loadConfig()
         {
-            if (!File.Exists(Mod.ConfigPath))
+            if (!File.Exists(Owner.ConfigPath))
                 return null;
 
             try
             {
-                using var file = File.OpenText(Mod.ConfigPath);
+                using var file = File.OpenText(Owner.ConfigPath);
                 using var reader = new JsonTextReader(file);
                 var json = JObject.Load(reader);
 
@@ -478,7 +478,7 @@ namespace MonkeyLoader.Configuration
 
         [DoesNotReturn]
         private void throwKeyNotFound(ConfigKey key)
-            => throw new KeyNotFoundException($"Key [{key.Name}] not found in config for [{Mod.Id}]!");
+            => throw new KeyNotFoundException($"Key [{key.Name}] not found in config!");
 
         /// <summary>
         /// The delegate that is called for configuration change events.

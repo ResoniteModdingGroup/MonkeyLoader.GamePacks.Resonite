@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -76,5 +77,32 @@ namespace MonkeyLoader
                 throw new AggregateException(exceptions);
             }
         }
+
+        /// <summary>
+        /// Tries to transform each item in the <paramref name="source"/> sequence using the <paramref name="trySelector"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of items in the source sequence.</typeparam>
+        /// <typeparam name="TResult">The type of items in the result sequence.</typeparam>
+        /// <param name="source">The source sequence to transform.</param>
+        /// <param name="trySelector">A selector following the try-pattern.</param>
+        /// <returns>A result sequence containing only the successfully transformed items.</returns>
+        public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, TrySelector<TSource, TResult> trySelector)
+        {
+            foreach (var item in source)
+            {
+                if (trySelector(item, out var result))
+                    yield return result;
+            }
+        }
+
+        /// <summary>
+        /// A selector following the try-pattern.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source item.</typeparam>
+        /// <typeparam name="TResult">The type of the result item.</typeparam>
+        /// <param name="source">The source item to transform.</param>
+        /// <param name="result">The result item when successful, or <c>null</c> otherwise.</param>
+        /// <returns>Whether the transformation was successful.</returns>
+        public delegate bool TrySelector<TSource, TResult>(TSource source, [NotNullWhen(true)] out TResult? result);
     }
 }
