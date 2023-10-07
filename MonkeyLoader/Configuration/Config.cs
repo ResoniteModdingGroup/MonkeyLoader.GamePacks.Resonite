@@ -23,30 +23,15 @@ namespace MonkeyLoader.Configuration
     /// </summary>
     public sealed class Config
     {
-        private static readonly string VALUES_JSON_KEY = "values";
-        private static readonly string VERSION_JSON_KEY = "version";
-
-        // used to keep track of mods that spam Save():
-        // any mod that calls Save() for the ModConfiguration within debounceMilliseconds of the previous call to the same ModConfiguration
-        // will be put into Ultimate Punishment Mode, and ALL their Save() calls, regardless of ModConfiguration, will be debounced.
-        // The naughty list is global, while the actual debouncing is per-configuration.
-        private static ISet<string> naughtySavers = new HashSet<string>();
+        private const string ownerKey = "Owner";
+        private const string sectionsKey = "Sections";
 
         // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
         private readonly Dictionary<ConfigKey, ConfigKey> configurationItemDefinitionsSelfMap = new();
 
-        private readonly JObject? loadedConfigSections;
-
-        // used to keep track of the debouncers for this configuration.
-        private readonly Dictionary<string, Action<bool>> saveActionForCallee = new();
-
-        // used to track how frequenly Save() is being called
-        private readonly Stopwatch saveTimer = new();
+        private readonly JObject loadedConfig;
 
         private readonly HashSet<ConfigSection> sections = new();
-
-        // time that save must not be called for a save to actually go through
-        private int debounceMilliseconds = 3000;
 
         /// <summary>
         /// Gets the set of configuration keys defined in this configuration definition.
@@ -82,7 +67,15 @@ namespace MonkeyLoader.Configuration
             Owner = owner;
             Logger = new MonkeyLogger(owner.Logger, "Config");
 
-            loadedConfigSections = loadConfig();
+            loadedConfig = loadConfig();
+            if (loadedConfig[ownerKey]?.ToObject<string>() != Path.GetFileNameWithoutExtension(Owner.ConfigPath))
+                throw new ConfigLoadException("Config malformed! Recorded owner must match the loader!");
+
+            if (loadedConfig[sectionsKey] is not JObject)
+            {
+                Logger.Warn(() => "Could not find \"Sections\" object - created it!");
+                loadedConfig[sectionsKey] = new JObject();
+            }
         }
 
         /// <summary>
@@ -148,18 +141,65 @@ namespace MonkeyLoader.Configuration
             if (sections.Contains(section))
                 throw new ConfigLoadException($"Attempted to load section [{section.Name}] twice!");
 
-            if (loadedConfigSections is not null)
+            if (loadedConfig[section.Name] is not JObject sectionObject)
             {
-                if (loadedConfigSections[section.Name] is not JObject sectionObject)
-                    Logger.Warn(() => $"Section [{section.Name}] didn't appear in the loaded config!");
-                else
-                    section.LoadSection(sectionObject);
+                Logger.Warn(() => $"Section [{section.Name}] didn't appear in the loaded config - created it!");
+                loadedConfig[section.Name] = new JObject();
+            }
+            else
+            {
+                section.LoadSection(sectionObject, Owner.Loader.JsonSerializer);
             }
 
             foreach (var key in section.Keys)
                 configurationItemDefinitionsSelfMap.Add(key, key);
 
             return section;
+        }
+
+        /// <summary>
+        /// Persists this configuration to disk.
+        /// </summary>
+        public void Save()
+        {
+            var sectionsJson = loadedConfig[sectionsKey]!;
+            var stopwatch = Stopwatch.StartNew();
+
+            lock (loadedConfig)
+            {
+                foreach (var section in sections)
+                {
+                    try
+                    {
+                        var sectionJson = section.Save(Owner.Loader.JsonSerializer);
+
+                        if (section is not null)
+                            sectionsJson[section.Name] = sectionJson;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(() => $"Exception while serializing section [{section.Name}] - skipping it!{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                    }
+                }
+
+                try
+                {
+                    using var file = File.OpenWrite(Owner.ConfigPath);
+                    using var streamWriter = new StreamWriter(file);
+                    using var jsonTextWriter = new JsonTextWriter(streamWriter);
+                    loadedConfig.WriteTo(jsonTextWriter);
+
+                    // I actually cannot believe I have to truncate the file myself
+                    file.SetLength(file.Position);
+                    jsonTextWriter.Flush();
+
+                    Logger.Info(() => $"Saved config in {stopwatch.ElapsedMilliseconds}ms!");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(() => $"Exception while saving config!{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                }
+            }
         }
 
         /// <summary>
@@ -319,70 +359,6 @@ namespace MonkeyLoader.Configuration
             return ReferenceEquals(key, key.DefiningKey); // this is safe because we'll throw a NRE if key is null
         }
 
-        /// <summary>
-        /// Asynchronously persists this configuration to disk.
-        /// </summary>
-        /// <param name="saveDefaultValues">If <c>true</c>, default values will also be persisted.</param>
-        /// <param name="immediate">If <c>true</c>, skip the debouncing and save immediately.</param>
-        internal void Save(bool saveDefaultValues = false, bool immediate = false)
-        {
-            Thread thread = Thread.CurrentThread;
-            ResoniteMod? callee = Util.ExecutingMod(new(1));
-            Action<bool>? saveAction = null;
-
-            // get saved state for this callee
-            if (callee != null && naughtySavers.Contains(callee.Name) && !saveActionForCallee.TryGetValue(callee.Name, out saveAction))
-            {
-                // handle case where the callee was marked as naughty from a different ModConfiguration being spammed
-                saveAction = Util.Debounce<bool>(SaveInternal, debounceMilliseconds);
-                saveActionForCallee.Add(callee.Name, saveAction);
-            }
-
-            if (saveTimer.IsRunning)
-            {
-                float elapsedMillis = saveTimer.ElapsedMilliseconds;
-                saveTimer.Restart();
-                if (elapsedMillis < debounceMilliseconds)
-                {
-                    Logger.WarnInternal($"ModConfiguration.Save({saveDefaultValues}) called for \"{LoadedResoniteMod.ResoniteMod.Name}\" by \"{callee?.Name}\" from thread with id=\"{thread.ManagedThreadId}\", name=\"{thread.Name}\", bg=\"{thread.IsBackground}\", pool=\"{thread.IsThreadPoolThread}\". Last called {elapsedMillis / 1000f}s ago. This is very recent! Do not spam calls to ModConfiguration.Save()! All Save() calls by this mod are now subject to a {debounceMilliseconds}ms debouncing delay.");
-                    if (saveAction == null && callee != null)
-                    {
-                        // congrats, you've switched into Ultimate Punishment Mode where now I don't trust you and your Save() calls get debounced
-                        saveAction = Util.Debounce<bool>(SaveInternal, debounceMilliseconds);
-                        saveActionForCallee.Add(callee.Name, saveAction);
-                        naughtySavers.Add(callee.Name);
-                    }
-                }
-                else
-                {
-                    Logger.DebugFuncInternal(() => $"ModConfiguration.Save({saveDefaultValues}) called for \"{LoadedResoniteMod.ResoniteMod.Name}\" by \"{callee?.Name}\" from thread with id=\"{thread.ManagedThreadId}\", name=\"{thread.Name}\", bg=\"{thread.IsBackground}\", pool=\"{thread.IsThreadPoolThread}\". Last called {elapsedMillis / 1000f}s ago.");
-                }
-            }
-            else
-            {
-                saveTimer.Start();
-                Logger.DebugFuncInternal(() => $"ModConfiguration.Save({saveDefaultValues}) called for \"{LoadedResoniteMod.ResoniteMod.Name}\" by \"{callee?.Name}\" from thread with id=\"{thread.ManagedThreadId}\", name=\"{thread.Name}\", bg=\"{thread.IsBackground}\", pool=\"{thread.IsThreadPoolThread}\"");
-            }
-
-            // prevent saving if we've determined something is amiss with the configuration
-            if (!LoadedResoniteMod.AllowSavingConfiguration)
-            {
-                Logger.WarnInternal($"ModConfiguration for {LoadedResoniteMod.ResoniteMod.Name} will NOT be saved due to a safety check failing. This is probably due to you downgrading a mod.");
-                return;
-            }
-
-            if (immediate || saveAction == null)
-            {
-                // infrequent callers get to save immediately
-                Task.Run(() => SaveInternal(saveDefaultValues));
-            }
-            else
-            {
-                // bad callers get debounced
-                saveAction(saveDefaultValues);
-            }
-        }
-
         private bool anyValuesSet() => ConfigurationItemDefinitions.Where(key => key.HasValue).Any();
 
         private void fireConfigChangedEvents(ConfigKey key, object? oldValue, string? label)
@@ -401,75 +377,29 @@ namespace MonkeyLoader.Configuration
             Owner.Loader.FireConfigChangedEvent(configChangedEvent);
         }
 
-        private JObject? loadConfig()
+        private JObject loadConfig()
         {
-            if (!File.Exists(Owner.ConfigPath))
-                return null;
+            if (File.Exists(Owner.ConfigPath))
+            {
+                try
+                {
+                    using var file = File.OpenText(Owner.ConfigPath);
+                    using var reader = new JsonTextReader(file);
 
-            try
-            {
-                using var file = File.OpenText(Owner.ConfigPath);
-                using var reader = new JsonTextReader(file);
-                var json = JObject.Load(reader);
-
-                json.Properties;
-            }
-            catch (FileNotFoundException)
-            {
-                // return early
-                return new Config(mod, definition);
-            }
-            catch (Exception e)
-            {
-                // I know not what exceptions the JSON library will throw, but they must be contained
-                mod.AllowSavingConfiguration = false;
-                throw new ConfigLoadException($"Error loading config for {mod.ResoniteMod.Name}", e);
+                    return JObject.Load(reader);
+                }
+                catch (Exception ex)
+                {
+                    // I know not what exceptions the JSON library will throw, but they must be contained
+                    throw new ConfigLoadException($"Error loading config!", ex);
+                }
             }
 
-            return new Config(mod, definition);
-        }
-
-        /// <summary>
-        /// performs the actual, synchronous save
-        /// </summary>
-        /// <param name="saveDefaultValues">If true, default values will also be persisted</param>
-        private void SaveInternal(bool saveDefaultValues = false)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            JObject json = new()
+            return new JObject()
             {
-                [VERSION_JSON_KEY] = JToken.FromObject(Definition.Version.ToString(), jsonSerializer)
+                [ownerKey] = Path.GetFileNameWithoutExtension(Owner.ConfigPath),
+                [sectionsKey] = new JObject()
             };
-
-            JObject valueMap = new();
-            foreach (ConfigKey key in ConfigurationItemDefinitions)
-            {
-                if (key.TryGetValue(out object? value))
-                {
-                    // I don't need to typecheck this as there's no way to sneak a bad type past my Set() API
-                    valueMap[key.Name] = value == null ? null : JToken.FromObject(value, jsonSerializer);
-                }
-                else if (saveDefaultValues && key.TryComputeDefault(out object? defaultValue))
-                {
-                    // I don't need to typecheck this as there's no way to sneak a bad type past my computeDefault API
-                    // like and say defaultValue can't be null because the Json.Net
-                    valueMap[key.Name] = defaultValue == null ? null : JToken.FromObject(defaultValue, jsonSerializer);
-                }
-            }
-
-            json[VALUES_JSON_KEY] = valueMap;
-
-            string configFile = GetModConfigPath(LoadedResoniteMod);
-            using FileStream file = File.OpenWrite(configFile);
-            using StreamWriter streamWriter = new(file);
-            using JsonTextWriter jsonTextWriter = new(streamWriter);
-            json.WriteTo(jsonTextWriter);
-
-            // I actually cannot believe I have to truncate the file myself
-            file.SetLength(file.Position);
-            jsonTextWriter.Flush();
-
-            Logger.DebugFuncInternal(() => $"Saved ModConfiguration for \"{LoadedResoniteMod.ResoniteMod.Name}\" in {stopwatch.ElapsedMilliseconds}ms");
         }
 
         [DoesNotReturn]

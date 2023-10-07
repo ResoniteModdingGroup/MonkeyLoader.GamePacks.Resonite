@@ -112,7 +112,7 @@ namespace MonkeyLoader.Configuration
         /// <inheritdoc/>
         public override int GetHashCode() => Name.GetHashCode();
 
-        internal void LoadSection(JObject source)
+        internal void LoadSection(JObject source, JsonSerializer jsonSerializer)
         {
             Version serializedVersion;
 
@@ -133,9 +133,7 @@ namespace MonkeyLoader.Configuration
             {
                 try
                 {
-                    var token = source[key.Name];
-
-                    if (token is not null)
+                    if (source[key.Name] is JToken token)
                     {
                         var value = token.ToObject(key.ValueType, jsonSerializer);
                         key.Set(value);
@@ -148,6 +146,26 @@ namespace MonkeyLoader.Configuration
                     throw new ConfigLoadException($"Error loading key [{key.Name}] of type [{key.ValueType}] in section [{key.Section.Name}]!", ex);
                 }
             }
+        }
+
+        internal JObject? Save(JsonSerializer jsonSerializer)
+        {
+            if (!Saveable)
+                return null;
+
+            var result = new JObject();
+            result["Version"] = Version.ToString();
+
+            foreach (var key in keys)
+            {
+                if (!key.TryGetValue(out var value))
+                    continue;
+
+                // I don't need to typecheck this as there's no way to sneak a bad type past my Set() API
+                result[key.Name] = value == null ? null : JToken.FromObject(value, jsonSerializer);
+            }
+
+            return result;
         }
 
         /// <summary>

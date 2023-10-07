@@ -4,6 +4,7 @@ using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using Mono.Cecil;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,8 +30,6 @@ namespace MonkeyLoader
         /// </summary>
         public Config Config { get; }
 
-        public ConfigManager ConfigManager { get; private set; }
-
         /// <summary>
         /// Gets the path where the loader's config file should be.
         /// </summary>
@@ -42,6 +41,13 @@ namespace MonkeyLoader
         public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
         public bool HasLoadedMods { get; private set; }
+
+        /// <summary>
+        /// Gets the json serializer used by this loader and any mods it loads.<br/>
+        /// Will be populated with any converters picked up from game integration packs.
+        /// </summary>
+        public JsonSerializer JsonSerializer { get; }
+
         MonkeyLoader IConfigOwner.Loader => this;
 
         /// <summary>
@@ -88,10 +94,16 @@ namespace MonkeyLoader
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
 
+        /// <summary>
+        /// Creates a new mod loader with the given configuration file.
+        /// </summary>
+        /// <param name="configPath">The path to the configuration file to use.</param>
         public MonkeyLoader(string configPath = "MonkeyLoader.json")
         {
             Logger = new(this);
             ConfigPath = configPath;
+
+            JsonSerializer = new();
 
             Config = new Config(this);
             Locations = Config.LoadSection<LocationConfigSection>();
@@ -136,8 +148,16 @@ namespace MonkeyLoader
         /// </summary>
         public void Shutdown()
         {
-            foreach (var mod in mods)
-                mod.Config.Save();
+            try
+            {
+                Logger.Info(() => $"Triggering save for all {mods.Count} mods's configs to shut down!");
+                mods.Select(mod => (Delegate)mod.Config.Save).TryInvokeAll();
+                Logger.Info(() => $"Successfully saved for all!");
+            }
+            catch (AggregateException ex)
+            {
+                Logger.Error(() => ex.Format("Some mods' configs threw exceptions while saving during shutdown!"));
+            }
         }
 
         /// <summary>
