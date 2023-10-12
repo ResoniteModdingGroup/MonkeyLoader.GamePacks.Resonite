@@ -24,6 +24,23 @@ namespace MonkeyLoader
             => $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}";
 
         /// <summary>
+        /// Formats an <see cref="Exception"/> with a message.
+        /// </summary>
+        /// <param name="ex">The exception to format.</param>
+        /// <param name="message">The message to prepend.</param>
+        /// <returns>The formatted message and exception.</returns>
+        public static string Format(this Exception ex, string message)
+            => $"{message}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+
+        /// <summary>
+        /// Formats an <see cref="Exception"/>.
+        /// </summary>
+        /// <param name="ex">The exception to format.</param>
+        /// <returns>The formatted exception.</returns>
+        public static string Format(this Exception ex)
+            => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+
+        /// <summary>
         /// Tries to cast every item from the <paramref name="source"/> to <typeparamref name="TTo"/>.
         /// </summary>
         /// <typeparam name="TFrom">The items in the source sequence.</typeparam>

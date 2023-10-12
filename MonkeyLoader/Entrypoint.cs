@@ -1,5 +1,6 @@
 ﻿using MonkeyLoader;
 using MonkeyLoader.Game;
+using MonkeyLoader.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -24,15 +25,18 @@ namespace Doorstop
         public static void Start()
         {
             Debugger.Break();
-
-            File.Delete("error.log");
-            File.Delete("test.log");
+            var log = new FileLoggingHandler("MonkeyLog.log");
 
             try
             {
+                var loader = new MonkeyLoader.MonkeyLoader();
+                loader.LoggingHandler = log;
+
+                loader.LoadAllMods();
+
                 var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
 
-                File.AppendAllText("test.log", $"[{DateTime.Now}] " + string.Join(", ", frooxEngine.Modules.Select(m => m.Name)) + Environment.NewLine);
+                log.Log($"Modules: {string.Join(", ", frooxEngine.Modules.Select(m => m.Name))}");
 
                 var engine = frooxEngine.MainModule.Types.FirstOrDefault(t => t.Name == "Engine");
                 var engineCCtor = engine.GetStaticConstructor();
@@ -45,11 +49,13 @@ namespace Doorstop
 
                 Assembly.Load(ms.ToArray());
 
-                File.AppendAllText("test.log", $"[{DateTime.Now}] Loaded FrooxEngine from Memory{Environment.NewLine}");
+                log.Log($"Loaded FrooxEngine from Memory");
+
+                loader.Shutdown();
             }
             catch (Exception ex)
             {
-                File.WriteAllText("error.log", ex.Message + Environment.NewLine + ex.StackTrace);
+                log.Log(ex.Format());
             }
         }
     }

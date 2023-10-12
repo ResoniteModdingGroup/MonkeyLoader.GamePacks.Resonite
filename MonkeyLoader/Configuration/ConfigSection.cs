@@ -55,7 +55,7 @@ namespace MonkeyLoader.Configuration
         /// Gets whether this config section is allowed to be saved.<br/>
         /// This can be <c>false</c> if something went wrong while loading it.
         /// </summary>
-        public bool Saveable { get; internal set; }
+        public bool Saveable { get; internal set; } = true;
 
         /// <summary>
         /// Gets the semantic version for this config section.<br/>
@@ -158,7 +158,7 @@ namespace MonkeyLoader.Configuration
 
             foreach (var key in keys)
             {
-                if (!key.TryGetValue(out var value))
+                if (!Config.TryGetValue(key, out var value))
                     continue;
 
                 // I don't need to typecheck this as there's no way to sneak a bad type past my Set() API

@@ -7,6 +7,7 @@ using Mono.Cecil;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -92,6 +93,11 @@ namespace MonkeyLoader
         /// </summary>
         public IEnumerable<Monkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
 
+        /// <summary>
+        /// Gets the configuration for checking NuGet feeds for mods' dependencies.
+        /// </summary>
+        public NuGetConfigSection NuGet { get; private set; }
+
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
 
         /// <summary>
@@ -107,6 +113,7 @@ namespace MonkeyLoader
 
             Config = new Config(this);
             Locations = Config.LoadSection<LocationConfigSection>();
+            NuGet = Config.LoadSection<NuGetConfigSection>();
         }
 
         /// <summary>
@@ -123,7 +130,7 @@ namespace MonkeyLoader
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(() => $"Exception while searching files at location {location}:{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                    Logger.Error(() => ex.Format($"Exception while searching files at location {location}:"));
                 }
 
                 return Enumerable.Empty<string>();
@@ -148,11 +155,24 @@ namespace MonkeyLoader
         /// </summary>
         public void Shutdown()
         {
+            Logger.Info(() => $"Triggering shutdown routine!");
+
             try
             {
+                Logger.Debug(() => $"Triggering save for the mod loader's config to shut down!");
+                Config.Save();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(() => ex.Format("The mod loader's config threw an exception while saving during shutdown!"));
+            }
+
+            try
+            {
+                var sw = Stopwatch.StartNew();
                 Logger.Info(() => $"Triggering save for all {mods.Count} mods's configs to shut down!");
                 mods.Select(mod => (Delegate)mod.Config.Save).TryInvokeAll();
-                Logger.Info(() => $"Successfully saved for all!");
+                Logger.Info(() => $"Successfully triggered saving for all in {sw.ElapsedMilliseconds}ms!");
             }
             catch (AggregateException ex)
             {
@@ -180,7 +200,7 @@ namespace MonkeyLoader
             }
             catch (Exception ex)
             {
-                Logger.Error(() => $"Exception while trying to load mod: {path}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                Logger.Error(() => ex.Format($"Exception while trying to load mod from {path}:"));
             }
 
             return false;

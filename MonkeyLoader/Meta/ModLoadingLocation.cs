@@ -12,10 +12,10 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Specifies where and how to search for mods.
     /// </summary>
-    [JsonObject]
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public sealed class ModLoadingLocation
     {
-        private readonly Regex[] ignorePatterns;
+        private Regex[] ignorePatterns;
 
         /// <summary>
         /// Gets the regex patterns that exclude a mod from being loaded if any match.<br/>
@@ -28,16 +28,30 @@ namespace MonkeyLoader.Meta
                 foreach (var pattern in ignorePatterns)
                     yield return pattern;
             }
+            set => ignorePatterns = value.ToArray();
+        }
+
+        /// <summary>
+        /// Gets the regex patterns that exclude a mod from being loaded if any match as strings.<br/>
+        /// Patterns are matched case-insensitive.
+        /// </summary>
+        [JsonProperty("IgnorePatterns")]
+        public IEnumerable<string> IgnorePatternsStrings
+        {
+            get => ignorePatterns.Select(regex => regex.ToString());
+            set => ignorePatterns = value.Select(pattern => new Regex(pattern)).ToArray();
         }
 
         /// <summary>
         /// Gets the root folder to search.
         /// </summary>
+        [JsonProperty("Path")]
         public string Path { get; }
 
         /// <summary>
         /// Gets whether nested folders get searched too.
         /// </summary>
+        [JsonProperty("Recursive")]
         public bool Recursive { get; }
 
         /// <summary>

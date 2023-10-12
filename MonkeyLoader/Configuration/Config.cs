@@ -141,18 +141,15 @@ namespace MonkeyLoader.Configuration
             if (sections.Contains(section))
                 throw new ConfigLoadException($"Attempted to load section [{section.Name}] twice!");
 
-            if (loadedConfig[section.Name] is not JObject sectionObject)
-            {
-                Logger.Warn(() => $"Section [{section.Name}] didn't appear in the loaded config - created it!");
-                loadedConfig[section.Name] = new JObject();
-            }
+            if (loadedConfig[sectionsKey]![section.Name] is not JObject sectionObject)
+                Logger.Warn(() => $"Section [{section.Name}] didn't appear in the loaded config - using defaults!");
             else
-            {
                 section.LoadSection(sectionObject, Owner.Loader.JsonSerializer);
-            }
 
             foreach (var key in section.Keys)
                 configurationItemDefinitionsSelfMap.Add(key, key);
+
+            sections.Add(section);
 
             return section;
         }
@@ -162,7 +159,7 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public void Save()
         {
-            var sectionsJson = loadedConfig[sectionsKey]!;
+            var sectionsJson = (JObject)loadedConfig[sectionsKey]!;
             var stopwatch = Stopwatch.StartNew();
 
             lock (loadedConfig)
@@ -178,7 +175,7 @@ namespace MonkeyLoader.Configuration
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error(() => $"Exception while serializing section [{section.Name}] - skipping it!{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                        Logger.Error(() => ex.Format($"Exception while serializing section [{section.Name}] - skipping it!"));
                     }
                 }
 
@@ -187,6 +184,7 @@ namespace MonkeyLoader.Configuration
                     using var file = File.OpenWrite(Owner.ConfigPath);
                     using var streamWriter = new StreamWriter(file);
                     using var jsonTextWriter = new JsonTextWriter(streamWriter);
+                    jsonTextWriter.Formatting = Formatting.Indented;
                     loadedConfig.WriteTo(jsonTextWriter);
 
                     // I actually cannot believe I have to truncate the file myself
@@ -197,7 +195,7 @@ namespace MonkeyLoader.Configuration
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(() => $"Exception while saving config!{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                    Logger.Error(() => ex.Format($"Exception while saving config!"));
                 }
             }
         }
@@ -356,7 +354,7 @@ namespace MonkeyLoader.Configuration
         internal bool IsKeyDefiningKey(ConfigKey key)
         {
             // a key is the defining key if and only if its DefiningKey property references itself
-            return ReferenceEquals(key, key.DefiningKey); // this is safe because we'll throw a NRE if key is null
+            return ReferenceEquals(key, key.DefiningKey);
         }
 
         private bool anyValuesSet() => ConfigurationItemDefinitions.Where(key => key.HasValue).Any();

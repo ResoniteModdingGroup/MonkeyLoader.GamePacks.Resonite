@@ -78,7 +78,7 @@ namespace MonkeyLoader.Prepatching
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(() => $"Pre-patcher [{Prepatcher.Name}] threw an exception on assembly [{AssemblyName}].{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                    logger.Error(() => ex.Format($"Pre-patcher [{Prepatcher.Name}] threw an exception on assembly [{AssemblyName}]."));
 
                     return false;
                 }

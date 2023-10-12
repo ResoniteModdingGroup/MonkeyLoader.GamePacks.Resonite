@@ -15,7 +15,7 @@ namespace MonkeyLoader.Meta
         public readonly ConfigKey<string> ConfigsKey = new("Configs", "Paths to check for configuration files.", () => "./MonkeyLoader/Configs");
         public readonly ConfigKey<string> GamePacksKey = new("GamePacks", "Paths to check for game packs.", () => "./MonkeyLoader/GamePacks");
         public readonly ConfigKey<string> LibsKey = new("Libs", "Paths to check for dependency libraries.", () => "./MonkeyLoader/Libs");
-        public readonly ConfigKey<List<ModLoadingLocation>> ModsKey = new("Mods", "Paths to check for mods.", () => new() { new ModLoadingLocation("./MonkeyLoader/Mods", true, "\\.disabled") });
+        public readonly ConfigKey<List<ModLoadingLocation>> ModsKey = new("Mods", "Loading locations to check for mods.", () => new() { new ModLoadingLocation("./MonkeyLoader/Mods", true, "\\.disabled") });
 
         public string Configs
         {
