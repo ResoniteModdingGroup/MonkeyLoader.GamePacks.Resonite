@@ -1,6 +1,7 @@
 ﻿using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
+using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using Mono.Cecil;
@@ -94,9 +95,9 @@ namespace MonkeyLoader
         public IEnumerable<Monkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
 
         /// <summary>
-        /// Gets the configuration for checking NuGet feeds for mods' dependencies.
+        /// Gets the NuGet manager used by this loader.
         /// </summary>
-        public NuGetConfigSection NuGet { get; private set; }
+        public NuGetManager NuGet { get; private set; }
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
 
@@ -113,7 +114,33 @@ namespace MonkeyLoader
 
             Config = new Config(this);
             Locations = Config.LoadSection<LocationConfigSection>();
-            NuGet = Config.LoadSection<NuGetConfigSection>();
+
+            NuGet = new NuGetManager(this);
+        }
+
+        public void EnsureAllLocationsExist()
+        {
+            var locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
+            var modLocations = Locations.Mods.Select(modLocation => modLocation.Path).ToArray();
+
+            Logger.Info(() => $"Ensuring that all configured locations exist as directories:{Environment.NewLine}" +
+                $"    {nameof(Locations.Configs)}: {Locations.Configs}{Environment.NewLine}" +
+                $"    {nameof(Locations.GamePacks)}: {Locations.GamePacks}{Environment.NewLine}" +
+                $"    {nameof(Locations.Libs)}: {Locations.Libs}{Environment.NewLine}" +
+                $"    {nameof(Locations.Mods)}:{Environment.NewLine}" +
+                $"      - {string.Join(Environment.NewLine + "      - ", modLocations)}");
+
+            foreach (var location in locations.Concat(modLocations))
+            {
+                try
+                {
+                    Directory.CreateDirectory(location);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(() => ex.Format($"Exception while trying to create directory: {location}"));
+                }
+            }
         }
 
         /// <summary>

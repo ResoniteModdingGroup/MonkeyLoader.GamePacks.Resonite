@@ -3,9 +3,8 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using System;
-using System.Diagnostics.CodeAnalysis;
 
-namespace MonkeyLoader.Meta
+namespace MonkeyLoader.NuGet
 {
     /// <summary>
     /// Represents a NuGet feed source.

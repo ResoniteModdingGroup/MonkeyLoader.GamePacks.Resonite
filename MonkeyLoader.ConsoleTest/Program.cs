@@ -29,6 +29,7 @@ namespace MonkeyLoader.ConsoleTest
             var loader = new MonkeyLoader();
             loader.LoggingHandler = new ConsoleLoggingHandler();
 
+            loader.EnsureAllLocationsExist();
             var mods = loader.LoadAllMods();
 
             loader.Shutdown();

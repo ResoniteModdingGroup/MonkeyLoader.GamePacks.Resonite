@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Meta
+namespace MonkeyLoader.NuGet
 {
     public sealed class NuGetConfigSection : ConfigSection
     {

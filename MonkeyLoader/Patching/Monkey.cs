@@ -3,6 +3,7 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Patching
@@ -16,6 +17,8 @@ namespace MonkeyLoader.Patching
     /// </remarks>
     public abstract class Monkey
     {
+        private static readonly Type monkeyType = typeof(Monkey);
+
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> that this patcher can use to load <see cref="ConfigSection"/>s.
         /// </summary>
@@ -38,6 +41,15 @@ namespace MonkeyLoader.Patching
 
         internal Monkey()
         { }
+
+        internal static Monkey GetInstance(Type type)
+        {
+            // Could do more specific inheriting from Monkey<> check
+            if (!monkeyType.IsAssignableFrom(type))
+                throw new ArgumentException($"Given type [{type}] doesn't inherit from {monkeyType.FullName}!", nameof(type));
+
+            return (Monkey)type.GetProperty("Instance", AccessTools.all).GetValue(null);
+        }
 
         /// <summary>
         /// Called right after the game tooling packs and all the game's assemblies have been loaded.

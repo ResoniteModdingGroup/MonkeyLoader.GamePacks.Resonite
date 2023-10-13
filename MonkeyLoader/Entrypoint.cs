@@ -32,6 +32,7 @@ namespace Doorstop
                 var loader = new MonkeyLoader.MonkeyLoader();
                 loader.LoggingHandler = log;
 
+                loader.EnsureAllLocationsExist();
                 loader.LoadAllMods();
 
                 var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
