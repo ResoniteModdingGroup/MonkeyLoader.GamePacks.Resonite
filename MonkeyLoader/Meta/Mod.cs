@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
+using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Prepatching;
 using NuGet.Packaging;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Zio;
@@ -19,9 +21,13 @@ namespace MonkeyLoader.Meta
     /// </summary>
     public sealed class Mod : IConfigOwner
     {
+        private const string prePatchersFolderName = "pre-patchers";
+        private static readonly Type earlyMonkeyType = typeof(EarlyMonkey);
+        private static readonly Type monkeyType = typeof(Monkey);
+        private readonly UPath[] assemblyPaths;
         private readonly HashSet<string> authors;
-        private readonly List<EarlyMonkey> earlyMonkeys = new();
-        private readonly List<Monkey> monkeys = new();
+        private readonly HashSet<EarlyMonkey> earlyMonkeys = new();
+        private readonly HashSet<Monkey> monkeys = new();
         private readonly HashSet<string> tags;
 
         /// <summary>
@@ -51,6 +57,8 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public string Description { get; }
 
+        public bool EarlyMonkeyLoadError { get; private set; }
+
         /// <summary>
         /// Gets the available <see cref="EarlyMonkey"/>s of this mod.
         /// </summary>
@@ -72,6 +80,8 @@ namespace MonkeyLoader.Meta
         /// Gets the <see cref="HarmonyLib.Harmony"/> instance to be used by this mod's (pre-)patcher(s).
         /// </summary>
         public Harmony Harmony { get; }
+
+        public bool HasPrePatchers { get; }
 
         /// <summary>
         /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
@@ -95,6 +105,8 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public MonkeyLoader Loader { get; }
 
+        public bool LoadError => EarlyMonkeyLoadError || MonkeyLoadError;
+
         /// <summary>
         /// Gets the absolute file path to this mod's file.
         /// </summary>
@@ -109,6 +121,8 @@ namespace MonkeyLoader.Meta
         /// </remarks>
         public MonkeyLogger Logger { get; }
 
+        public bool MonkeyLoadError { get; private set; }
+
         /// <summary>
         /// Gets the available <see cref="Monkey"/>s of this mod.
         /// </summary>
@@ -120,6 +134,10 @@ namespace MonkeyLoader.Meta
                     yield return monkey;
             }
         }
+
+        public IEnumerable<UPath> PatcherAssemblyPaths => assemblyPaths.Where(path => !path.FullName.Contains(prePatchersFolderName));
+
+        public IEnumerable<UPath> PrePatcherAssemblyPaths => assemblyPaths.Where(path => path.FullName.Contains(prePatchersFolderName));
 
         /// <summary>
         /// Gets the Url to this mod's project website.<br/>
@@ -206,6 +224,24 @@ namespace MonkeyLoader.Meta
 
             ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
             Config = new Config(this);
+
+            var assemblyFolder = Path.Combine("libs", NuGetManager.Framework.GetShortFolderName());
+            if (!fileSystem.DirectoryExists(assemblyFolder))
+            {
+                if (fileSystem.DirectoryExists("libs"))
+                {
+                    assemblyFolder = "libs";
+                    Logger.Error(() => $"No libs folder targeting the right framework [{assemblyFolder}] found for mod, falling back to libs: {location}");
+                }
+                else
+                {
+                    Logger.Error(() => $"No libs folder at all found for mod: {location}");
+                    return;
+                }
+            }
+
+            assemblyPaths = fileSystem.EnumerateFiles(assemblyFolder, "*.dll", SearchOption.AllDirectories).ToArray();
+            HasPrePatchers = assemblyPaths.Any(path => path.FullName.Contains(prePatchersFolderName));
         }
 
         /// <summary>
@@ -221,5 +257,63 @@ namespace MonkeyLoader.Meta
         /// <param name="tag">The tag to check for.</param>
         /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
         public bool HasTag(string tag) => tags.Contains(tag);
+
+        internal void LoadEarlyMonkeys()
+        {
+            foreach (var prepatcherPath in PrePatcherAssemblyPaths)
+            {
+                try
+                {
+                    using var assemblyFile = FileSystem.OpenFile(prepatcherPath, FileMode.Open, FileAccess.Read);
+                    var assemblyBytes = new byte[assemblyFile.Length];
+                    assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
+
+                    var assembly = Assembly.Load(assemblyBytes);
+
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (!type.IsClass || type.IsAbstract || !earlyMonkeyType.IsAssignableFrom(type))
+                            continue;
+
+                        earlyMonkeys.Add((EarlyMonkey)Activator.CreateInstance(type));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EarlyMonkeyLoadError = true;
+                    Logger.Error(() => ex.Format($"Error while loading Early Monkeys from assembly: {prepatcherPath}!"));
+                }
+            }
+        }
+
+        internal void LoadMonkeys()
+        {
+            // assemblies should be Mono.Cecil loaded before the Early ones, to allow pre-patchers access
+
+            foreach (var patcherPath in PatcherAssemblyPaths)
+            {
+                try
+                {
+                    using var assemblyFile = FileSystem.OpenFile(patcherPath, FileMode.Open, FileAccess.Read);
+                    var assemblyBytes = new byte[assemblyFile.Length];
+                    assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
+
+                    var assembly = Assembly.Load(assemblyBytes);
+
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (!type.IsClass || type.IsAbstract || !monkeyType.IsAssignableFrom(type))
+                            continue;
+
+                        monkeys.Add((Monkey)Activator.CreateInstance(type));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MonkeyLoadError = true;
+                    Logger.Error(() => ex.Format($"Error while loading Monkeys from assembly: {patcherPath}!"));
+                }
+            }
+        }
     }
 }

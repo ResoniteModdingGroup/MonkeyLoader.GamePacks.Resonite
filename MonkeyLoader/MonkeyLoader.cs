@@ -13,6 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Zio.FileSystems;
@@ -118,9 +119,27 @@ namespace MonkeyLoader
             NuGet = new NuGetManager(this);
         }
 
+        public void DoPatching()
+        {
+            foreach (var monkey in mods.SelectMany(mod => mod.Monkeys))
+            {
+                try
+                {
+                    monkey.OnLoaded();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(() => ex.Format($"Error while running patcher [{monkey.GetType().Name}] from mod [{monkey.Mod.Title}]!"));
+                }
+            }
+        }
+
+        public void DoPrepatching()
+        { }
+
         public void EnsureAllLocationsExist()
         {
-            var locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
+            var locations = new[] { Locations.Configs, Path.Combine(Locations.GamePacks, "Data"), Path.Combine(Locations.GamePacks, "Integration"), Locations.Libs };
             var modLocations = Locations.Mods.Select(modLocation => modLocation.Path).ToArray();
 
             Logger.Info(() => $"Ensuring that all configured locations exist as directories:{Environment.NewLine}" +
@@ -165,15 +184,80 @@ namespace MonkeyLoader
             .TrySelect<string, Mod>(TryLoadMod);
         }
 
+        public void LoadEarlyMonkeys()
+        {
+            foreach (var mod in mods)
+                mod.LoadEarlyMonkeys();
+        }
+
+        public void LoadGameAssemblies()
+        { }
+
+        public void LoadGameDataPacks()
+        {
+            foreach (var gamepack in Directory.EnumerateFiles(Path.Combine(Locations.GamePacks, "Data"), "*.dll", SearchOption.AllDirectories))
+            {
+                Assembly.LoadFile(gamepack);
+            }
+        }
+
+        public void LoadGameIntegrationPacks()
+        {
+            // This should be loaded like mods instead
+
+            foreach (var gamepack in Directory.EnumerateFiles(Path.Combine(Locations.GamePacks, "Integration"), "*.dll", SearchOption.AllDirectories))
+            {
+                var monkeys = new List<Monkey>();
+
+                try
+                {
+                    var assembly = Assembly.LoadFile(gamepack);
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (!type.IsClass || type.IsAbstract || !typeof(Monkey).IsAssignableFrom(type))
+                            continue;
+
+                        monkeys.Add((Monkey)Activator.CreateInstance(type));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(() => ex.Format($"Error while loading Monkeys from game integration pack assembly: {gamepack}!"));
+                    continue;
+                }
+
+                foreach (var monkey in monkeys)
+                {
+                    try
+                    {
+                        monkey.OnLoaded();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(() => ex.Format($"Error while running patcher [{monkey.GetType().Name}] from game integration pack [{monkey.Mod.Title}]!"));
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Loads the mod from the given path, making no checks.
         /// </summary>
         /// <returns>The loaded mod.</returns>
         public Mod LoadMod(string path)
         {
-            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read, isCaseSensitive: true);
+            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read);
 
-            return new Mod(this, path, fileSystem);
+            var mod = new Mod(this, path, fileSystem);
+            mods.Add(mod);
+
+            return mod;
+        }
+
+        public void LoadMonkeys()
+        {
+            foreach (var mod in mods)
+                mod.LoadMonkeys();
         }
 
         /// <summary>

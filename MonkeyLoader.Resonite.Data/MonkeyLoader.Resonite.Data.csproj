@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -31,10 +31,10 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\$(AssemblyFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\$(AssemblyFileName)" Importance="high" />
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\$(AssemblyTitle).xml" />
-    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\$(AssemblyTitle).xml" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyFileName)" />
+    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyFileName)" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyTitle).xml" />
+    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyTitle).xml" Importance="high" />
   </Target>
 
   <ItemGroup>
