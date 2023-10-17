@@ -11,6 +11,7 @@ namespace MonkeyLoader.NuGet
     {
         public readonly ConfigKey<bool> EnableLoadingLibsKey = new("EnableLoadingLibs", "Allows checking NuGet feeds to load mod's library dependencies.", () => true);
         public readonly ConfigKey<bool> EnableLoadingModsKey = new("EnableLoadingMods", "Allows checking NuGet feeds to load mod's other-mod dependencies.", () => true);
+        public readonly ConfigKey<List<NuGetSource>> NuGetGamePackSourcesKey = new("NuGetGamePackSources", "NuGet feeds to check for game packs.", () => new());
         public readonly ConfigKey<List<NuGetSource>> NuGetLibSourcesKey = new("NuGetLibSources", "NuGet feeds to check for libraries.", () => new() { new("Official NuGet Feed", new("https://api.nuget.org/v3/index.json")) });
 
         public readonly ConfigKey<List<NuGetSource>> NuGetModSourcesKey = new("NuGetModSources", "NuGet feeds to check for mods.", () => new());
@@ -38,6 +39,15 @@ namespace MonkeyLoader.NuGet
 
         /// <inheritdoc/>
         public override string Name { get; } = "NuGet";
+
+        /// <summary>
+        /// Gets the NuGet feeds to check for game packs.
+        /// </summary>
+        public List<NuGetSource> NuGetGamePackSources
+        {
+            get => Config.GetValue(NuGetGamePackSourcesKey);
+            set => Config.Set(NuGetGamePackSourcesKey, value);
+        }
 
         /// <summary>
         /// Gets the NuGet feeds to check for libraries.

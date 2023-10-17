@@ -1,11 +1,8 @@
 ﻿using MonkeyLoader;
-using MonkeyLoader.Game;
 using MonkeyLoader.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using MonoMod.Core.Platforms;
-using MonoMod.Logs;
 using MonoMod.Utils;
 using System;
 using System.Diagnostics;
@@ -30,10 +27,10 @@ namespace Doorstop
             try
             {
                 var loader = new MonkeyLoader.MonkeyLoader();
+                loader.Logger.Level = LoggingLevel.Trace;
                 loader.LoggingHandler = log;
 
-                loader.EnsureAllLocationsExist();
-                loader.LoadAllMods();
+                loader.FullLoad();
 
                 var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
 

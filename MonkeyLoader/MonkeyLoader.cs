@@ -25,7 +25,8 @@ namespace MonkeyLoader
     /// </summary>
     public sealed class MonkeyLoader : IConfigOwner
     {
-        private readonly HashSet<Mod> mods = new();
+        private static readonly Type jsonConverterType = typeof(JsonConverter);
+        private readonly HashSet<Mod> allMods = new();
         private ILoggingHandler? loggingHandler;
 
         /// <summary>
@@ -43,7 +44,10 @@ namespace MonkeyLoader
         /// </summary>
         public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
-        public bool HasLoadedMods { get; private set; }
+        /// <summary>
+        /// Gets all loaded game pack <see cref="Mod"/>s.
+        /// </summary>
+        public IEnumerable<Mod> GamePacks => allMods.Where(mod => mod.IsGamePack);
 
         /// <summary>
         /// Gets the json serializer used by this loader and any mods it loads.<br/>
@@ -79,16 +83,9 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Gets all loaded <see cref="Mod"/>s.
+        /// Gets all loaded regular <see cref="Mod"/>s.
         /// </summary>
-        public IEnumerable<Mod> Mods
-        {
-            get
-            {
-                foreach (var mod in mods)
-                    yield return mod;
-            }
-        }
+        public IEnumerable<Mod> Mods => allMods.Where(mod => !mod.IsGamePack);
 
         /// <summary>
         /// Gets the <see cref="Monkey"/>s of all loaded <see cref="Mods">Mods</see>.
@@ -119,27 +116,47 @@ namespace MonkeyLoader
             NuGet = new NuGetManager(this);
         }
 
-        public void DoPatching()
+        /// <summary>
+        /// Instantiates and adds a <see cref="JsonConverter"/> instance of the given <typeparamref name="TConverter">converter type</typeparamref>
+        /// to this loader's <see cref="JsonSerializer">JsonSerializer</see>.
+        /// </summary>
+        public void AddJsonConverter<TConverter>() where TConverter : JsonConverter, new()
+            => AddJsonConverter(new TConverter());
+
+        /// <summary>
+        /// Adds the given <see cref="JsonConverter"/> instance to this loader's <see cref="JsonSerializer">JsonSerializer</see>.
+        /// </summary>
+        public void AddJsonConverter(JsonConverter jsonConverter) => JsonSerializer.Converters.Add(jsonConverter);
+
+        /// <summary>
+        /// Instantiates and adds a <see cref="JsonConverter"/> instance of the given <paramref name="converterType">converter type</paramref>
+        /// to this loader's <see cref="JsonSerializer">JsonSerializer</see>.
+        /// </summary>
+        /// <param name="converterType">The <see cref="JsonConverter"/> derived type to instantiate.</param>
+        public void AddJsonConverter(Type converterType)
+            => AddJsonConverter((JsonConverter)Activator.CreateInstance(converterType));
+
+        /// <summary>
+        /// Searches the given <paramref name="assembly"/> for all instantiable types derived from <see cref="JsonConverter"/>,
+        /// which are not decorated with the <see cref="IgnoreJsonConverterAttribute"/>.<br/>
+        /// Instantiates adds an instance of them to this loader's <see cref="JsonSerializer">JsonSerializer</see>.
+        /// </summary>
+        /// <param name="assembly"></param>
+        public void AddJsonConverters(Assembly assembly)
         {
-            foreach (var monkey in mods.SelectMany(mod => mod.Monkeys))
+            foreach (var type in assembly.GetTypes().Instantiable<JsonConverter>())
             {
-                try
-                {
-                    monkey.OnLoaded();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(() => ex.Format($"Error while running patcher [{monkey.GetType().Name}] from mod [{monkey.Mod.Title}]!"));
-                }
+                if (type.GetCustomAttribute<IgnoreJsonConverterAttribute>() is null)
+                    AddJsonConverter(type);
             }
         }
 
-        public void DoPrepatching()
-        { }
-
+        /// <summary>
+        /// Tries to create all <see cref="Locations">Locations</see> used by this loader.
+        /// </summary>
         public void EnsureAllLocationsExist()
         {
-            var locations = new[] { Locations.Configs, Path.Combine(Locations.GamePacks, "Data"), Path.Combine(Locations.GamePacks, "Integration"), Locations.Libs };
+            var locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
             var modLocations = Locations.Mods.Select(modLocation => modLocation.Path).ToArray();
 
             Logger.Info(() => $"Ensuring that all configured locations exist as directories:{Environment.NewLine}" +
@@ -163,6 +180,49 @@ namespace MonkeyLoader
         }
 
         /// <summary>
+        /// Performs the full loading routine without customizations or interventions.
+        /// </summary>
+        public void FullLoad()
+        {
+            EnsureAllLocationsExist();
+            LoadAllGamePacks();
+            LoadAllMods();
+
+            LoadGamePackEarlyMonkeys();
+            RunGamePackEarlyMonkeys();
+
+            LoadModEarlyMonkeys();
+            RunModEarlyMonkeys();
+
+            LoadGameAssemblies();
+
+            LoadGamePackMonkeys();
+            RunGamePackMonkeys();
+
+            LoadModMonkeys();
+            RunModMonkeys();
+        }
+
+        /// <summary>
+        /// Loads all game pack mods from the <see cref="LocationConfigSection">configured</see> <see cref="LocationConfigSection.GamePacks"> location</see>.
+        /// </summary>
+        /// <returns>All successfully loaded game pack mods.</returns>
+        public IEnumerable<Mod> LoadAllGamePacks()
+        {
+            try
+            {
+                return Directory.EnumerateFiles(Locations.GamePacks, Mod.SearchPattern, SearchOption.TopDirectoryOnly)
+                    .TrySelect<string, Mod>(tryLoadGamePack)
+                    .ToArray();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(() => ex.Format($"Exception while searching files at location {Locations.GamePacks}:"));
+                return Enumerable.Empty<Mod>();
+            }
+        }
+
+        /// <summary>
         /// Loads all mods from the <see cref="LocationConfigSection">configured</see> <see cref="ModLoadingLocation">locations</see>.
         /// </summary>
         /// <returns>All successfully loaded mods.</returns>
@@ -181,83 +241,127 @@ namespace MonkeyLoader
 
                 return Enumerable.Empty<string>();
             })
-            .TrySelect<string, Mod>(TryLoadMod);
+            .TrySelect<string, Mod>(tryLoadMod)
+            .ToArray();
         }
 
-        public void LoadEarlyMonkeys()
+        /// <summary>
+        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="Monkey"/>s.
+        /// </summary>
+        public void LoadEarlyMonkeys(IEnumerable<Mod> mods)
         {
             foreach (var mod in mods)
                 mod.LoadEarlyMonkeys();
         }
 
+        /// <summary>
+        /// Loads all of the game's assemblies from their potentially modified in-memory versions.
+        /// </summary>
         public void LoadGameAssemblies()
         { }
 
-        public void LoadGameDataPacks()
+        /// <summary>
+        /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="EarlyMonkey"/>s.
+        /// </summary>
+        public void LoadGamePackEarlyMonkeys() => LoadEarlyMonkeys(allMods.Where(mod => mod.IsGamePack));
+
+        /// <summary>
+        /// Loads every loaded game pack <see cref="Mods">mod's</see> patcher assemblies and <see cref="Monkey"/>s.
+        /// </summary>
+        public void LoadGamePackMonkeys() => LoadMonkeys(allMods.Where(mod => mod.IsGamePack));
+
+        /// <summary>
+        /// Loads the mod from the given path, making no checks.
+        /// </summary>
+        /// <param name="path">The path to the mod file.</param>
+        /// <param name="isGamePack">Whether the mod is a game pack.</param>
+        /// <returns>The loaded mod.</returns>
+        public Mod LoadMod(string path, bool isGamePack = false)
         {
-            foreach (var gamepack in Directory.EnumerateFiles(Path.Combine(Locations.GamePacks, "Data"), "*.dll", SearchOption.AllDirectories))
+            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read);
+
+            var mod = new Mod(this, path, fileSystem, isGamePack);
+            allMods.Add(mod);
+
+            return mod;
+        }
+
+        /// <summary>
+        /// Loads every loaded regular <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="EarlyMonkey"/>s.
+        /// </summary>
+        public void LoadModEarlyMonkeys() => LoadEarlyMonkeys(Mods);
+
+        /// <summary>
+        /// Loads every loaded regular <see cref="Mods">mod's</see> patcher assemblies and <see cref="Monkey"/>s.
+        /// </summary>
+        public void LoadModMonkeys() => LoadMonkeys(Mods);
+
+        /// <summary>
+        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="Monkey"/>s.
+        /// </summary>
+        public void LoadMonkeys(IEnumerable<Mod> mods)
+        {
+            foreach (var mod in mods)
+                mod.LoadMonkeys();
+        }
+
+        /// <summary>
+        /// Runs every given <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// </summary>
+        public void RunEarlyMonkeys(IEnumerable<Mod> mods)
+        {
+            foreach (var mod in mods)
             {
-                Assembly.LoadFile(gamepack);
+                // Add check for mod.EarlyMonkeyLoadError
+
+                foreach (var earlyMonkey in mod.EarlyMonkeys) ;
+                // Do the prepatching for the early monkeys...
             }
         }
 
-        public void LoadGameIntegrationPacks()
+        /// <summary>
+        /// Runs every loaded game pack <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// </summary>
+        public void RunGamePackEarlyMonkeys() => RunEarlyMonkeys(GamePacks);
+
+        /// <summary>
+        /// Runs every loaded game pack <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
+        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() method.
+        /// </summary>
+        public void RunGamePackMonkeys() => RunMonkeys(GamePacks);
+
+        /// <summary>
+        /// Runs every loaded regular <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// </summary>
+        public void RunModEarlyMonkeys() => RunEarlyMonkeys(Mods);
+
+        /// <summary>
+        /// Runs every loaded regular <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
+        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() method.
+        /// </summary>
+        public void RunModMonkeys() => RunMonkeys(Mods);
+
+        /// <summary>
+        /// Runs every given <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
+        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() methods.
+        /// </summary>
+        public void RunMonkeys(IEnumerable<Mod> mods)
         {
-            // This should be loaded like mods instead
-
-            foreach (var gamepack in Directory.EnumerateFiles(Path.Combine(Locations.GamePacks, "Integration"), "*.dll", SearchOption.AllDirectories))
+            foreach (var mod in mods)
             {
-                var monkeys = new List<Monkey>();
-
-                try
+                foreach (var monkey in mod.Monkeys)
                 {
-                    var assembly = Assembly.LoadFile(gamepack);
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        if (!type.IsClass || type.IsAbstract || !typeof(Monkey).IsAssignableFrom(type))
-                            continue;
-
-                        monkeys.Add((Monkey)Activator.CreateInstance(type));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(() => ex.Format($"Error while loading Monkeys from game integration pack assembly: {gamepack}!"));
-                    continue;
-                }
-
-                foreach (var monkey in monkeys)
-                {
+                    // Add check for mod.MonkeyLoadError
                     try
                     {
                         monkey.OnLoaded();
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error(() => ex.Format($"Error while running patcher [{monkey.GetType().Name}] from game integration pack [{monkey.Mod.Title}]!"));
+                        Logger.Error(() => ex.Format($"Error while running monkey [{monkey.GetType().Name}] from mod [{monkey.Mod.Title}]!"));
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Loads the mod from the given path, making no checks.
-        /// </summary>
-        /// <returns>The loaded mod.</returns>
-        public Mod LoadMod(string path)
-        {
-            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read);
-
-            var mod = new Mod(this, path, fileSystem);
-            mods.Add(mod);
-
-            return mod;
-        }
-
-        public void LoadMonkeys()
-        {
-            foreach (var mod in mods)
-                mod.LoadMonkeys();
         }
 
         /// <summary>
@@ -281,8 +385,8 @@ namespace MonkeyLoader
             try
             {
                 var sw = Stopwatch.StartNew();
-                Logger.Info(() => $"Triggering save for all {mods.Count} mods's configs to shut down!");
-                mods.Select(mod => (Delegate)mod.Config.Save).TryInvokeAll();
+                Logger.Info(() => $"Triggering save for all {allMods.Count} mods's configs to shut down!");
+                allMods.Select(mod => (Delegate)mod.Config.Save).TryInvokeAll();
                 Logger.Info(() => $"Successfully triggered saving for all in {sw.ElapsedMilliseconds}ms!");
             }
             catch (AggregateException ex)
@@ -296,8 +400,9 @@ namespace MonkeyLoader
         /// </summary>
         /// <param name="path">The path to the file to load as a mod.</param>
         /// <param name="mod">The resulting mod when successful, or null when not.</param>
+        /// <param name="isGamePack">Whether the mod is a game pack.</param>
         /// <returns><c>true</c> when the file was successfully loaded.</returns>
-        public bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
+        public bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod, bool isGamePack = false)
         {
             mod = null;
 
@@ -306,7 +411,7 @@ namespace MonkeyLoader
 
             try
             {
-                mod = LoadMod(path);
+                mod = LoadMod(path, isGamePack);
                 return true;
             }
             catch (Exception ex)
@@ -340,6 +445,12 @@ namespace MonkeyLoader
                 neededDefinitions.Clear();
             }
         }
+
+        private bool tryLoadGamePack(string path, [NotNullWhen(true)] out Mod? gamePack)
+            => TryLoadMod(path, out gamePack, true);
+
+        private bool tryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
+            => TryLoadMod(path, out mod, false);
 
         /// <summary>
         /// Called when the value of any of this loader's configs changes.<br/>

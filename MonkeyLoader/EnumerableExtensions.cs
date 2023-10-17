@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -8,6 +9,16 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader
 {
+    /// <summary>
+    /// A selector following the try-pattern.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the source item.</typeparam>
+    /// <typeparam name="TResult">The type of the result item.</typeparam>
+    /// <param name="source">The source item to transform.</param>
+    /// <param name="result">The result item when successful, or <c>null</c> otherwise.</param>
+    /// <returns>Whether the transformation was successful.</returns>
+    public delegate bool TrySelector<TSource, TResult>(TSource source, [NotNullWhen(true)] out TResult? result);
+
     /// <summary>
     /// Contains handy extension methods for <see cref="IEnumerable{T}"/>.
     /// </summary>
@@ -21,7 +32,7 @@ namespace MonkeyLoader
         /// <param name="message">The message to prepend.</param>
         /// <returns>The formatted message and exceptions.</returns>
         public static string Format(this AggregateException ex, string message)
-            => $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(inEx => $"{inEx.Message}{Environment.NewLine}{inEx.StackTrace}"))}";
+            => $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(Format))}";
 
         /// <summary>
         /// Formats an <see cref="Exception"/> with a message.
@@ -39,6 +50,27 @@ namespace MonkeyLoader
         /// <returns>The formatted exception.</returns>
         public static string Format(this Exception ex)
             => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+
+        /// <summary>
+        /// Filters a source sequence of <see cref="Type"/>s to only contain the ones instantiable
+        /// without parameters and assignable to <typeparamref name="TInstance"/>.
+        /// </summary>
+        /// <typeparam name="TInstance">The type that sequence items must be assignable to.</typeparam>
+        /// <param name="types">The source sequence of types to filter.</param>
+        /// <returns>A sequence of instantiable types assignable to <typeparamref name="TInstance"/>.</returns>
+        public static IEnumerable<Type> Instantiable<TInstance>(this IEnumerable<Type> types)
+        {
+            var instanceType = typeof(TInstance);
+
+            foreach (var type in types)
+            {
+                if (!type.IsAbstract && instanceType.IsAssignableFrom(type)
+                    && (type.IsValueType || type.GetConstructor(AccessTools.allDeclared, null, Type.EmptyTypes, null) is not null))
+                {
+                    yield return type;
+                }
+            }
+        }
 
         /// <summary>
         /// Tries to cast every item from the <paramref name="source"/> to <typeparamref name="TTo"/>.
@@ -111,15 +143,5 @@ namespace MonkeyLoader
                     yield return result;
             }
         }
-
-        /// <summary>
-        /// A selector following the try-pattern.
-        /// </summary>
-        /// <typeparam name="TSource">The type of the source item.</typeparam>
-        /// <typeparam name="TResult">The type of the result item.</typeparam>
-        /// <param name="source">The source item to transform.</param>
-        /// <param name="result">The result item when successful, or <c>null</c> otherwise.</param>
-        /// <returns>Whether the transformation was successful.</returns>
-        public delegate bool TrySelector<TSource, TResult>(TSource source, [NotNullWhen(true)] out TResult? result);
     }
 }

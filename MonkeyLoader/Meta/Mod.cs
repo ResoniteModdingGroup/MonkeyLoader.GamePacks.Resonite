@@ -21,9 +21,15 @@ namespace MonkeyLoader.Meta
     /// </summary>
     public sealed class Mod : IConfigOwner
     {
+        /// <summary>
+        /// The search pattern for mod files.
+        /// </summary>
+        public static readonly string SearchPattern = "*.nupkg";
+
+        internal readonly HashSet<Assembly> PatcherAssemblies = new();
+        internal readonly HashSet<Assembly> PrePatcherAssemblies = new();
+
         private const string prePatchersFolderName = "pre-patchers";
-        private static readonly Type earlyMonkeyType = typeof(EarlyMonkey);
-        private static readonly Type monkeyType = typeof(Monkey);
         private readonly UPath[] assemblyPaths;
         private readonly HashSet<string> authors;
         private readonly HashSet<EarlyMonkey> earlyMonkeys = new();
@@ -99,6 +105,11 @@ namespace MonkeyLoader.Meta
         /// Gets the unique identifier of this mod.
         /// </summary>
         public string Id { get; }
+
+        /// <summary>
+        /// Gets whether this mod is a game pack.
+        /// </summary>
+        public bool IsGamePack { get; }
 
         /// <summary>
         /// Gets the <see cref="MonkeyLoader"/> instance that loaded this mod.
@@ -179,11 +190,14 @@ namespace MonkeyLoader.Meta
         /// <param name="monkeyLoader">The loader instance that loaded this mod.</param>
         /// <param name="location">The absolute file path to the mod's file.</param>
         /// <param name="fileSystem">The file system of the mod's file.</param>
+        /// <param name="isGamePack">Whether this mod is a game pack.</param>
         /// <exception cref="FileNotFoundException">When there's no <c>.nuspec</c> file at the root of the file system.</exception>
-        public Mod(MonkeyLoader monkeyLoader, string location, IFileSystem fileSystem)
+        public Mod(MonkeyLoader monkeyLoader, string location, IFileSystem fileSystem, bool isGamePack)
         {
-            if (!(fileSystem.EnumerateFiles("", "*.nuspec").SingleOrDefault() is UPath nuspecPath))
+            if (!(fileSystem.EnumerateFiles("/", "*.nuspec").SingleOrDefault() is UPath nuspecPath))
                 throw new FileNotFoundException("Couldn't find required .nuspec file at the root of the mod's file system.", location);
+
+            IsGamePack = isGamePack;
 
             using var nuspecStream = fileSystem.OpenFile(nuspecPath, FileMode.Open, FileAccess.Read);
             var nuspecReader = new NuspecReader(nuspecStream);
@@ -225,17 +239,24 @@ namespace MonkeyLoader.Meta
             ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
             Config = new Config(this);
 
-            var assemblyFolder = Path.Combine("libs", NuGetManager.Framework.GetShortFolderName());
+            var assemblyFolder = $"/lib/{NuGetManager.Framework.GetShortFolderName()}/";
+            Logger.Trace(() => $"Checking package folder: {assemblyFolder}");
+
+            foreach (var item in fileSystem.EnumeratePaths("/", "*", SearchOption.AllDirectories))
+                Logger.Trace(() => item);
+
             if (!fileSystem.DirectoryExists(assemblyFolder))
             {
-                if (fileSystem.DirectoryExists("libs"))
+                if (fileSystem.DirectoryExists("/lib/"))
                 {
-                    assemblyFolder = "libs";
-                    Logger.Error(() => $"No libs folder targeting the right framework [{assemblyFolder}] found for mod, falling back to libs: {location}");
+                    assemblyFolder = "/lib/";
+                    Logger.Error(() => $"No lib folder targeting the right framework [{assemblyFolder}] found for mod, falling back to lib: {location}");
                 }
                 else
                 {
-                    Logger.Error(() => $"No libs folder at all found for mod: {location}");
+                    assemblyPaths = Array.Empty<UPath>();
+                    Logger.Error(() => $"No lib folder at all found for mod: {location}");
+
                     return;
                 }
             }
@@ -269,14 +290,11 @@ namespace MonkeyLoader.Meta
                     assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
 
                     var assembly = Assembly.Load(assemblyBytes);
+                    Loader.AddJsonConverters(assembly);
+                    PrePatcherAssemblies.Add(assembly);
 
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        if (!type.IsClass || type.IsAbstract || !earlyMonkeyType.IsAssignableFrom(type))
-                            continue;
-
+                    foreach (var type in assembly.GetTypes().Instantiable<EarlyMonkey>())
                         earlyMonkeys.Add((EarlyMonkey)Activator.CreateInstance(type));
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -299,14 +317,11 @@ namespace MonkeyLoader.Meta
                     assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
 
                     var assembly = Assembly.Load(assemblyBytes);
+                    Loader.AddJsonConverters(assembly);
+                    PatcherAssemblies.Add(assembly);
 
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        if (!type.IsClass || type.IsAbstract || !monkeyType.IsAssignableFrom(type))
-                            continue;
-
+                    foreach (var type in assembly.GetTypes().Instantiable<Monkey>())
                         monkeys.Add((Monkey)Activator.CreateInstance(type));
-                    }
                 }
                 catch (Exception ex)
                 {

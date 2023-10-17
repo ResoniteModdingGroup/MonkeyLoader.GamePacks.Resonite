@@ -30,12 +30,15 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Integration\$(AssemblyFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\MonkeyLoader\GamePacks\Integration\$(AssemblyFileName)" Importance="high" />
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Integration\$(AssemblyTitle).xml" />
-    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\MonkeyLoader\GamePacks\Integration\$(AssemblyTitle).xml" Importance="high" />
+  <Target Name="CustomPack" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
+    <Message Text="Packing Resonite Game Pack" Importance="high"/>
+    <Exec Command="S:\NuGet\nuget.exe pack $(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
+    <Copy SourceFiles="$(SolutionDir)MonkeyLoader.GamePacks.Resonite.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" />
+    <Message Text="Copied MonkeyLoader.GamePacks.Resonite.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" Importance="high" />
   </Target>
+
 
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="1.13.2">

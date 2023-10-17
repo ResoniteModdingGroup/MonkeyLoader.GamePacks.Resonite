@@ -31,10 +31,6 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyFileName)" Importance="high" />
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyTitle).xml" />
-    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\MonkeyLoader\GamePacks\Data\$(AssemblyTitle).xml" Importance="high" />
   </Target>
 
   <ItemGroup>
