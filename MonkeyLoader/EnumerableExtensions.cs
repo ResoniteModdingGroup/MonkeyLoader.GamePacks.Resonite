@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace MonkeyLoader
             foreach (var type in types)
             {
                 if (!type.IsAbstract && instanceType.IsAssignableFrom(type)
-                    && (type.IsValueType || type.GetConstructor(AccessTools.allDeclared, null, Type.EmptyTypes, null) is not null))
+                    && (type.IsValueType || type.GetConstructor(BindingFlags.DeclaredOnly | BindingFlags.NonPublic, null, Type.EmptyTypes, null) is not null))
                 {
                     yield return type;
                 }

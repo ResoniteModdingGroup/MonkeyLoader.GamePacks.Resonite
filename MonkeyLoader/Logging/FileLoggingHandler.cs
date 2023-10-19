@@ -28,6 +28,7 @@ namespace MonkeyLoader.Logging
         /// <param name="fileStream">The file to write to.</param>
         public FileLoggingHandler(FileStream fileStream)
         {
+            fileStream.SetLength(0);
             streamWriter = new StreamWriter(fileStream);
         }
 

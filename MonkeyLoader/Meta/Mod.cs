@@ -242,12 +242,9 @@ namespace MonkeyLoader.Meta
             var assemblyFolder = $"/lib/{NuGetManager.Framework.GetShortFolderName()}/";
             Logger.Trace(() => $"Checking package folder: {assemblyFolder}");
 
-            foreach (var item in fileSystem.EnumeratePaths("/", "*", SearchOption.AllDirectories))
-                Logger.Trace(() => item);
-
-            if (!fileSystem.DirectoryExists(assemblyFolder))
+            if (!fileSystem.SmartDirectoryExists(assemblyFolder))
             {
-                if (fileSystem.DirectoryExists("/lib/"))
+                if (fileSystem.SmartDirectoryExists("/lib/"))
                 {
                     assemblyFolder = "/lib/";
                     Logger.Error(() => $"No lib folder targeting the right framework [{assemblyFolder}] found for mod, falling back to lib: {location}");
@@ -261,8 +258,10 @@ namespace MonkeyLoader.Meta
                 }
             }
 
-            assemblyPaths = fileSystem.EnumerateFiles(assemblyFolder, "*.dll", SearchOption.AllDirectories).ToArray();
+            assemblyPaths = fileSystem.EnumerateFiles("/", "*.dll", SearchOption.AllDirectories).Where(path => path.FullName.StartsWith(assemblyFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
             HasPrePatchers = assemblyPaths.Any(path => path.FullName.Contains(prePatchersFolderName));
+
+            Logger.Trace(() => $"Found the following Assembly Files to consider:{Environment.NewLine}{string.Join(Environment.NewLine, assemblyPaths)}");
         }
 
         /// <summary>
@@ -286,10 +285,10 @@ namespace MonkeyLoader.Meta
                 try
                 {
                     using var assemblyFile = FileSystem.OpenFile(prepatcherPath, FileMode.Open, FileAccess.Read);
-                    var assemblyBytes = new byte[assemblyFile.Length];
-                    assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
+                    using var memStream = new MemoryStream();
+                    assemblyFile.CopyTo(memStream);
 
-                    var assembly = Assembly.Load(assemblyBytes);
+                    var assembly = Assembly.Load(memStream.ToArray());
                     Loader.AddJsonConverters(assembly);
                     PrePatcherAssemblies.Add(assembly);
 
@@ -313,10 +312,10 @@ namespace MonkeyLoader.Meta
                 try
                 {
                     using var assemblyFile = FileSystem.OpenFile(patcherPath, FileMode.Open, FileAccess.Read);
-                    var assemblyBytes = new byte[assemblyFile.Length];
-                    assemblyFile.Read(assemblyBytes, 0, assemblyBytes.Length);
+                    using var memStream = new MemoryStream();
+                    assemblyFile.CopyTo(memStream);
 
-                    var assembly = Assembly.Load(assemblyBytes);
+                    var assembly = Assembly.Load(memStream.ToArray());
                     Loader.AddJsonConverters(assembly);
                     PatcherAssemblies.Add(assembly);
 

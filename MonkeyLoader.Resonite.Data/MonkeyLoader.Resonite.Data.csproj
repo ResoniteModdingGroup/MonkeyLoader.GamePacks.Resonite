@@ -30,7 +30,14 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
+
+  <Target Name="CustomPack" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
+    <Message Text="Packing Resonite Game Pack" Importance="high"/>
+    <Exec Command="S:\NuGet\nuget.exe pack $(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
+    <Copy SourceFiles="$(SolutionDir)MonkeyLoader.GamePacks.Resonite.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" />
+    <Message Text="Copied MonkeyLoader.GamePacks.Resonite.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" Importance="high" />
   </Target>
 
   <ItemGroup>

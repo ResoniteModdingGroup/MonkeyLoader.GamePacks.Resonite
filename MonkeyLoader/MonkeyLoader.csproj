@@ -79,8 +79,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Zio" Version="0.16.2" />
+    <PackageReference Include="Zio" Version="0.16.2" IncludeAssets="None" ExcludeAssets="All" PrivateAssets="None" GeneratePathProperty="true" />
     <ProjectReference Include="..\MonkeyLoader.CodeGenerators\MonkeyLoader.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Zio">
+      <HintPath>$(PkgZio)\lib\netstandard2.0\Zio.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,7 @@ using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Features;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace MonkeyLoader.Resonite
     {
         protected override void OnLoaded()
         {
+            Logger.Info(() => "Hello from Resonite Integration!");
+            File.AppendAllText("test.log", $"[{DateTime.Now}] Hello from resonite hooks monkey!{Environment.NewLine}");
             Harmony.PatchCategory(nameof(ResoniteHooksMonkey));
         }
 
