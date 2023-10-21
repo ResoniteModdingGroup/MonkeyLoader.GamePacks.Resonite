@@ -5,6 +5,8 @@ using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Reflection;
 
 namespace MonkeyLoader.Patching
 {
@@ -48,7 +50,7 @@ namespace MonkeyLoader.Patching
             if (!monkeyType.IsAssignableFrom(type))
                 throw new ArgumentException($"Given type [{type}] doesn't inherit from {monkeyType.FullName}!", nameof(type));
 
-            return (Monkey)type.GetProperty("Instance", AccessTools.all).GetValue(null);
+            return (Monkey)type.GetProperty("Instance", AccessTools.all | BindingFlags.FlattenHierarchy).GetValue(null);
         }
 
         /// <summary>
@@ -93,6 +95,11 @@ namespace MonkeyLoader.Patching
         /// Gets the mod that this patcher is a part of.
         /// </summary>
         public new static Mod Mod => Instance.Mod;
+
+        static Monkey()
+        {
+            File.AppendAllText("test.log", $"[{DateTime.Now:HH:mm:dd:ss:ffff}] Static constructor of {typeof(TMonkey).FullName} - Instance is: {(Instance is null ? "null" : "existing")}{Environment.NewLine}");
+        }
 
         /// <summary>
         /// Allows creating only a single <see cref="Monkey{TMonkey}"/> instance.

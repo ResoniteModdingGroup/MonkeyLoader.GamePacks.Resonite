@@ -24,13 +24,13 @@ namespace MonkeyLoader.Resonite
         }
 
         [HarmonyPrefix]
-        private static void initializePrefix()
+        private static void initializePrefix(Engine __instance)
         {
             Mod.Loader.LoggingHandler = new ResoniteLoggingHandler();
 
-            Engine.Current.OnReady += onEngineReady;
-            Engine.Current.OnShutdownRequest += onEngineShutdownRequested;
-            Engine.Current.OnShutdown += onEngineShutdown;
+            __instance.OnReady += onEngineReady;
+            __instance.OnShutdownRequest += onEngineShutdownRequested;
+            __instance.OnShutdown += onEngineShutdown;
         }
 
         private static void onEngineReady()

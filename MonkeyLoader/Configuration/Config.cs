@@ -159,6 +159,12 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public void Save()
         {
+            if (!sections.Any())
+            {
+                Logger.Info(() => "Skipping save - no Config Keys!");
+                return;
+            }
+
             var sectionsJson = (JObject)loadedConfig[sectionsKey]!;
             var stopwatch = Stopwatch.StartNew();
 

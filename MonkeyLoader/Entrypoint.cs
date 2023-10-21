@@ -50,6 +50,8 @@ namespace Doorstop
                 log.Log($"Loaded FrooxEngine from Memory");
 
                 loader.Shutdown();
+
+                log.Log($"Loaded Assemblies:{Environment.NewLine}{string.Join(Environment.NewLine, AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new MonkeyLoader.AssemblyName(assembly.GetName().Name)))}");
             }
             catch (Exception ex)
             {

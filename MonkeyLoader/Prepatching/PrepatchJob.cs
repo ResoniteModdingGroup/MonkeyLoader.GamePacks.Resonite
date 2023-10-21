@@ -67,7 +67,7 @@ namespace MonkeyLoader.Prepatching
                     {
                         logger.Debug(() => $"Pre-patcher [{Prepatcher.Name}] failed {(success && !changes ? "to change anything" : "")} on assembly [{AssemblyName}]. Restoring.");
 
-                        assemblyPool.Restore(AssemblyName);
+                        assemblyPool.RestoreDefinition(AssemblyName);
                         return success;
                     }
 

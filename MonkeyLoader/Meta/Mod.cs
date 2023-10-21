@@ -294,6 +294,8 @@ namespace MonkeyLoader.Meta
 
                     foreach (var type in assembly.GetTypes().Instantiable<EarlyMonkey>())
                         earlyMonkeys.Add((EarlyMonkey)Activator.CreateInstance(type));
+
+                    Logger.Info(() => $"Found {earlyMonkeys.Count} Early Monkeys!");
                 }
                 catch (Exception ex)
                 {
@@ -311,6 +313,8 @@ namespace MonkeyLoader.Meta
             {
                 try
                 {
+                    Logger.Debug(() => $"Loading patcher assembly from: {patcherPath}");
+
                     using var assemblyFile = FileSystem.OpenFile(patcherPath, FileMode.Open, FileAccess.Read);
                     using var memStream = new MemoryStream();
                     assemblyFile.CopyTo(memStream);
@@ -319,8 +323,17 @@ namespace MonkeyLoader.Meta
                     Loader.AddJsonConverters(assembly);
                     PatcherAssemblies.Add(assembly);
 
+                    Logger.Info(() => $"Loaded patcher assembly: {assembly.FullName}");
+
                     foreach (var type in assembly.GetTypes().Instantiable<Monkey>())
-                        monkeys.Add((Monkey)Activator.CreateInstance(type));
+                    {
+                        Logger.Debug(() => $"Found instantiable Monkey Type: {type.FullName}");
+                        var monkey = Monkey.GetInstance(type);
+                        monkey.Mod = this;
+                        monkeys.Add(monkey);
+                    }
+
+                    Logger.Info(() => $"Found {monkeys.Count} Monkeys!");
                 }
                 catch (Exception ex)
                 {

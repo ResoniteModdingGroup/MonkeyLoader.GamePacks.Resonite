@@ -65,8 +65,8 @@ namespace MonkeyLoader
 
             foreach (var type in types)
             {
-                if (!type.IsAbstract && instanceType.IsAssignableFrom(type)
-                    && (type.IsValueType || type.GetConstructor(BindingFlags.DeclaredOnly | BindingFlags.NonPublic, null, Type.EmptyTypes, null) is not null))
+                if (!type.IsAbstract && !type.ContainsGenericParameters && instanceType.IsAssignableFrom(type)
+                    && (type.IsValueType || type.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null) is not null))
                 {
                     yield return type;
                 }
@@ -88,6 +88,48 @@ namespace MonkeyLoader
                     yield return toItem;
             }
         }
+
+        /// <summary>
+        /// Performs a topological sort of the input <paramref name="nodes"/>, given an expression that produces a set of connected nodes.
+        /// </summary>
+        /// <param name="nodes">The input nodes.</param>
+        /// <param name="identifier">Gets the dependency identifier of a node.</param>
+        /// <param name="connected">The expression producing connected nodes.</param>
+        /// <typeparam name="TNode">The node type.</typeparam>
+        /// <typeparam name="TDependency">The dependency connection type.</typeparam>
+        /// <returns>The input nodes, sorted .</returns>
+        /// <exception cref="ArgumentException">Thrown if a cyclic dependency is found.</exception>
+        public static IEnumerable<TNode> TopologicalSort<TNode, TDependency>(this IEnumerable<TNode> nodes, Func<TNode, TDependency> identifier, Func<TNode, IEnumerable<TDependency>> connected)
+            where TNode : notnull
+            where TDependency : notnull
+        {
+            var elements = nodes.ToDictionary(node => node, node => new HashSet<TDependency>(connected(node)));
+
+            while (elements.Count > 0)
+            {
+                var key = elements.FirstOrDefault(x => x.Value.Count == 0).Key
+                    ?? throw new ArgumentException("Cyclic dependencies are not allowed!");
+
+                elements.Remove(key);
+
+                var id = identifier(key);
+                foreach (var updateElement in elements)
+                    updateElement.Value.Remove(id);
+
+                yield return key;
+            }
+        }
+
+        /// <summary>
+        /// Performs a topological sort of the input <paramref name="nodes"/>, given an expression that produces a set of connected nodes.
+        /// </summary>
+        /// <param name="nodes">The input nodes.</param>
+        /// <param name="connected">The expression producing connected nodes.</param>
+        /// <typeparam name="TNode">The node type.</typeparam>
+        /// <returns>The input nodes, sorted .</returns>
+        /// <exception cref="ArgumentException">Thrown if a cyclic dependency is found.</exception>
+        public static IEnumerable<TNode> TopologicalSort<TNode>(this IEnumerable<TNode> nodes, Func<TNode, IEnumerable<TNode>> connected)
+            where TNode : notnull => nodes.TopologicalSort(node => node, connected);
 
         /// <summary>
         /// Individually calls every method from a <see cref="Delegate"/>'s invocation list in a try-catch-block,

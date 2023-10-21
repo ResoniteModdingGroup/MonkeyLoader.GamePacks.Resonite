@@ -43,6 +43,21 @@ namespace MonkeyLoader
         public Assembly GetAssembly(AssemblyName name) => getEntry(name).GetAssembly();
 
         /// <summary>
+        /// Loads all (not yet loaded) <see cref="Assembly"/> entries.
+        /// </summary>
+        public void LoadAll()
+        {
+            var alreadyLoaded = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new AssemblyName(assembly.GetName().Name)).ToHashSet();
+
+            var entries = assemblies.Values
+                .Where(entry => !entry.Loaded)
+                .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded));
+
+            foreach (var entry in entries)
+                entry.LoadAssembly();
+        }
+
+        /// <summary>
         /// Gets the <see cref="Assembly"/> for an entry loading it if necessary.
         /// </summary>
         /// <param name="name">The name of the <see cref="Assembly"/> to get.</param>
@@ -135,6 +150,17 @@ namespace MonkeyLoader
                     throw new InvalidOperationException($"Assembly for [{Name}] hasn't been loaded yet!");
 
                 return loadedAssembly;
+            }
+
+            public IEnumerable<AssemblyName> GetDependencies(HashSet<AssemblyName> alreadyLoaded)
+            {
+                var fullNames = Loaded ?
+                    loadedAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name)
+                    : definition.Modules.SelectMany(module => module.AssemblyReferences)
+                        .Select(reference => AssemblyNameReference.Parse(reference.Name).Name);
+
+                return fullNames.Select(name => new AssemblyName(name))
+                    .Where(name => !alreadyLoaded.Contains(name));
             }
 
             public Assembly LoadAssembly()
