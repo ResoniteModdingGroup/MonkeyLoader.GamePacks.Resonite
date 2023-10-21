@@ -40,9 +40,9 @@ namespace MonkeyLoader
         public string ConfigPath { get; }
 
         /// <summary>
-        /// Gets the <see cref="EarlyMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// Gets the <see cref="IEarlyMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
         /// </summary>
-        public IEnumerable<EarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
+        public IEnumerable<IEarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
         /// <summary>
         /// Gets all loaded game pack <see cref="Mod"/>s.
@@ -88,9 +88,9 @@ namespace MonkeyLoader
         public IEnumerable<Mod> Mods => allMods.Where(mod => !mod.IsGamePack);
 
         /// <summary>
-        /// Gets the <see cref="Monkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// Gets the <see cref="IMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
         /// </summary>
-        public IEnumerable<Monkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
+        public IEnumerable<IMonkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
 
         /// <summary>
         /// Gets the NuGet manager used by this loader.
@@ -291,17 +291,17 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every loaded regular <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="EarlyMonkey"/>s.
+        /// Loads every loaded regular <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void LoadModEarlyMonkeys() => LoadEarlyMonkeys(Mods);
 
         /// <summary>
-        /// Loads every loaded regular <see cref="Mods">mod's</see> patcher assemblies and <see cref="Monkey"/>s.
+        /// Loads every loaded regular <see cref="Mods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
         public void LoadModMonkeys() => LoadMonkeys(Mods);
 
         /// <summary>
-        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="Monkey"/>s.
+        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
         public void LoadMonkeys(IEnumerable<Mod> mods)
         {
@@ -310,7 +310,8 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Runs every given <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// Runs every given <see cref="Mod"/>'s loaded
+        /// <see cref="IEarlyMonkey"/>s <see cref="IMonkey.Run">Run</see>() method.
         /// </summary>
         public void RunEarlyMonkeys(IEnumerable<Mod> mods)
         {
@@ -319,52 +320,42 @@ namespace MonkeyLoader
                 // Add check for mod.EarlyMonkeyLoadError
 
                 foreach (var earlyMonkey in mod.EarlyMonkeys)
-                    earlyMonkey.Apply();
+                    earlyMonkey.Run();
             }
         }
 
         /// <summary>
-        /// Runs every loaded game pack <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// Runs every loaded game pack <see cref="Mod"/>'s loaded <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void RunGamePackEarlyMonkeys() => RunEarlyMonkeys(GamePacks);
 
         /// <summary>
-        /// Runs every loaded game pack <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
-        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() method.
+        /// Runs every loaded game pack <see cref="Mod"/>'s loaded
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
         /// </summary>
         public void RunGamePackMonkeys() => RunMonkeys(GamePacks);
 
         /// <summary>
-        /// Runs every loaded regular <see cref="Mod"/>'s loaded <see cref="EarlyMonkey"/>s.
+        /// Runs every loaded regular <see cref="Mod"/>'s loaded <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void RunModEarlyMonkeys() => RunEarlyMonkeys(Mods);
 
         /// <summary>
-        /// Runs every loaded regular <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
-        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() method.
+        /// Runs every loaded regular <see cref="Mod"/>'s loaded
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
         /// </summary>
         public void RunModMonkeys() => RunMonkeys(Mods);
 
         /// <summary>
-        /// Runs every given <see cref="Mod"/>'s loaded <see cref="Mod.Monkeys">monkeys'</see>
-        /// <see cref="Monkey.OnLoaded">OnLoaded</see>() methods.
+        /// Runs every given <see cref="Mod"/>'s loaded
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
         /// </summary>
         public void RunMonkeys(IEnumerable<Mod> mods)
         {
             foreach (var mod in mods)
             {
                 foreach (var monkey in mod.Monkeys)
-                {
-                    // Add check for mod.MonkeyLoadError
-                    try
-                    {
-                        monkey.OnLoaded();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(() => ex.Format($"Error while running monkey [{monkey.GetType().Name}] from mod [{monkey.Mod.Title}]!"));
-                    }
-                }
+                    monkey.Run();
             }
         }
 

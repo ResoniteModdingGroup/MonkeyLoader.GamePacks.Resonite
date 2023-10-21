@@ -18,48 +18,60 @@ namespace MonkeyLoader.Resonite
     public abstract class ResoniteMonkey<TMonkey> : Monkey<TMonkey>, IResoniteMonkey
         where TMonkey : ResoniteMonkey<TMonkey>, new()
     {
-        void IResoniteMonkey.OnEngineReady() => OnEngineReady();
+        bool IResoniteMonkey.OnEngineReady() => onEngineReady();
 
-        void IResoniteMonkey.OnEngineShutdown() => OnEngineShutdown();
+        void IResoniteMonkey.OnEngineShutdown() => onEngineShutdown();
 
-        void IResoniteMonkey.OnEngineShutdownRequested(string reason) => OnEngineShutdownRequested(reason);
+        void IResoniteMonkey.OnEngineShutdownRequested(string reason) => onEngineShutdownRequested(reason);
 
         /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
+        /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
         /// </summary>
-        protected internal virtual void OnEngineReady()
+        /// <remarks>
+        /// This is the primary method for patching used by Resonite Mods as basic facilities of the game
+        /// are ready to use, while most other code hasn't been run.<br/>
+        /// Override <see cref="onLoaded">onLoaded</see>() to patch before anything is initialized.
+        /// </remarks>
+        /// <returns>Whether the patching was successful.</returns>
+        protected virtual bool onEngineReady() => true;
+
+        /// <summary>
+        /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
+        /// </summary>
+        protected virtual void onEngineShutdown()
         { }
 
         /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
-        /// </summary>
-        protected internal virtual void OnEngineShutdown()
-        { }
-
-        /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
+        /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
         /// </summary>
         /// <param name="reason">The reason for the shutdown request. Seems to always be <c>Quitting</c>.</param>
-        protected internal virtual void OnEngineShutdownRequested(string reason)
+        protected virtual void onEngineShutdownRequested(string reason)
         { }
+
+        /// <remarks>
+        /// Override this method if you need to patch something involved in the initialization of the game.
+        /// </remarks>
+        /// <inheritdoc/>
+        protected override bool onLoaded() => true;
     }
 
-    internal interface IResoniteMonkey
+    internal interface IResoniteMonkey : IMonkey
     {
         /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
+        /// Call when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
         /// </summary>
-        void OnEngineReady();
+        /// <returns>Whether the patching was successful.</returns>
+        bool OnEngineReady();
 
         /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
+        /// Call when the <see cref="Engine"/> is <see cref="Engine.OnShutdown">definitely shutting down</see>.
         /// </summary>
         void OnEngineShutdown();
 
         /// <summary>
-        /// Called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
+        /// Call when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
         /// </summary>
-        /// <param name="reason">The reason for the shutdown request. Seems to always be <c>Quitting</c>.</param>
+        /// <param name="reason">The reason for the shutdown request.</param>
         void OnEngineShutdownRequested(string reason);
     }
 }

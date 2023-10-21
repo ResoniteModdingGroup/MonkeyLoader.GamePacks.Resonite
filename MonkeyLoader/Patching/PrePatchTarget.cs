@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MonkeyLoader.Prepatching
+namespace MonkeyLoader.Patching
 {
     public sealed class PrePatchTarget
     {

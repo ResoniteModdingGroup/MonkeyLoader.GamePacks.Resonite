@@ -16,11 +16,12 @@ namespace MonkeyLoader.Resonite
     [FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly)]
     internal sealed class ResoniteHooksMonkey : Monkey<ResoniteHooksMonkey>
     {
-        protected override void OnLoaded()
+        protected override sealed bool onLoaded()
         {
             Logger.Info(() => "Hello from Resonite Integration!");
             File.AppendAllText("test.log", $"[{DateTime.Now}] Hello from resonite hooks monkey!{Environment.NewLine}");
             Harmony.PatchCategory(nameof(ResoniteHooksMonkey));
+            return true;
         }
 
         [HarmonyPrefix]
@@ -38,7 +39,7 @@ namespace MonkeyLoader.Resonite
             try
             {
                 Mod.Loader.Monkeys
-                    .SelectCastable<Monkey, IResoniteMonkey>()
+                    .SelectCastable<IMonkey, IResoniteMonkey>()
                     .Select(resMonkey => (Delegate)resMonkey.OnEngineReady)
                     .TryInvokeAll();
             }
@@ -53,7 +54,7 @@ namespace MonkeyLoader.Resonite
             try
             {
                 Mod.Loader.Monkeys
-                    .SelectCastable<Monkey, IResoniteMonkey>()
+                    .SelectCastable<IMonkey, IResoniteMonkey>()
                     .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdown)
                     .TryInvokeAll();
             }
@@ -70,7 +71,7 @@ namespace MonkeyLoader.Resonite
             try
             {
                 Mod.Loader.Monkeys
-                    .SelectCastable<Monkey, IResoniteMonkey>()
+                    .SelectCastable<IMonkey, IResoniteMonkey>()
                     .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdownRequested)
                     .TryInvokeAll(reason);
             }

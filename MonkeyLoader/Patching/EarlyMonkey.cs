@@ -9,85 +9,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Prepatching
+namespace MonkeyLoader.Patching
 {
     /// <summary>
     /// Represents the base class for pre-patchers that modify a game's assemblies in memory before they get loaded.<br/>
     /// Game assemblies and their types must not be directly referenced from these.<br/>
     /// Must have a parameterless constructor. Relevant methods must be overridden by the deriving class and decorated with attributes.
     /// </summary>
-    /// <remarks>
-    /// For <see cref="patchAssembly">PatchAssembly</see> this is <see cref="TargetAssemblyAttribute">TargetAssembly</see> attributes,
-    /// while for <see cref="PatchType">PatchType</see> it's <see cref="TargetTypeAttribute">TargetType</see> attributes.<br/>
-    /// If <see cref="prepare">Prepare</see> or <see cref="cleanup">Cleanup</see> return <c>false</c>, patching won't be applied or will be discarded.<br/>
-    /// If no call to <see cref="patchAssembly">PatchAssembly</see> or  <see cref="PatchType">PatchType</see>
-    /// returns <c>true</c>, this patcher will be treated as having done nothing.
-    /// </remarks>
-    public abstract class EarlyMonkey
+    public abstract class EarlyMonkey<TMonkey> : MonkeyBase<TMonkey>, IEarlyMonkey
+        where TMonkey : EarlyMonkey<TMonkey>, new()
     {
-        private Mod mod;
-
-        /// <summary>
-        /// Gets the <see cref="Configuration.Config"/> that this pre-patcher can use to load <see cref="ConfigSection"/>s.
-        /// </summary>
-        public Config Config => Mod.Config;
-
-        /// <summary>
-        /// Gets the <see cref="MonkeyLogger"/> that this pre-patcher can use to log messages to game-specific channels.
-        /// </summary>
-        public MonkeyLogger Logger { get; private set; }
-
-        /// <summary>
-        /// Gets the mod that this pre-patcher is a part of.
-        /// </summary>
-        public Mod Mod
-        {
-            get => mod;
-
-            [MemberNotNull(nameof(mod), nameof(Logger))]
-            internal set
-            {
-                if (value == mod)
-                    return;
-
-                mod = value;
-                Logger = new MonkeyLogger(mod.Logger, Name);
-            }
-        }
-
-        /// <summary>
-        /// Gets the name of this pre-patcher's <see cref="Type"/>.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the <see cref="AssemblyName"/> for the assembly this pre-patcher is defined in.
-        /// </summary>
-        public AssemblyName PrepatcherAssemblyName { get; internal set; }
-
-        /// <summary>
-        /// Gets the names of the assemblies and types therein which this pre-patcher targets.<br/>
+        /// <remarks>
         /// Must not reference the same assembly multiple times.<br/>
         /// <see cref="PatchJob"/>s will be given to methods in the same order.
-        /// </summary>
+        /// </remarks>
+        /// <inheritdoc/>
         public abstract IEnumerable<PrePatchTarget> PrePatchTargets { get; }
 
+        /// <summary>
+        /// Allows creating only a single <typeparamref name="TMonkey"/> instance.
+        /// </summary>
         protected EarlyMonkey()
-        {
-            Name = GetType().Name;
-        }
+        { }
 
         /// <summary>
-        /// Executes <see cref="prepare"/>, <see cref="patch"/> and <see cref="cleanup"/> for all possible <see cref="PrePatchTargets">PrePatchTargets</see>.
+        /// Executes <see cref="prepare"/>, <see cref="patch"/> and <see cref="validate"/> for all possible <see cref="PrePatchTargets">PrePatchTargets</see>.
         /// </summary>
         /// <returns>Whether the patching was considered successful.</returns>
         /// <exception cref="InvalidOperationException">When the pre-patch targets reference the same Assembly multiple times.</exception>
-        internal bool Apply()
+        public override sealed bool Run()
         {
-            Logger.Debug(() => $"Applying pre-patcher.");
+            throwIfRan();
+            Ran = true;
+
+            Logger.Debug(() => $"Running pre-patcher.");
 
             if (PrePatchTargets.Select(target => target.Assembly).Distinct().Count() < PrePatchTargets.Count())
-                throw new InvalidOperationException($"{nameof(PrePatchTargets)} referenced the same Assembly multiple times!");
+            {
+                Failed = true;
+                Logger.Error(() => $"{nameof(PrePatchTargets)} referenced the same Assembly multiple times! Aborting patching.");
+
+                return false;
+            }
 
             var patchJobs = PrePatchTargets.TrySelect<PrePatchTarget, PatchJob>(tryFromPrePatchTarget).ToArray();
 
@@ -117,7 +80,7 @@ namespace MonkeyLoader.Prepatching
                 }
             }
 
-            var success = cleanup(patchJobs);
+            var success = validate(patchJobs);
             if (!success)
             {
                 foreach (var patchJob in patchJobs)
@@ -129,14 +92,6 @@ namespace MonkeyLoader.Prepatching
 
             return success;
         }
-
-        /// <summary>
-        /// Lets the pre-patcher do any necessary cleanup.<br/>
-        /// Return <c>true</c> to indicate that patching was successful enough and non-failed changes should be applied.
-        /// </summary>
-        /// <param name="patchJobs">All patch jobs of this pre-patcher.</param>
-        /// <returns>Whether patching was successful enough.</returns>
-        protected virtual bool cleanup(IEnumerable<PatchJob> patchJobs) => true;
 
         /// <summary>
         /// Receives the <see cref="PatchJob"/> for every <see cref="PrePatchTarget"/> to apply patches.
@@ -152,11 +107,20 @@ namespace MonkeyLoader.Prepatching
         /// Lets the pre-patcher make any necessary preparations and/or validate the available <see cref="PatchJob"/>s.
         /// There may be <see cref="PatchJob"/>s missing if they couldn't be created.<br/>
         /// Return <c>true</c> to indicate that patching can go ahead.
-        /// Checks whether the number of <see cref="PatchJob"/>s matches the number of <see cref="PrePatchTargets">PrePatchTargets</see>.
+        /// Checks whether the number of <see cref="PatchJob"/>s matches the number of <see cref="PrePatchTargets">PrePatchTargets</see> by default.
         /// </summary>
         /// <param name="patchJobs">All patch jobs of this pre-patcher.</param>
         /// <returns>Whether patching can go ahead.</returns>
         protected virtual bool prepare(IEnumerable<PatchJob> patchJobs) => patchJobs.Count() == PrePatchTargets.Count();
+
+        /// <summary>
+        /// Lets the pre-patcher do any necessary cleanup and validate the success of patching.
+        /// Return <c>true</c> to indicate that patching was successful enough and non-failed changes should be applied.<br/>
+        /// Checks whether all patch jobs were successful by default.
+        /// </summary>
+        /// <param name="patchJobs">All patch jobs of this pre-patcher.</param>
+        /// <returns>Whether patching was successful enough.</returns>
+        protected virtual bool validate(IEnumerable<PatchJob> patchJobs) => !patchJobs.Any(job => job.Failed);
 
         private bool tryFromPrePatchTarget(PrePatchTarget prePatchTarget, [NotNullWhen(true)] out PatchJob? patchJob)
         {
@@ -255,5 +219,16 @@ namespace MonkeyLoader.Prepatching
                     pool.ReturnDefinition(Target.Assembly, Assembly);
             }
         }
+    }
+
+    /// <summary>
+    /// Interface for <see cref="EarlyMonkey{TMonkey}"/>s.
+    /// </summary>
+    public interface IEarlyMonkey : IMonkey
+    {
+        /// <summary>
+        /// Gets the names of the assemblies and types therein which this pre-patcher targets.
+        /// </summary>
+        public IEnumerable<PrePatchTarget> PrePatchTargets { get; }
     }
 }

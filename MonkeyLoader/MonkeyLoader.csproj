@@ -89,4 +89,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Prepatching\" />
+  </ItemGroup>
+
 </Project>

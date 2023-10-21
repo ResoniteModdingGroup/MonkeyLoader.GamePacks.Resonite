@@ -32,8 +32,8 @@ namespace MonkeyLoader.Meta
         private const string prePatchersFolderName = "pre-patchers";
         private readonly UPath[] assemblyPaths;
         private readonly HashSet<string> authors;
-        private readonly HashSet<EarlyMonkey> earlyMonkeys = new();
-        private readonly HashSet<Monkey> monkeys = new();
+        private readonly HashSet<IEarlyMonkey> earlyMonkeys = new();
+        private readonly HashSet<IMonkey> monkeys = new();
         private readonly HashSet<string> tags;
 
         /// <summary>
@@ -66,14 +66,14 @@ namespace MonkeyLoader.Meta
         public bool EarlyMonkeyLoadError { get; private set; }
 
         /// <summary>
-        /// Gets the available <see cref="EarlyMonkey"/>s of this mod.
+        /// Gets the available <see cref="IEarlyMonkey"/>s of this mod.
         /// </summary>
-        public IEnumerable<EarlyMonkey> EarlyMonkeys
+        public IEnumerable<IEarlyMonkey> EarlyMonkeys
         {
             get
             {
                 foreach (var earlyMonkey in earlyMonkeys)
-                    yield return earlyMonkey;
+                    yield return (IEarlyMonkey)earlyMonkey;
             }
         }
 
@@ -135,9 +135,9 @@ namespace MonkeyLoader.Meta
         public bool MonkeyLoadError { get; private set; }
 
         /// <summary>
-        /// Gets the available <see cref="Monkey"/>s of this mod.
+        /// Gets the available <see cref="IMonkey"/>s of this mod.
         /// </summary>
-        public IEnumerable<Monkey> Monkeys
+        public IEnumerable<IMonkey> Monkeys
         {
             get
             {
@@ -292,8 +292,8 @@ namespace MonkeyLoader.Meta
                     Loader.AddJsonConverters(assembly);
                     PrePatcherAssemblies.Add(assembly);
 
-                    foreach (var type in assembly.GetTypes().Instantiable<EarlyMonkey>())
-                        earlyMonkeys.Add((EarlyMonkey)Activator.CreateInstance(type));
+                    foreach (var type in assembly.GetTypes().Instantiable<IEarlyMonkey>())
+                        earlyMonkeys.Add((IEarlyMonkey)Activator.CreateInstance(type));
 
                     Logger.Info(() => $"Found {earlyMonkeys.Count} Early Monkeys!");
                 }
@@ -325,10 +325,10 @@ namespace MonkeyLoader.Meta
 
                     Logger.Info(() => $"Loaded patcher assembly: {assembly.FullName}");
 
-                    foreach (var type in assembly.GetTypes().Instantiable<Monkey>())
+                    foreach (var type in assembly.GetTypes().Instantiable<MonkeyBase>())
                     {
                         Logger.Debug(() => $"Found instantiable Monkey Type: {type.FullName}");
-                        var monkey = Monkey.GetInstance(type);
+                        var monkey = MonkeyBase.GetInstance(type);
                         monkey.Mod = this;
                         monkeys.Add(monkey);
                     }
