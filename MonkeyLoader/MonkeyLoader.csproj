@@ -59,7 +59,6 @@
 
   <ItemGroup>
     <Compile Remove="Configuration\ModLoaderConfiguration.cs" />
-    <Compile Remove="Prepatching\PrepatchJob.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,7 +67,6 @@
       <PackagePath>\</PackagePath>
     </None>
     <None Include="Configuration\ModLoaderConfiguration.cs" />
-    <None Include="Prepatching\PrepatchJob.cs" />
   </ItemGroup>
 
   <ItemGroup>

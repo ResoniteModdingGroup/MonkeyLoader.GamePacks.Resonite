@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace MonkeyLoader.Patching
 {
@@ -21,6 +22,8 @@ namespace MonkeyLoader.Patching
     {
         private static readonly Type monkeyType = typeof(Monkey);
 
+        private Mod mod;
+
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> that this patcher can use to load <see cref="ConfigSection"/>s.
         /// </summary>
@@ -34,15 +37,35 @@ namespace MonkeyLoader.Patching
         /// <summary>
         /// Gets the <see cref="MonkeyLogger"/> that this patcher can use to log messages to game-specific channels.
         /// </summary>
-        public MonkeyLogger Logger => Mod.Logger;
+        public MonkeyLogger Logger { get; private set; }
 
         /// <summary>
         /// Gets the mod that this patcher is a part of.
         /// </summary>
-        public Mod Mod { get; internal set; }
+        public Mod Mod
+        {
+            get => mod;
+
+            [MemberNotNull(nameof(mod), nameof(Logger))]
+            internal set
+            {
+                if (value == mod)
+                    return;
+
+                mod = value;
+                Logger = new MonkeyLogger(mod.Logger, Name);
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of this patcher's <see cref="Type"/>.
+        /// </summary>
+        public string Name { get; }
 
         internal Monkey()
-        { }
+        {
+            Name = GetType().Name;
+        }
 
         internal static Monkey GetInstance(Type type)
         {
@@ -50,7 +73,7 @@ namespace MonkeyLoader.Patching
             if (!monkeyType.IsAssignableFrom(type))
                 throw new ArgumentException($"Given type [{type}] doesn't inherit from {monkeyType.FullName}!", nameof(type));
 
-            return (Monkey)type.GetProperty("Instance", AccessTools.all | BindingFlags.FlattenHierarchy).GetValue(null);
+            return Traverse.Create(type).Property<Monkey>("Instance").Value;
         }
 
         /// <summary>
@@ -95,11 +118,6 @@ namespace MonkeyLoader.Patching
         /// Gets the mod that this patcher is a part of.
         /// </summary>
         public new static Mod Mod => Instance.Mod;
-
-        static Monkey()
-        {
-            File.AppendAllText("test.log", $"[{DateTime.Now:HH:mm:dd:ss:ffff}] Static constructor of {typeof(TMonkey).FullName} - Instance is: {(Instance is null ? "null" : "existing")}{Environment.NewLine}");
-        }
 
         /// <summary>
         /// Allows creating only a single <see cref="Monkey{TMonkey}"/> instance.

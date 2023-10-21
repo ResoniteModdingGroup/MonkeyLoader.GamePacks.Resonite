@@ -65,6 +65,15 @@ namespace MonkeyLoader
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
         public Assembly LoadAssembly(AssemblyName name) => getEntry(name).LoadAssembly();
 
+        public AssemblyDefinition LoadDefinition(string path)
+        {
+            var definition = AssemblyDefinition.ReadAssembly(path);
+            var name = new AssemblyName(definition.Name.Name);
+
+            assemblies.Add(name, new AssemblyEntry(name, definition));
+            return definition;
+        }
+
         /// <summary>
         /// Restores the <see cref="AssemblyDefinition"/> for an entry and releases its definition lock.
         /// </summary>
@@ -82,6 +91,26 @@ namespace MonkeyLoader
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
         public void ReturnDefinition(AssemblyName name, AssemblyDefinition assemblyDefinition)
             => getEntry(name).ReturnDefinition(assemblyDefinition);
+
+        /// <summary>
+        /// Tries to wait until nothing else is modifying the <see cref="AssemblyDefinition"/> of an entry anymore,
+        /// before making a snapshot and returning it. The definition has to be returned using
+        /// <see cref="RestoreDefinition"/> or <see cref="ReturnDefinition"/> exactly once.
+        /// </summary>
+        /// <param name="name">The entry to get.</param>
+        /// <param name="result">The entry's <see cref="AssemblyDefinition"/> or <c>null</c> if it wasn't found or has already been loaded.</param>
+        /// <returns>Whether the definition was returned.</returns>
+        public bool TryWaitForDefinition(AssemblyName name, [NotNullWhen(true)] out AssemblyDefinition? result)
+        {
+            if (!tryGetEntry(name, out var entry) || entry.Loaded)
+            {
+                result = null;
+                return false;
+            }
+
+            result = entry.WaitForDefinition();
+            return true;
+        }
 
         /// <summary>
         /// Waits until nothing else is modifying the <see cref="AssemblyDefinition"/> of an entry anymore,
@@ -115,6 +144,9 @@ namespace MonkeyLoader
 
             return entry.GetAssembly();
         }
+
+        private bool tryGetEntry(AssemblyName name, out AssemblyEntry entry)
+                            => assemblies.TryGetValue(name, out entry);
 
         private sealed class AssemblyEntry : IDisposable
         {

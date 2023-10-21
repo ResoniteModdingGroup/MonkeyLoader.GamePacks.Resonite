@@ -98,6 +98,8 @@ namespace MonkeyLoader
         public NuGetManager NuGet { get; private set; }
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
+        internal AssemblyPool GameAssemblyPool { get; } = new();
+        internal AssemblyPool PatcherAssemblyPool { get; } = new();
 
         /// <summary>
         /// Creates a new mod loader with the given configuration file.
@@ -258,7 +260,9 @@ namespace MonkeyLoader
         /// Loads all of the game's assemblies from their potentially modified in-memory versions.
         /// </summary>
         public void LoadGameAssemblies()
-        { }
+        {
+            GameAssemblyPool.LoadAll();
+        }
 
         /// <summary>
         /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="EarlyMonkey"/>s.
@@ -314,8 +318,8 @@ namespace MonkeyLoader
             {
                 // Add check for mod.EarlyMonkeyLoadError
 
-                foreach (var earlyMonkey in mod.EarlyMonkeys) ;
-                // Do the prepatching for the early monkeys...
+                foreach (var earlyMonkey in mod.EarlyMonkeys)
+                    earlyMonkey.Apply();
             }
         }
 
@@ -396,6 +400,36 @@ namespace MonkeyLoader
         }
 
         /// <summary>
+        /// Tries to get the <see cref="AssemblyDefinition"/> for the given <see cref="AssemblyName"/> from
+        /// the <see cref="GameAssemblyPool">GameAssemblyPool</see> or the <see cref="PatcherAssemblyPool">PatcherAssemblyPool</see>.
+        /// </summary>
+        /// <param name="assemblyName">The assembly to look for.</param>
+        /// <param name="assemblyPool">The pool it came from if found, or <c>null</c> otherwise.</param>
+        /// <param name="assemblyDefinition">The <see cref="AssemblyDefinition"/> if found, or <c>null</c> otherwise.</param>
+        /// <returns>Whether the <see cref="AssemblyDefinition"/> could be returned.</returns>
+        public bool TryGetAssemblyDefinition(AssemblyName assemblyName,
+            [NotNullWhen(true)] out AssemblyPool? assemblyPool, [NotNullWhen(true)] out AssemblyDefinition? assemblyDefinition)
+        {
+            lock (this)
+            {
+                if (GameAssemblyPool.TryWaitForDefinition(assemblyName, out assemblyDefinition))
+                {
+                    assemblyPool = GameAssemblyPool;
+                    return true;
+                }
+
+                if (PatcherAssemblyPool.TryWaitForDefinition(assemblyName, out assemblyDefinition))
+                {
+                    assemblyPool = PatcherAssemblyPool;
+                    return true;
+                }
+
+                assemblyPool = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Attempts to load the given <paramref name="path"/> as a <paramref name="mod"/>.
         /// </summary>
         /// <param name="path">The path to the file to load as a mod.</param>
@@ -431,18 +465,6 @@ namespace MonkeyLoader
             catch (AggregateException ex)
             {
                 Logger.Error(() => ex.Format("Some OnAnyConfigurationChanged event subscribers threw an exception:"));
-            }
-        }
-
-        private void prepatch(IEnumerable<EarlyMonkey> prePatchers)
-        {
-            // should be case insensitive
-            var assemblyDefinitions = new Dictionary<string, AssemblyDefinition>();
-            var neededDefinitions = new Dictionary<string, AssemblyDefinition>();
-
-            foreach (var prePatcher in prePatchers)
-            {
-                neededDefinitions.Clear();
             }
         }
 
