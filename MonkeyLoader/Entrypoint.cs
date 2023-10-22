@@ -32,24 +32,22 @@ namespace Doorstop
 
                 loader.FullLoad();
 
-                var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
+                //var frooxEngine = AssemblyDefinition.ReadAssembly("Resonite_Data\\Managed\\FrooxEngine.dll");
 
-                log.Log($"Modules: {string.Join(", ", frooxEngine.Modules.Select(m => m.Name))}");
+                //log.Log($"Modules: {string.Join(", ", frooxEngine.Modules.Select(m => m.Name))}");
 
-                var engine = frooxEngine.MainModule.Types.FirstOrDefault(t => t.Name == "Engine");
-                var engineCCtor = engine.GetStaticConstructor();
+                //var engine = frooxEngine.MainModule.Types.FirstOrDefault(t => t.Name == "Engine");
+                //var engineCCtor = engine.GetStaticConstructor();
 
-                var processor = engineCCtor.Body.GetILProcessor();
-                processor.InsertBefore(engineCCtor.Body.Instructions.First(), processor.Create(OpCodes.Call, typeof(Entrypoint).GetMethod(nameof(HelloMethod))));
+                //var processor = engineCCtor.Body.GetILProcessor();
+                //processor.InsertBefore(engineCCtor.Body.Instructions.First(), processor.Create(OpCodes.Call, typeof(Entrypoint).GetMethod(nameof(HelloMethod))));
 
-                var ms = new MemoryStream();
-                frooxEngine.Write(ms);
+                //var ms = new MemoryStream();
+                //frooxEngine.Write(ms);
 
-                Assembly.Load(ms.ToArray());
+                //Assembly.Load(ms.ToArray());
 
-                log.Log($"Loaded FrooxEngine from Memory");
-
-                loader.Shutdown();
+                //log.Log($"Loaded FrooxEngine from Memory");
 
                 log.Log($"Loaded Assemblies:{Environment.NewLine}{string.Join(Environment.NewLine, AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new MonkeyLoader.AssemblyName(assembly.GetName().Name)))}");
             }

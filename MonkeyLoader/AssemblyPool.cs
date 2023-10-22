@@ -268,7 +268,6 @@ namespace MonkeyLoader
                 }
             }
 
-            [DoesNotReturn]
             private void throwIfAlreadyReturned()
             {
                 if (definitionLock!.WaitOne(0))

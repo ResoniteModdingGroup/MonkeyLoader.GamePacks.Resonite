@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Features;
 using System;
@@ -16,10 +17,11 @@ namespace MonkeyLoader.Resonite
     [FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly)]
     internal sealed class ResoniteHooksMonkey : Monkey<ResoniteHooksMonkey>
     {
+        public override string Name { get; } = "Hooks";
+
         protected override sealed bool onLoaded()
         {
-            Logger.Info(() => "Hello from Resonite Integration!");
-            File.AppendAllText("test.log", $"[{DateTime.Now}] Hello from resonite hooks monkey!{Environment.NewLine}");
+            Logger.Info(() => "Integrating with Resonite!");
             Harmony.PatchCategory(nameof(ResoniteHooksMonkey));
             return true;
         }
@@ -36,49 +38,16 @@ namespace MonkeyLoader.Resonite
 
         private static void onEngineReady()
         {
-            try
-            {
-                Mod.Loader.Monkeys
-                    .SelectCastable<IMonkey, IResoniteMonkey>()
-                    .Select(resMonkey => (Delegate)resMonkey.OnEngineReady)
-                    .TryInvokeAll();
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Error(() => ex.Format("Some EngineReady hooks threw an Exception:"));
-            }
+            foreach (var resoniteMonkey in Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>())
+                resoniteMonkey.EngineReady();
         }
 
-        private static void onEngineShutdown()
-        {
-            try
-            {
-                Mod.Loader.Monkeys
-                    .SelectCastable<IMonkey, IResoniteMonkey>()
-                    .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdown)
-                    .TryInvokeAll();
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Error(() => ex.Format("Some EngineShutdown hooks threw an Exception:"));
-            }
-
-            Mod.Loader.Shutdown();
-        }
+        private static void onEngineShutdown() => Mod.Loader.Shutdown();
 
         private static void onEngineShutdownRequested(string reason)
         {
-            try
-            {
-                Mod.Loader.Monkeys
-                    .SelectCastable<IMonkey, IResoniteMonkey>()
-                    .Select(resMonkey => (Delegate)resMonkey.OnEngineShutdownRequested)
-                    .TryInvokeAll(reason);
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Error(() => ex.Format("Some EngineShutdownRequested hooks threw an Exception:"));
-            }
+            foreach (var resoniteMonkey in Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>())
+                resoniteMonkey.EngineShutdownRequested(reason);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿#define DISABLE_CODEMAID
-using HarmonyLib;
+﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
@@ -22,14 +21,16 @@ namespace MonkeyLoader.Patching
         /// <inheritdoc/>
         public Config Config => Mod.Config;
 
+        /// <summary>
+        /// Gets whether this monkey's <see cref="Run">Run</see>() method failed when it was called.
+        /// </summary>
+        public bool Failed { get; protected set; }
+
         /// <inheritdoc/>
         public Harmony Harmony => Mod.Harmony;
 
         /// <inheritdoc/>
         public MonkeyLogger Logger { get; private set; }
-
-        /// <inheritdoc/>
-        public bool Failed { get; protected set; }
 
         /// <inheritdoc/>
         public Mod Mod
@@ -48,20 +49,64 @@ namespace MonkeyLoader.Patching
         }
 
         /// <inheritdoc/>
-        public string Name { get; }
+        public abstract string Name { get; }
 
-        /// <inheritdoc/>
-        public bool Ran { get; protected set; }
+        /// <summary>
+        /// Gets whether this monkey's <see cref="Run">Run</see>() method has been called.
+        /// </summary>
+        public bool Ran { get; private protected set; } = false;
+
+        /// <summary>
+        /// Gets whether this monkey's <see cref="Shutdown">Shutdown</see>() failed when it was called.
+        /// </summary>
+        public bool ShutdownFailed { get; private set; } = false;
+
+        /// <summary>
+        /// Gets whether this monkey's <see cref="Shutdown">Shutdown</see>() method has been called.
+        /// </summary>
+        public bool ShutdownRan { get; private set; } = false;
 
         internal MonkeyBase()
         {
             var type = GetType();
-            Name = type.Name;
             AssemblyName = new(type.Assembly.GetName().Name);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Runs this monkey to let it patch.<br/>
+        /// Must only be called once.
+        /// </summary>
+        /// <returns>Whether it ran successfully.</returns>
         public abstract bool Run();
+
+        /// <summary>
+        /// Lets this monkey cleanup and shutdown.<br/>
+        /// Must only be called once.
+        /// </summary>
+        /// <returns>Whether it ran successfully.</returns>
+        public bool Shutdown()
+        {
+            if (ShutdownRan)
+                throw new InvalidOperationException("A monkey's Shutdown() method must only be called once!");
+
+            ShutdownRan = true;
+
+            try
+            {
+                if (!onShutdown())
+                {
+                    ShutdownFailed = true;
+                    Logger.Warn(() => "OnShutdown failed!");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShutdownFailed = true;
+                Logger.Error(() => ex.Format("OnShutdown threw an Exception:"));
+            }
+
+            return !ShutdownFailed;
+        }
 
         internal static MonkeyBase GetInstance(Type type)
         {
@@ -72,10 +117,16 @@ namespace MonkeyLoader.Patching
             return Traverse.Create(type).Property<MonkeyBase>("Instance").Value;
         }
 
+        /// <summary>
+        /// Lets this monkey cleanup and shutdown.
+        /// </summary>
+        /// <returns>Whether it ran successfully.</returns>
+        protected virtual bool onShutdown() => true;
+
         private protected void throwIfRan()
         {
             if (Ran)
-                throw new InvalidOperationException($"A monkey's Run() method must only be called once!");
+                throw new InvalidOperationException("A monkey's Run() method must only be called once!");
         }
     }
 

@@ -220,15 +220,4 @@ namespace MonkeyLoader.Patching
             }
         }
     }
-
-    /// <summary>
-    /// Interface for <see cref="EarlyMonkey{TMonkey}"/>s.
-    /// </summary>
-    public interface IEarlyMonkey : IMonkey
-    {
-        /// <summary>
-        /// Gets the names of the assemblies and types therein which this pre-patcher targets.
-        /// </summary>
-        public IEnumerable<PrePatchTarget> PrePatchTargets { get; }
-    }
 }

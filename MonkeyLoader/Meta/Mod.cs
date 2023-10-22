@@ -19,7 +19,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Contains all the metadata and references to loaded patchers from a mod file.
     /// </summary>
-    public sealed class Mod : IConfigOwner
+    public sealed class Mod : IConfigOwner, IShutdown
     {
         /// <summary>
         /// The search pattern for mod files.
@@ -162,6 +162,16 @@ namespace MonkeyLoader.Meta
         public string ReleaseNotes { get; }
 
         /// <summary>
+        /// Gets whether this <see cref="Mod"/>'s <see cref="Shutdown"/> method failed when it was called.
+        /// </summary>
+        public bool ShutdownFailed { get; private set; } = false;
+
+        /// <summary>
+        /// Gets whether this <see cref="Mod"/>'s <see cref="Shutdown"/> method has been called.
+        /// </summary>
+        public bool ShutdownRan { get; private set; } = false;
+
+        /// <summary>
         /// Gets the tags of this mod.
         /// </summary>
         public IEnumerable<string> Tags
@@ -205,7 +215,6 @@ namespace MonkeyLoader.Meta
             Loader = monkeyLoader;
             Id = nuspecReader.GetId();
             Harmony = new Harmony(Id);
-            Logger = new MonkeyLogger(monkeyLoader.Logger, Id);
 
             Location = location;
             FileSystem = fileSystem;
@@ -214,6 +223,8 @@ namespace MonkeyLoader.Meta
             Version = nuspecReader.GetVersion().Version;
             Description = nuspecReader.GetDescription();
             ReleaseNotes = nuspecReader.GetReleaseNotes();
+
+            Logger = new MonkeyLogger(monkeyLoader.Logger, Title);
 
             var iconPath = nuspecReader.GetIcon();
             if (fileSystem.FileExists(iconPath))
@@ -277,6 +288,32 @@ namespace MonkeyLoader.Meta
         /// <param name="tag">The tag to check for.</param>
         /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
         public bool HasTag(string tag) => tags.Contains(tag);
+
+        public bool Shutdown()
+        {
+            if (ShutdownRan)
+                throw new InvalidOperationException("A monkey's Shutdown() method must only be called once!");
+
+            ShutdownRan = true;
+
+            Config.Save();
+
+            try
+            {
+                foreach (var earlyMonkey in earlyMonkeys)
+                    ShutdownFailed |= !earlyMonkey.Shutdown();
+
+                foreach (var monkey in monkeys)
+                    ShutdownFailed |= monkey.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                ShutdownFailed = true;
+                Logger.Error(() => ex.Format("A monkey's Shutdown threw an Exception:"));
+            }
+
+            return !ShutdownFailed;
+        }
 
         internal void LoadEarlyMonkeys()
         {

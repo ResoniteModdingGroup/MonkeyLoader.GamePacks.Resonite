@@ -23,7 +23,7 @@ namespace MonkeyLoader
     /// <summary>
     /// The root of all mod loading.
     /// </summary>
-    public sealed class MonkeyLoader : IConfigOwner
+    public sealed class MonkeyLoader : IConfigOwner, IShutdown
     {
         private static readonly Type jsonConverterType = typeof(JsonConverter);
         private readonly HashSet<Mod> allMods = new();
@@ -96,6 +96,16 @@ namespace MonkeyLoader
         /// Gets the NuGet manager used by this loader.
         /// </summary>
         public NuGetManager NuGet { get; private set; }
+
+        /// <summary>
+        /// Gets whether this loaders's <see cref="Shutdown">Shutdown</see>() failed when it was called.
+        /// </summary>
+        public bool ShutdownFailed { get; private set; }
+
+        /// <summary>
+        /// Gets whether this loader's <see cref="Shutdown">Shutdown</see>() method has been called.
+        /// </summary>
+        public bool ShutdownRan { get; private set; }
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
         internal AssemblyPool GameAssemblyPool { get; } = new();
@@ -248,7 +258,7 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="Monkey"/>s.
+        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void LoadEarlyMonkeys(IEnumerable<Mod> mods)
         {
@@ -265,12 +275,12 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="EarlyMonkey"/>s.
+        /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void LoadGamePackEarlyMonkeys() => LoadEarlyMonkeys(allMods.Where(mod => mod.IsGamePack));
 
         /// <summary>
-        /// Loads every loaded game pack <see cref="Mods">mod's</see> patcher assemblies and <see cref="Monkey"/>s.
+        /// Loads every loaded game pack <see cref="Mods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
         public void LoadGamePackMonkeys() => LoadMonkeys(allMods.Where(mod => mod.IsGamePack));
 
@@ -311,7 +321,7 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Runs every given <see cref="Mod"/>'s loaded
-        /// <see cref="IEarlyMonkey"/>s <see cref="IMonkey.Run">Run</see>() method.
+        /// <see cref="IEarlyMonkey"/>s <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
         public void RunEarlyMonkeys(IEnumerable<Mod> mods)
         {
@@ -331,7 +341,7 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Runs every loaded game pack <see cref="Mod"/>'s loaded
-        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
         public void RunGamePackMonkeys() => RunMonkeys(GamePacks);
 
@@ -342,13 +352,13 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Runs every loaded regular <see cref="Mod"/>'s loaded
-        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
         public void RunModMonkeys() => RunMonkeys(Mods);
 
         /// <summary>
         /// Runs every given <see cref="Mod"/>'s loaded
-        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="IMonkey.Run">Run</see>() method.
+        /// <see cref="Mod.Monkeys">monkeys'</see> <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
         public void RunMonkeys(IEnumerable<Mod> mods)
         {
@@ -361,11 +371,17 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Should be called by the game integration or application using this as a library when things are shutting down.<br/>
-        /// Saves the configs of all mods etc.
+        /// Saves its config and triggers <see cref="Mod.Shutdown">Shutdown</see>() on all <see cref="Mods">Mods</see>.
         /// </summary>
-        public void Shutdown()
+        public bool Shutdown()
         {
-            Logger.Info(() => $"Triggering shutdown routine!");
+            if (ShutdownRan)
+                throw new InvalidOperationException("A loader's Shutdown() method must only be called once!");
+
+            ShutdownRan = true;
+
+            var sw = Stopwatch.StartNew();
+            Logger.Info(() => $"Triggering shutdown routine! Saving the loader's config.");
 
             try
             {
@@ -374,20 +390,18 @@ namespace MonkeyLoader
             }
             catch (Exception ex)
             {
+                ShutdownFailed = true;
                 Logger.Error(() => ex.Format("The mod loader's config threw an exception while saving during shutdown!"));
             }
 
-            try
-            {
-                var sw = Stopwatch.StartNew();
-                Logger.Info(() => $"Triggering save for all {allMods.Count} mods's configs to shut down!");
-                allMods.Select(mod => (Delegate)mod.Config.Save).TryInvokeAll();
-                Logger.Info(() => $"Successfully triggered saving for all in {sw.ElapsedMilliseconds}ms!");
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Error(() => ex.Format("Some mods' configs threw exceptions while saving during shutdown!"));
-            }
+            Logger.Info(() => $"Triggering shutdown for all {allMods.Count} mods!");
+
+            foreach (var mod in allMods)
+                ShutdownFailed |= !mod.Shutdown();
+
+            Logger.Info(() => $"Processed shutdown in {sw.ElapsedMilliseconds}ms!");
+
+            return !ShutdownFailed;
         }
 
         /// <summary>
