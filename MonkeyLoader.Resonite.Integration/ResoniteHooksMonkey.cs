@@ -19,7 +19,7 @@ namespace MonkeyLoader.Resonite
     {
         public override string Name { get; } = "Hooks";
 
-        protected override sealed bool onLoaded()
+        protected override sealed bool OnLoaded()
         {
             Logger.Info(() => "Integrating with Resonite!");
             Harmony.PatchCategory(nameof(ResoniteHooksMonkey));
@@ -27,24 +27,24 @@ namespace MonkeyLoader.Resonite
         }
 
         [HarmonyPrefix]
-        private static void initializePrefix(Engine __instance)
+        private static void InitializePrefix(Engine __instance)
         {
             Mod.Loader.LoggingHandler = new ResoniteLoggingHandler();
 
-            __instance.OnReady += onEngineReady;
-            __instance.OnShutdownRequest += onEngineShutdownRequested;
-            __instance.OnShutdown += onEngineShutdown;
+            __instance.OnReady += OnEngineReady;
+            __instance.OnShutdownRequest += OnEngineShutdownRequested;
+            __instance.OnShutdown += OnEngineShutdown;
         }
 
-        private static void onEngineReady()
+        private static void OnEngineReady()
         {
             foreach (var resoniteMonkey in Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>())
                 resoniteMonkey.EngineReady();
         }
 
-        private static void onEngineShutdown() => Mod.Loader.Shutdown();
+        private static void OnEngineShutdown() => Mod.Loader.Shutdown();
 
-        private static void onEngineShutdownRequested(string reason)
+        private static void OnEngineShutdownRequested(string reason)
         {
             foreach (var resoniteMonkey in Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>())
                 resoniteMonkey.EngineShutdownRequested(reason);

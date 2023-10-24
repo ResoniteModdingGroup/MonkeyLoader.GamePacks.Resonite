@@ -7,7 +7,7 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// Represents an <see cref="Exception"/> encountered while loading a configuration file.
     /// </summary>
-    public class ConfigLoadException : Exception
+    public sealed class ConfigLoadException : Exception
     {
         internal ConfigLoadException(string message) : base(message)
         { }

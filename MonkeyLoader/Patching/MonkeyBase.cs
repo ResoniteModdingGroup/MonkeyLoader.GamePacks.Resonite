@@ -12,8 +12,8 @@ namespace MonkeyLoader.Patching
     /// </summary>
     public abstract class MonkeyBase : IMonkey
     {
-        private static readonly Type monkeyType = typeof(MonkeyBase);
-        private Mod mod;
+        private static readonly Type _monkeyType = typeof(MonkeyBase);
+        private Mod _mod;
 
         /// <inheritdoc/>
         public AssemblyName AssemblyName { get; }
@@ -35,16 +35,16 @@ namespace MonkeyLoader.Patching
         /// <inheritdoc/>
         public Mod Mod
         {
-            get => mod;
+            get => _mod;
 
-            [MemberNotNull(nameof(mod), nameof(Logger))]
+            [MemberNotNull(nameof(_mod), nameof(Logger))]
             internal set
             {
-                if (value == mod)
+                if (value == _mod)
                     return;
 
-                mod = value;
-                Logger = new MonkeyLogger(mod.Logger, Name);
+                _mod = value;
+                Logger = new MonkeyLogger(_mod.Logger, Name);
             }
         }
 
@@ -76,14 +76,14 @@ namespace MonkeyLoader.Patching
         /// Runs this monkey to let it patch.<br/>
         /// Must only be called once.
         /// </summary>
-        /// <returns>Whether it ran successfully.</returns>
+        /// <inheritdoc/>
         public abstract bool Run();
 
         /// <summary>
         /// Lets this monkey cleanup and shutdown.<br/>
         /// Must only be called once.
         /// </summary>
-        /// <returns>Whether it ran successfully.</returns>
+        /// <inheritdoc/>
         public bool Shutdown()
         {
             if (ShutdownRan)
@@ -93,7 +93,7 @@ namespace MonkeyLoader.Patching
 
             try
             {
-                if (!onShutdown())
+                if (!OnShutdown())
                 {
                     ShutdownFailed = true;
                     Logger.Warn(() => "OnShutdown failed!");
@@ -111,8 +111,8 @@ namespace MonkeyLoader.Patching
         internal static MonkeyBase GetInstance(Type type)
         {
             // Could do more specific inheriting from Monkey<> check
-            if (!monkeyType.IsAssignableFrom(type))
-                throw new ArgumentException($"Given type [{type}] doesn't inherit from {monkeyType.FullName}!", nameof(type));
+            if (!_monkeyType.IsAssignableFrom(type))
+                throw new ArgumentException($"Given type [{type}] doesn't inherit from {_monkeyType.FullName}!", nameof(type));
 
             return Traverse.Create(type).Property<MonkeyBase>("Instance").Value;
         }
@@ -120,10 +120,10 @@ namespace MonkeyLoader.Patching
         /// <summary>
         /// Lets this monkey cleanup and shutdown.
         /// </summary>
-        /// <returns>Whether it ran successfully.</returns>
-        protected virtual bool onShutdown() => true;
+        /// <inheritdoc/>
+        protected virtual bool OnShutdown() => true;
 
-        private protected void throwIfRan()
+        private protected void ThrowIfRan()
         {
             if (Ran)
                 throw new InvalidOperationException("A monkey's Run() method must only be called once!");

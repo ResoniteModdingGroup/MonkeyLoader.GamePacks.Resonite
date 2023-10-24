@@ -14,14 +14,14 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Configuration
 {
     /// <summary>
-    /// Represents a section of a <see cref="Configuration.Config"/> - e.g. for an <see cref="EarlyMonkey"/> or a <see cref="Monkey"/>.
+    /// Represents a section of a <see cref="Configuration.Config"/> for any <see cref="IConfigOwner"/>.
     /// </summary>
     /// <remarks>
-    /// Use your mod's <see cref="Configuration.Config"/> instance to <see cref="Config.LoadSection{TSection}()">load</see> sections.
+    /// Use your mod's <see cref="Configuration.Config"/> instance to <see cref="Config.LoadSection{TSection}()">load sections</see>.
     /// </remarks>
     public abstract class ConfigSection
     {
-        private readonly HashSet<ConfigKey> keys;
+        private readonly HashSet<ConfigKey> _keys;
 
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> that this section is a part of.
@@ -40,7 +40,7 @@ namespace MonkeyLoader.Configuration
         {
             get
             {
-                foreach (var key in keys)
+                foreach (var key in _keys)
                     yield return key;
             }
         }
@@ -67,16 +67,16 @@ namespace MonkeyLoader.Configuration
         /// Gets the way that an incompatible saved configuration should be treated.<br/>
         /// <see cref="IncompatibleConfigHandling.Error"/> by default
         /// </summary>
-        protected virtual IncompatibleConfigHandling incompatibilityHandling => IncompatibleConfigHandling.Error;
+        protected virtual IncompatibleConfigHandling IncompatibilityHandling => IncompatibleConfigHandling.Error;
 
         /// <summary>
         /// Creates a new config section instance.
         /// </summary>
         protected ConfigSection()
         {
-            keys = new(getConfigKeys());
+            _keys = new(GetConfigKeys());
 
-            foreach (var key in keys)
+            foreach (var key in _keys)
             {
                 key.Section = this;
                 key.DefiningKey = key;
@@ -127,7 +127,7 @@ namespace MonkeyLoader.Configuration
                 throw new ConfigLoadException($"Error loading version for section [{Name}]!", ex);
             }
 
-            validateCompatibility(serializedVersion);
+            ValidateCompatibility(serializedVersion);
 
             foreach (var key in Keys)
             {
@@ -156,7 +156,7 @@ namespace MonkeyLoader.Configuration
             var result = new JObject();
             result["Version"] = Version.ToString();
 
-            foreach (var key in keys)
+            foreach (var key in _keys)
             {
                 if (!Config.TryGetValue(key, out var value))
                     continue;
@@ -173,7 +173,7 @@ namespace MonkeyLoader.Configuration
         /// derived from <see cref="ConfigKey"/> and don't have a <see cref="IgnoreConfigKeyAttribute"/>.
         /// </summary>
         /// <returns>The automatically tracked <see cref="ConfigKey"/>s.</returns>
-        protected IEnumerable<ConfigKey> getAutoConfigKeys()
+        protected IEnumerable<ConfigKey> GetAutoConfigKeys()
         {
             var configKeyType = typeof(ConfigKey);
 
@@ -188,12 +188,12 @@ namespace MonkeyLoader.Configuration
         /// Gets all <see cref="ConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
         /// </summary>
         /// <remarks>
-        /// Calls <see cref="getAutoConfigKeys"/> by default, but can be overridden to add others.
+        /// Calls <see cref="GetAutoConfigKeys"/> by default, but can be overridden to add others.
         /// </remarks>
         /// <returns></returns>
-        protected virtual IEnumerable<ConfigKey> getConfigKeys() => getAutoConfigKeys();
+        protected virtual IEnumerable<ConfigKey> GetConfigKeys() => GetAutoConfigKeys();
 
-        private static bool areVersionsCompatible(Version serializedVersion, Version currentVersion)
+        private static bool AreVersionsCompatible(Version serializedVersion, Version currentVersion)
         {
             if (serializedVersion.Major != currentVersion.Major)
             {
@@ -213,11 +213,11 @@ namespace MonkeyLoader.Configuration
             return true;
         }
 
-        private void validateCompatibility(Version serializedVersion)
+        private void ValidateCompatibility(Version serializedVersion)
         {
-            if (!areVersionsCompatible(serializedVersion, Version))
+            if (!AreVersionsCompatible(serializedVersion, Version))
             {
-                switch (incompatibilityHandling)
+                switch (IncompatibilityHandling)
                 {
                     case IncompatibleConfigHandling.Clobber:
                         Config.Logger.Warn(() => $"Saved section [{Name}] version [{serializedVersion}] is incompatible with mod's version [{Version}]. Clobbering old config and starting fresh.");

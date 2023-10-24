@@ -39,7 +39,7 @@ namespace MonkeyLoader.Patching
         /// <exception cref="InvalidOperationException">When the pre-patch targets reference the same Assembly multiple times.</exception>
         public override sealed bool Run()
         {
-            throwIfRan();
+            ThrowIfRan();
             Ran = true;
 
             Logger.Debug(() => $"Running pre-patcher.");

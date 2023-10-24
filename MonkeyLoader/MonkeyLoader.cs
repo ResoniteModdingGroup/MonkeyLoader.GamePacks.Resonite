@@ -25,9 +25,8 @@ namespace MonkeyLoader
     /// </summary>
     public sealed class MonkeyLoader : IConfigOwner, IShutdown
     {
-        private static readonly Type jsonConverterType = typeof(JsonConverter);
-        private readonly HashSet<Mod> allMods = new();
-        private ILoggingHandler? loggingHandler;
+        private readonly HashSet<Mod> _allMods = new();
+        private ILoggingHandler? _loggingHandler;
 
         /// <summary>
         /// Gets the config that this loader uses to load <see cref="ConfigSection"/>s.
@@ -47,7 +46,7 @@ namespace MonkeyLoader
         /// <summary>
         /// Gets all loaded game pack <see cref="Mod"/>s.
         /// </summary>
-        public IEnumerable<Mod> GamePacks => allMods.Where(mod => mod.IsGamePack);
+        public IEnumerable<Mod> GamePacks => _allMods.Where(mod => mod.IsGamePack);
 
         /// <summary>
         /// Gets the json serializer used by this loader and any mods it loads.<br/>
@@ -72,10 +71,10 @@ namespace MonkeyLoader
         /// </summary>
         public ILoggingHandler? LoggingHandler
         {
-            get => loggingHandler;
+            get => _loggingHandler;
             set
             {
-                loggingHandler = value;
+                _loggingHandler = value;
 
                 if (value is not null)
                     Logger.FlushDeferredMessages();
@@ -85,7 +84,7 @@ namespace MonkeyLoader
         /// <summary>
         /// Gets all loaded regular <see cref="Mod"/>s.
         /// </summary>
-        public IEnumerable<Mod> Mods => allMods.Where(mod => !mod.IsGamePack);
+        public IEnumerable<Mod> Mods => _allMods.Where(mod => !mod.IsGamePack);
 
         /// <summary>
         /// Gets the <see cref="IMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
@@ -224,7 +223,7 @@ namespace MonkeyLoader
             try
             {
                 return Directory.EnumerateFiles(Locations.GamePacks, Mod.SearchPattern, SearchOption.TopDirectoryOnly)
-                    .TrySelect<string, Mod>(tryLoadGamePack)
+                    .TrySelect<string, Mod>(TryLoadGamePack)
                     .ToArray();
             }
             catch (Exception ex)
@@ -253,7 +252,7 @@ namespace MonkeyLoader
 
                 return Enumerable.Empty<string>();
             })
-            .TrySelect<string, Mod>(tryLoadMod)
+            .TrySelect<string, Mod>(TryLoadMod)
             .ToArray();
         }
 
@@ -277,12 +276,12 @@ namespace MonkeyLoader
         /// <summary>
         /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
-        public void LoadGamePackEarlyMonkeys() => LoadEarlyMonkeys(allMods.Where(mod => mod.IsGamePack));
+        public void LoadGamePackEarlyMonkeys() => LoadEarlyMonkeys(_allMods.Where(mod => mod.IsGamePack));
 
         /// <summary>
         /// Loads every loaded game pack <see cref="Mods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
-        public void LoadGamePackMonkeys() => LoadMonkeys(allMods.Where(mod => mod.IsGamePack));
+        public void LoadGamePackMonkeys() => LoadMonkeys(_allMods.Where(mod => mod.IsGamePack));
 
         /// <summary>
         /// Loads the mod from the given path, making no checks.
@@ -295,7 +294,7 @@ namespace MonkeyLoader
             var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read);
 
             var mod = new Mod(this, path, fileSystem, isGamePack);
-            allMods.Add(mod);
+            _allMods.Add(mod);
 
             return mod;
         }
@@ -373,6 +372,7 @@ namespace MonkeyLoader
         /// Should be called by the game integration or application using this as a library when things are shutting down.<br/>
         /// Saves its config and triggers <see cref="Mod.Shutdown">Shutdown</see>() on all <see cref="Mods">Mods</see>.
         /// </summary>
+        /// <inheritdoc/>
         public bool Shutdown()
         {
             if (ShutdownRan)
@@ -394,9 +394,9 @@ namespace MonkeyLoader
                 Logger.Error(() => ex.Format("The mod loader's config threw an exception while saving during shutdown!"));
             }
 
-            Logger.Info(() => $"Triggering shutdown for all {allMods.Count} mods!");
+            Logger.Info(() => $"Triggering shutdown for all {_allMods.Count} mods!");
 
-            foreach (var mod in allMods)
+            foreach (var mod in _allMods)
                 ShutdownFailed |= !mod.Shutdown();
 
             Logger.Info(() => $"Processed shutdown in {sw.ElapsedMilliseconds}ms!");
@@ -473,10 +473,10 @@ namespace MonkeyLoader
             }
         }
 
-        private bool tryLoadGamePack(string path, [NotNullWhen(true)] out Mod? gamePack)
+        private bool TryLoadGamePack(string path, [NotNullWhen(true)] out Mod? gamePack)
             => TryLoadMod(path, out gamePack, true);
 
-        private bool tryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
+        private bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
             => TryLoadMod(path, out mod, false);
 
         /// <summary>

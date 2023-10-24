@@ -23,7 +23,7 @@ namespace MonkeyLoader.Configuration
 
         internal bool HasValue;
 
-        private object? value;
+        private object? _value;
 
         /// <summary>
         /// Gets the human-readable description of this config item. Should be specified by the defining mod.
@@ -102,7 +102,7 @@ namespace MonkeyLoader.Configuration
 
         internal void Set(object? value)
         {
-            this.value = value;
+            _value = value;
             HasValue = true;
         }
 
@@ -110,7 +110,7 @@ namespace MonkeyLoader.Configuration
         {
             if (HasValue)
             {
-                value = this.value;
+                value = _value;
                 return true;
             }
 
@@ -133,9 +133,9 @@ namespace MonkeyLoader.Configuration
     /// <typeparam name="T">The type of this key's value.</typeparam>
     public class ConfigKey<T> : ConfigKey
     {
-        private readonly Func<T>? computeDefault;
+        private readonly Func<T>? _computeDefault;
 
-        private readonly Predicate<T?>? isValueValid;
+        private readonly Predicate<T?>? _isValueValid;
 
         /// <inheritdoc/>
         public override Type ValueType { get; } = typeof(T);
@@ -150,8 +150,8 @@ namespace MonkeyLoader.Configuration
         /// <param name="valueValidator">The function that checks if the given value is valid for this configuration item. Otherwise everything will be accepted.</param>
         public ConfigKey(string name, string? description = null, Func<T>? computeDefault = null, bool internalAccessOnly = false, Predicate<T?>? valueValidator = null) : base(name, description, internalAccessOnly)
         {
-            this.computeDefault = computeDefault;
-            isValueValid = valueValidator;
+            _computeDefault = computeDefault;
+            _isValueValid = valueValidator;
         }
 
         /// <inheritdoc/>
@@ -174,13 +174,13 @@ namespace MonkeyLoader.Configuration
         /// <returns><c>true</c> if the default value was successfully computed.</returns>
         public bool TryComputeDefaultTyped([NotNullWhen(true)] out T? defaultValue)
         {
-            if (computeDefault is null)
+            if (_computeDefault is null)
             {
                 defaultValue = default;
                 return false;
             }
 
-            defaultValue = computeDefault()!;
+            defaultValue = _computeDefault()!;
             return true;
         }
 
@@ -210,6 +210,6 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <returns><c>true</c> if the value is valid.</returns>
-        public bool ValidateTyped(T? value) => isValueValid?.Invoke(value) ?? true;
+        public bool ValidateTyped(T? value) => _isValueValid?.Invoke(value) ?? true;
     }
 }

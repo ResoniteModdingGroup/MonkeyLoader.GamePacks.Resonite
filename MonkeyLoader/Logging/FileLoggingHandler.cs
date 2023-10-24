@@ -13,7 +13,7 @@ namespace MonkeyLoader.Logging
     /// </summary>
     public sealed class FileLoggingHandler : ILoggingHandler
     {
-        private readonly StreamWriter streamWriter;
+        private readonly StreamWriter _streamWriter;
 
         /// <summary>
         /// Creates a new file logging handler with the file at the given path as the target.
@@ -29,7 +29,7 @@ namespace MonkeyLoader.Logging
         public FileLoggingHandler(FileStream fileStream)
         {
             fileStream.SetLength(0);
-            streamWriter = new StreamWriter(fileStream);
+            _streamWriter = new StreamWriter(fileStream);
         }
 
         /// <inheritdoc/>
@@ -50,10 +50,10 @@ namespace MonkeyLoader.Logging
         /// <param name="message">The message to write.</param>
         public void Log(string message)
         {
-            lock (streamWriter)
+            lock (_streamWriter)
             {
-                streamWriter.WriteLine($"[{DateTime.Now:HH:mm:ss:ffff}] {message}");
-                streamWriter.Flush();
+                _streamWriter.WriteLine($"[{DateTime.Now:HH:mm:ss:ffff}] {message}");
+                _streamWriter.Flush();
             }
         }
 

@@ -16,13 +16,13 @@ namespace MonkeyLoader.Resonite
     {
         /// <summary>
         /// Gets whether this <see cref="ResoniteMonkey{TMonkey}">ResoniteMonkey</see> failed when
-        /// <see cref="ResoniteMonkey{TMonkey}.onEngineReady">OnEngineReady</see>() was called.
+        /// <see cref="ResoniteMonkey{TMonkey}.OnEngineReady">OnEngineReady</see>() was called.
         /// </summary>
         public bool EngineReadyFailed { get; }
 
         /// <summary>
         /// Gets whether this <see cref="ResoniteMonkey{TMonkey}">ResoniteMonkey's</see>
-        /// <see cref="ResoniteMonkey{TMonkey}.onEngineReady">OnEngineReady</see>() method has been called.
+        /// <see cref="ResoniteMonkey{TMonkey}.OnEngineReady">OnEngineReady</see>() method has been called.
         /// </summary>
         public bool EngineReadyRan { get; }
     }
@@ -58,7 +58,7 @@ namespace MonkeyLoader.Resonite
 
             try
             {
-                if (!onEngineReady())
+                if (!OnEngineReady())
                 {
                     Failed = true;
                     Logger.Warn(() => "OnEngineReady failed!");
@@ -77,7 +77,7 @@ namespace MonkeyLoader.Resonite
         {
             try
             {
-                onEngineShutdownRequested(reason);
+                OnEngineShutdownRequested(reason);
             }
             catch (Exception ex)
             {
@@ -91,23 +91,23 @@ namespace MonkeyLoader.Resonite
         /// <remarks>
         /// This is the primary method for patching used by Resonite Mods as basic facilities of the game
         /// are ready to use, while most other code hasn't been run.<br/>
-        /// Override <see cref="onLoaded">onLoaded</see>() to patch before anything is initialized.
+        /// Override <see cref="OnLoaded">onLoaded</see>() to patch before anything is initialized.
         /// </remarks>
         /// <returns>Whether the patching was successful.</returns>
-        protected virtual bool onEngineReady() => true;
+        protected virtual bool OnEngineReady() => true;
 
         /// <summary>
         /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
         /// </summary>
         /// <param name="reason">The reason for the shutdown request. Seems to always be <c>Quitting</c>.</param>
-        protected virtual void onEngineShutdownRequested(string reason)
+        protected virtual void OnEngineShutdownRequested(string reason)
         { }
 
         /// <remarks>
         /// Override this method if you need to patch something involved in the initialization of the game.
         /// </remarks>
         /// <inheritdoc/>
-        protected override bool onLoaded() => true;
+        protected override bool OnLoaded() => true;
     }
 
     internal interface IResoniteMonkeyInternal : IResoniteMonkey

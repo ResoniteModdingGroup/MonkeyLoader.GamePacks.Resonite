@@ -15,16 +15,11 @@ namespace MonkeyLoader
     internal static class Util
     {
         // check if a type is allowed to have null assigned
-        internal static bool CanBeNull(Type t)
-        {
-            return !CannotBeNull(t);
-        }
+        internal static bool CanBeNull(Type t) => !CannotBeNull(t);
 
         // check if a type cannot possibly have null assigned
         internal static bool CannotBeNull(Type t)
-        {
-            return t.IsValueType && Nullable.GetUnderlyingType(t) == null;
-        }
+            => t.IsValueType && Nullable.GetUnderlyingType(t) is null;
 
         /// <summary>
         /// Used to debounce calls to a given method. The given method will be called after there have been no additional calls
@@ -101,10 +96,7 @@ namespace MonkeyLoader
             }
         }
 
-        internal static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T>? comparer = null)
-        {
-            return new HashSet<T>(source, comparer);
-        }
+        internal static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T>? comparer = null) => new(source, comparer);
 
         // check a potentially unloadable type to see if it is (A) loadable and (B) satsifies a predicate without throwing an exception
         // this does a series of increasingly aggressive checks to see if the type is unsafe to touch
@@ -117,7 +109,7 @@ namespace MonkeyLoader
 
             try
             {
-                string _name = type.Name;
+                var name = type.Name;
             }
             catch (Exception e)
             {
@@ -138,8 +130,6 @@ namespace MonkeyLoader
 
         // shim because this doesn't exist in .NET 4.6
         private static bool IsCompletedSuccessfully(this Task t)
-        {
-            return t.IsCompleted && !t.IsFaulted && !t.IsCanceled;
-        }
+            => t.IsCompleted && !t.IsFaulted && !t.IsCanceled;
     }
 }

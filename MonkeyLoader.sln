@@ -9,9 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.ConsoleTest", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.CodeGenerators", "MonkeyLoader.CodeGenerators\MonkeyLoader.CodeGenerators.csproj", "{863BC416-73D8-489B-BA54-0C5BF1938609}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.Resonite.Data", "MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj", "{0B2654DA-F027-4B3A-9C96-9ACEFB3B27E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Data", "MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj", "{0B2654DA-F027-4B3A-9C96-9ACEFB3B27E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.Resonite.Integration", "MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj", "{40835522-1978-431B-A395-0870583B80F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Integration", "MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj", "{40835522-1978-431B-A395-0870583B80F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CEAAAF5F-3B06-40E0-B0D2-3BBD3513038B}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

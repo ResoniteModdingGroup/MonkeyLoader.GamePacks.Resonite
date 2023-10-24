@@ -24,17 +24,17 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// The search pattern for mod files.
         /// </summary>
-        public static readonly string SearchPattern = "*.nupkg";
+        public const string SearchPattern = "*.nupkg";
 
         internal readonly HashSet<Assembly> PatcherAssemblies = new();
         internal readonly HashSet<Assembly> PrePatcherAssemblies = new();
 
-        private const string prePatchersFolderName = "pre-patchers";
-        private readonly UPath[] assemblyPaths;
-        private readonly HashSet<string> authors;
-        private readonly HashSet<IEarlyMonkey> earlyMonkeys = new();
-        private readonly HashSet<IMonkey> monkeys = new();
-        private readonly HashSet<string> tags;
+        private const string PrePatchersFolderName = "pre-patchers";
+        private readonly UPath[] _assemblyPaths;
+        private readonly HashSet<string> _authors;
+        private readonly HashSet<IEarlyMonkey> _earlyMonkeys = new();
+        private readonly HashSet<IMonkey> _monkeys = new();
+        private readonly HashSet<string> _tags;
 
         /// <summary>
         /// Gets the names of the authors of this mod.
@@ -72,7 +72,7 @@ namespace MonkeyLoader.Meta
         {
             get
             {
-                foreach (var earlyMonkey in earlyMonkeys)
+                foreach (var earlyMonkey in _earlyMonkeys)
                     yield return (IEarlyMonkey)earlyMonkey;
             }
         }
@@ -141,14 +141,14 @@ namespace MonkeyLoader.Meta
         {
             get
             {
-                foreach (var monkey in monkeys)
+                foreach (var monkey in _monkeys)
                     yield return monkey;
             }
         }
 
-        public IEnumerable<UPath> PatcherAssemblyPaths => assemblyPaths.Where(path => !path.FullName.Contains(prePatchersFolderName));
+        public IEnumerable<UPath> PatcherAssemblyPaths => _assemblyPaths.Where(path => !path.FullName.Contains(PrePatchersFolderName));
 
-        public IEnumerable<UPath> PrePatcherAssemblyPaths => assemblyPaths.Where(path => path.FullName.Contains(prePatchersFolderName));
+        public IEnumerable<UPath> PrePatcherAssemblyPaths => _assemblyPaths.Where(path => path.FullName.Contains(PrePatchersFolderName));
 
         /// <summary>
         /// Gets the Url to this mod's project website.<br/>
@@ -178,7 +178,7 @@ namespace MonkeyLoader.Meta
         {
             get
             {
-                foreach (var tag in tags)
+                foreach (var tag in _tags)
                     yield return tag;
             }
         }
@@ -244,8 +244,8 @@ namespace MonkeyLoader.Meta
             else if (!string.IsNullOrWhiteSpace(projectUrl))
                 Logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
 
-            tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-            authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+            _tags = new(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            _authors = new(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
 
             ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
             Config = new Config(this);
@@ -262,17 +262,17 @@ namespace MonkeyLoader.Meta
                 }
                 else
                 {
-                    assemblyPaths = Array.Empty<UPath>();
+                    _assemblyPaths = Array.Empty<UPath>();
                     Logger.Error(() => $"No lib folder at all found for mod: {location}");
 
                     return;
                 }
             }
 
-            assemblyPaths = fileSystem.EnumerateFiles("/", "*.dll", SearchOption.AllDirectories).Where(path => path.FullName.StartsWith(assemblyFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
-            HasPrePatchers = assemblyPaths.Any(path => path.FullName.Contains(prePatchersFolderName));
+            _assemblyPaths = fileSystem.EnumerateFiles("/", "*.dll", SearchOption.AllDirectories).Where(path => path.FullName.StartsWith(assemblyFolder, StringComparison.OrdinalIgnoreCase)).ToArray();
+            HasPrePatchers = _assemblyPaths.Any(path => path.FullName.Contains(PrePatchersFolderName));
 
-            Logger.Trace(() => $"Found the following Assembly Files to consider:{Environment.NewLine}{string.Join(Environment.NewLine, assemblyPaths)}");
+            Logger.Trace(() => $"Found the following Assembly Files to consider:{Environment.NewLine}{string.Join(Environment.NewLine, _assemblyPaths)}");
         }
 
         /// <summary>
@@ -280,15 +280,21 @@ namespace MonkeyLoader.Meta
         /// </summary>
         /// <param name="author">The name to check for.</param>
         /// <returns><c>true</c> if the given name is listed as an author for this mod.</returns>
-        public bool HasAuthor(string author) => authors.Contains(author);
+        public bool HasAuthor(string author) => _authors.Contains(author);
 
         /// <summary>
         /// Efficiently checks, whether a given tag is listed for this mod.
         /// </summary>
         /// <param name="tag">The tag to check for.</param>
         /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
-        public bool HasTag(string tag) => tags.Contains(tag);
+        public bool HasTag(string tag) => _tags.Contains(tag);
 
+        /// <summary>
+        /// Lets this mod cleanup and shutdown.<br/>
+        /// Must only be called once.
+        /// </summary>
+        /// <returns>Whether it ran successfully.</returns>
+        /// <inheritdoc/>
         public bool Shutdown()
         {
             if (ShutdownRan)
@@ -300,10 +306,10 @@ namespace MonkeyLoader.Meta
 
             try
             {
-                foreach (var earlyMonkey in earlyMonkeys)
+                foreach (var earlyMonkey in _earlyMonkeys)
                     ShutdownFailed |= !earlyMonkey.Shutdown();
 
-                foreach (var monkey in monkeys)
+                foreach (var monkey in _monkeys)
                     ShutdownFailed |= monkey.Shutdown();
             }
             catch (Exception ex)
@@ -330,9 +336,9 @@ namespace MonkeyLoader.Meta
                     PrePatcherAssemblies.Add(assembly);
 
                     foreach (var type in assembly.GetTypes().Instantiable<IEarlyMonkey>())
-                        earlyMonkeys.Add((IEarlyMonkey)Activator.CreateInstance(type));
+                        _earlyMonkeys.Add((IEarlyMonkey)Activator.CreateInstance(type));
 
-                    Logger.Info(() => $"Found {earlyMonkeys.Count} Early Monkeys!");
+                    Logger.Info(() => $"Found {_earlyMonkeys.Count} Early Monkeys!");
                 }
                 catch (Exception ex)
                 {
@@ -367,10 +373,10 @@ namespace MonkeyLoader.Meta
                         Logger.Debug(() => $"Found instantiable Monkey Type: {type.FullName}");
                         var monkey = MonkeyBase.GetInstance(type);
                         monkey.Mod = this;
-                        monkeys.Add(monkey);
+                        _monkeys.Add(monkey);
                     }
 
-                    Logger.Info(() => $"Found {monkeys.Count} Monkeys!");
+                    Logger.Info(() => $"Found {_monkeys.Count} Monkeys!");
                 }
                 catch (Exception ex)
                 {

@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader
 {
+    /// <summary>
+    /// Base class for all <see cref="Attribute"/>s used by this library.
+    /// </summary>
     public abstract class MonkeyLoaderAttribute : Attribute
     {
         // See the attribute guidelines at

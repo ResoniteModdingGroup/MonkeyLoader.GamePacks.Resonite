@@ -23,22 +23,22 @@ namespace MonkeyLoader.Configuration
     /// </summary>
     public sealed class Config
     {
-        private const string ownerKey = "Owner";
-        private const string sectionsKey = "Sections";
+        private const string OwnerKey = "Owner";
+        private const string SectionsKey = "Sections";
 
         // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
-        private readonly Dictionary<ConfigKey, ConfigKey> configurationItemDefinitionsSelfMap = new();
+        private readonly Dictionary<ConfigKey, ConfigKey> _configurationItemDefinitionsSelfMap = new();
 
-        private readonly JObject loadedConfig;
+        private readonly JObject _loadedConfig;
 
-        private readonly HashSet<ConfigSection> sections = new();
+        private readonly HashSet<ConfigSection> _sections = new();
 
         /// <summary>
         /// Gets the set of configuration keys defined in this configuration definition.
         /// </summary>
         // clone the collection because I don't trust giving public API users shallow copies one bit
         public ISet<ConfigKey> ConfigurationItemDefinitions
-            => new HashSet<ConfigKey>(configurationItemDefinitionsSelfMap.Keys);
+            => new HashSet<ConfigKey>(_configurationItemDefinitionsSelfMap.Keys);
 
         /// <summary>
         /// Gets the logger used by this config.
@@ -57,7 +57,7 @@ namespace MonkeyLoader.Configuration
         {
             get
             {
-                foreach (var section in sections)
+                foreach (var section in _sections)
                     yield return section;
             }
         }
@@ -67,14 +67,14 @@ namespace MonkeyLoader.Configuration
             Owner = owner;
             Logger = new MonkeyLogger(owner.Logger, "Config");
 
-            loadedConfig = loadConfig();
-            if (loadedConfig[ownerKey]?.ToObject<string>() != Path.GetFileNameWithoutExtension(Owner.ConfigPath))
+            _loadedConfig = LoadConfig();
+            if (_loadedConfig[OwnerKey]?.ToObject<string>() != Path.GetFileNameWithoutExtension(Owner.ConfigPath))
                 throw new ConfigLoadException("Config malformed! Recorded owner must match the loader!");
 
-            if (loadedConfig[sectionsKey] is not JObject)
+            if (_loadedConfig[SectionsKey] is not JObject)
             {
                 Logger.Warn(() => "Could not find \"Sections\" object - created it!");
-                loadedConfig[sectionsKey] = new JObject();
+                _loadedConfig[SectionsKey] = new JObject();
             }
         }
 
@@ -87,7 +87,7 @@ namespace MonkeyLoader.Configuration
         public object? GetValue(ConfigKey key)
         {
             if (!TryGetValue(key, out var value))
-                throwKeyNotFound(key);
+                ThrowKeyNotFound(key);
 
             return value;
         }
@@ -102,7 +102,7 @@ namespace MonkeyLoader.Configuration
         public T GetValue<T>(ConfigKey<T> key)
         {
             if (!TryGetValue(key, out var value))
-                throwKeyNotFound(key);
+                ThrowKeyNotFound(key);
 
             return value;
         }
@@ -138,18 +138,18 @@ namespace MonkeyLoader.Configuration
         /// <exception cref="ConfigLoadException">If section has already been loaded, or something goes wrong while loading.</exception>
         public TSection LoadSection<TSection>(TSection section) where TSection : ConfigSection
         {
-            if (sections.Contains(section))
+            if (_sections.Contains(section))
                 throw new ConfigLoadException($"Attempted to load section [{section.Name}] twice!");
 
-            if (loadedConfig[sectionsKey]![section.Name] is not JObject sectionObject)
+            if (_loadedConfig[SectionsKey]![section.Name] is not JObject sectionObject)
                 Logger.Warn(() => $"Section [{section.Name}] didn't appear in the loaded config - using defaults!");
             else
                 section.LoadSection(sectionObject, Owner.Loader.JsonSerializer);
 
             foreach (var key in section.Keys)
-                configurationItemDefinitionsSelfMap.Add(key, key);
+                _configurationItemDefinitionsSelfMap.Add(key, key);
 
-            sections.Add(section);
+            _sections.Add(section);
 
             return section;
         }
@@ -159,18 +159,18 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public void Save()
         {
-            if (!sections.Any())
+            if (!_sections.Any())
             {
                 Logger.Info(() => "Skipping save - no Config Keys!");
                 return;
             }
 
-            var sectionsJson = (JObject)loadedConfig[sectionsKey]!;
+            var sectionsJson = (JObject)_loadedConfig[SectionsKey]!;
             var stopwatch = Stopwatch.StartNew();
 
-            lock (loadedConfig)
+            lock (_loadedConfig)
             {
-                foreach (var section in sections)
+                foreach (var section in _sections)
                 {
                     try
                     {
@@ -191,7 +191,7 @@ namespace MonkeyLoader.Configuration
                     using var streamWriter = new StreamWriter(file);
                     using var jsonTextWriter = new JsonTextWriter(streamWriter);
                     jsonTextWriter.Formatting = Formatting.Indented;
-                    loadedConfig.WriteTo(jsonTextWriter);
+                    _loadedConfig.WriteTo(jsonTextWriter);
 
                     // I actually cannot believe I have to truncate the file myself
                     file.SetLength(file.Position);
@@ -218,25 +218,25 @@ namespace MonkeyLoader.Configuration
         public void Set(ConfigKey key, object? value, string? eventLabel = null)
         {
             if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
-                throwKeyNotFound(key);
+                ThrowKeyNotFound(key);
 
             if (value is null)
             {
                 if (Util.CannotBeNull(definingKey!.ValueType))
-                    throwArgumentException($"Cannot assign null to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
+                    ThrowArgumentException($"Cannot assign null to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
             }
             else if (!definingKey.ValueType.IsAssignableFrom(value.GetType()))
             {
-                throwArgumentException($"Cannot assign [{value.GetType()}] to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
+                ThrowArgumentException($"Cannot assign [{value.GetType()}] to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
             }
 
             if (!definingKey.Validate(value))
-                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
+                ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
             var oldValue = GetValue(key);
             definingKey.Set(value);
 
-            fireConfigChangedEvents(definingKey, oldValue, eventLabel);
+            FireConfigChangedEvents(definingKey, oldValue, eventLabel);
         }
 
         /// <summary>
@@ -254,15 +254,15 @@ namespace MonkeyLoader.Configuration
             // the reason we don't fall back to untyped Set() here is so we can skip the type check
 
             if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
-                throwKeyNotFound(key);
+                ThrowKeyNotFound(key);
 
             if (!definingKey.Validate(value))
-                throwArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
+                ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
             var oldValue = GetValue(key);
             definingKey.Set(value);
 
-            fireConfigChangedEvents(definingKey, oldValue, eventLabel);
+            FireConfigChangedEvents(definingKey, oldValue, eventLabel);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace MonkeyLoader.Configuration
             }
 
             // first time we've seen this key instance: we need to hit the map
-            if (configurationItemDefinitionsSelfMap.TryGetValue(key, out definingKey))
+            if (_configurationItemDefinitionsSelfMap.TryGetValue(key, out definingKey))
             {
                 // initialize the cache for this key
                 key.DefiningKey = definingKey;
@@ -345,7 +345,7 @@ namespace MonkeyLoader.Configuration
         public bool Unset(ConfigKey key)
         {
             if (!TryGetDefiningKey(key, out var definingKey))
-                throwKeyNotFound(key);
+                ThrowKeyNotFound(key);
 
             return definingKey.Unset();
         }
@@ -357,15 +357,12 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is the defining key.</returns>
-        internal bool IsKeyDefiningKey(ConfigKey key)
-        {
             // a key is the defining key if and only if its DefiningKey property references itself
-            return ReferenceEquals(key, key.DefiningKey);
-        }
+        internal bool IsKeyDefiningKey(ConfigKey key) => ReferenceEquals(key, key.DefiningKey);
 
-        private bool anyValuesSet() => ConfigurationItemDefinitions.Where(key => key.HasValue).Any();
+        private bool AnyValuesSet() => ConfigurationItemDefinitions.Any(key => key.HasValue);
 
-        private void fireConfigChangedEvents(ConfigKey key, object? oldValue, string? label)
+        private void FireConfigChangedEvents(ConfigKey key, object? oldValue, string? label)
         {
             var configChangedEvent = new ConfigChangedEvent(this, key, oldValue, label);
 
@@ -381,7 +378,7 @@ namespace MonkeyLoader.Configuration
             Owner.Loader.FireConfigChangedEvent(configChangedEvent);
         }
 
-        private JObject loadConfig()
+        private JObject LoadConfig()
         {
             if (File.Exists(Owner.ConfigPath))
             {
@@ -401,17 +398,17 @@ namespace MonkeyLoader.Configuration
 
             return new JObject()
             {
-                [ownerKey] = Path.GetFileNameWithoutExtension(Owner.ConfigPath),
-                [sectionsKey] = new JObject()
+                [OwnerKey] = Path.GetFileNameWithoutExtension(Owner.ConfigPath),
+                [SectionsKey] = new JObject()
             };
         }
 
         [DoesNotReturn]
-        private void throwArgumentException(string message, string paramName)
+        private void ThrowArgumentException(string message, string paramName)
             => throw new ArgumentException(message, paramName);
 
         [DoesNotReturn]
-        private void throwKeyNotFound(ConfigKey key)
+        private void ThrowKeyNotFound(ConfigKey key)
             => throw new KeyNotFoundException($"Key [{key.Name}] not found in config!");
 
         /// <summary>

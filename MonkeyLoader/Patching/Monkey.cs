@@ -25,12 +25,12 @@ namespace MonkeyLoader.Patching
         /// <inheritdoc/>
         public override sealed bool Run()
         {
-            throwIfRan();
+            ThrowIfRan();
             Ran = true;
 
             try
             {
-                if (!onLoaded())
+                if (!OnLoaded())
                 {
                     Failed = true;
                     Logger.Warn(() => "OnLoaded failed!");
@@ -50,6 +50,6 @@ namespace MonkeyLoader.Patching
         /// Use this to apply any patching and return <c>true</c> if it was successful.
         /// </summary>
         /// <returns>Whether the patching was successful.</returns>
-        protected abstract bool onLoaded();
+        protected abstract bool OnLoaded();
     }
 }

@@ -26,6 +26,7 @@ namespace MonkeyLoader.Meta
         /// Must only be called once.
         /// </summary>
         /// <returns>Whether it ran successfully.</returns>
+        /// <exception cref="InvalidOperationException">If it gets called more than once.</exception>
         public bool Shutdown();
     }
 }
