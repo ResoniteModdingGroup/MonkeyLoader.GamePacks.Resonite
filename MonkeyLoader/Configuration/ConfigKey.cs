@@ -211,5 +211,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="value">The value to check.</param>
         /// <returns><c>true</c> if the value is valid.</returns>
         public bool ValidateTyped(T? value) => _isValueValid?.Invoke(value) ?? true;
+
+        public event ConfigKeyChangedEventHandler<T> OnChanged;
     }
 }

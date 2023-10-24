@@ -469,7 +469,7 @@ namespace MonkeyLoader
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => ex.Format("Some OnAnyConfigurationChanged event subscribers threw an exception:"));
+                Logger.Error(() => ex.Format($"Some {nameof(OnAnyConfigChanged)} event subscribers threw an exception:"));
             }
         }
 
@@ -483,6 +483,6 @@ namespace MonkeyLoader
         /// Called when the value of any of this loader's configs changes.<br/>
         /// This gets fired <i>after</i> the source config's <see cref="Config.OnChanged">ConfigurationChanged</see> event.
         /// </summary>
-        public event Config.ConfigChangedEventHandler? OnAnyConfigChanged;
+        public event ConfigChangedEventHandler? OnAnyConfigChanged;
     }
 }

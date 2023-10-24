@@ -412,12 +412,6 @@ namespace MonkeyLoader.Configuration
             => throw new KeyNotFoundException($"Key [{key.Name}] not found in config!");
 
         /// <summary>
-        /// The delegate that is called for configuration change events.
-        /// </summary>
-        /// <param name="configChangedEvent">The event containing details about the configuration change</param>
-        public delegate void ConfigChangedEventHandler(ConfigChangedEvent configChangedEvent);
-
-        /// <summary>
         /// Called when the value of one of the keys of this config gets changed.
         /// </summary>
         public event ConfigChangedEventHandler? OnChanged;
