@@ -147,7 +147,10 @@ namespace MonkeyLoader.Configuration
                 section.LoadSection(sectionObject, Owner.Loader.JsonSerializer);
 
             foreach (var key in section.Keys)
+            {
+                key.Config = this;
                 _configurationItemDefinitionsSelfMap.Add(key, key);
+            }
 
             _sections.Add(section);
 
@@ -159,9 +162,9 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public void Save()
         {
-            if (!_sections.Any())
+            if (!AnyValuesSet())
             {
-                Logger.Info(() => "Skipping save - no Config Keys!");
+                Logger.Info(() => "Skipping save - no set Config Keys!");
                 return;
             }
 
@@ -233,10 +236,7 @@ namespace MonkeyLoader.Configuration
             if (!definingKey.Validate(value))
                 ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
-            var oldValue = GetValue(key);
-            definingKey.Set(value);
-
-            FireConfigChangedEvents(definingKey, oldValue, eventLabel);
+            definingKey.Set(value, eventLabel);
         }
 
         /// <summary>
@@ -259,10 +259,7 @@ namespace MonkeyLoader.Configuration
             if (!definingKey.Validate(value))
                 ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
 
-            var oldValue = GetValue(key);
-            definingKey.Set(value);
-
-            FireConfigChangedEvents(definingKey, oldValue, eventLabel);
+            definingKey.Set(value, eventLabel);
         }
 
         /// <summary>
@@ -301,7 +298,7 @@ namespace MonkeyLoader.Configuration
         /// <returns><c>true</c> if the value was read successfully.</returns>
         public bool TryGetValue(ConfigKey key, out object? value)
         {
-            if (!TryGetDefiningKey(key, out ConfigKey? definingKey))
+            if (!TryGetDefiningKey(key, out var definingKey))
             {
                 // not in definition
                 value = null;
@@ -312,7 +309,10 @@ namespace MonkeyLoader.Configuration
                 return true;
 
             if (definingKey.TryComputeDefault(out value))
+            {
+                definingKey.Set(value, "default");
                 return true;
+            }
 
             value = null;
             return false;
@@ -324,11 +324,23 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue<T>(ConfigKey<T> key, [NotNullWhen(true)] out T? value)
+        public bool TryGetValue<T>(ConfigKey<T> key, out T? value)
         {
-            if (TryGetValue(key, out object? valueObject))
+            if (!TryGetDefiningKey(key, out var defKey))
             {
-                value = (T)valueObject!;
+                // not in definition
+                value = default;
+                return false;
+            }
+
+            var definingKey = (ConfigKey<T>)defKey;
+
+            if (definingKey.TryGetValue(out value))
+                return true;
+
+            if (definingKey.TryComputeDefault(out value))
+            {
+                definingKey.Set(value!, "default");
                 return true;
             }
 
@@ -358,25 +370,23 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is the defining key.</returns>
             // a key is the defining key if and only if its DefiningKey property references itself
-        internal bool IsKeyDefiningKey(ConfigKey key) => ReferenceEquals(key, key.DefiningKey);
+        internal bool IsKeyDefiningKey(ConfigKey key) => key.IsDefiningKey;
 
-        private bool AnyValuesSet() => ConfigurationItemDefinitions.Any(key => key.HasValue);
-
-        private void FireConfigChangedEvents(ConfigKey key, object? oldValue, string? label)
+        internal void OnChanged(IConfigKeyChangedEventArgs configKeyChangedEventArgs)
         {
-            var configChangedEvent = new ConfigChangedEvent(this, key, oldValue, label);
-
             try
             {
-                OnChanged?.TryInvokeAll(configChangedEvent);
+                Changed?.TryInvokeAll(this, configKeyChangedEventArgs);
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => ex.Format("Some OnThisConfigurationChanged event subscriber threw an exception:"));
+                Logger.Error(() => ex.Format($"Some {nameof(Changed)} event subscriber(s) threw an exception:"));
             }
 
-            Owner.Loader.FireConfigChangedEvent(configChangedEvent);
+            Owner.Loader.OnAnyConfigChanged(configKeyChangedEventArgs);
         }
+
+        private bool AnyValuesSet() => ConfigurationItemDefinitions.Any(key => key.HasValue);
 
         private JObject LoadConfig()
         {
@@ -414,6 +424,6 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Called when the value of one of the keys of this config gets changed.
         /// </summary>
-        public event ConfigChangedEventHandler? OnChanged;
+        public event ConfigKeyChangedEventHandler? Changed;
     }
 }

@@ -15,11 +15,11 @@ namespace MonkeyLoader
     internal static class Util
     {
         // check if a type is allowed to have null assigned
-        internal static bool CanBeNull(Type t) => !CannotBeNull(t);
+        internal static bool CanBeNull(this Type type) => !type.CannotBeNull();
 
         // check if a type cannot possibly have null assigned
-        internal static bool CannotBeNull(Type t)
-            => t.IsValueType && Nullable.GetUnderlyingType(t) is null;
+        internal static bool CannotBeNull(this Type type)
+            => type.IsValueType && Nullable.GetUnderlyingType(type) is null;
 
         /// <summary>
         /// Used to debounce calls to a given method. The given method will be called after there have been no additional calls

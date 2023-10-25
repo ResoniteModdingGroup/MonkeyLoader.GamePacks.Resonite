@@ -7,26 +7,29 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// The delegate that is called for configuration change events.
     /// </summary>
-    /// <param name="configChangedEvent">The event containing details about the configuration change</param>
-    public delegate void ConfigChangedEventHandler(IConfigChangedEvent configChangedEvent);
+    /// <param name="sender">The object that sent the event.</param>
+    /// <param name="configKeyChangedEventArgs">The event containing details about the change.</param>
+    public delegate void ConfigKeyChangedEventHandler(object sender, IConfigKeyChangedEventArgs configKeyChangedEventArgs);
 
     /// <summary>
-    /// The delegate that is called for configuration change events.
+    /// The delegate that is called for a <see cref="ConfigKey{T}"/>'s <see cref="ConfigKey{T}.Changed">changed event</see>.
     /// </summary>
     /// <typeparam name="T">The type of the key's value.</typeparam>
-    /// <param name="configChangedEvent">The event containing details about the configuration change</param>
-    public delegate void ConfigKeyChangedEventHandler<T>(ConfigChangedEvent<T> configChangedEvent);
+    /// <param name="sender">The object that sent the event.</param>
+    /// <param name="configKeyChangedEventArgs">The event containing details about the change.</param>
+    public delegate void ConfigKeyChangedEventHandler<T>(object sender, ConfigKeyChangedEventArgs<T> configKeyChangedEventArgs);
 
     /// <summary>
-    /// Represents the data for the <see cref="Config.OnChanged"/> and <see cref="MonkeyLoader.OnAnyConfigChanged"/> events.
+    /// Represents the data for the <see cref="Config.Changed"/> and <see cref="MonkeyLoader.AnyConfigChanged"/> events.
     /// </summary>
     /// <typeparam name="T">The type of the key's value.</typeparam>
-    public sealed class ConfigChangedEvent<T> : IConfigChangedEvent
+    public sealed class ConfigKeyChangedEventArgs<T> : IConfigKeyChangedEventArgs
     {
         /// <inheritdoc/>
         public Config Config { get; }
 
         /// <inheritdoc/>
+        [MemberNotNullWhen(true, nameof(Label))]
         public bool HasLabel => Label is not null;
 
         /// <summary>
@@ -34,33 +37,28 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public ConfigKey<T> Key { get; }
 
-        ConfigKey IConfigChangedEvent.Key => Key;
+        ConfigKey IConfigKeyChangedEventArgs.Key => Key;
 
         /// <inheritdoc/>
-        [MemberNotNullWhen(true, nameof(Label))]
         public string? Label { get; }
 
         /// <summary>
         /// Gets the new value of the <see cref="ConfigKey{T}"/>.<br/>
         /// This can be the default value.
         /// </summary>
-        public T NewValue { get; }
+        public T? NewValue { get; }
 
-        object? IConfigChangedEvent.NewValue => NewValue;
+        object? IConfigKeyChangedEventArgs.NewValue => NewValue;
 
         /// <summary>
         /// Gets the old value of the <see cref="ConfigKey{T}"/>.<br/>
         /// This can be the default value.
         /// </summary>
-        public T OldValue { get; }
+        public T? OldValue { get; }
 
-        /// <summary>
-        /// Gets the new value of the <see cref="ConfigKey"/>.<br/>
-        /// This can be the default value.
-        /// </summary>
-        object? IConfigChangedEvent.OldValue => OldValue;
+        object? IConfigKeyChangedEventArgs.OldValue => OldValue;
 
-        internal ConfigChangedEvent(Config config, ConfigKey<T> key, T oldValue, T newValue, string? label)
+        internal ConfigKeyChangedEventArgs(Config config, ConfigKey<T> key, T? oldValue, T? newValue, string? label)
         {
             Config = config;
             Key = key;
@@ -71,9 +69,9 @@ namespace MonkeyLoader.Configuration
     }
 
     /// <summary>
-    /// Represents a non-generic <see cref="ConfigChangedEvent{T}"/>.
+    /// Represents a non-generic <see cref="ConfigKeyChangedEventArgs{T}"/>.
     /// </summary>
-    public interface IConfigChangedEvent
+    public interface IConfigKeyChangedEventArgs
     {
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> in which the change occured.
@@ -84,6 +82,7 @@ namespace MonkeyLoader.Configuration
         /// Gets whether a custom label was set by whoever changed the configuration.
         /// <see cref="Label">Label</see> won't be <c>null</c>, if this is <c>true</c>.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(Label))]
         public bool HasLabel { get; }
 
         /// <summary>
@@ -94,7 +93,6 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets a custom label that may be set by whoever changed the configuration.
         /// </summary>
-        [MemberNotNullWhen(true, nameof(Label))]
         public string? Label { get; }
 
         /// <summary>

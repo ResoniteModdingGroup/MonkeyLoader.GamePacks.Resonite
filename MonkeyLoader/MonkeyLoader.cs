@@ -461,15 +461,15 @@ namespace MonkeyLoader
             return false;
         }
 
-        internal void FireConfigChangedEvent(ConfigChangedEvent configChangedEvent)
+        internal void OnAnyConfigChanged(IConfigKeyChangedEventArgs configChangedEvent)
         {
             try
             {
-                OnAnyConfigChanged?.TryInvokeAll(configChangedEvent);
+                AnyConfigChanged?.TryInvokeAll(this, configChangedEvent);
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => ex.Format($"Some {nameof(OnAnyConfigChanged)} event subscribers threw an exception:"));
+                Logger.Error(() => ex.Format($"Some {nameof(AnyConfigChanged)} event subscriber(s) threw an exception:"));
             }
         }
 
@@ -481,8 +481,8 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Called when the value of any of this loader's configs changes.<br/>
-        /// This gets fired <i>after</i> the source config's <see cref="Config.OnChanged">ConfigurationChanged</see> event.
+        /// This gets fired <i>after</i> the source config's <see cref="Config.Changed">ConfigurationChanged</see> event.
         /// </summary>
-        public event ConfigChangedEventHandler? OnAnyConfigChanged;
+        public event ConfigKeyChangedEventHandler? AnyConfigChanged;
     }
 }
