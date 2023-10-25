@@ -9,10 +9,63 @@ using System.Xml.Linq;
 namespace MonkeyLoader.Configuration
 {
     /// <summary>
+    /// Represents a name-only configuration item, which can be used to get or set the values of defining keys with the same name.
+    /// </summary>
+    public class ConfigKey
+    {
+        /// <summary>
+        /// Gets the mod-unique name of this config item.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Creates a new name-only configuration item with the given name.
+        /// </summary>
+        /// <param name="name">The mod-unique name of the configuration item. Must not be null or whitespace.</param>
+        /// <exception cref="ArgumentNullException">If the <paramref name="name"/> is null or whitespace.</exception>
+        public ConfigKey(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentNullException("Config key name must not be null or whitespace!");
+
+            Name = name;
+        }
+
+        /// <summary>
+        /// Checks if two <see cref="ConfigKey"/>s are unequal.
+        /// </summary>
+        /// <param name="left">The first key.</param>
+        /// <param name="right">The second key.</param>
+        /// <returns><c>true</c> if they're considered unequal.</returns>
+        public static bool operator !=(ConfigKey? left, ConfigKey? right)
+            => !(left == right);
+
+        /// <summary>
+        /// Checks if two <see cref="ConfigKey"/>s are equal.
+        /// </summary>
+        /// <param name="left">The first key.</param>
+        /// <param name="right">The second key.</param>
+        /// <returns><c>true</c> if they're considered equal.</returns>
+        public static bool operator ==(ConfigKey? left, ConfigKey? right)
+            => ReferenceEquals(left, right)
+            || (left is not null && right is not null && left.Name == right.Name);
+
+        /// <summary>
+        /// Checks if the given object can be considered equal to this one.
+        /// </summary>
+        /// <param name="obj">The other object.</param>
+        /// <returns><c>true</c> if the other object is considered equal.</returns>
+        public override bool Equals(object obj) => obj is ConfigKey key && key == this;
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => Name.GetHashCode();
+    }
+
+    /// <summary>
     /// Represents a typed configuration key.
     /// </summary>
     /// <typeparam name="T">The type of this key's value.</typeparam>
-    public class ConfigKey<T> : ConfigKey
+    public class DefiningConfigKey<T> : DefiningConfigKey
     {
         private readonly Func<T>? _computeDefault;
 
@@ -33,21 +86,21 @@ namespace MonkeyLoader.Configuration
         /// <para/>
         /// This is a non-null self-reference for the defining key itself as soon it is tied to a <see cref="ConfigSection"/>.
         /// </remarks>
-        internal new ConfigKey<T>? DefiningKey
+        internal new DefiningConfigKey<T>? DefiningKey
         {
-            get => (ConfigKey<T>?)base.DefiningKey;
+            get => (DefiningConfigKey<T>?)base.DefiningKey;
             set => base.DefiningKey = value;
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ConfigKey{T}"/> class with the given parameters.
+        /// Creates a new instance of the <see cref="DefiningConfigKey{T}"/> class with the given parameters.
         /// </summary>
         /// <param name="name">The mod-unique name of this config item.</param>
         /// <param name="description">The human-readable description of this config item.</param>
         /// <param name="computeDefault">The function that computes a default value for this key. Otherwise <c>default(<typeparamref name="T"/>)</c> will be used.</param>
         /// <param name="internalAccessOnly">If <c>true</c>, only the owning mod should have access to this config item.</param>
         /// <param name="valueValidator">The function that checks if the given value is valid for this configuration item. Otherwise everything will be accepted.</param>
-        public ConfigKey(string name, string? description = null, Func<T>? computeDefault = null, bool internalAccessOnly = false, Predicate<T?>? valueValidator = null)
+        public DefiningConfigKey(string name, string? description = null, Func<T>? computeDefault = null, bool internalAccessOnly = false, Predicate<T?>? valueValidator = null)
             : base(name, description, internalAccessOnly)
         {
             _computeDefault = computeDefault;
@@ -180,9 +233,9 @@ namespace MonkeyLoader.Configuration
 
     /// <summary>
     /// Represents an untyped config item.<br/>
-    /// All deriving implementations must go through <see cref="ConfigKey{T}"/>.
+    /// All deriving implementations must go through <see cref="DefiningConfigKey{T}"/>.
     /// </summary>
-    public abstract class ConfigKey
+    public abstract class DefiningConfigKey : ConfigKey
     {
         /// <summary>
         /// Gets the config this item belongs to if it's a <see cref="IsDefiningKey">defining key</see>.
@@ -212,11 +265,6 @@ namespace MonkeyLoader.Configuration
         public bool IsDefiningKey => ReferenceEquals(DefiningKey, this);
 
         /// <summary>
-        /// Gets the mod-unique name of this config item. Must be present.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
         /// Get the <see cref="Type"/> of this config item's value.
         /// </summary>
         public abstract Type ValueType { get; }
@@ -231,7 +279,7 @@ namespace MonkeyLoader.Configuration
         /// <para/>
         /// This is a non-null self-reference for the defining key itself as soon it is tied to a <see cref="ConfigSection"/>.
         /// </remarks>
-        internal ConfigKey? DefiningKey { get; set; }
+        internal DefiningConfigKey? DefiningKey { get; set; }
 
         /// <summary>
         /// Gets whether this config item has a set value.
@@ -245,45 +293,12 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         protected MonkeyLogger? Logger => Config?.Logger;
 
-        internal ConfigKey(string name, string? description = null, bool internalAccessOnly = false)
+        internal DefiningConfigKey(string name, string? description = null, bool internalAccessOnly = false) : base(name)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException("Configuration key name must not be null or whitespace!");
-
-            Name = name;
             Description = description;
             HasDescription = !string.IsNullOrWhiteSpace(description);
             InternalAccessOnly = internalAccessOnly;
         }
-
-        /// <summary>
-        /// Checks if two <see cref="ConfigKey"/>s are unequal.
-        /// </summary>
-        /// <param name="left">The first key.</param>
-        /// <param name="right">The second key.</param>
-        /// <returns><c>true</c> if they're considered unequal.</returns>
-        public static bool operator !=(ConfigKey? left, ConfigKey? right)
-            => !(left == right);
-
-        /// <summary>
-        /// Checks if two <see cref="ConfigKey"/>s are equal.
-        /// </summary>
-        /// <param name="left">The first key.</param>
-        /// <param name="right">The second key.</param>
-        /// <returns><c>true</c> if they're considered equal.</returns>
-        public static bool operator ==(ConfigKey? left, ConfigKey? right)
-            => ReferenceEquals(left, right)
-            || (left is not null && right is not null && left.Name == right.Name);
-
-        /// <summary>
-        /// Checks if the given object can be considered equal to this one.
-        /// </summary>
-        /// <param name="obj">The other object.</param>
-        /// <returns><c>true</c> if the other object is considered equal.</returns>
-        public override bool Equals(object obj) => obj is ConfigKey key && key == this;
-
-        /// <inheritdoc/>
-        public override int GetHashCode() => Name.GetHashCode();
 
         /// <summary>
         /// Tries to compute the default value for this key, if a default provider was set.

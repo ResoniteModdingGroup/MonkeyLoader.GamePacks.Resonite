@@ -21,7 +21,7 @@ namespace MonkeyLoader.Configuration
     /// </remarks>
     public abstract class ConfigSection
     {
-        private readonly HashSet<ConfigKey> _keys;
+        private readonly HashSet<DefiningConfigKey> _keys;
 
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> that this section is a part of.
@@ -36,7 +36,7 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets all the config keys of this section.
         /// </summary>
-        public IEnumerable<ConfigKey> Keys
+        public IEnumerable<DefiningConfigKey> Keys
         {
             get
             {
@@ -169,29 +169,29 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
-        /// Gets the <see cref="ConfigKey"/>s from all fields of this <see cref="ConfigSection"/> which have a <see cref="Type"/>
-        /// derived from <see cref="ConfigKey"/> and don't have a <see cref="IgnoreConfigKeyAttribute"/>.
+        /// Gets the <see cref="DefiningConfigKey"/>s from all fields of this <see cref="ConfigSection"/> which have a <see cref="Type"/>
+        /// derived from <see cref="DefiningConfigKey"/> and don't have a <see cref="IgnoreConfigKeyAttribute"/>.
         /// </summary>
-        /// <returns>The automatically tracked <see cref="ConfigKey"/>s.</returns>
-        protected IEnumerable<ConfigKey> GetAutoConfigKeys()
+        /// <returns>The automatically tracked <see cref="DefiningConfigKey"/>s.</returns>
+        protected IEnumerable<DefiningConfigKey> GetAutoConfigKeys()
         {
-            var configKeyType = typeof(ConfigKey);
+            var configKeyType = typeof(DefiningConfigKey);
 
             return GetType().GetFields(AccessTools.all)
                 .Where(field => configKeyType.IsAssignableFrom(field.FieldType)
                              && field.GetCustomAttribute<IgnoreConfigKeyAttribute>() is null)
                 .Select(field => field.GetValue(this))
-                .Cast<ConfigKey>();
+                .Cast<DefiningConfigKey>();
         }
 
         /// <summary>
-        /// Gets all <see cref="ConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
+        /// Gets all <see cref="DefiningConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
         /// </summary>
         /// <remarks>
         /// Calls <see cref="GetAutoConfigKeys"/> by default, but can be overridden to add others.
         /// </remarks>
         /// <returns></returns>
-        protected virtual IEnumerable<ConfigKey> GetConfigKeys() => GetAutoConfigKeys();
+        protected virtual IEnumerable<DefiningConfigKey> GetConfigKeys() => GetAutoConfigKeys();
 
         private static bool AreVersionsCompatible(Version serializedVersion, Version currentVersion)
         {

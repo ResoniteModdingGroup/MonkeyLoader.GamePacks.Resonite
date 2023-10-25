@@ -9,12 +9,12 @@ namespace MonkeyLoader.NuGet
 {
     public sealed class NuGetConfigSection : ConfigSection
     {
-        public readonly ConfigKey<bool> EnableLoadingLibsKey = new("EnableLoadingLibs", "Allows checking NuGet feeds to load mod's library dependencies.", () => true);
-        public readonly ConfigKey<bool> EnableLoadingModsKey = new("EnableLoadingMods", "Allows checking NuGet feeds to load mod's other-mod dependencies.", () => true);
-        public readonly ConfigKey<List<NuGetSource>> NuGetGamePackSourcesKey = new("NuGetGamePackSources", "NuGet feeds to check for game packs.", () => new());
-        public readonly ConfigKey<List<NuGetSource>> NuGetLibSourcesKey = new("NuGetLibSources", "NuGet feeds to check for libraries.", () => new() { new("Official NuGet Feed", new("https://api.nuget.org/v3/index.json")) });
+        public readonly DefiningConfigKey<bool> EnableLoadingLibsKey = new("EnableLoadingLibs", "Allows checking NuGet feeds to load mod's library dependencies.", () => true);
+        public readonly DefiningConfigKey<bool> EnableLoadingModsKey = new("EnableLoadingMods", "Allows checking NuGet feeds to load mod's other-mod dependencies.", () => true);
+        public readonly DefiningConfigKey<List<NuGetSource>> NuGetGamePackSourcesKey = new("NuGetGamePackSources", "NuGet feeds to check for game packs.", () => new());
+        public readonly DefiningConfigKey<List<NuGetSource>> NuGetLibSourcesKey = new("NuGetLibSources", "NuGet feeds to check for libraries.", () => new() { new("Official NuGet Feed", new("https://api.nuget.org/v3/index.json")) });
 
-        public readonly ConfigKey<List<NuGetSource>> NuGetModSourcesKey = new("NuGetModSources", "NuGet feeds to check for mods.", () => new());
+        public readonly DefiningConfigKey<List<NuGetSource>> NuGetModSourcesKey = new("NuGetModSources", "NuGet feeds to check for mods.", () => new());
 
         /// <inheritdoc/>
         public override string Description { get; } = "Contains definitions for how to use which NuGet feeds.";
