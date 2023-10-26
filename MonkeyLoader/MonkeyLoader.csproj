@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net4.6.2</TargetFramework>
     <LangVersion>11.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>none</DebugType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -43,10 +43,7 @@
     <PackageTags>mod; mods; modding; mod loader; harmony; unity; game; games; mono; config; configuration; nuget; logging</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>embedded</DebugType>
+    <Version>0.1.0-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>

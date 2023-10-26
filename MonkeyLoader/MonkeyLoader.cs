@@ -196,7 +196,7 @@ namespace MonkeyLoader
                 $"    {nameof(Locations.Configs)}: {Locations.Configs}{Environment.NewLine}" +
                 $"    {nameof(Locations.GamePacks)}: {Locations.GamePacks}{Environment.NewLine}" +
                 $"    {nameof(Locations.Libs)}: {Locations.Libs}{Environment.NewLine}" +
-                $"    {nameof(Locations.PatchedAssemblies)}: {(Locations.SavePatchedAssemblies ? "disabled" : Locations.PatchedAssemblies)}{Environment.NewLine}" +
+                $"    {nameof(Locations.PatchedAssemblies)}: {(Locations.SavePatchedAssemblies ? Locations.PatchedAssemblies : "disabled")}{Environment.NewLine}" +
                 $"    {nameof(Locations.Mods)}:{Environment.NewLine}" +
                 $"      - {string.Join(Environment.NewLine + "      - ", modLocations)}");
 
