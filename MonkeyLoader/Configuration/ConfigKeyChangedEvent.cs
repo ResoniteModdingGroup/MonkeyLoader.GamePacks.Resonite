@@ -20,7 +20,7 @@ namespace MonkeyLoader.Configuration
     public delegate void ConfigKeyChangedEventHandler<T>(object sender, ConfigKeyChangedEventArgs<T> configKeyChangedEventArgs);
 
     /// <summary>
-    /// Represents the data for the <see cref="Config.Changed"/> and <see cref="MonkeyLoader.AnyConfigChanged"/> events.
+    /// Represents the data for the <see cref="Config.ItemChanged"/> and <see cref="MonkeyLoader.AnyConfigChanged"/> events.
     /// </summary>
     /// <typeparam name="T">The type of the key's value.</typeparam>
     public sealed class ConfigKeyChangedEventArgs<T> : IConfigKeyChangedEventArgs
@@ -29,15 +29,21 @@ namespace MonkeyLoader.Configuration
         public Config Config { get; }
 
         /// <inheritdoc/>
+        public bool HadValue { get; }
+
+        /// <inheritdoc/>
         [MemberNotNullWhen(true, nameof(Label))]
         public bool HasLabel => Label is not null;
 
+        /// <inheritdoc/>
+        public bool HasValue { get; }
+
         /// <summary>
-        /// Gets the <see cref="DefiningConfigKey{T}"/> who's value changed.
+        /// Gets the configuration item who's value changed.
         /// </summary>
         public DefiningConfigKey<T> Key { get; }
 
-        DefiningConfigKey IConfigKeyChangedEventArgs.Key => Key;
+        IDefiningConfigKey IConfigKeyChangedEventArgs.Key => Key;
 
         /// <inheritdoc/>
         public string? Label { get; }
@@ -58,12 +64,14 @@ namespace MonkeyLoader.Configuration
 
         object? IConfigKeyChangedEventArgs.OldValue => OldValue;
 
-        internal ConfigKeyChangedEventArgs(Config config, DefiningConfigKey<T> key, T? oldValue, T? newValue, string? label)
+        internal ConfigKeyChangedEventArgs(Config config, DefiningConfigKey<T> key, bool hadValue, T? oldValue, bool hasValue, T? newValue, string? label)
         {
             Config = config;
             Key = key;
             OldValue = oldValue;
+            HadValue = hadValue;
             NewValue = newValue;
+            HasValue = hasValue;
             Label = label;
         }
     }
@@ -79,6 +87,11 @@ namespace MonkeyLoader.Configuration
         public Config Config { get; }
 
         /// <summary>
+        /// Gets whether the old value existed.
+        /// </summary>
+        public bool HadValue { get; }
+
+        /// <summary>
         /// Gets whether a custom label was set by whoever changed the configuration.
         /// <see cref="Label">Label</see> won't be <c>null</c>, if this is <c>true</c>.
         /// </summary>
@@ -86,9 +99,14 @@ namespace MonkeyLoader.Configuration
         public bool HasLabel { get; }
 
         /// <summary>
-        /// Gets the <see cref="DefiningConfigKey"/> who's value changed.
+        /// Gets whether the new value exists.
         /// </summary>
-        public DefiningConfigKey Key { get; }
+        public bool HasValue { get; }
+
+        /// <summary>
+        /// Gets the configuration item who's value changed.
+        /// </summary>
+        public IDefiningConfigKey Key { get; }
 
         /// <summary>
         /// Gets a custom label that may be set by whoever changed the configuration.
@@ -96,13 +114,13 @@ namespace MonkeyLoader.Configuration
         public string? Label { get; }
 
         /// <summary>
-        /// Gets the new value of the <see cref="DefiningConfigKey"/>.<br/>
+        /// Gets the new value of the configuration item.<br/>
         /// This can be the default value.
         /// </summary>
         public object? NewValue { get; }
 
         /// <summary>
-        /// Gets the old value of the <see cref="DefiningConfigKey"/>.<br/>
+        /// Gets the old value of the configuration item.<br/>
         /// This can be the default value.
         /// </summary>
         public object? OldValue { get; }

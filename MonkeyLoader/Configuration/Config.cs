@@ -27,7 +27,7 @@ namespace MonkeyLoader.Configuration
         private const string SectionsKey = "Sections";
 
         // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
-        private readonly Dictionary<DefiningConfigKey, DefiningConfigKey> _configurationItemDefinitionsSelfMap = new();
+        private readonly Dictionary<IConfigKey, IDefiningConfigKey> _configurationItemDefinitionsSelfMap = new();
 
         private readonly JObject _loadedConfig;
 
@@ -37,8 +37,8 @@ namespace MonkeyLoader.Configuration
         /// Gets the set of configuration keys defined in this configuration definition.
         /// </summary>
         // clone the collection because I don't trust giving public API users shallow copies one bit
-        public ISet<DefiningConfigKey> ConfigurationItemDefinitions
-            => new HashSet<DefiningConfigKey>(_configurationItemDefinitionsSelfMap.Keys);
+        public ISet<IDefiningConfigKey> ConfigurationItemDefinitions
+            => new HashSet<IDefiningConfigKey>(_configurationItemDefinitionsSelfMap.Values);
 
         /// <summary>
         /// Gets the logger used by this config.
@@ -84,7 +84,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public object? GetValue(DefiningConfigKey key)
+        public object? GetValue(IConfigKey key)
         {
             if (!TryGetValue(key, out var value))
                 ThrowKeyNotFound(key);
@@ -99,12 +99,12 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public T GetValue<T>(DefiningConfigKey<T> key)
+        public T GetValue<T>(IConfigKey<T> key)
         {
             if (!TryGetValue(key, out var value))
                 ThrowKeyNotFound(key);
 
-            return value;
+            return value!;
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is defined.</returns>
-        public bool IsKeyDefined(DefiningConfigKey key) => TryGetDefiningKey(key, out _);
+        public bool IsKeyDefined(IConfigKey key) => TryGetDefiningKey(key, out _);
 
         /// <summary>
         /// Loads a section with a parameterless constructor based on its type.<br/>
@@ -147,10 +147,7 @@ namespace MonkeyLoader.Configuration
                 section.LoadSection(sectionObject, Owner.Loader.JsonSerializer);
 
             foreach (var key in section.Keys)
-            {
-                key.Config = this;
                 _configurationItemDefinitionsSelfMap.Add(key, key);
-            }
 
             _sections.Add(section);
 
@@ -213,53 +210,35 @@ namespace MonkeyLoader.Configuration
         /// Sets a configuration value for the given key, throwing a <see cref="KeyNotFoundException"/> if the key is not found
         /// or an <see cref="ArgumentException"/> if the value is not valid for it.
         /// </summary>
+        /// <typeparam name="T">The type of the config item's value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The new value to set.</param>
         /// <param name="eventLabel">A custom label you may assign to this change event.</param>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
-        public void Set(DefiningConfigKey key, object? value, string? eventLabel = null)
+        public void SetValue<T>(IConfigKey<T> key, T value, string? eventLabel = null)
         {
-            if (!TryGetDefiningKey(key, out DefiningConfigKey? definingKey))
+            if (!TryGetDefiningKey(key, out IDefiningConfigKey? definingKey))
                 ThrowKeyNotFound(key);
 
-            if (value is null)
-            {
-                if (Util.CannotBeNull(definingKey!.ValueType))
-                    ThrowArgumentException($"Cannot assign null to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
-            }
-            else if (!definingKey.ValueType.IsAssignableFrom(value.GetType()))
-            {
-                ThrowArgumentException($"Cannot assign [{value.GetType()}] to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
-            }
-
-            if (!definingKey.Validate(value))
-                ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
-
-            definingKey.Set(value, eventLabel);
+            ((IDefiningConfigKey<T>)definingKey).SetValue(value, eventLabel);
         }
 
         /// <summary>
         /// Sets a configuration value for the given key, throwing a <see cref="KeyNotFoundException"/> if the key is not found
         /// or an <see cref="ArgumentException"/> if the value is not valid for it.
         /// </summary>
-        /// <typeparam name="T">The type of the key's value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The new value to set.</param>
         /// <param name="eventLabel">A custom label you may assign to this change event.</param>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
-        public void Set<T>(DefiningConfigKey<T> key, T value, string? eventLabel = null)
+        public void SetValue(IConfigKey key, object? value, string? eventLabel = null)
         {
-            // the reason we don't fall back to untyped Set() here is so we can skip the type check
-
-            if (!TryGetDefiningKey(key, out DefiningConfigKey? definingKey))
+            if (!TryGetDefiningKey(key, out IDefiningConfigKey? definingKey))
                 ThrowKeyNotFound(key);
 
-            if (!definingKey.Validate(value))
-                ThrowArgumentException($"Cannot assign invalid value \"{value}\" to key [{definingKey.Name}] of type [{definingKey.ValueType}] from section [{key.Section.Name}]!", nameof(value));
-
-            definingKey.Set(value, eventLabel);
+            definingKey.SetValue(value, eventLabel);
         }
 
         /// <summary>
@@ -268,20 +247,28 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to check.</param>
         /// <param name="definingKey">The defining key in this config when this returns <c>true</c>, otherwise <c>null</c>.</param>
         /// <returns><c>true</c> if the key is defined in this config.</returns>
-        public bool TryGetDefiningKey(DefiningConfigKey key, [NotNullWhen(true)] out DefiningConfigKey? definingKey)
+        public bool TryGetDefiningKey(IConfigKey key, [NotNullWhen(true)] out IDefiningConfigKey? definingKey)
         {
-            if (key.DefiningKey != null)
-            {
-                // we've already cached the defining key
-                definingKey = key.DefiningKey;
-                return true;
-            }
-
-            // first time we've seen this key instance: we need to hit the map
             if (_configurationItemDefinitionsSelfMap.TryGetValue(key, out definingKey))
+                return true;
+
+            // not a real key
+            definingKey = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the defining key in this config for the given key.
+        /// </summary>
+        /// <typeparam name="T">The type of the config item's value.</typeparam>
+        /// <param name="key">The key to check.</param>
+        /// <param name="definingKey">The defining key in this config when this returns <c>true</c>, otherwise <c>null</c>.</param>
+        /// <returns><c>true</c> if the key is defined in this config.</returns>
+        public bool TryGetDefiningKey<T>(IConfigKey<T> key, [NotNullWhen(true)] out IDefiningConfigKey<T>? definingKey)
+        {
+            if (_configurationItemDefinitionsSelfMap.TryGetValue(key, out var untypedDefiningKey))
             {
-                // initialize the cache for this key
-                key.DefiningKey = definingKey;
+                definingKey = (IDefiningConfigKey<T>)untypedDefiningKey;
                 return true;
             }
 
@@ -291,29 +278,17 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
-        /// Tries to get a value, returning <c>default</c> if the key is not found.
+        /// Tries to get a value, returning <c>null</c> if the key is not found.
         /// </summary>
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue(DefiningConfigKey key, out object? value)
+        public bool TryGetValue(IConfigKey key, out object? value)
         {
-            if (!TryGetDefiningKey(key, out var definingKey))
-            {
-                // not in definition
-                value = null;
-                return false;
-            }
-
-            if (definingKey.TryGetValue(out value))
+            if (TryGetDefiningKey(key, out var definingKey) && definingKey.TryGetValue(out value))
                 return true;
 
-            if (definingKey.TryComputeDefault(out value))
-            {
-                definingKey.Set(value, "default");
-                return true;
-            }
-
+            // not in definition or not set
             value = null;
             return false;
         }
@@ -321,29 +296,16 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Tries to get a value, returning <c>default(<typeparamref name="T"/>)</c> if the key is not found.
         /// </summary>
+        /// <typeparam name="T">The type of the config item's value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue<T>(DefiningConfigKey<T> key, out T? value)
+        public bool TryGetValue<T>(IConfigKey<T> key, out T? value)
         {
-            if (!TryGetDefiningKey(key, out var defKey))
-            {
-                // not in definition
-                value = default;
-                return false;
-            }
-
-            var definingKey = (DefiningConfigKey<T>)defKey;
-
-            if (definingKey.TryGetValue(out value))
+            if (TryGetDefiningKey(key, out var definingKey) && definingKey.TryGetValue(out value))
                 return true;
 
-            if (definingKey.TryComputeDefault(out value))
-            {
-                definingKey.Set(value!, "default");
-                return true;
-            }
-
+            // not in definition or not set
             value = default;
             return false;
         }
@@ -354,7 +316,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to remove the value for.</param>
         /// <returns><c>true</c> if a value was successfully found and removed, <c>false</c> if there was no value to remove.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public bool Unset(DefiningConfigKey key)
+        public bool Unset(IConfigKey key)
         {
             if (!TryGetDefiningKey(key, out var definingKey))
                 ThrowKeyNotFound(key);
@@ -369,18 +331,18 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         /// <param name="key">The key to check.</param>
         /// <returns><c>true</c> if the key is the defining key.</returns>
-            // a key is the defining key if and only if its DefiningKey property references itself
-        internal bool IsKeyDefiningKey(DefiningConfigKey key) => key.IsDefiningKey;
+        // a key is the defining key if and only if its DefiningKey property references itself
+        internal bool IsKeyDefiningKey(IConfigKey key) => key.IsDefiningKey;
 
-        internal void OnChanged(IConfigKeyChangedEventArgs configKeyChangedEventArgs)
+        internal void OnItemChanged(IConfigKeyChangedEventArgs configKeyChangedEventArgs)
         {
             try
             {
-                Changed?.TryInvokeAll(this, configKeyChangedEventArgs);
+                ItemChanged?.TryInvokeAll(this, configKeyChangedEventArgs);
             }
             catch (AggregateException ex)
             {
-                Logger.Error(() => ex.Format($"Some {nameof(Changed)} event subscriber(s) threw an exception:"));
+                Logger.Error(() => ex.Format($"Some {nameof(ItemChanged)} event subscriber(s) threw an exception:"));
             }
 
             Owner.Loader.OnAnyConfigChanged(configKeyChangedEventArgs);
@@ -418,12 +380,12 @@ namespace MonkeyLoader.Configuration
             => throw new ArgumentException(message, paramName);
 
         [DoesNotReturn]
-        private void ThrowKeyNotFound(DefiningConfigKey key)
+        private void ThrowKeyNotFound(IConfigKey key)
             => throw new KeyNotFoundException($"Key [{key.Name}] not found in config!");
 
         /// <summary>
-        /// Called when the value of one of the keys of this config gets changed.
+        /// Called when the value of one of this config's items gets changed.
         /// </summary>
-        public event ConfigKeyChangedEventHandler? Changed;
+        public event ConfigKeyChangedEventHandler? ItemChanged;
     }
 }

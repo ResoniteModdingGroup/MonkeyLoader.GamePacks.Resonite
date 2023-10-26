@@ -481,7 +481,7 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Called when the value of any of this loader's configs changes.<br/>
-        /// This gets fired <i>after</i> the source config's <see cref="Config.Changed">ConfigurationChanged</see> event.
+        /// This gets fired <i>after</i> the source config's <see cref="Config.ItemChanged">ConfigurationChanged</see> event.
         /// </summary>
         public event ConfigKeyChangedEventHandler? AnyConfigChanged;
     }

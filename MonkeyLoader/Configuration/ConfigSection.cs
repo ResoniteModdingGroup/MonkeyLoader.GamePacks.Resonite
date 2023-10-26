@@ -21,7 +21,7 @@ namespace MonkeyLoader.Configuration
     /// </remarks>
     public abstract class ConfigSection
     {
-        private readonly HashSet<DefiningConfigKey> _keys;
+        private readonly HashSet<IDefiningConfigKeyInternal> _keys;
 
         /// <summary>
         /// Gets the <see cref="Configuration.Config"/> that this section is a part of.
@@ -36,7 +36,7 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets all the config keys of this section.
         /// </summary>
-        public IEnumerable<DefiningConfigKey> Keys
+        public IEnumerable<IDefiningConfigKey> Keys
         {
             get
             {
@@ -74,13 +74,10 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         protected ConfigSection()
         {
-            _keys = new(GetConfigKeys());
+            _keys = new(GetConfigKeys().Cast<IDefiningConfigKeyInternal>());
 
             foreach (var key in _keys)
-            {
                 key.Section = this;
-                key.DefiningKey = key;
-            }
         }
 
         /// <summary>
@@ -136,14 +133,14 @@ namespace MonkeyLoader.Configuration
                     if (source[key.Name] is JToken token)
                     {
                         var value = token.ToObject(key.ValueType, jsonSerializer);
-                        key.Set(value);
+                        key.SetValue(value, "Load");
                     }
                 }
                 catch (Exception ex)
                 {
                     // I know not what exceptions the JSON library will throw, but they must be contained
                     Saveable = false;
-                    throw new ConfigLoadException($"Error loading key [{key.Name}] of type [{key.ValueType}] in section [{key.Section.Name}]!", ex);
+                    throw new ConfigLoadException($"Error loading key [{key.Name}] of type [{key.ValueType}] in section [{Name}]!", ex);
                 }
             }
         }
@@ -169,29 +166,29 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
-        /// Gets the <see cref="DefiningConfigKey"/>s from all fields of this <see cref="ConfigSection"/> which have a <see cref="Type"/>
-        /// derived from <see cref="DefiningConfigKey"/> and don't have a <see cref="IgnoreConfigKeyAttribute"/>.
+        /// Gets the <see cref="IDefiningConfigKey"/>s from all fields of this <see cref="ConfigSection"/> which have a <see cref="Type"/>
+        /// derived from <see cref="IDefiningConfigKey"/> and don't have a <see cref="IgnoreConfigKeyAttribute"/>.
         /// </summary>
-        /// <returns>The automatically tracked <see cref="DefiningConfigKey"/>s.</returns>
-        protected IEnumerable<DefiningConfigKey> GetAutoConfigKeys()
+        /// <returns>The automatically tracked <see cref="IDefiningConfigKey"/>s.</returns>
+        protected IEnumerable<IDefiningConfigKey> GetAutoConfigKeys()
         {
-            var configKeyType = typeof(DefiningConfigKey);
+            var configKeyType = typeof(IDefiningConfigKey);
 
-            return GetType().GetFields(AccessTools.all)
+            return GetType().GetFields(AccessTools.all | BindingFlags.FlattenHierarchy)
                 .Where(field => configKeyType.IsAssignableFrom(field.FieldType)
                              && field.GetCustomAttribute<IgnoreConfigKeyAttribute>() is null)
                 .Select(field => field.GetValue(this))
-                .Cast<DefiningConfigKey>();
+                .Cast<IDefiningConfigKey>();
         }
 
         /// <summary>
-        /// Gets all <see cref="DefiningConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
+        /// Gets all <see cref="IDefiningConfigKey"/>s which should be tracked for this <see cref="ConfigSection"/>.
         /// </summary>
         /// <remarks>
         /// Calls <see cref="GetAutoConfigKeys"/> by default, but can be overridden to add others.
         /// </remarks>
         /// <returns></returns>
-        protected virtual IEnumerable<DefiningConfigKey> GetConfigKeys() => GetAutoConfigKeys();
+        protected virtual IEnumerable<IDefiningConfigKey> GetConfigKeys() => GetAutoConfigKeys();
 
         private static bool AreVersionsCompatible(Version serializedVersion, Version currentVersion)
         {

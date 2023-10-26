@@ -25,7 +25,7 @@ namespace MonkeyLoader.NuGet
         public bool LoadingLibsEnabled
         {
             get => Config.GetValue(EnableLoadingLibsKey);
-            set => Config.Set(EnableLoadingLibsKey, value);
+            set => Config.SetValue(EnableLoadingLibsKey, value);
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace MonkeyLoader.NuGet
         public bool LoadingModsEnabled
         {
             get => Config.GetValue(EnableLoadingModsKey);
-            set => Config.Set(EnableLoadingModsKey, value);
+            set => Config.SetValue(EnableLoadingModsKey, value);
         }
 
         /// <inheritdoc/>
@@ -46,7 +46,7 @@ namespace MonkeyLoader.NuGet
         public List<NuGetSource> NuGetGamePackSources
         {
             get => Config.GetValue(NuGetGamePackSourcesKey);
-            set => Config.Set(NuGetGamePackSourcesKey, value);
+            set => Config.SetValue(NuGetGamePackSourcesKey, value);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace MonkeyLoader.NuGet
         public List<NuGetSource> NuGetLibSources
         {
             get => Config.GetValue(NuGetLibSourcesKey);
-            set => Config.Set(NuGetLibSourcesKey, value);
+            set => Config.SetValue(NuGetLibSourcesKey, value);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace MonkeyLoader.NuGet
         public List<NuGetSource> NuGetModSources
         {
             get => Config.GetValue(NuGetModSourcesKey);
-            set => Config.Set(NuGetModSourcesKey, value);
+            set => Config.SetValue(NuGetModSourcesKey, value);
         }
 
         /// <inheritdoc/>

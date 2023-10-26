@@ -27,10 +27,10 @@ namespace MonkeyLoader.ConsoleTest
             //}
 
             var loader = new MonkeyLoader();
+            loader.Logger.Level = LoggingLevel.Trace;
             loader.LoggingHandler = new ConsoleLoggingHandler();
 
-            loader.EnsureAllLocationsExist();
-            var mods = loader.LoadAllMods();
+            loader.FullLoad();
 
             loader.Shutdown();
         }

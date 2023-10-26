@@ -21,7 +21,7 @@ namespace MonkeyLoader.Meta
         public string Configs
         {
             get => Config.GetValue(ConfigsKey);
-            set => Config.Set(ConfigsKey, value);
+            set => Config.SetValue(ConfigsKey, value);
         }
 
         /// <inheritdoc/>
@@ -30,20 +30,20 @@ namespace MonkeyLoader.Meta
         public string GamePacks
         {
             get => Config.GetValue(GamePacksKey);
-            set => Config.Set(GamePacksKey, value);
+            set => Config.SetValue(GamePacksKey, value);
         }
 
         public string Libs
         {
             get => Config.GetValue(LibsKey);
-            set => Config.Set(LibsKey, value);
+            set => Config.SetValue(LibsKey, value);
         }
 
         // do something to make list changes fire config changed too?
         public List<ModLoadingLocation> Mods
         {
             get => Config.GetValue(ModsKey);
-            set => Config.Set(ModsKey, value);
+            set => Config.SetValue(ModsKey, value);
         }
 
         /// <inheritdoc/>
