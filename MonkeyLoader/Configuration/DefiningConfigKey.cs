@@ -143,7 +143,7 @@ namespace MonkeyLoader.Configuration
 
             if (TryComputeDefault(out value))
             {
-                SetValue(value!, "default");
+                SetValue(value!, ConfigKey.SetFromDefaultEventLabel);
                 return true;
             }
 

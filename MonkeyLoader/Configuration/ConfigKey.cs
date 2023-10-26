@@ -11,6 +11,16 @@ namespace MonkeyLoader.Configuration
     public class ConfigKey : IConfigKey
     {
         /// <summary>
+        /// The event label used when a config item's value is set from getting the computed default.
+        /// </summary>
+        public const string SetFromDefaultEventLabel = "Default";
+
+        /// <summary>
+        /// Gets the custom <see cref="IEqualityComparer{T}"/> for <see cref="IConfigKey"/>s.
+        /// </summary>
+        public static readonly IEqualityComparer<IConfigKey> EqualityComparer = new ConfigKeyEqualityComparer();
+
+        /// <summary>
         /// Gets whether this instance defines the config item with this <see cref="Name">Name</see>.
         /// </summary>
         public virtual bool IsDefiningKey => false;
@@ -100,5 +110,17 @@ namespace MonkeyLoader.Configuration
         /// Get the <see cref="Type"/> of this config item's value.
         /// </summary>
         public Type ValueType { get; }
+    }
+
+    /// <summary>
+    /// <see cref="IEqualityComparer{T}"/> for <see cref="IConfigKey"/>s.
+    /// </summary>
+    internal sealed class ConfigKeyEqualityComparer : IEqualityComparer<IConfigKey>
+    {
+        /// <inheritdoc/>
+        public bool Equals(IConfigKey x, IConfigKey y) => ReferenceEquals(x, y) || x.Name == y.Name;
+
+        /// <inheritdoc/>
+        public int GetHashCode(IConfigKey obj) => obj.Name.GetHashCode();
     }
 }

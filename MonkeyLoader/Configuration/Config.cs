@@ -27,7 +27,7 @@ namespace MonkeyLoader.Configuration
         private const string SectionsKey = "Sections";
 
         // this is a ridiculous hack because HashSet.TryGetValue doesn't exist in .NET 4.6.2
-        private readonly Dictionary<IConfigKey, IDefiningConfigKey> _configurationItemDefinitionsSelfMap = new();
+        private readonly Dictionary<IConfigKey, IDefiningConfigKey> _configurationItemDefinitionsSelfMap = new(ConfigKey.EqualityComparer);
 
         private readonly JObject _loadedConfig;
 
@@ -38,7 +38,7 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         // clone the collection because I don't trust giving public API users shallow copies one bit
         public ISet<IDefiningConfigKey> ConfigurationItemDefinitions
-            => new HashSet<IDefiningConfigKey>(_configurationItemDefinitionsSelfMap.Values);
+            => new HashSet<IDefiningConfigKey>(_configurationItemDefinitionsSelfMap.Values, ConfigKey.EqualityComparer);
 
         /// <summary>
         /// Gets the logger used by this config.
@@ -376,12 +376,8 @@ namespace MonkeyLoader.Configuration
         }
 
         [DoesNotReturn]
-        private void ThrowArgumentException(string message, string paramName)
-            => throw new ArgumentException(message, paramName);
-
-        [DoesNotReturn]
         private void ThrowKeyNotFound(IConfigKey key)
-            => throw new KeyNotFoundException($"Key [{key.Name}] not found in config!");
+            => throw new KeyNotFoundException($"Key [{key.Name}] not found in this config!");
 
         /// <summary>
         /// Called when the value of one of this config's items gets changed.

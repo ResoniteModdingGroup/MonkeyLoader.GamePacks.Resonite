@@ -17,11 +17,12 @@ namespace MonkeyLoader.Meta
         public readonly DefiningConfigKey<string> GamePacksKey = new("GamePacks", "Paths to check for game packs.", () => "./MonkeyLoader/GamePacks", valueValidator: path => !string.IsNullOrWhiteSpace(path));
         public readonly DefiningConfigKey<string> LibsKey = new("Libs", "Paths to check for dependency libraries.", () => "./MonkeyLoader/Libs", valueValidator: path => !string.IsNullOrWhiteSpace(path));
         public readonly DefiningConfigKey<List<ModLoadingLocation>> ModsKey = new("Mods", "Loading locations to check for mods.", () => new() { new ModLoadingLocation("./MonkeyLoader/Mods", true, "\\.disabled") }, valueValidator: locations => locations?.Count > 0);
+        private const string SetEventLabel = "Property";
 
         public string Configs
         {
-            get => Config.GetValue(ConfigsKey);
-            set => Config.SetValue(ConfigsKey, value);
+            get => ConfigsKey.GetValue()!;
+            set => ConfigsKey.SetValue(value, SetEventLabel);
         }
 
         /// <inheritdoc/>
@@ -29,21 +30,21 @@ namespace MonkeyLoader.Meta
 
         public string GamePacks
         {
-            get => Config.GetValue(GamePacksKey);
-            set => Config.SetValue(GamePacksKey, value);
+            get => GamePacksKey.GetValue()!;
+            set => GamePacksKey.SetValue(value, SetEventLabel);
         }
 
         public string Libs
         {
-            get => Config.GetValue(LibsKey);
-            set => Config.SetValue(LibsKey, value);
+            get => LibsKey.GetValue()!;
+            set => LibsKey.SetValue(value, SetEventLabel);
         }
 
         // do something to make list changes fire config changed too?
         public List<ModLoadingLocation> Mods
         {
-            get => Config.GetValue(ModsKey);
-            set => Config.SetValue(ModsKey, value);
+            get => ModsKey.GetValue()!;
+            set => ModsKey.SetValue(value, SetEventLabel);
         }
 
         /// <inheritdoc/>
