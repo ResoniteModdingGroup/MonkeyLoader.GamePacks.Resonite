@@ -19,7 +19,7 @@ namespace MonkeyLoader.Logging
         /// Creates a new file logging handler with the file at the given path as the target.
         /// </summary>
         /// <param name="path">The file to write to.</param>
-        public FileLoggingHandler(string path) : this(new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write))
+        public FileLoggingHandler(string path) : this(new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
         { }
 
         /// <summary>

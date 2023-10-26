@@ -17,9 +17,9 @@ namespace MonkeyLoader.Logging
         public string Identifier { get; }
 
         /// <summary>
-        /// Gets or sets the current <see cref="LoggingLevel"/> used to filter requests.
+        /// Gets the current <see cref="LoggingLevel"/> used to filter requests, determined by the <see cref="MonkeyLoader"/> instance this logger works for.
         /// </summary>
-        public LoggingLevel Level { get; set; }
+        public LoggingLevel Level => Loader.LoggingLevel;
 
         /// <summary>
         /// Gets the <see cref="MonkeyLoader"/> instance that this logger works for.
@@ -40,7 +40,6 @@ namespace MonkeyLoader.Logging
         /// <param name="extraIdentifier">The extra identifier to append to the <paramref name="logger"/>'s.</param>
         public MonkeyLogger(MonkeyLogger logger, string extraIdentifier)
         {
-            Level = logger.Level;
             Loader = logger.Loader;
             Identifier = $"{logger.Identifier}|{extraIdentifier}";
         }
@@ -52,7 +51,6 @@ namespace MonkeyLoader.Logging
         internal MonkeyLogger(MonkeyLoader loader)
         {
             Loader = loader;
-            Level = LoggingLevel.Info;
             Identifier = "MonkeyLoader";
         }
 

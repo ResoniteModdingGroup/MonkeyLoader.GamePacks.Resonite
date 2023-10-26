@@ -29,7 +29,7 @@ namespace Doorstop
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) => log.Fatal(() => (e.ExceptionObject as Exception)?.Format("Unhandled Exception!") ?? "Unhandled Exception!");
 
                 var loader = new MonkeyLoader.MonkeyLoader();
-                loader.Logger.Level = LoggingLevel.Trace;
+                loader.LoggingLevel = LoggingLevel.Trace;
                 loader.LoggingHandler = log;
 
                 log.Info(() => $"Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");

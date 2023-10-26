@@ -84,6 +84,11 @@ namespace MonkeyLoader
         }
 
         /// <summary>
+        /// Gets or sets the current <see cref="LoggingLevel"/> used to filter requests on <see cref="MonkeyLogger"/> instances.
+        /// </summary>
+        public LoggingLevel LoggingLevel { get; set; } = LoggingLevel.Info;
+
+        /// <summary>
         /// Gets all loaded regular <see cref="Mod"/>s.
         /// </summary>
         public IEnumerable<Mod> Mods => _allMods.Where(mod => !mod.IsGamePack);
