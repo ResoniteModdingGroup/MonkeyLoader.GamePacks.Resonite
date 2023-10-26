@@ -33,11 +33,11 @@ namespace MonkeyLoader.Patching
         { }
 
         /// <summary>
-        /// Executes <see cref="prepare"/>, <see cref="patch"/> and <see cref="validate"/> for all possible <see cref="PrePatchTargets">PrePatchTargets</see>.
+        /// Executes <see cref="Prepare"/>, <see cref="Patch"/> and <see cref="Validate"/> for all possible <see cref="PrePatchTargets">PrePatchTargets</see>.
         /// </summary>
         /// <returns>Whether the patching was considered successful.</returns>
         /// <exception cref="InvalidOperationException">When the pre-patch targets reference the same Assembly multiple times.</exception>
-        public override sealed bool Run()
+        public override bool Run()
         {
             ThrowIfRan();
             Ran = true;
@@ -52,10 +52,10 @@ namespace MonkeyLoader.Patching
                 return false;
             }
 
-            var patchJobs = PrePatchTargets.TrySelect<PrePatchTarget, PatchJob>(tryFromPrePatchTarget).ToArray();
+            var patchJobs = PrePatchTargets.TrySelect<PrePatchTarget, PatchJob>(TryFromPrePatchTarget).ToArray();
 
             // Not doing anything from prepare is success
-            if (!prepare(patchJobs))
+            if (!Prepare(patchJobs))
             {
                 Logger.Debug(() => $"Skipping pre-patching as prepare failed!");
                 return true;
@@ -67,7 +67,7 @@ namespace MonkeyLoader.Patching
                 {
                     Logger.Trace(() => $"Applying pre-patcher to {patchJob.Target.Assembly}.");
 
-                    if (!patch(patchJob))
+                    if (!Patch(patchJob))
                     {
                         patchJob.Failed = true;
                         Logger.Warn(() => $"Pre-patcher failed on assembly [{patchJob.Target.Assembly}]!");
@@ -80,7 +80,7 @@ namespace MonkeyLoader.Patching
                 }
             }
 
-            var success = validate(patchJobs);
+            var success = Validate(patchJobs);
             if (!success)
             {
                 foreach (var patchJob in patchJobs)
@@ -101,7 +101,7 @@ namespace MonkeyLoader.Patching
         /// </summary>
         /// <param name="patchJob">The patch job to apply.</param>
         /// <returns>Whether the patching was successful.</returns>
-        protected abstract bool patch(PatchJob patchJob);
+        protected abstract bool Patch(PatchJob patchJob);
 
         /// <summary>
         /// Lets the pre-patcher make any necessary preparations and/or validate the available <see cref="PatchJob"/>s.
@@ -111,7 +111,7 @@ namespace MonkeyLoader.Patching
         /// </summary>
         /// <param name="patchJobs">All patch jobs of this pre-patcher.</param>
         /// <returns>Whether patching can go ahead.</returns>
-        protected virtual bool prepare(IEnumerable<PatchJob> patchJobs) => patchJobs.Count() == PrePatchTargets.Count();
+        protected virtual bool Prepare(IEnumerable<PatchJob> patchJobs) => patchJobs.Count() == PrePatchTargets.Count();
 
         /// <summary>
         /// Lets the pre-patcher do any necessary cleanup and validate the success of patching.
@@ -120,9 +120,9 @@ namespace MonkeyLoader.Patching
         /// </summary>
         /// <param name="patchJobs">All patch jobs of this pre-patcher.</param>
         /// <returns>Whether patching was successful enough.</returns>
-        protected virtual bool validate(IEnumerable<PatchJob> patchJobs) => !patchJobs.Any(job => job.Failed);
+        protected virtual bool Validate(IEnumerable<PatchJob> patchJobs) => !patchJobs.Any(job => job.Failed);
 
-        private bool tryFromPrePatchTarget(PrePatchTarget prePatchTarget, [NotNullWhen(true)] out PatchJob? patchJob)
+        private bool TryFromPrePatchTarget(PrePatchTarget prePatchTarget, [NotNullWhen(true)] out PatchJob? patchJob)
         {
             if (!Mod.Loader.TryGetAssemblyDefinition(prePatchTarget.Assembly, out var assemblyPool, out var assemblyDefinition))
             {
@@ -139,10 +139,10 @@ namespace MonkeyLoader.Patching
         /// </summary>
         protected sealed class PatchJob
         {
-            private readonly AssemblyPool pool;
-            private readonly TypeDefinition[] types;
-            private AssemblyDefinition assembly;
-            private bool error;
+            private readonly AssemblyPool _pool;
+            private readonly TypeDefinition[] _types;
+            private AssemblyDefinition _assembly;
+            private bool _error;
 
             /// <summary>
             /// Gets or sets the <see cref="AssemblyDefinition"/> that was targeted.<br/>
@@ -150,15 +150,15 @@ namespace MonkeyLoader.Patching
             /// </summary>
             public AssemblyDefinition Assembly
             {
-                get => assembly;
+                get => _assembly;
 
-                [MemberNotNull(nameof(assembly))]
+                [MemberNotNull(nameof(_assembly))]
                 set
                 {
-                    if (assembly != value)
+                    if (_assembly != value)
                         Changes = true;
 
-                    assembly = value;
+                    _assembly = value;
                 }
             }
 
@@ -173,10 +173,10 @@ namespace MonkeyLoader.Patching
             /// </summary>
             public bool Error
             {
-                get => error;
+                get => _error;
                 internal set
                 {
-                    error = value;
+                    _error = value;
                     Failed |= value;
                 }
             }
@@ -198,7 +198,7 @@ namespace MonkeyLoader.Patching
             {
                 get
                 {
-                    foreach (var type in types)
+                    foreach (var type in _types)
                         yield return type;
                 }
             }
@@ -206,17 +206,17 @@ namespace MonkeyLoader.Patching
             internal PatchJob(PrePatchTarget target, AssemblyPool pool, AssemblyDefinition assembly)
             {
                 Target = target;
-                this.pool = pool;
+                _pool = pool;
                 Assembly = assembly;
-                types = target.GetTypeDefinitions(assembly).ToArray();
+                _types = target.GetTypeDefinitions(assembly).ToArray();
             }
 
             internal void Finish()
             {
                 if (Failed || !Changes)
-                    pool.RestoreDefinition(Target.Assembly);
+                    _pool.RestoreDefinition(Target.Assembly);
                 else
-                    pool.ReturnDefinition(Target.Assembly, Assembly);
+                    _pool.ReturnDefinition(Target.Assembly, Assembly);
             }
         }
     }

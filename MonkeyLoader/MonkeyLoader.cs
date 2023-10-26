@@ -43,6 +43,8 @@ namespace MonkeyLoader
         /// </summary>
         public IEnumerable<IEarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
+        public string GameAssemblyPath { get; }
+
         /// <summary>
         /// Gets all loaded game pack <see cref="Mod"/>s.
         /// </summary>
@@ -107,8 +109,8 @@ namespace MonkeyLoader
         public bool ShutdownRan { get; private set; }
 
         internal Queue<MonkeyLogger.DeferredMessage> DeferredMessages { get; } = new();
-        internal AssemblyPool GameAssemblyPool { get; } = new();
-        internal AssemblyPool PatcherAssemblyPool { get; } = new();
+        internal AssemblyPool GameAssemblyPool { get; }
+        internal AssemblyPool PatcherAssemblyPool { get; }
 
         /// <summary>
         /// Creates a new mod loader with the given configuration file.
@@ -125,6 +127,18 @@ namespace MonkeyLoader
             Locations = Config.LoadSection<LocationConfigSection>();
 
             NuGet = new NuGetManager(this);
+
+            var executablePath = Environment.GetCommandLineArgs()[0];
+            GameAssemblyPath = Path.Combine(Path.GetDirectoryName(executablePath), $"{Path.GetFileNameWithoutExtension(executablePath)}_Data", "Managed");
+
+            if (!Directory.Exists(GameAssemblyPath))
+                GameAssemblyPath = Path.GetDirectoryName(executablePath);
+
+            GameAssemblyPool = new AssemblyPool(new MonkeyLogger(Logger, "GameAssemblyPool"), () => Locations.PatchedAssemblies);
+            GameAssemblyPool.AddSearchDirectory(GameAssemblyPath);
+
+            PatcherAssemblyPool = new AssemblyPool(new MonkeyLogger(Logger, "PatcherAssemblyPool"), () => Locations.PatchedAssemblies);
+            PatcherAssemblyPool.AddFallbackPool(GameAssemblyPool);
         }
 
         /// <summary>
@@ -167,13 +181,17 @@ namespace MonkeyLoader
         /// </summary>
         public void EnsureAllLocationsExist()
         {
-            var locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
+            IEnumerable<string> locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
             var modLocations = Locations.Mods.Select(modLocation => modLocation.Path).ToArray();
+
+            if (Locations.SavePatchedAssemblies)
+                locations = locations.Concat(new[] { Locations.PatchedAssemblies });
 
             Logger.Info(() => $"Ensuring that all configured locations exist as directories:{Environment.NewLine}" +
                 $"    {nameof(Locations.Configs)}: {Locations.Configs}{Environment.NewLine}" +
                 $"    {nameof(Locations.GamePacks)}: {Locations.GamePacks}{Environment.NewLine}" +
                 $"    {nameof(Locations.Libs)}: {Locations.Libs}{Environment.NewLine}" +
+                $"    {nameof(Locations.PatchedAssemblies)}: {(Locations.SavePatchedAssemblies ? "disabled" : Locations.PatchedAssemblies)}{Environment.NewLine}" +
                 $"    {nameof(Locations.Mods)}:{Environment.NewLine}" +
                 $"      - {string.Join(Environment.NewLine + "      - ", modLocations)}");
 
@@ -199,6 +217,7 @@ namespace MonkeyLoader
             LoadAllGamePacks();
             LoadAllMods();
 
+            LoadGameAssemblyDefinitions();
             LoadGamePackEarlyMonkeys();
             RunGamePackEarlyMonkeys();
 
@@ -270,7 +289,24 @@ namespace MonkeyLoader
         /// </summary>
         public void LoadGameAssemblies()
         {
+            Assembly.Load("System.Web");
+            Assembly.Load("System.ServiceModel");
             GameAssemblyPool.LoadAll();
+        }
+
+        public void LoadGameAssemblyDefinitions()
+        {
+            foreach (var assemblyFile in Directory.EnumerateFiles(GameAssemblyPath, "*.dll", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    GameAssemblyPool.LoadDefinition(assemblyFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug(() => ex.Format($"Exception while trying to load assembly {assemblyFile}"));
+                }
+            }
         }
 
         /// <summary>

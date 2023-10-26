@@ -26,9 +26,16 @@ namespace Doorstop
 
             try
             {
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) => log.Fatal(() => (e.ExceptionObject as Exception)?.Format("Unhandled Exception!") ?? "Unhandled Exception!");
+
                 var loader = new MonkeyLoader.MonkeyLoader();
                 loader.Logger.Level = LoggingLevel.Trace;
                 loader.LoggingHandler = log;
+
+                log.Info(() => $"Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");
+                log.Info(() => $"Relative Search Directory: {AppDomain.CurrentDomain.RelativeSearchPath}");
+                log.Info(() => $"Entry Assembly: {Assembly.GetEntryAssembly()?.Location}");
+                log.Info(() => "CMD Args: " + string.Join(" ", Environment.GetCommandLineArgs()));
 
                 loader.FullLoad();
 

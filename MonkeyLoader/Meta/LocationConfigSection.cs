@@ -1,6 +1,7 @@
 ﻿using MonkeyLoader.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,8 @@ namespace MonkeyLoader.Meta
         public readonly DefiningConfigKey<string> GamePacksKey = new("GamePacks", "Paths to check for game packs.", () => "./MonkeyLoader/GamePacks", valueValidator: path => !string.IsNullOrWhiteSpace(path));
         public readonly DefiningConfigKey<string> LibsKey = new("Libs", "Paths to check for dependency libraries.", () => "./MonkeyLoader/Libs", valueValidator: path => !string.IsNullOrWhiteSpace(path));
         public readonly DefiningConfigKey<List<ModLoadingLocation>> ModsKey = new("Mods", "Loading locations to check for mods.", () => new() { new ModLoadingLocation("./MonkeyLoader/Mods", true, "\\.disabled") }, valueValidator: locations => locations?.Count > 0);
+        public readonly DefiningConfigKey<string?> PatchedAssembliesKey = new("PatchedAssemblies", "Path to save pre-patched assemblies to. Set null to disable.", () => "./MonkeyLoader/PatchedAssemblies");
+
         private const string SetEventLabel = "Property";
 
         public string Configs
@@ -49,6 +52,15 @@ namespace MonkeyLoader.Meta
 
         /// <inheritdoc/>
         public override string Name { get; } = "Locations";
+
+        public string? PatchedAssemblies
+        {
+            get => PatchedAssembliesKey.GetValue();
+            set => PatchedAssembliesKey.SetValue(value, SetEventLabel);
+        }
+
+        [MemberNotNullWhen(true, nameof(PatchedAssemblies))]
+        public bool SavePatchedAssemblies => PatchedAssemblies is not null;
 
         /// <inheritdoc/>
         public override Version Version { get; } = new Version(1, 0);

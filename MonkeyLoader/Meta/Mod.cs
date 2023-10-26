@@ -336,7 +336,12 @@ namespace MonkeyLoader.Meta
                     PrePatcherAssemblies.Add(assembly);
 
                     foreach (var type in assembly.GetTypes().Instantiable<IEarlyMonkey>())
-                        _earlyMonkeys.Add((IEarlyMonkey)Activator.CreateInstance(type));
+                    {
+                        Logger.Debug(() => $"Found instantiable EarlyMonkey Type: {type.FullName}");
+                        var monkey = MonkeyBase.GetInstance(type);
+                        monkey.Mod = this;
+                        _earlyMonkeys.Add((IEarlyMonkey)monkey);
+                    }
 
                     Logger.Info(() => $"Found {_earlyMonkeys.Count} Early Monkeys!");
                 }

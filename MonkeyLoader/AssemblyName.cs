@@ -12,10 +12,10 @@ namespace MonkeyLoader
         public readonly string Filename { get; }
         public readonly string Name { get; }
 
-        public AssemblyName(string filename)
+        public AssemblyName(string name, bool isPath = false)
         {
-            Filename = filename;
-            Name = Path.GetFileName(filename);
+            Filename = name;
+            Name = isPath ? Path.GetFileNameWithoutExtension(name) : name;
         }
 
         public static implicit operator string(AssemblyName assemblyName) => assemblyName.Name;

@@ -6,7 +6,7 @@ namespace MonkeyLoader.Patching
 {
     public sealed class PrePatchTarget
     {
-        private readonly HashSet<string> types;
+        private readonly HashSet<string> _types;
 
         public AssemblyName Assembly { get; }
 
@@ -14,7 +14,7 @@ namespace MonkeyLoader.Patching
         {
             get
             {
-                foreach (var type in types)
+                foreach (var type in _types)
                     yield return type;
             }
         }
@@ -22,20 +22,20 @@ namespace MonkeyLoader.Patching
         public PrePatchTarget(AssemblyName assembly, params string[] types)
         {
             Assembly = assembly;
-            this.types = new(types);
+            this._types = new(types);
         }
 
         public PrePatchTarget(AssemblyName assembly, IEnumerable<string> types)
         {
             Assembly = assembly;
-            this.types = types.ToHashSet();
+            this._types = types.ToHashSet();
         }
 
         internal IEnumerable<TypeDefinition> GetTypeDefinitions(AssemblyDefinition assembly)
         {
             foreach (var type in assembly.GetTypes())
             {
-                if (types.Contains(type.FullName))
+                if (_types.Contains(type.FullName))
                     yield return type;
             }
         }

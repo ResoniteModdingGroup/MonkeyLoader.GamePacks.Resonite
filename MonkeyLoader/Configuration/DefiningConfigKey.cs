@@ -78,6 +78,9 @@ namespace MonkeyLoader.Configuration
             InternalAccessOnly = internalAccessOnly;
             _isValueValid = valueValidator;
             HasDescription = !string.IsNullOrWhiteSpace(description);
+
+            // Make the Compiler shut up about Section not being set - it gets set by the ConfigSection loading the keys.
+            Section = default!;
         }
 
         /// <inheritdoc/>

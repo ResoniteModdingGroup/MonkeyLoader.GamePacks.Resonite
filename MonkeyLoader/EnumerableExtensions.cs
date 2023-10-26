@@ -108,7 +108,10 @@ namespace MonkeyLoader
             while (elements.Count > 0)
             {
                 var key = elements.FirstOrDefault(x => x.Value.Count == 0).Key
-                    ?? throw new ArgumentException("Cyclic dependencies are not allowed!");
+                    ?? throw new ArgumentException($"Cyclic dependencies are not allowed!{Environment.NewLine}" +
+                    $"Sorted: {string.Join(", ", nodes.Select(identifier).Except(elements.Keys.Select(identifier)))}{Environment.NewLine}" +
+                    $"Unsorted:{Environment.NewLine}" +
+                    $"    {string.Join($"{Environment.NewLine}    ", elements.Select(element => $"{identifier(element.Key)}:{Environment.NewLine}        {string.Join($"{Environment.NewLine}        ", element.Value)}"))}");
 
                 elements.Remove(key);
 

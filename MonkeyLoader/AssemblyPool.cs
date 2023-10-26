@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿using MonkeyLoader.Logging;
+using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,23 +15,44 @@ namespace MonkeyLoader
     /// not yet <see cref="Assembly.Load(byte[])">loaded</see> <see cref="AssemblyDefinition"/>s.<br/>
     /// Handles <see cref="AppDomain.AssemblyResolve"/> events targeting its managed assemblies.
     /// </summary>
-    public sealed class AssemblyPool
+    public sealed class AssemblyPool : IAssemblyResolver
     {
-        private readonly Dictionary<AssemblyName, AssemblyEntry> assemblies = new();
+        private readonly Dictionary<AssemblyName, AssemblyEntry> _assemblies = new();
+        private readonly HashSet<string> _directories = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<AssemblyPool> _fallbackPools = new();
+        private readonly Func<string?>? _getPatchedAssemblyPath;
+        private readonly MonkeyLogger _logger;
 
         /// <summary>
         /// Gets whether assemblies will be loaded when asked to resolve them.
         /// </summary>
         public bool LoadForResolve { get; }
 
+        public string? PatchedAssemblyPath => _getPatchedAssemblyPath?.Invoke();
+
         /// <summary>
         /// Creates a new <see cref="AssemblyPool"/> instance, loading assemblies when asked to resolve them if desired.
         /// </summary>
+        /// <param name="getPatchedAssemblyPath">Provides the path where to save patched assemblies. Return <c>null</c> to disable.</param>
         /// <param name="loadForResolve">Whether to load assemblies when asked to resolve them.</param>
-        public AssemblyPool(bool loadForResolve = true)
+        public AssemblyPool(MonkeyLogger logger, Func<string?>? getPatchedAssemblyPath = null, bool loadForResolve = true)
         {
+            _logger = logger;
+            _getPatchedAssemblyPath = getPatchedAssemblyPath;
             LoadForResolve = loadForResolve;
-            AppDomain.CurrentDomain.AssemblyResolve += resolveAssembly;
+
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+        }
+
+        public bool AddFallbackPool(AssemblyPool pool) => _fallbackPools.Add(pool);
+
+        public void AddSearchDirectory(string directory)
+        {
+            _directories.Add(directory);
+        }
+
+        public void Dispose()
+        {
         }
 
         /// <summary>
@@ -40,7 +62,7 @@ namespace MonkeyLoader
         /// <returns>The loaded <see cref="Assembly"/> if it was loaded already.</returns>
         /// <exception cref="InvalidOperationException">When the assembly hasn't been loaded yet.</exception>
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
-        public Assembly GetAssembly(AssemblyName name) => getEntry(name).GetAssembly();
+        public Assembly GetAssembly(AssemblyName name) => GetEntry(name).GetAssembly();
 
         /// <summary>
         /// Loads all (not yet loaded) <see cref="Assembly"/> entries.
@@ -49,12 +71,12 @@ namespace MonkeyLoader
         {
             var alreadyLoaded = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new AssemblyName(assembly.GetName().Name)).ToHashSet();
 
-            var entries = assemblies.Values
+            var entries = _assemblies.Values
                 .Where(entry => !entry.Loaded)
                 .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded));
 
             foreach (var entry in entries)
-                entry.LoadAssembly();
+                entry.LoadAssembly(_logger, PatchedAssemblyPath);
         }
 
         /// <summary>
@@ -63,15 +85,48 @@ namespace MonkeyLoader
         /// <param name="name">The name of the <see cref="Assembly"/> to get.</param>
         /// <returns>The loaded <see cref="Assembly"/>.</returns>
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
-        public Assembly LoadAssembly(AssemblyName name) => getEntry(name).LoadAssembly();
+        public Assembly LoadAssembly(AssemblyName name) => GetEntry(name).LoadAssembly(_logger, PatchedAssemblyPath);
 
-        public AssemblyDefinition LoadDefinition(string path)
+        public AssemblyDefinition LoadDefinition(string path, ReaderParameters? readerParameters = null)
         {
-            var definition = AssemblyDefinition.ReadAssembly(path);
-            var name = new AssemblyName(definition.Name.Name);
+            var name = new AssemblyName(path, true);
+            if (TryResolve(name, out var assemblyDefinition))
+                return assemblyDefinition;
 
-            assemblies.Add(name, new AssemblyEntry(name, definition));
+            readerParameters ??= new ReaderParameters() { AssemblyResolver = this };
+            var definition = AssemblyDefinition.ReadAssembly(path, readerParameters);
+            name = new AssemblyName(definition.Name.Name);
+
+            if (TryResolve(name, out assemblyDefinition))
+                return assemblyDefinition;
+
+            _assemblies.Add(name, new AssemblyEntry(name, definition));
+            _logger.Debug(() => $"Loaded assembly definition from {path}");
+
             return definition;
+        }
+
+        public AssemblyDefinition Resolve(AssemblyNameReference name)
+            => Resolve(name, new ReaderParameters() { AssemblyResolver = this });
+
+        public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+        {
+            var entryName = new AssemblyName(name.Name);
+
+            if (TryResolve(entryName, out var assemblyDefinition))
+                return assemblyDefinition;
+
+            foreach (var fallbackPool in _fallbackPools)
+            {
+                if (fallbackPool.TryResolve(entryName, out assemblyDefinition))
+                    return assemblyDefinition;
+            }
+
+            var assembly = SearchDirectory(name, parameters);
+            if (assembly is not null)
+                return assembly;
+
+            throw new AssemblyResolutionException(name);
         }
 
         /// <summary>
@@ -80,7 +135,7 @@ namespace MonkeyLoader
         /// <param name="name">The entry to restore.</param>
         /// <exception cref="InvalidOperationException">When the entry has already been loaded or returned.</exception>
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
-        public void RestoreDefinition(AssemblyName name) => getEntry(name).RestoreDefinition();
+        public void RestoreDefinition(AssemblyName name) => GetEntry(name).RestoreDefinition();
 
         /// <summary>
         /// Sets the given (new) <see cref="AssemblyDefinition"/> for and entry and releases its definition lock.
@@ -90,7 +145,19 @@ namespace MonkeyLoader
         /// <exception cref="InvalidOperationException">When the entry has already been loaded or returned.</exception>
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
         public void ReturnDefinition(AssemblyName name, AssemblyDefinition assemblyDefinition)
-            => getEntry(name).ReturnDefinition(assemblyDefinition);
+            => GetEntry(name).ReturnDefinition(assemblyDefinition);
+
+        public bool TryResolve(AssemblyName name, [NotNullWhen(true)] out AssemblyDefinition? assemblyDefinition)
+        {
+            if (TryGetEntry(name, out var entry))
+            {
+                assemblyDefinition = entry.GetResolveDefinition();
+                return true;
+            }
+
+            assemblyDefinition = null;
+            return false;
+        }
 
         /// <summary>
         /// Tries to wait until nothing else is modifying the <see cref="AssemblyDefinition"/> of an entry anymore,
@@ -102,7 +169,7 @@ namespace MonkeyLoader
         /// <returns>Whether the definition was returned.</returns>
         public bool TryWaitForDefinition(AssemblyName name, [NotNullWhen(true)] out AssemblyDefinition? result)
         {
-            if (!tryGetEntry(name, out var entry) || entry.Loaded)
+            if (!TryGetEntry(name, out var entry) || entry.Loaded)
             {
                 result = null;
                 return false;
@@ -122,57 +189,84 @@ namespace MonkeyLoader
         /// <exception cref="InvalidOperationException">When the entry has already been loaded.</exception>
         /// <exception cref="KeyNotFoundException">When the <paramref name="name"/> doesn't exist in this pool.</exception>
         public AssemblyDefinition WaitForDefinition(AssemblyName name)
-            => getEntry(name).WaitForDefinition();
+            => GetEntry(name).WaitForDefinition();
 
-        private AssemblyEntry getEntry(AssemblyName name)
+        private AssemblyEntry GetEntry(AssemblyName name)
         {
-            if (!assemblies.TryGetValue(name, out var assemblyDefinition))
+            if (!_assemblies.TryGetValue(name, out var assemblyDefinition))
                 throw new KeyNotFoundException($"No AssemblyDefinition loaded for [{name}]!");
 
             return assemblyDefinition;
         }
 
-        private Assembly? resolveAssembly(object sender, ResolveEventArgs args)
+        private Assembly? ResolveAssembly(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(AssemblyNameReference.Parse(args.Name).Name);
 
-            if (!assemblies.TryGetValue(name, out var entry))
+            if (!_assemblies.TryGetValue(name, out var entry))
                 return null;
 
             if (LoadForResolve)
-                return entry.LoadAssembly();
+                return entry.LoadAssembly(_logger, PatchedAssemblyPath);
 
             return entry.GetAssembly();
         }
 
-        private bool tryGetEntry(AssemblyName name, out AssemblyEntry entry)
-                            => assemblies.TryGetValue(name, out entry);
+        private AssemblyDefinition? SearchDirectory(AssemblyNameReference name, ReaderParameters parameters)
+        {
+            parameters.AssemblyResolver ??= this;
+            var extensions = name.IsWindowsRuntime ? new[] { ".winmd", ".dll" } : new[] { ".exe", ".dll" };
+
+            foreach (var directory in _directories)
+            {
+                foreach (var extension in extensions)
+                {
+                    var file = Path.Combine(directory, name.Name + extension);
+
+                    if (!File.Exists(file))
+                        continue;
+
+                    try
+                    {
+                        return LoadDefinition(file, parameters);
+                    }
+                    catch (BadImageFormatException)
+                    { }
+                }
+            }
+
+            return null;
+        }
+
+        private bool TryGetEntry(AssemblyName name, out AssemblyEntry entry)
+            => _assemblies.TryGetValue(name, out entry);
 
         private sealed class AssemblyEntry : IDisposable
         {
             public readonly AssemblyName Name;
-            private AssemblyDefinition? definition;
-            private AutoResetEvent? definitionLock;
-            private MemoryStream? definitionSnapshot;
-            private bool disposedValue;
-            private Assembly? loadedAssembly;
+            private bool _changes = false;
+            private AssemblyDefinition _definition;
+            private AutoResetEvent? _definitionLock;
+            private MemoryStream? _definitionSnapshot;
+            private bool _disposedValue = false;
+            private Assembly? _loadedAssembly;
 
-            [MemberNotNullWhen(true, nameof(loadedAssembly))]
-            [MemberNotNullWhen(false, nameof(definition), nameof(definitionLock), nameof(definitionSnapshot))]
-            public bool Loaded => loadedAssembly != null;
+            [MemberNotNullWhen(true, nameof(_loadedAssembly))]
+            [MemberNotNullWhen(false, nameof(_definition), nameof(_definitionLock), nameof(_definitionSnapshot))]
+            public bool Loaded => _loadedAssembly != null;
 
             public AssemblyEntry(AssemblyName name, AssemblyDefinition definition)
             {
                 Name = name;
-                this.definition = definition;
-                definitionLock = new(true);
-                definitionSnapshot = new();
+                _definition = definition;
+                _definitionLock = new(true);
+                _definitionSnapshot = new();
             }
 
             public void Dispose()
             {
                 // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-                dispose(true);
+                Dispose(true);
                 GC.SuppressFinalize(this);
             }
 
@@ -181,104 +275,129 @@ namespace MonkeyLoader
                 if (!Loaded)
                     throw new InvalidOperationException($"Assembly for [{Name}] hasn't been loaded yet!");
 
-                return loadedAssembly;
+                return _loadedAssembly;
             }
 
             public IEnumerable<AssemblyName> GetDependencies(HashSet<AssemblyName> alreadyLoaded)
             {
                 var fullNames = Loaded ?
-                    loadedAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name)
-                    : definition.Modules.SelectMany(module => module.AssemblyReferences)
+                    _loadedAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name)
+                    : _definition.Modules.SelectMany(module => module.AssemblyReferences)
                         .Select(reference => AssemblyNameReference.Parse(reference.Name).Name);
 
                 return fullNames.Select(name => new AssemblyName(name))
                     .Where(name => !alreadyLoaded.Contains(name));
             }
 
-            public Assembly LoadAssembly()
+            public AssemblyDefinition GetResolveDefinition() => _definition;
+
+            public Assembly LoadAssembly(MonkeyLogger logger, string? patchedAssemblyPath)
             {
+                var saveAssemblies = true;
+                if (string.IsNullOrWhiteSpace(patchedAssemblyPath) || !Directory.Exists(patchedAssemblyPath))
+                {
+                    saveAssemblies = false;
+                    logger.Debug(() => $"Save path for patched assemblies wasn't found: {patchedAssemblyPath}");
+                }
+
                 if (!Loaded)
                 {
                     WaitForDefinition();
-                    loadedAssembly = Assembly.Load(definitionSnapshot.ToArray());
+                    var definitionBytes = _definitionSnapshot.ToArray();
 
-                    definition.Dispose();
-                    definition = null;
+                    if (saveAssemblies && _changes)
+                    {
+                        var targetPath = Path.Combine(patchedAssemblyPath, $"{Name}.dll");
 
-                    definitionSnapshot.Dispose();
-                    definitionSnapshot = null;
+                        try
+                        {
+                            File.WriteAllBytes(targetPath, definitionBytes);
+                            logger.Debug(() => $"Saved patched assembly to {targetPath}");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Warn(() => ex.Format($"Exception while trying to save assembly to {targetPath}"));
+                        }
+                    }
 
-                    definitionLock.Dispose();
-                    definitionLock = null;
+                    _loadedAssembly = Assembly.Load(definitionBytes);
+                    logger.Debug(() => $"Loaded assembly definition [{Name}]");
+
+                    _definitionSnapshot.Dispose();
+                    _definitionSnapshot = null;
+
+                    _definitionLock.Dispose();
+                    _definitionLock = null;
                 }
 
-                return loadedAssembly;
+                return _loadedAssembly;
             }
 
             public void RestoreDefinition()
             {
                 if (Loaded)
-                    throwLoadedInvalidOperation();
+                    ThrowLoadedInvalidOperation();
 
-                throwIfAlreadyReturned();
+                ThrowIfAlreadyReturned();
 
-                definition.Dispose();
-                definitionSnapshot.Position = 0;
-                definition = AssemblyDefinition.ReadAssembly(definitionSnapshot);
+                _definition.Dispose();
+                _definitionSnapshot.Position = 0;
+                _definition = AssemblyDefinition.ReadAssembly(_definitionSnapshot);
 
-                definitionLock.Set();
+                _definitionLock.Set();
             }
 
             public void ReturnDefinition(AssemblyDefinition assemblyDefinition)
             {
                 if (Loaded)
-                    throwLoadedInvalidOperation();
+                    ThrowLoadedInvalidOperation();
 
-                throwIfAlreadyReturned();
+                ThrowIfAlreadyReturned();
 
-                definition = assemblyDefinition;
-                definitionLock.Set();
+                _definition = assemblyDefinition;
+                _definitionLock.Set();
+                _changes = true;
             }
 
             public AssemblyDefinition WaitForDefinition()
             {
                 if (Loaded)
-                    throwLoadedInvalidOperation();
+                    ThrowLoadedInvalidOperation();
 
-                definitionLock.WaitOne();
+                _definitionLock.WaitOne();
 
-                definitionSnapshot.SetLength(0);
-                definition.Write(definitionSnapshot);
+                _definitionSnapshot.SetLength(0);
+                _definition.Write(_definitionSnapshot);
 
-                return definition;
+                return _definition;
             }
 
-            private void dispose(bool disposing)
+            private void Dispose(bool disposing)
             {
-                if (!disposedValue)
+                if (!_disposedValue)
                 {
                     if (disposing && !Loaded)
                     {
-                        definition.Dispose();
-                        definitionSnapshot.Dispose();
-                        definitionLock.Dispose();
+                        _definition.Dispose();
+                        _definitionSnapshot.Dispose();
+                        _definitionLock.Dispose();
                     }
 
-                    disposedValue = true;
+                    _disposedValue = true;
                 }
             }
 
-            private void throwIfAlreadyReturned()
+            private void ThrowIfAlreadyReturned()
             {
-                if (definitionLock!.WaitOne(0))
+                if (_definitionLock!.WaitOne(0))
                 {
-                    definitionLock.Set();
+                    _definitionLock.Set();
                     throw new InvalidOperationException($"Can't return or restore AssemblyDefinition for [{Name}] when it wasn't taken first (using {nameof(WaitForDefinition)})!");
                 }
             }
 
             [DoesNotReturn]
-            private void throwLoadedInvalidOperation()
+            private void ThrowLoadedInvalidOperation()
                 => throw new InvalidOperationException($"Can't access AssemblyDefinition for [{Name}] after it has been loaded!");
         }
     }

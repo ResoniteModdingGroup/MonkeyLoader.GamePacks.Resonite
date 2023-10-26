@@ -32,13 +32,25 @@
 
 
   <Target Name="CustomPack" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
-    <Message Text="Packing Resonite Game Pack" Importance="high"/>
+    <Message Text="Packing Resonite Game Pack" Importance="high" />
     <Exec Command="S:\NuGet\nuget.exe pack $(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
     <Copy SourceFiles="$(ProjectDir)MonkeyLoader.GamePacks.Resonite.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" />
     <Message Text="Copied MonkeyLoader.GamePacks.Resonite.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" Importance="high" />
   </Target>
+
+
+  <ItemGroup>
+    <Compile Remove="Publiciser.cs" />
+    <Compile Remove="PubliciserSettings.cs" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="Publiciser.cs" />
+    <None Include="PubliciserSettings.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="1.13.2">
