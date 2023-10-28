@@ -36,14 +36,7 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets all the config keys of this section.
         /// </summary>
-        public IEnumerable<IDefiningConfigKey> Keys
-        {
-            get
-            {
-                foreach (var key in _keys)
-                    yield return key;
-            }
-        }
+        public IEnumerable<IDefiningConfigKey> Keys => _keys.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the name of the section.<br/>

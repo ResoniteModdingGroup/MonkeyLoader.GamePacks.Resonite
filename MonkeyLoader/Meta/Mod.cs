@@ -39,14 +39,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the names of the authors of this mod.
         /// </summary>
-        public IEnumerable<string> Authors
-        {
-            get
-            {
-                foreach (var author in Authors)
-                    yield return author;
-            }
-        }
+        public IEnumerable<string> Authors => _authors.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the config that this mod's (pre-)patcher(s) can use to load <see cref="ConfigSection"/>s.
@@ -68,14 +61,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the available <see cref="IEarlyMonkey"/>s of this mod.
         /// </summary>
-        public IEnumerable<IEarlyMonkey> EarlyMonkeys
-        {
-            get
-            {
-                foreach (var earlyMonkey in _earlyMonkeys)
-                    yield return (IEarlyMonkey)earlyMonkey;
-            }
-        }
+        public IEnumerable<IEarlyMonkey> EarlyMonkeys => _earlyMonkeys.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the readonly file system of this mod's file.
@@ -137,14 +123,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the available <see cref="IMonkey"/>s of this mod.
         /// </summary>
-        public IEnumerable<IMonkey> Monkeys
-        {
-            get
-            {
-                foreach (var monkey in _monkeys)
-                    yield return monkey;
-            }
-        }
+        public IEnumerable<IMonkey> Monkeys => _monkeys.AsSafeEnumerable();
 
         public IEnumerable<UPath> PatcherAssemblyPaths => _assemblyPaths.Where(path => !path.FullName.Contains(PrePatchersFolderName));
 
@@ -174,14 +153,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the tags of this mod.
         /// </summary>
-        public IEnumerable<string> Tags
-        {
-            get
-            {
-                foreach (var tag in _tags)
-                    yield return tag;
-            }
-        }
+        public IEnumerable<string> Tags => _tags.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the nice identifier of this mod.

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using NuGet.Protocol.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -26,14 +27,16 @@ namespace MonkeyLoader
     public static class EnumerableExtensions
     {
         /// <summary>
-        /// Formats an <see cref="AggregateException"/> with a message and a list of
-        /// all <see cref="AggregateException.InnerExceptions">inner</see> <see cref="Exception"/>s.
+        /// Wraps the given <see cref="IEnumerable{T}"/> in an iterator to prevent casting it to its underlaying type.
         /// </summary>
-        /// <param name="ex">The exception to format.</param>
-        /// <param name="message">The message to prepend.</param>
-        /// <returns>The formatted message and exceptions.</returns>
-        public static string Format(this AggregateException ex, string message)
-            => $"{message}{Environment.NewLine}{string.Join(Environment.NewLine, ex.InnerExceptions.Select(Format))}";
+        /// <typeparam name="T">The type of items in the sequence.</typeparam>
+        /// <param name="enumerable">The enumerable to wrap.</param>
+        /// <returns>An iterator wrapping the input enumerable.</returns>
+        public static IEnumerable<T> AsSafeEnumerable<T>(this IEnumerable<T> enumerable)
+        {
+            foreach (var item in enumerable)
+                yield return item;
+        }
 
         /// <summary>
         /// Formats an <see cref="Exception"/> with a message.
@@ -42,7 +45,7 @@ namespace MonkeyLoader
         /// <param name="message">The message to prepend.</param>
         /// <returns>The formatted message and exception.</returns>
         public static string Format(this Exception ex, string message)
-            => $"{message}{Environment.NewLine}{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+            => $"{message}{Environment.NewLine}{ex.Format()}";
 
         /// <summary>
         /// Formats an <see cref="Exception"/>.
@@ -50,7 +53,13 @@ namespace MonkeyLoader
         /// <param name="ex">The exception to format.</param>
         /// <returns>The formatted exception.</returns>
         public static string Format(this Exception ex)
-            => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
+        {
+            return ex switch
+            {
+                AggregateException aggrex => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}{string.Join(Environment.NewLine, aggrex.InnerExceptions.Select(Format))}{Environment.NewLine}--------------------",
+                _ => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}{(ex.InnerException is Exception innerEx ? $"{Environment.NewLine}{innerEx.Format()}" : "")}{Environment.NewLine}--------------------"
+            };
+        }
 
         /// <summary>
         /// Filters a source sequence of <see cref="Type"/>s to only contain the ones instantiable

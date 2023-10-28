@@ -15,7 +15,7 @@ namespace MonkeyLoader.Meta
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public sealed class ModLoadingLocation
     {
-        private Regex[] ignorePatterns;
+        private Regex[] _ignorePatterns;
 
         /// <summary>
         /// Gets the regex patterns that exclude a mod from being loaded if any match.<br/>
@@ -23,12 +23,8 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public IEnumerable<Regex> IgnorePatterns
         {
-            get
-            {
-                foreach (var pattern in ignorePatterns)
-                    yield return pattern;
-            }
-            set => ignorePatterns = value.ToArray();
+            get => _ignorePatterns.AsSafeEnumerable();
+            set => _ignorePatterns = value.ToArray();
         }
 
         /// <summary>
@@ -38,8 +34,8 @@ namespace MonkeyLoader.Meta
         [JsonProperty("IgnorePatterns")]
         public IEnumerable<string> IgnorePatternsStrings
         {
-            get => ignorePatterns.Select(regex => regex.ToString());
-            set => ignorePatterns = value.Select(pattern => new Regex(pattern)).ToArray();
+            get => _ignorePatterns.Select(regex => regex.ToString());
+            set => _ignorePatterns = value.Select(pattern => new Regex(pattern)).ToArray();
         }
 
         /// <summary>
@@ -81,7 +77,7 @@ namespace MonkeyLoader.Meta
         {
             Path = path;
             Recursive = recursive;
-            this.ignorePatterns = ignorePatterns.ToArray();
+            this._ignorePatterns = ignorePatterns.ToArray();
         }
 
         /// <summary>
@@ -90,10 +86,10 @@ namespace MonkeyLoader.Meta
         /// <returns>The full names (including paths) of all files that satisfy the specifications.</returns>
         public IEnumerable<string> Search()
             => Directory.EnumerateFiles(Path, Mod.SearchPattern, Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
-                    .Where(path => !ignorePatterns.Any(pattern => pattern.IsMatch(path)));
+                    .Where(path => !_ignorePatterns.Any(pattern => pattern.IsMatch(path)));
 
         /// <inheritdoc/>
         public override string ToString()
-            => $"[Recursive: {Recursive}, Path: {Path}, Excluding: {{ {string.Join(" ", ignorePatterns.Select(p => p.ToString()))} }}]";
+            => $"[Recursive: {Recursive}, Path: {Path}, Excluding: {{ {string.Join(" ", _ignorePatterns.Select(p => p.ToString()))} }}]";
     }
 }

@@ -10,7 +10,7 @@ namespace MonkeyLoader.Patching
     /// <summary>
     /// Abstract base for regular <see cref="Monkey{TMonkey}"/>s and <see cref="EarlyMonkey{TMonkey}"/>s.
     /// </summary>
-    public abstract class MonkeyBase : IMonkey
+    public abstract partial class MonkeyBase : IMonkey
     {
         private static readonly Type _monkeyType = typeof(MonkeyBase);
         private Mod _mod;
@@ -123,7 +123,11 @@ namespace MonkeyLoader.Patching
         /// <inheritdoc/>
         protected virtual bool OnShutdown() => true;
 
-        private protected void ThrowIfRan()
+        /// <summary>
+        /// Throws an <see cref="InvalidOperationException"/> if <see cref="Ran"/> is <c>true</c>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If <see cref="Ran"/> is <c>true</c>.</exception>
+        protected void ThrowIfRan()
         {
             if (Ran)
                 throw new InvalidOperationException("A monkey's Run() method must only be called once!");

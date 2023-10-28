@@ -71,6 +71,18 @@ namespace MonkeyLoader.Configuration
 
         /// <inheritdoc/>
         public override int GetHashCode() => Name.GetHashCode();
+
+        /// <summary>
+        /// <see cref="IEqualityComparer{T}"/> for <see cref="IConfigKey"/>s.
+        /// </summary>
+        private sealed class ConfigKeyEqualityComparer : IEqualityComparer<IConfigKey>
+        {
+            /// <inheritdoc/>
+            public bool Equals(IConfigKey x, IConfigKey y) => ReferenceEquals(x, y) || x.Name == y.Name;
+
+            /// <inheritdoc/>
+            public int GetHashCode(IConfigKey obj) => obj.Name.GetHashCode();
+        }
     }
 
     /// <inheritdoc/>
@@ -110,17 +122,5 @@ namespace MonkeyLoader.Configuration
         /// Get the <see cref="Type"/> of this config item's value.
         /// </summary>
         public Type ValueType { get; }
-    }
-
-    /// <summary>
-    /// <see cref="IEqualityComparer{T}"/> for <see cref="IConfigKey"/>s.
-    /// </summary>
-    internal sealed class ConfigKeyEqualityComparer : IEqualityComparer<IConfigKey>
-    {
-        /// <inheritdoc/>
-        public bool Equals(IConfigKey x, IConfigKey y) => ReferenceEquals(x, y) || x.Name == y.Name;
-
-        /// <inheritdoc/>
-        public int GetHashCode(IConfigKey obj) => obj.Name.GetHashCode();
     }
 }

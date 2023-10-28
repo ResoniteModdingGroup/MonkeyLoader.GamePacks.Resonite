@@ -53,14 +53,7 @@ namespace MonkeyLoader.Configuration
         /// <summary>
         /// Gets all loaded sections of this config.
         /// </summary>
-        public IEnumerable<ConfigSection> Sections
-        {
-            get
-            {
-                foreach (var section in _sections)
-                    yield return section;
-            }
-        }
+        public IEnumerable<ConfigSection> Sections => _sections.AsSafeEnumerable();
 
         internal Config(IConfigOwner owner)
         {
