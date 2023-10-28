@@ -3,7 +3,6 @@ using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
-using MonkeyLoader.Prepatching;
 using Mono.Cecil;
 using Newtonsoft.Json;
 using System;
@@ -365,13 +364,14 @@ namespace MonkeyLoader
         /// </summary>
         public void RunEarlyMonkeys(IEnumerable<Mod> mods)
         {
-            foreach (var mod in mods)
-            {
-                // Add check for mod.EarlyMonkeyLoadError
+            // Add check for mod.EarlyMonkeyLoadError
 
-                foreach (var earlyMonkey in mod.EarlyMonkeys)
-                    earlyMonkey.Run();
-            }
+            var earlyMonkeys = mods.SelectMany(mod => mod.EarlyMonkeys).ToArray();
+            Array.Sort(earlyMonkeys);
+            Array.Reverse(earlyMonkeys);
+
+            foreach (var earlyMonkey in earlyMonkeys)
+                earlyMonkey.Run();
         }
 
         /// <summary>
@@ -402,11 +402,14 @@ namespace MonkeyLoader
         /// </summary>
         public void RunMonkeys(IEnumerable<Mod> mods)
         {
-            foreach (var mod in mods)
-            {
-                foreach (var monkey in mod.Monkeys)
-                    monkey.Run();
-            }
+            // Add check for mod.MonkeyLoadError
+
+            var monkeys = mods.SelectMany(mod => mod.Monkeys).ToArray();
+            Array.Sort(monkeys);
+            Array.Reverse(monkeys);
+
+            foreach (var monkey in monkeys)
+                monkey.Run();
         }
 
         /// <summary>

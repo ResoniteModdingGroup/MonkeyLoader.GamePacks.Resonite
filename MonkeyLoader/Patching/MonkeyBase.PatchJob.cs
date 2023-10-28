@@ -69,7 +69,7 @@ namespace MonkeyLoader.Patching
             public PrePatchTarget Target { get; }
 
             /// <summary>
-            /// Efficiently gets the <see cref="TypeDefinition"/> for the given full name.
+            /// Efficiently gets the <see cref="TypeSet"/> for the given full name.
             /// </summary>
             /// <param name="fullName">The full name of the type to get.</param>
             /// <returns>The type's definition.</returns>
@@ -77,7 +77,7 @@ namespace MonkeyLoader.Patching
             public TypeDefinition this[string fullName] => _types[fullName];
 
             /// <summary>
-            /// Gets the <see cref="TypeDefinition"/>s for the types specified in the target.
+            /// Gets the <see cref="TypeSet"/>s for the types specified in the target.
             /// </summary>
             public IEnumerable<TypeDefinition> Types => _types.Values.AsSafeEnumerable();
 
@@ -90,7 +90,7 @@ namespace MonkeyLoader.Patching
             }
 
             /// <summary>
-            /// Efficiently tries to get the <see cref="TypeDefinition"/> for the given full name.
+            /// Efficiently tries to get the <see cref="TypeSet"/> for the given full name.
             /// </summary>
             /// <param name="fullName">The full name of the type to get.</param>
             /// <param name="typeDefinition">The type's definition, or <c>null</c> if it couldn't be found.</param>

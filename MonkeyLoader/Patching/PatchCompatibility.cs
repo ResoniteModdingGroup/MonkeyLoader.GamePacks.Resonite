@@ -11,7 +11,7 @@ namespace MonkeyLoader.Patching
     /// <summary>
     /// Indicates how compatible a patch for a particular feature is with others.
     /// <para/>
-    /// Impact of the patch decreases with lower values.
+    /// Impact of the patch decreases with higher values.
     /// </summary>
     public enum PatchCompatibility
     {

@@ -3,7 +3,6 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
-using MonkeyLoader.Prepatching;
 using NuGet.Packaging;
 using System;
 using System.Collections.Generic;

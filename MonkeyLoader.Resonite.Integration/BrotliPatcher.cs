@@ -14,6 +14,8 @@ namespace MonkeyLoader.Resonite
     {
         public override string Name { get; } = "Brotli Fix";
 
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
         protected override bool OnLoaded()
         {
             Harmony.PatchCategory(nameof(BrotliPatcher));

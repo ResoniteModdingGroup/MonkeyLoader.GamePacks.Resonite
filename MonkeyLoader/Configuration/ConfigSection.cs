@@ -1,7 +1,4 @@
 ﻿using HarmonyLib;
-using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
-using MonkeyLoader.Prepatching;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

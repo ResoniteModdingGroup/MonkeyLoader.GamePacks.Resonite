@@ -1,11 +1,9 @@
-﻿using MonkeyLoader.Game;
-using MonkeyLoader.Logging;
+﻿using MonkeyLoader.Logging;
 using MonkeyLoader.Patching;
 using System;
 
 namespace MonkeyLoader.ConsoleTest
 {
-    [FeaturePatch<TestFeature>((PatchCompatibility)0)]
     internal class Program
     {
         private static void Main(string[] args)

@@ -14,10 +14,14 @@ namespace MonkeyLoader.Resonite
 {
     [HarmonyPatchCategory(nameof(ResoniteHooksMonkey))]
     [HarmonyPatch(typeof(Engine), nameof(Engine.Initialize))]
-    [FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly)]
     internal sealed class ResoniteHooksMonkey : Monkey<ResoniteHooksMonkey>
     {
         public override string Name { get; } = "Hooks";
+
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
+        {
+            yield return new FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly);
+        }
 
         protected override sealed bool OnLoaded()
         {
