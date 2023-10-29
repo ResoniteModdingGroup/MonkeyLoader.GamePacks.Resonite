@@ -12,7 +12,7 @@ namespace MonkeyLoader.Patching
     /// <summary>
     /// Abstract base for regular <see cref="Monkey{TMonkey}"/>s and <see cref="EarlyMonkey{TMonkey}"/>s.
     /// </summary>
-    public abstract partial class MonkeyBase : IMonkey, IComparable<MonkeyBase>
+    public abstract partial class MonkeyBase : IMonkey
     {
         private static readonly Type _monkeyType = typeof(MonkeyBase);
         private readonly Lazy<IFeaturePatch[]> _featurePatches;
@@ -29,9 +29,7 @@ namespace MonkeyLoader.Patching
         /// </summary>
         public bool Failed { get; protected set; }
 
-        /// <summary>
-        /// Gets the impacts this (pre-)patcher has on certain features in the order of their size.
-        /// </summary>
+        /// <inheritdoc/>
         public IEnumerable<IFeaturePatch> FeaturePatches => _featurePatches.Value.AsSafeEnumerable();
 
         /// <inheritdoc/>
@@ -89,21 +87,21 @@ namespace MonkeyLoader.Patching
         }
 
         /// <inheritdoc/>
-        public int CompareTo(MonkeyBase other)
+        public int CompareTo(IMonkey other)
         {
             var thisBigger = false;
             var otherBigger = false;
 
             // Better declare features if you want to sort high
             if (_featurePatches.Value.Length == 0)
-                return other._featurePatches.Value.Length == 0 ? 0 : -1;
+                return other.FeaturePatches.Count() == 0 ? 0 : -1;
 
-            if (other._featurePatches.Value.Length == 0)
+            if (other.FeaturePatches.Count() == 0)
                 return 1;
 
             foreach (var thisFeaturePatch in _featurePatches.Value)
             {
-                foreach (var otherFeaturePatch in other._featurePatches.Value)
+                foreach (var otherFeaturePatch in other.FeaturePatches)
                 {
                     var comparison = thisFeaturePatch.CompareTo(otherFeaturePatch);
 

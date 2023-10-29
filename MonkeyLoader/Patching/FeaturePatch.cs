@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Patching
 {
     /// <summary>
-    /// Specifies how much a (pre-)patcher affects a particular <see cref="GameFeature"/>.
+    /// Specifies how much a (pre-)patcher affects a particular <see cref="global::MonkeyLoader.Feature"/>.
     /// </summary>
     /// <typeparam name="TFeature">The patched game feature.</typeparam>
     public sealed class FeaturePatch<TFeature> : IFeaturePatch,
         IEquatable<IFeaturePatch>, IComparable<IFeaturePatch>
-        where TFeature : GameFeature, new()
+        where TFeature : Feature, new()
     {
         /// <inheritdoc/>
         public PatchCompatibility Compatibility { get; }
@@ -22,7 +22,7 @@ namespace MonkeyLoader.Patching
         /// </summary>
         public TFeature Feature { get; }
 
-        GameFeature IFeaturePatch.Feature => Feature;
+        Feature IFeaturePatch.Feature => Feature;
 
         /// <summary>
         /// Creates a new feature patch with the given <see cref="PatchCompatibility"/>.
@@ -31,7 +31,7 @@ namespace MonkeyLoader.Patching
         public FeaturePatch(PatchCompatibility patchCompatibility)
         {
             Compatibility = patchCompatibility;
-            Feature = GameFeature.GetInstance<TFeature>();
+            Feature = Feature<TFeature>.Instance;
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace MonkeyLoader.Patching
     }
 
     /// <summary>
-    /// Specifies how much a (pre-)patcher affects a particular <see cref="GameFeature"/>.
+    /// Specifies how much a (pre-)patcher affects a particular <see cref="global::MonkeyLoader.Feature"/>.
     /// </summary>
     public interface IFeaturePatch : IEquatable<IFeaturePatch>, IComparable<IFeaturePatch>
     {
@@ -74,6 +74,6 @@ namespace MonkeyLoader.Patching
         /// <summary>
         /// Gets the affected feature.
         /// </summary>
-        public GameFeature Feature { get; }
+        public Feature Feature { get; }
     }
 }

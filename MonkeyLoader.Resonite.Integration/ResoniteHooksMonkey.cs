@@ -2,7 +2,7 @@
 using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using MonkeyLoader.Resonite.Features;
+using MonkeyLoader.Resonite.Features.FrooxEngine;
 using System;
 using System.Collections.Generic;
 using System.IO;

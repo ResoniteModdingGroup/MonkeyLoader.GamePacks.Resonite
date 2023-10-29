@@ -21,7 +21,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// The interface for any monkey.
     /// </summary>
-    public interface IMonkey : IRun, IShutdown
+    public interface IMonkey : IRun, IShutdown, IComparable<IMonkey>
     {
         /// <summary>
         /// Gets the name of the assembly this monkey is defined in.
@@ -32,6 +32,11 @@ namespace MonkeyLoader.Meta
         /// Gets the <see cref="Configuration.Config"/> that this monkey can use to load <see cref="ConfigSection"/>s.
         /// </summary>
         public Config Config { get; }
+
+        /// <summary>
+        /// Gets the impacts this (pre-)patcher has on certain features in the order of their size.
+        /// </summary>
+        public IEnumerable<IFeaturePatch> FeaturePatches { get; }
 
         /// <summary>
         /// Gets the <see cref="HarmonyLib.Harmony">Harmony</see> instance to be used by this patcher.

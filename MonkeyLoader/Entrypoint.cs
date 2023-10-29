@@ -34,6 +34,7 @@ namespace Doorstop
 
                 log.Info(() => $"Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");
                 log.Info(() => $"Relative Search Directory: {AppDomain.CurrentDomain.RelativeSearchPath}");
+                log.Info(() => $"Private Bin Path: {AppDomain.CurrentDomain.SetupInformation.PrivateBinPath}");
                 log.Info(() => $"Entry Assembly: {Assembly.GetEntryAssembly()?.Location}");
                 log.Info(() => "CMD Args: " + string.Join(" ", Environment.GetCommandLineArgs()));
 

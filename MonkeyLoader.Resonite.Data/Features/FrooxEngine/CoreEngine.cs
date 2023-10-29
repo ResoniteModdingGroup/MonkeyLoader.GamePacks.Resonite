@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.Features
+namespace MonkeyLoader.Resonite.Features.FrooxEngine
 {
     /// <summary>
-    /// Anything affecting the core Engine class.
+    /// Anything affecting the whole core Engine class.
     /// </summary>
-    public class CoreEngine : GameFeature
+    public class CoreEngine : FrooxEngine
     {
         /// <inheritdoc/>
-        public override string Description { get; } = "Anything affecting the core Engine class.";
+        public override string Description { get; } = "Anything affecting the whole core Engine class.";
 
         /// <inheritdoc/>
         public override string Name { get; } = "Engine";

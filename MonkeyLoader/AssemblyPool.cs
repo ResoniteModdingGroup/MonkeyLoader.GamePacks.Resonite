@@ -2,6 +2,7 @@
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -73,10 +74,15 @@ namespace MonkeyLoader
 
             var entries = _assemblies.Values
                 .Where(entry => !entry.Loaded)
-                .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded));
+                .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded))
+                .ToArray();
+
+            var sw = Stopwatch.StartNew();
 
             foreach (var entry in entries)
                 entry.LoadAssembly(_logger, PatchedAssemblyPath);
+
+            _logger.Info(() => $"Loaded all {entries.Length} assembly definitions in {sw.ElapsedMilliseconds}ms!");
         }
 
         /// <summary>
@@ -312,7 +318,7 @@ namespace MonkeyLoader
                         try
                         {
                             File.WriteAllBytes(targetPath, definitionBytes);
-                            logger.Debug(() => $"Saved patched assembly to {targetPath}");
+                            logger.Trace(() => $"Saved patched assembly to {targetPath}");
                         }
                         catch (Exception ex)
                         {
@@ -321,7 +327,7 @@ namespace MonkeyLoader
                     }
 
                     _loadedAssembly = Assembly.Load(definitionBytes);
-                    logger.Debug(() => $"Loaded assembly definition [{Name}]");
+                    logger.Trace(() => $"Loaded assembly definition [{Name}]");
 
                     _definitionSnapshot.Dispose();
                     _definitionSnapshot = null;

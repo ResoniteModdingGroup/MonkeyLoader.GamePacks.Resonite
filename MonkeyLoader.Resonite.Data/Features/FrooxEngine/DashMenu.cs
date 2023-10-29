@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.Features
+namespace MonkeyLoader.Resonite.Features.FrooxEngine
 {
     /// <summary>
     /// The Exit screen of the dash menu.
@@ -55,12 +55,12 @@ namespace MonkeyLoader.Resonite.Features
     }
 
     /// <summary>
-    /// Anything on the dash menu.
+    /// The whole dash menu.
     /// </summary>
-    public class DashMenu : GameFeature
+    public class DashMenu : FrooxEngine
     {
         /// <inheritdoc/>
-        public override string Description { get; } = "Anything on the dash menu.";
+        public override string Description { get; } = "The whole dash menu.";
 
         /// <inheritdoc/>
         public override string Name { get; } = "Dash Menu";

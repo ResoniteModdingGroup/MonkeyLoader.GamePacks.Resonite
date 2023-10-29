@@ -39,6 +39,56 @@ namespace MonkeyLoader
         }
 
         /// <summary>
+        /// Appends a single item to a sequence.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+        /// <param name="source">The input sequence.</param>
+        /// <param name="item">The item to append.</param>
+        /// <returns>The sequence with an appended item.</returns>
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T item)
+        {
+            foreach (var sourceItem in source)
+                yield return sourceItem;
+
+            yield return item;
+        }
+
+        /// <summary>
+        /// Outputs all nodes that are part of cycles, given an expression that produces a set of connected nodes.
+        /// </summary>
+        /// <param name="nodes">The input nodes.</param>
+        /// <param name="identifier">Gets the dependency identifier of a node.</param>
+        /// <param name="connected">The expression producing connected nodes.</param>
+        /// <typeparam name="TNode">The node type.</typeparam>
+        /// <typeparam name="TDependency">The dependency connection type.</typeparam>
+        /// <returns>All input nodes that are part of a cycle.</returns>
+        public static IEnumerable<TNode> FindCycles<TNode, TDependency>(this IEnumerable<TNode> nodes, Func<TNode, TDependency> identifier, Func<TNode, IEnumerable<TDependency>> connected)
+            where TNode : notnull
+            where TDependency : notnull
+        {
+            var currentPath = new Stack<TNode>();
+            var visited = new HashSet<TNode>();
+            var dependencies = nodes.ToDictionary(node => node, node => new HashSet<TDependency>(connected(node)));
+
+            while (dependencies.Count > 0)
+            {
+                var key = dependencies.FirstOrDefault(x => x.Value.Count == 0).Key
+                    ?? throw new ArgumentException($"Cyclic dependencies are not allowed!{Environment.NewLine}" +
+                    $"Sorted: {string.Join(", ", nodes.Select(identifier).Except(dependencies.Keys.Select(identifier)))}{Environment.NewLine}" +
+                    $"Unsorted:{Environment.NewLine}" +
+                    $"    {string.Join($"{Environment.NewLine}    ", dependencies.Select(element => $"{identifier(element.Key)}:{Environment.NewLine}        {string.Join($"{Environment.NewLine}        ", element.Value)}"))}");
+
+                dependencies.Remove(key);
+
+                var id = identifier(key);
+                foreach (var updateElement in dependencies)
+                    updateElement.Value.Remove(id);
+
+                yield return key;
+            }
+        }
+
+        /// <summary>
         /// Formats an <see cref="Exception"/> with a message.
         /// </summary>
         /// <param name="ex">The exception to format.</param>
@@ -138,7 +188,7 @@ namespace MonkeyLoader
         /// <param name="nodes">The input nodes.</param>
         /// <param name="connected">The expression producing connected nodes.</param>
         /// <typeparam name="TNode">The node type.</typeparam>
-        /// <returns>The input nodes, sorted .</returns>
+        /// <returns>The input nodes, sorted.</returns>
         /// <exception cref="ArgumentException">Thrown if a cyclic dependency is found.</exception>
         public static IEnumerable<TNode> TopologicalSort<TNode>(this IEnumerable<TNode> nodes, Func<TNode, IEnumerable<TNode>> connected)
             where TNode : notnull => nodes.TopologicalSort(node => node, connected);
@@ -197,6 +247,17 @@ namespace MonkeyLoader
                 if (trySelector(item, out var result))
                     yield return result;
             }
+        }
+
+        /// <summary>
+        /// Turns a single item into a sequence.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+        /// <param name="item">The item to make into a sequence.</param>
+        /// <returns>The item as a sequence.</returns>
+        public static IEnumerable<T> Yield<T>(this T item)
+        {
+            yield return item;
         }
     }
 }

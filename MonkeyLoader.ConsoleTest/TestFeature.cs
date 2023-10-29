@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.ConsoleTest
 {
-    internal class TestFeature : GameFeature
+    internal class TestFeature : Feature
     {
-        public override string Description => "Testing so hard right now.";
+        public override AssemblyName Assembly { get; } = new AssemblyName("Test");
+        public override string Description { get; } = "Testing so hard right now.";
 
-        public override string Name => "Test";
+        public override string Name { get; } = "Test";
     }
 }
