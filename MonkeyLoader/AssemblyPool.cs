@@ -68,21 +68,26 @@ namespace MonkeyLoader
         /// <summary>
         /// Loads all (not yet loaded) <see cref="Assembly"/> entries.
         /// </summary>
-        public void LoadAll()
+        public void LoadAll(string path)
         {
-            var alreadyLoaded = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new AssemblyName(assembly.GetName().Name)).ToHashSet();
-
-            var entries = _assemblies.Values
-                .Where(entry => !entry.Loaded)
-                .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded))
-                .ToArray();
-
             var sw = Stopwatch.StartNew();
 
-            foreach (var entry in entries)
-                entry.LoadAssembly(_logger, PatchedAssemblyPath);
+            Directory.CreateDirectory(path);
 
-            _logger.Info(() => $"Loaded all {entries.Length} assembly definitions in {sw.ElapsedMilliseconds}ms!");
+            //var alreadyLoaded = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => new AssemblyName(assembly.GetName().Name)).ToHashSet();
+
+            //var entries = _assemblies.Values
+            //    .Where(entry => !entry.Loaded)
+            //    .TopologicalSort(entry => entry.Name, entry => entry.GetDependencies(alreadyLoaded))
+            //    .ToArray();
+
+            //foreach (var entry in entries)
+            //    entry.LoadAssembly(_logger, PatchedAssemblyPath);
+
+            foreach (var assemblyPath in _assemblies.Values.Select(entry => entry.SaveAssembly(path, _logger)).Where(path => path is not null).ToArray())
+                Assembly.LoadFile(assemblyPath);
+
+            _logger.Info(() => $"Loaded all {_assemblies.Count} assembly definitions in {sw.ElapsedMilliseconds}ms!");
         }
 
         /// <summary>
@@ -376,6 +381,27 @@ namespace MonkeyLoader
                 _definition.Write(_definitionSnapshot);
 
                 return _definition;
+            }
+
+            internal string? SaveAssembly(string path, MonkeyLogger logger)
+            {
+                WaitForDefinition();
+                var definitionBytes = _definitionSnapshot!.ToArray();
+
+                var targetPath = Path.Combine(path, $"{Name}.dll");
+
+                try
+                {
+                    File.WriteAllBytes(targetPath, definitionBytes);
+                    logger.Trace(() => $"Saved patched assembly to {targetPath}");
+                    return targetPath;
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn(() => ex.Format($"Exception while trying to save assembly to {targetPath}"));
+                }
+
+                return null;
             }
 
             private void Dispose(bool disposing)

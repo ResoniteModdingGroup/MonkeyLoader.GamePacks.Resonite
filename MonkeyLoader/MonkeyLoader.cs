@@ -185,17 +185,14 @@ namespace MonkeyLoader
         /// </summary>
         public void EnsureAllLocationsExist()
         {
-            IEnumerable<string> locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs };
+            IEnumerable<string> locations = new[] { Locations.Configs, Locations.GamePacks, Locations.Libs, Locations.PatchedAssemblies };
             var modLocations = Locations.Mods.Select(modLocation => modLocation.Path).ToArray();
-
-            if (Locations.SavePatchedAssemblies)
-                locations = locations.Concat(new[] { Locations.PatchedAssemblies });
 
             Logger.Info(() => $"Ensuring that all configured locations exist as directories:{Environment.NewLine}" +
                 $"    {nameof(Locations.Configs)}: {Locations.Configs}{Environment.NewLine}" +
                 $"    {nameof(Locations.GamePacks)}: {Locations.GamePacks}{Environment.NewLine}" +
                 $"    {nameof(Locations.Libs)}: {Locations.Libs}{Environment.NewLine}" +
-                $"    {nameof(Locations.PatchedAssemblies)}: {(Locations.SavePatchedAssemblies ? Locations.PatchedAssemblies : "disabled")}{Environment.NewLine}" +
+                $"    {nameof(Locations.PatchedAssemblies)}: {Locations.PatchedAssemblies}{Environment.NewLine}" +
                 $"    {nameof(Locations.Mods)}:{Environment.NewLine}" +
                 $"      - {string.Join(Environment.NewLine + "      - ", modLocations)}");
 
@@ -293,9 +290,9 @@ namespace MonkeyLoader
         /// </summary>
         public void LoadGameAssemblies()
         {
-            Assembly.Load("System.Web");
-            Assembly.Load("System.ServiceModel");
-            GameAssemblyPool.LoadAll();
+            //    Assembly.Load("System.Web");
+            //    Assembly.Load("System.ServiceModel");
+            GameAssemblyPool.LoadAll(Locations.PatchedAssemblies);
         }
 
         public void LoadGameAssemblyDefinitions()
