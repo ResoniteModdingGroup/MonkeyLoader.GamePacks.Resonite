@@ -1,6 +1,8 @@
 ﻿using MonkeyLoader.Logging;
+using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
 using System;
+using System.Runtime.InteropServices;
 
 namespace MonkeyLoader.ConsoleTest
 {
@@ -9,6 +11,14 @@ namespace MonkeyLoader.ConsoleTest
         private static void Main(string[] args)
         {
             Console.WriteLine(".NET Runtime Version: {0}", Environment.Version.ToString());
+            Console.WriteLine($".NET Runtime: {RuntimeInformation.FrameworkDescription}");
+            Console.WriteLine($"Domain Target Framework: {AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName}");
+            Console.WriteLine($"NuGetFramework Name: {NuGetManager.FrameworkName}");
+            Console.WriteLine($"NuGetFramework: {NuGetManager.Framework}");
+
+            Console.WriteLine("Compatible NuGetFrameworks:");
+            foreach (var framework in NuGetManager.CompatibleFrameworks)
+                Console.WriteLine($"{framework} - {framework.GetShortFolderName()}");
 
             //var attributes = typeof(Program).GetCustomAttributes(false);
 

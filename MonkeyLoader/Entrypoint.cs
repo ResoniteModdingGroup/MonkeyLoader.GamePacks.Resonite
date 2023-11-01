@@ -1,5 +1,6 @@
 ﻿using MonkeyLoader;
 using MonkeyLoader.Logging;
+using MonkeyLoader.NuGet;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Doorstop
 {
@@ -31,6 +33,15 @@ namespace Doorstop
                 var loader = new MonkeyLoader.MonkeyLoader();
                 loader.LoggingLevel = LoggingLevel.Trace;
                 loader.LoggingHandler = log;
+
+                log.Info(() => $".NET Runtime Version: {Environment.Version}");
+                log.Info(() => $".NET Runtime: {RuntimeInformation.FrameworkDescription}");
+                log.Info(() => $"Domain Target Framework: {AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName}");
+                log.Info(() => $"NuGetFramework: {NuGetManager.Framework}");
+
+                log.Info(() => "Compatible NuGetFrameworks:");
+                foreach (var framework in NuGetManager.CompatibleFrameworks)
+                    log.Info(() => $"{framework}");
 
                 log.Info(() => $"Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");
                 log.Info(() => $"Relative Search Directory: {AppDomain.CurrentDomain.RelativeSearchPath}");

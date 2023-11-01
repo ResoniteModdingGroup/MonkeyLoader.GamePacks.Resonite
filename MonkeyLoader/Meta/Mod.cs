@@ -221,6 +221,8 @@ namespace MonkeyLoader.Meta
             ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
             Config = new Config(this);
 
+            //nuspecReader.GetDependencyGroups().First().rf.Packages.First().
+
             var assemblyFolder = $"/lib/{NuGetManager.Framework.GetShortFolderName()}/";
             Logger.Trace(() => $"Checking package folder: {assemblyFolder}");
 
