@@ -84,6 +84,7 @@ namespace MonkeyLoader
             //foreach (var entry in entries)
             //    entry.LoadAssembly(_logger, PatchedAssemblyPath);
 
+            // Only need to save and manually load those that were modified or have dependencies that were modified
             foreach (var assemblyPath in _assemblies.Values.Select(entry => entry.SaveAssembly(path, _logger)).Where(path => path is not null).ToArray())
                 Assembly.LoadFile(assemblyPath);
 

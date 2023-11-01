@@ -30,18 +30,12 @@ namespace Doorstop
             {
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) => log.Fatal(() => (e.ExceptionObject as Exception)?.Format("Unhandled Exception!") ?? "Unhandled Exception!");
 
-                var loader = new MonkeyLoader.MonkeyLoader();
-                loader.LoggingLevel = LoggingLevel.Trace;
+                var loader = new MonkeyLoader.MonkeyLoader(loggingLevel: LoggingLevel.Trace);
                 loader.LoggingHandler = log;
 
                 log.Info(() => $".NET Runtime Version: {Environment.Version}");
                 log.Info(() => $".NET Runtime: {RuntimeInformation.FrameworkDescription}");
                 log.Info(() => $"Domain Target Framework: {AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName}");
-                log.Info(() => $"NuGetFramework: {NuGetManager.Framework}");
-
-                log.Info(() => "Compatible NuGetFrameworks:");
-                foreach (var framework in NuGetManager.CompatibleFrameworks)
-                    log.Info(() => $"{framework}");
 
                 log.Info(() => $"Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");
                 log.Info(() => $"Relative Search Directory: {AppDomain.CurrentDomain.RelativeSearchPath}");

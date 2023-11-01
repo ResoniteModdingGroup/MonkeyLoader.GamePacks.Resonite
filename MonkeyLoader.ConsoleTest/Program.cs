@@ -13,11 +13,11 @@ namespace MonkeyLoader.ConsoleTest
             Console.WriteLine(".NET Runtime Version: {0}", Environment.Version.ToString());
             Console.WriteLine($".NET Runtime: {RuntimeInformation.FrameworkDescription}");
             Console.WriteLine($"Domain Target Framework: {AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName}");
-            Console.WriteLine($"NuGetFramework Name: {NuGetManager.FrameworkName}");
-            Console.WriteLine($"NuGetFramework: {NuGetManager.Framework}");
+            Console.WriteLine($"NuGetFramework Name: {NuGetHelper.FrameworkName}");
+            Console.WriteLine($"NuGetFramework: {NuGetHelper.Framework}");
 
             Console.WriteLine("Compatible NuGetFrameworks:");
-            foreach (var framework in NuGetManager.CompatibleFrameworks)
+            foreach (var framework in NuGetHelper.CompatibleFrameworks)
                 Console.WriteLine($"{framework} - {framework.GetShortFolderName()}");
 
             //var attributes = typeof(Program).GetCustomAttributes(false);

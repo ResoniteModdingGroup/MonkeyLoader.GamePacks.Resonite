@@ -85,7 +85,7 @@ namespace MonkeyLoader.Meta
         /// </summary>
         /// <returns>The full names (including paths) of all files that satisfy the specifications.</returns>
         public IEnumerable<string> Search()
-            => Directory.EnumerateFiles(Path, Mod.SearchPattern, Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+            => Directory.EnumerateFiles(Path, NuGetPackageMod.SearchPattern, Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                     .Where(path => !_ignorePatterns.Any(pattern => pattern.IsMatch(path)));
 
         /// <inheritdoc/>

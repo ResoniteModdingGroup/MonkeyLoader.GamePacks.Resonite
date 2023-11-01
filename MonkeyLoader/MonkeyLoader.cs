@@ -10,12 +10,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Zio.FileSystems;
 
 namespace MonkeyLoader
 {
@@ -42,6 +40,9 @@ namespace MonkeyLoader
         /// </summary>
         public IEnumerable<IEarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
 
+        /// <summary>
+        /// Gets the path pointing of the directory containing the game's assemblies.
+        /// </summary>
         public string GameAssemblyPath { get; }
 
         /// <summary>
@@ -85,7 +86,7 @@ namespace MonkeyLoader
         /// <summary>
         /// Gets or sets the current <see cref="LoggingLevel"/> used to filter requests on <see cref="MonkeyLogger"/> instances.
         /// </summary>
-        public LoggingLevel LoggingLevel { get; set; } = LoggingLevel.Info;
+        public LoggingLevel LoggingLevel { get; set; }
 
         /// <summary>
         /// Gets all loaded regular <see cref="Mod"/>s.
@@ -120,9 +121,10 @@ namespace MonkeyLoader
         /// Creates a new mod loader with the given configuration file.
         /// </summary>
         /// <param name="configPath">The path to the configuration file to use.</param>
-        public MonkeyLoader(string configPath = "MonkeyLoader.json")
+        public MonkeyLoader(string configPath = "MonkeyLoader.json", LoggingLevel loggingLevel = LoggingLevel.Info)
         {
             Logger = new(this);
+            LoggingLevel = loggingLevel;
             ConfigPath = configPath;
 
             JsonSerializer = new();
@@ -238,18 +240,18 @@ namespace MonkeyLoader
         /// Loads all game pack mods from the <see cref="LocationConfigSection">configured</see> <see cref="LocationConfigSection.GamePacks"> location</see>.
         /// </summary>
         /// <returns>All successfully loaded game pack mods.</returns>
-        public IEnumerable<Mod> LoadAllGamePacks()
+        public IEnumerable<NuGetPackageMod> LoadAllGamePacks()
         {
             try
             {
-                return Directory.EnumerateFiles(Locations.GamePacks, Mod.SearchPattern, SearchOption.TopDirectoryOnly)
-                    .TrySelect<string, Mod>(TryLoadGamePack)
+                return Directory.EnumerateFiles(Locations.GamePacks, NuGetPackageMod.SearchPattern, SearchOption.TopDirectoryOnly)
+                    .TrySelect<string, NuGetPackageMod>(TryLoadGamePack)
                     .ToArray();
             }
             catch (Exception ex)
             {
                 Logger.Error(() => ex.Format($"Exception while searching files at location {Locations.GamePacks}:"));
-                return Enumerable.Empty<Mod>();
+                return Enumerable.Empty<NuGetPackageMod>();
             }
         }
 
@@ -257,7 +259,7 @@ namespace MonkeyLoader
         /// Loads all mods from the <see cref="LocationConfigSection">configured</see> <see cref="ModLoadingLocation">locations</see>.
         /// </summary>
         /// <returns>All successfully loaded mods.</returns>
-        public IEnumerable<Mod> LoadAllMods()
+        public IEnumerable<NuGetPackageMod> LoadAllMods()
         {
             return Locations.Mods.SelectMany(location =>
             {
@@ -272,12 +274,12 @@ namespace MonkeyLoader
 
                 return Enumerable.Empty<string>();
             })
-            .TrySelect<string, Mod>(TryLoadMod)
+            .TrySelect<string, NuGetPackageMod>(TryLoadMod)
             .ToArray();
         }
 
         /// <summary>
-        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="IEarlyMonkey"/>s.
+        /// Loads every given <see cref="NuGetPackageMod"/>'s patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void LoadEarlyMonkeys(IEnumerable<Mod> mods)
         {
@@ -326,11 +328,9 @@ namespace MonkeyLoader
         /// <param name="path">The path to the mod file.</param>
         /// <param name="isGamePack">Whether the mod is a game pack.</param>
         /// <returns>The loaded mod.</returns>
-        public Mod LoadMod(string path, bool isGamePack = false)
+        public NuGetPackageMod LoadMod(string path, bool isGamePack = false)
         {
-            var fileSystem = new ZipArchiveFileSystem(path, ZipArchiveMode.Read);
-
-            var mod = new Mod(this, path, fileSystem, isGamePack);
+            var mod = NuGetPackageMod.Load(this, path, isGamePack);
             _allMods.Add(mod);
 
             return mod;
@@ -482,7 +482,7 @@ namespace MonkeyLoader
         /// <param name="mod">The resulting mod when successful, or null when not.</param>
         /// <param name="isGamePack">Whether the mod is a game pack.</param>
         /// <returns><c>true</c> when the file was successfully loaded.</returns>
-        public bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod, bool isGamePack = false)
+        public bool TryLoadMod(string path, [NotNullWhen(true)] out NuGetPackageMod? mod, bool isGamePack = false)
         {
             mod = null;
 
@@ -514,10 +514,10 @@ namespace MonkeyLoader
             }
         }
 
-        private bool TryLoadGamePack(string path, [NotNullWhen(true)] out Mod? gamePack)
+        private bool TryLoadGamePack(string path, [NotNullWhen(true)] out NuGetPackageMod? gamePack)
             => TryLoadMod(path, out gamePack, true);
 
-        private bool TryLoadMod(string path, [NotNullWhen(true)] out Mod? mod)
+        private bool TryLoadMod(string path, [NotNullWhen(true)] out NuGetPackageMod? mod)
             => TryLoadMod(path, out mod, false);
 
         /// <summary>
