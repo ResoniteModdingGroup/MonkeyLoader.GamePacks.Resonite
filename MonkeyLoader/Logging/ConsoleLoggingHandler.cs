@@ -9,21 +9,24 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Logging
 {
     /// <summary>
-    /// An <see cref="ILoggingHandler"/> that writes lines to the <see cref="Console"/>.
+    /// Implements an <see cref="LoggingHandler"/> that writes messages to the <see cref="Console"/>.
     /// </summary>
-    public sealed class ConsoleLoggingHandler : ILoggingHandler
+    public sealed class ConsoleLoggingHandler : LoggingHandler
     {
         /// <inheritdoc/>
-        public void Debug(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override bool Connected => true;
 
         /// <inheritdoc/>
-        public void Error(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Debug(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Fatal(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Error(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Info(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Fatal(Func<object> messageProducer) => Log(messageProducer().ToString());
+
+        /// <inheritdoc/>
+        public override void Info(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <summary>
         /// Writes a message prefixed with a timestamp to the <see cref="Console"/>.
@@ -32,9 +35,9 @@ namespace MonkeyLoader.Logging
         public void Log(string message) => Console.WriteLine($"[{DateTime.Now:HH:mm:ss:ffff}] {message}");
 
         /// <inheritdoc/>
-        public void Trace(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Trace(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Warn(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Warn(Func<object> messageProducer) => Log(messageProducer().ToString());
     }
 }

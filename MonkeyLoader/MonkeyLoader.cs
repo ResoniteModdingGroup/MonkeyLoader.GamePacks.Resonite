@@ -23,7 +23,7 @@ namespace MonkeyLoader
     public sealed class MonkeyLoader : IConfigOwner, IShutdown
     {
         private readonly HashSet<Mod> _allMods = new();
-        private ILoggingHandler? _loggingHandler;
+        private LoggingHandler _loggingHandler = new MissingLoggingHandler();
 
         /// <summary>
         /// Gets the config that this loader uses to load <see cref="ConfigSection"/>s.
@@ -64,21 +64,27 @@ namespace MonkeyLoader
         public LocationConfigSection Locations { get; private set; }
 
         /// <summary>
-        /// Gets the logger used by the loader and "inherited" by everything loaded by it.
+        /// Gets the logger that's used by the loader and "inherited" by everything loaded by it.
         /// </summary>
         public MonkeyLogger Logger { get; }
 
         /// <summary>
-        /// Gets or sets the logging handler used by the loader and all <see cref="Mods">Mods</see>.
+        /// Gets or sets the logging handler used by the loader and all <see cref="Mod"/>s loaded by this loader.
         /// </summary>
-        public ILoggingHandler? LoggingHandler
+        public LoggingHandler LoggingHandler
         {
             get => _loggingHandler;
             set
             {
+                if (value is null)
+                {
+                    _loggingHandler = new MissingLoggingHandler();
+                    return;
+                }
+
                 _loggingHandler = value;
 
-                if (value is not null)
+                if (_loggingHandler.Connected)
                     Logger.FlushDeferredMessages();
             }
         }
@@ -121,6 +127,7 @@ namespace MonkeyLoader
         /// Creates a new mod loader with the given configuration file.
         /// </summary>
         /// <param name="configPath">The path to the configuration file to use.</param>
+        /// <param name="loggingLevel">The logging level to start with.</param>
         public MonkeyLoader(string configPath = "MonkeyLoader.json", LoggingLevel loggingLevel = LoggingLevel.Info)
         {
             Logger = new(this);

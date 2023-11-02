@@ -33,7 +33,7 @@ namespace MonkeyLoader.Resonite
         [HarmonyPrefix]
         private static void InitializePrefix(Engine __instance)
         {
-            Mod.Loader.LoggingHandler = new ResoniteLoggingHandler();
+            Mod.Loader.LoggingHandler += new ResoniteLoggingHandler();
 
             __instance.OnReady += OnEngineReady;
             __instance.OnShutdownRequest += OnEngineShutdownRequested;

@@ -27,10 +27,10 @@ namespace MonkeyLoader.Logging
         public MonkeyLoader Loader { get; }
 
         /// <summary>
-        /// Gets the <see cref="ILoggingHandler"/> used to send logging requests to the game-specific channels.<br/>
-        /// Messages need to be queued when this is <c>null</c> and they would've been logged.
+        /// Gets the <see cref="LoggingHandler"/> used to send logging requests to the game-specific channels.<br/>
+        /// Messages need to be queued when it isn't <see cref="LoggingHandler.Connected">connected</see> and they would've been logged.
         /// </summary>
-        private ILoggingHandler? Handler => Loader.LoggingHandler;
+        private LoggingHandler Handler => Loader.LoggingHandler;
 
         /// <summary>
         /// Creates a new logger instance starting with the same <see cref="Level">LoggingLevel</see>
@@ -127,7 +127,7 @@ namespace MonkeyLoader.Logging
 
         private Action<Func<object>> LogLevelToLogger(LoggingLevel level)
         {
-            if (Handler is null)
+            if (!Handler.Connected)
                 return DeferMessage(level);
 
             return level switch

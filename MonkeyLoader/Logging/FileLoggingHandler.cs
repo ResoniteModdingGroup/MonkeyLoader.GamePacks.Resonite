@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Logging
 {
     /// <summary>
-    /// An <see cref="ILoggingHandler"/> that writes lines to a file.
+    /// Implements an <see cref="LoggingHandler"/> that writes messages to a file.
     /// </summary>
-    public sealed class FileLoggingHandler : ILoggingHandler
+    public sealed class FileLoggingHandler : LoggingHandler
     {
         private readonly StreamWriter _streamWriter;
+
+        /// <inheritdoc/>
+        public override bool Connected => _streamWriter.BaseStream.CanWrite;
 
         /// <summary>
         /// Creates a new file logging handler with the file at the given path as the target.
@@ -30,19 +33,20 @@ namespace MonkeyLoader.Logging
         {
             fileStream.SetLength(0);
             _streamWriter = new StreamWriter(fileStream);
+            _streamWriter.AutoFlush = true;
         }
 
         /// <inheritdoc/>
-        public void Debug(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Debug(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Error(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Error(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Fatal(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Fatal(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Info(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Info(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <summary>
         /// Writes a message prefixed with a timestamp to the log file.
@@ -53,14 +57,13 @@ namespace MonkeyLoader.Logging
             lock (_streamWriter)
             {
                 _streamWriter.WriteLine($"[{DateTime.Now:HH:mm:ss:ffff}] {message}");
-                _streamWriter.Flush();
             }
         }
 
         /// <inheritdoc/>
-        public void Trace(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Trace(Func<object> messageProducer) => Log(messageProducer().ToString());
 
         /// <inheritdoc/>
-        public void Warn(Func<object> messageProducer) => Log(messageProducer().ToString());
+        public override void Warn(Func<object> messageProducer) => Log(messageProducer().ToString());
     }
 }
