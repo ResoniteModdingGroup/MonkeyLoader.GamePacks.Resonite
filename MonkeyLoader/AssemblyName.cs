@@ -18,12 +18,12 @@ namespace MonkeyLoader
             Name = isPath ? Path.GetFileNameWithoutExtension(name) : name;
         }
 
-        public static implicit operator string(AssemblyName assemblyName) => assemblyName.Name;
+        public static implicit operator string(in AssemblyName assemblyName) => assemblyName.Name;
 
-        public static bool operator !=(AssemblyName left, AssemblyName right)
+        public static bool operator !=(in AssemblyName left, in AssemblyName right)
             => !string.Equals(left.Name, right.Name, StringComparison.InvariantCultureIgnoreCase);
 
-        public static bool operator ==(AssemblyName left, AssemblyName right)
+        public static bool operator ==(in AssemblyName left, in AssemblyName right)
             => string.Equals(left.Name, right.Name, StringComparison.InvariantCultureIgnoreCase);
 
         /// <inheritdoc/>

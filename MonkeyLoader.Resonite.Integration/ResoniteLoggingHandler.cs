@@ -9,6 +9,11 @@ namespace MonkeyLoader.Resonite
     /// </summary>
     public sealed class ResoniteLoggingHandler : LoggingHandler
     {
+        /// <summary>
+        /// Gets a cached instance of the <see cref="ResoniteLoggingHandler"/>.
+        /// </summary>
+        public static ResoniteLoggingHandler Instance { get; } = new();
+
         /// <inheritdoc/>
         public override bool Connected => true;
 

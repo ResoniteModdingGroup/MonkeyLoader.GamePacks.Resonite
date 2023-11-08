@@ -52,10 +52,10 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\$(AssemblyFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\$(AssemblyFileName)" Importance="high" />
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\$(AssemblyTitle).xml" />
-    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\$(AssemblyTitle).xml" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\MonkeyLoader\$(AssemblyFileName)" />
+    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\MonkeyLoader\$(AssemblyFileName)" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\MonkeyLoader\$(AssemblyTitle).xml" />
+    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\MonkeyLoader\$(AssemblyTitle).xml" Importance="high" />
   </Target>
 
   <ItemGroup>

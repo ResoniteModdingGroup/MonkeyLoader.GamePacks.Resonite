@@ -16,12 +16,6 @@ namespace MonkeyLoader.Resonite
 
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
-        protected override bool OnLoaded()
-        {
-            Harmony.PatchCategory(nameof(BrotliPatcher));
-            return true;
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch("Brotli.NativeLibraryLoader", "GetPossibleRuntimeDirectories")]
         private static bool GetPossibleRuntimeDirectoriesPrefix(ref string[] __result)

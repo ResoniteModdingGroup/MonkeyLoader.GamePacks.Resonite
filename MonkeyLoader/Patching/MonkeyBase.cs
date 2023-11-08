@@ -16,7 +16,7 @@ namespace MonkeyLoader.Patching
     {
         private static readonly Type _monkeyType = typeof(MonkeyBase);
         private readonly Lazy<IFeaturePatch[]> _featurePatches;
-        private Mod _mod;
+        private Mod _mod = null!;
 
         /// <inheritdoc/>
         public AssemblyName AssemblyName { get; }
@@ -36,14 +36,12 @@ namespace MonkeyLoader.Patching
         public Harmony Harmony => Mod.Harmony;
 
         /// <inheritdoc/>
-        public MonkeyLogger Logger { get; private set; }
+        public MonkeyLogger Logger { get; private set; } = null!;
 
         /// <inheritdoc/>
         public Mod Mod
         {
             get => _mod;
-
-            [MemberNotNull(nameof(_mod), nameof(Logger))]
             internal set
             {
                 if (value == _mod)
@@ -245,37 +243,37 @@ namespace MonkeyLoader.Patching
         /// Logs events considered to be useful during debugging when more granular information is needed.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Debug(Func<object> messageProducer) => Logger.Debug(messageProducer);
+        public static void Debug(Func<object> messageProducer) => Logger.Debug(messageProducer);
 
         /// <summary>
         /// Logs that one or more functionalities are not working, preventing some from working correctly.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Error(Func<object> messageProducer) => Logger.Error(messageProducer);
+        public static void Error(Func<object> messageProducer) => Logger.Error(messageProducer);
 
         /// <summary>
         /// Logs that one or more key functionalities, or the whole system isn't working.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Fatal(Func<object> messageProducer) => Logger.Fatal(messageProducer);
+        public static void Fatal(Func<object> messageProducer) => Logger.Fatal(messageProducer);
 
         /// <summary>
         /// Logs that something happened, which is purely informative and can be ignored during normal use.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Info(Func<object> messageProducer) => Logger.Info(messageProducer);
+        public static void Info(Func<object> messageProducer) => Logger.Info(messageProducer);
 
         /// <summary>
         /// Logs step by step execution of code that can be ignored during standard operation,
         /// but may be useful during extended debugging sessions.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Trace(Func<object> messageProducer) => Logger.Trace(messageProducer);
+        public static void Trace(Func<object> messageProducer) => Logger.Trace(messageProducer);
 
         /// <summary>
         /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
-        public void Warn(Func<object> messageProducer) => Logger.Warn(messageProducer);
+        public static void Warn(Func<object> messageProducer) => Logger.Warn(messageProducer);
     }
 }

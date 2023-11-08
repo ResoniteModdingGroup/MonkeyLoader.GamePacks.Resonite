@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
-    internal sealed class Publiciser : EarlyMonkey<Publiciser>
+    internal sealed class Publiciser : ConfiguredEarlyMonkey<Publiciser, PubliciserSettings>
     {
         public override string Name { get; } = nameof(Publiciser);
-        public override IEnumerable<PrePatchTarget> PrePatchTargets => PubliciserSettings.Assemblies.Select(assembly => new PrePatchTarget(new AssemblyName(assembly)));
 
-        public override bool Run()
-        {
-            Config.LoadSection<PubliciserSettings>();
-            return base.Run();
-        }
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
+        protected override IEnumerable<PrePatchTarget> GetPrePatchTargets()
+                 => ConfigSection.Assemblies.Select(assembly => new PrePatchTarget(new AssemblyName(assembly)));
 
         protected override bool Patch(PatchJob patchJob)
         {

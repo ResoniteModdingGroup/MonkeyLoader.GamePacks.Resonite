@@ -12,7 +12,7 @@ namespace MonkeyLoader.Logging
     /// </summary>
     public sealed class MulticastLoggingHandler : LoggingHandler
     {
-        private readonly HashSet<LoggingHandler> _loggingHandlers = new();
+        private readonly LoggingHandler[] _loggingHandlers;
 
         /// <inheritdoc/>
         public override bool Connected => _loggingHandlers.Any(handler => handler.Connected);
@@ -41,7 +41,7 @@ namespace MonkeyLoader.Logging
         /// <param name="loggingHandlers">The logging handlers to delegate messages to.</param>
         public MulticastLoggingHandler(IEnumerable<LoggingHandler> loggingHandlers)
         {
-            _loggingHandlers.AddRange(loggingHandlers.Where(handler => handler is not (null or MissingLoggingHandler)));
+            _loggingHandlers = loggingHandlers.Where(handler => handler is not (null or MissingLoggingHandler)).ToArray();
         }
 
         /// <inheritdoc/>

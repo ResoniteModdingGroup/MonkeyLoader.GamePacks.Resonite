@@ -386,13 +386,13 @@ namespace MonkeyLoader
 
             internal string? SaveAssembly(string path, MonkeyLogger logger)
             {
-                WaitForDefinition();
-                var definitionBytes = _definitionSnapshot!.ToArray();
-
                 var targetPath = Path.Combine(path, $"{Name}.dll");
 
                 try
                 {
+                    WaitForDefinition();
+                    var definitionBytes = _definitionSnapshot!.ToArray();
+
                     File.WriteAllBytes(targetPath, definitionBytes);
                     logger.Trace(() => $"Saved patched assembly to {targetPath}");
                     return targetPath;

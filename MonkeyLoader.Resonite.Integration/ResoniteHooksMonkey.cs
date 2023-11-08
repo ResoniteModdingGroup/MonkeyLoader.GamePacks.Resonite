@@ -23,17 +23,12 @@ namespace MonkeyLoader.Resonite
             yield return new FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly);
         }
 
-        protected override sealed bool OnLoaded()
-        {
-            Logger.Info(() => "Integrating with Resonite!");
-            Harmony.PatchCategory(nameof(ResoniteHooksMonkey));
-            return true;
-        }
-
         [HarmonyPrefix]
         private static void InitializePrefix(Engine __instance)
         {
-            Mod.Loader.LoggingHandler += new ResoniteLoggingHandler();
+            Info(() => "Adding ResoniteMonkey hooks!");
+
+            Mod.Loader.LoggingHandler += ResoniteLoggingHandler.Instance;
 
             __instance.OnReady += OnEngineReady;
             __instance.OnShutdownRequest += OnEngineShutdownRequested;

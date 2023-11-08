@@ -1,4 +1,5 @@
 ﻿using FrooxEngine;
+using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
@@ -28,12 +29,13 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <summary>
-    /// Represents the base class for patchers that run after Resonite's assemblies have been loaded.
+    /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.
     /// </summary>
     /// <remarks>
     /// Game assemblies and their types can be directly referenced from these.<br/>
     /// Contains useful overridable methods that are hooked to different points in the game's lifecycle.
     /// </remarks>
+    /// <inheritdoc/>
     public abstract class ResoniteMonkey<TMonkey> : Monkey<TMonkey>, IResoniteMonkeyInternal
         where TMonkey : ResoniteMonkey<TMonkey>, new()
     {
@@ -43,11 +45,17 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc/>
         public bool EngineReadyRan { get; private set; }
 
+        /// <summary>
+        /// Allows creating only a single <typeparamref name="TMonkey"/> instance.
+        /// </summary>
+        protected ResoniteMonkey()
+        { }
+
         bool IResoniteMonkeyInternal.EngineReady()
         {
             if (Failed)
             {
-                Logger.Warn(() => "Monkey already failed, skipping OnEngineReady!");
+                Warn(() => "Monkey already failed, skipping OnEngineReady!");
                 return false;
             }
 
@@ -61,13 +69,13 @@ namespace MonkeyLoader.Resonite
                 if (!OnEngineReady())
                 {
                     Failed = true;
-                    Logger.Warn(() => "OnEngineReady failed!");
+                    Warn(() => "OnEngineReady failed!");
                 }
             }
             catch (Exception ex)
             {
                 Failed = true;
-                Logger.Error(() => ex.Format("OnEngineReady threw an Exception:"));
+                Error(() => ex.Format("OnEngineReady threw an Exception:"));
             }
 
             return !Failed;
@@ -81,20 +89,27 @@ namespace MonkeyLoader.Resonite
             }
             catch (Exception ex)
             {
-                Logger.Error(() => ex.Format("OnEngineShutdownRequested threw an Exception:"));
+                Error(() => ex.Format("OnEngineShutdownRequested threw an Exception:"));
             }
         }
 
         /// <summary>
-        /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
+        /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.<br/>
+        /// This is the primary method for patching used by Resonite Mods as basic facilities of the game
+        /// are ready to use, while most other code hasn't been run yet.<br/>
+        /// Return <c>true</c> if patching was successful.
         /// </summary>
         /// <remarks>
-        /// This is the primary method for patching used by Resonite Mods as basic facilities of the game
-        /// are ready to use, while most other code hasn't been run.<br/>
-        /// Override <see cref="OnLoaded">onLoaded</see>() to patch before anything is initialized.
+        /// Override <see cref="OnLoaded">OnLoaded</see>() to patch before anything is initialized,
+        /// but strongly consider also overriding this method if you do that.<br/>
+        /// Otherwise your patches will be applied twice, if you're using <c>[<see cref="HarmonyPatchCategory"/>(nameof(MyPatcher))]</c> attributes.
+        /// <para/>
+        /// <i>By default:</i> Applies the <see cref="Harmony"/> patches of the
+        /// <see cref="Harmony.PatchCategory(string)">category</see> with this patcher's type's name.<br/>
+        /// Easy to apply by using <c>[<see cref="HarmonyPatchCategory"/>(nameof(MyPatcher))]</c> attribute.
         /// </remarks>
         /// <returns>Whether the patching was successful.</returns>
-        protected virtual bool OnEngineReady() => true;
+        protected virtual bool OnEngineReady() => base.OnLoaded();
 
         /// <summary>
         /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnShutdownRequest">requested to shutdown</see>.
@@ -104,7 +119,14 @@ namespace MonkeyLoader.Resonite
         { }
 
         /// <remarks>
-        /// Override this method if you need to patch something involved in the initialization of the game.
+        /// Override this method if you need to patch something involved in the initialization of the game.<br/>
+        /// For ResoniteMonkeys, the default behavior of<see cref="Monkey{TMonkey}.OnLoaded">OnLoaded</see>()
+        /// is moved to <see cref="OnEngineReady">OnEngineReady</see>().
+        /// <para/>
+        /// Strongly consider also overriding <see cref="OnEngineReady">OnEngineReady</see>() if you override this method.<br/>
+        /// Otherwise your patches will be applied twice, if you're using <c>[<see cref="HarmonyPatchCategory"/>(nameof(MyPatcher))]</c> attributes.
+        /// <para/>
+        /// <i>By default:</i> Doesn't do anything except return <c>true</c>.
         /// </remarks>
         /// <inheritdoc/>
         protected override bool OnLoaded() => true;

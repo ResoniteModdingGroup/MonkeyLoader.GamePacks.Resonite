@@ -13,9 +13,21 @@ namespace MonkeyLoader.Meta
     public interface IEarlyMonkey : IMonkey
     {
         /// <summary>
+        /// Gets the pre-patch targets that were successfully applied.<br/>
+        /// This may be a larger set than <see cref="PrePatchTargets">PrePatchTargets</see>
+        /// if this pre-patcher <see cref="TargetsAllAssemblies">targets all assemblies</see>.
+        /// </summary>
+        public IEnumerable<PrePatchTarget> ExecutedPatches { get; }
+
+        /// <summary>
         /// Gets the names of the assemblies and types therein which this pre-patcher targets.
         /// </summary>
         public IEnumerable<PrePatchTarget> PrePatchTargets { get; }
+
+        /// <summary>
+        /// Gets whether this pre-patcher targets all available assemblies.
+        /// </summary>
+        public bool TargetsAllAssemblies { get; }
     }
 
     /// <summary>

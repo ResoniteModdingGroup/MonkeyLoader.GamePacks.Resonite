@@ -57,10 +57,10 @@ namespace MonkeyLoader.Logging
                 return new MulticastLoggingHandler(newHandlers);
             }
 
-            var handlers = new HashSet<LoggingHandler>() { left };
-            handlers.Remove(right);
+            if (left.Equals(right))
+                return MissingLoggingHandler.Instance;
 
-            return new MulticastLoggingHandler(handlers);
+            return left;
         }
 
         /// <summary>

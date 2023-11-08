@@ -1,11 +1,7 @@
-﻿using HarmonyLib;
-using MonkeyLoader.Configuration;
-using MonkeyLoader.Logging;
-using MonkeyLoader.NuGet;
+﻿using MonkeyLoader.NuGet;
 using MonkeyLoader.Patching;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,8 +37,14 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public string Location { get; }
 
+        /// <summary>
+        /// Gets the paths inside this mod's <see cref="Mod.FileSystem">FileSystem</see> that point to patcher assemblies that should be loaded.
+        /// </summary>
         public IEnumerable<UPath> PatcherAssemblyPaths => _assemblyPaths.Where(path => !path.FullName.Contains(PrePatchersFolderName));
 
+        /// <summary>
+        /// Gets the paths inside this mod's <see cref="Mod.FileSystem">FileSystem</see> that point to pre-patcher assemblies that should be loaded.
+        /// </summary>
         public IEnumerable<UPath> PrePatcherAssemblyPaths => _assemblyPaths.Where(path => path.FullName.Contains(PrePatchersFolderName));
 
         private NuGetPackageMod(MonkeyLoader loader, PackageArchiveReader packageReader, NuspecReader nuspecReader, FrameworkSpecificGroup? nearestLib,
