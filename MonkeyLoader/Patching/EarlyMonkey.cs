@@ -1,7 +1,4 @@
-﻿using MonkeyLoader.Configuration;
-using MonkeyLoader.Logging;
-using MonkeyLoader.Meta;
-using Mono.Cecil;
+﻿using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

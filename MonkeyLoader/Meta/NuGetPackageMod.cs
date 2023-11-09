@@ -79,8 +79,11 @@ namespace MonkeyLoader.Meta
                 .SingleOrDefault(group => TargetFramework.Equals(group.TargetFramework))
                 ?? packageReader.GetPackageDependencies().SingleOrDefault(group => NuGetFramework.AnyFramework.Equals(group.TargetFramework));
 
-            if (deps is not null)
-                dependencies.AddRange(deps?.Packages.ToArray());
+            if (deps is null)
+                return;
+
+            foreach (var package in deps.Packages)
+                dependencies.Add(package.Id, package);
         }
 
         /// <summary>

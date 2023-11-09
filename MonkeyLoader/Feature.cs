@@ -60,9 +60,25 @@ namespace MonkeyLoader
     /// </remarks>
     public abstract class Feature : IEquatable<Feature>, IComparable<Feature>
     {
-        private static readonly Dictionary<TypeSet, int> _knownComparisons = new();
+        private static readonly Type _featureType = typeof(Feature);
+        private readonly int _depth;
         private readonly Lazy<bool> _multipleAssemblies;
         private readonly Type _type;
+
+        /// <summary>
+        /// Gets a <see cref="Feature"/>-comparer, that sorts smaller / deeper features first.
+        /// </summary>
+        public static IComparer<Feature> AscendingComparer { get; } = new FeatureComparer();
+
+        /// <summary>
+        /// Gets a <see cref="Feature"/>-comparer, that sorts larger / shallower features first.
+        /// </summary>
+        public static IComparer<Feature> DescendingComparer { get; } = new FeatureComparer(false);
+
+        /// <summary>
+        /// Gets an equality comparer that uses the feature's <see cref="Type"/>.
+        /// </summary>
+        public static IEqualityComparer<Feature> EqualityComparer { get; } = new FeatureComparer();
 
         /// <summary>
         /// Gets the names of all assemblies that this feature is implemented in.
@@ -103,6 +119,7 @@ namespace MonkeyLoader
         protected Feature()
         {
             _type = GetType();
+            _depth = GetDepth(_type);
             _multipleAssemblies = new Lazy<bool>(() => Assemblies.Count() > 1);
         }
 
@@ -112,16 +129,17 @@ namespace MonkeyLoader
         /// <param name="left">The first feature.</param>
         /// <param name="right">The second feature.</param>
         /// <returns>Whether the features are unequal.</returns>
-        public static bool operator !=(Feature left, Feature right) => !(left == right);
+        public static bool operator !=(Feature left, Feature right)
+            => !EqualityComparer.Equals(left, right);
 
         /// <summary>
-        /// Checks if the left feature comes after the right one in the sort order.
+        /// Checks if the left feature sorts smaller than the right one.
         /// </summary>
         /// <param name="left">The first feature.</param>
         /// <param name="right">The second feature.</param>
         /// <returns>Whether the left features comes first in the sort order.</returns>
         public static bool operator <(Feature left, Feature right)
-            => left.CompareTo(right) < 0;
+            => AscendingComparer.Compare(left, right) < 0;
 
         /// <summary>
         /// Checks if the left feature is equal to the right one.
@@ -130,10 +148,10 @@ namespace MonkeyLoader
         /// <param name="right">The second feature.</param>
         /// <returns>Whether the features are equal.</returns>
         public static bool operator ==(Feature left, Feature right)
-            => ReferenceEquals(left, right) || left._type == right._type;
+            => EqualityComparer.Equals(left, right);
 
         /// <summary>
-        /// Checks if the right feature comes after the left one in the sort order.
+        /// Checks if the left feature sorts bigger than the right one.
         /// </summary>
         /// <param name="left">The first feature.</param>
         /// <param name="right">The second feature.</param>
@@ -142,33 +160,10 @@ namespace MonkeyLoader
             => left.CompareTo(right) > 0;
 
         /// <inheritdoc/>
-        public int CompareTo(Feature other)
-        {
-            var types = new TypeSet(_type, other._type);
-
-            if (!_knownComparisons.TryGetValue(types, out var comparison))
-            {
-                // Have to check equal first, because both assignable directions are true then
-                if (_type == other._type)
-                    comparison = 0;
-                // Maybe the other derives from this?
-                else if (_type.IsAssignableFrom(other._type))
-                    comparison = 1;
-                // Maybe this derives from the other?
-                else if (other._type.IsAssignableFrom(_type))
-                    comparison = -1;
-                // Independent
-                else
-                    comparison = 0;
-
-                _knownComparisons.Add(types, comparison);
-            }
-
-            return comparison;
-        }
+        public int CompareTo(Feature other) => AscendingComparer.Compare(this, other);
 
         /// <inheritdoc/>
-        public bool Equals(Feature other) => other == this;
+        public bool Equals(Feature other) => EqualityComparer.Equals(this, other);
 
         /// <inheritdoc/>
         public override bool Equals(object obj)
@@ -176,5 +171,34 @@ namespace MonkeyLoader
 
         /// <inheritdoc/>
         public override int GetHashCode() => _type.GetHashCode();
+
+        private static int GetDepth(Type type)
+        {
+            var depth = 0;
+
+            while (type != _featureType)
+            {
+                depth++;
+                type = type.BaseType;
+            }
+
+            return depth;
+        }
+
+        private sealed class FeatureComparer : IEqualityComparer<Feature>, IComparer<Feature>
+        {
+            private readonly int _factor;
+
+            public FeatureComparer(bool ascending = true)
+            {
+                _factor = ascending ? 1 : -1;
+            }
+
+            public int Compare(Feature x, Feature y) => _factor * (x._depth - y._depth);
+
+            public bool Equals(Feature x, Feature y) => ReferenceEquals(x, y) || x._type == y._type;
+
+            public int GetHashCode(Feature obj) => obj._type.GetHashCode();
+        }
     }
 }

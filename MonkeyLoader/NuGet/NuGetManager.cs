@@ -1,5 +1,6 @@
 ﻿using MonkeyLoader.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -13,6 +14,8 @@ namespace MonkeyLoader.NuGet
     /// </summary>
     public sealed class NuGetManager
     {
+        private readonly Dictionary<string, ILoadedNuGetPackage> _loadedPackages = new(StringComparer.InvariantCultureIgnoreCase);
+
         /// <summary>
         /// Gets the config used by the manager.
         /// </summary>
@@ -42,6 +45,19 @@ namespace MonkeyLoader.NuGet
             Logger.Info(() => $"Detected Runtime Target NuGet Framework: {NuGetHelper.Framework} ({NuGetHelper.Framework.GetShortFolderName()})");
             Logger.Debug(() => $"Compatible NuGet Frameworks:{Environment.NewLine}" +
                 $"    - {string.Join($"{Environment.NewLine}    - ", NuGetHelper.CompatibleFrameworks.Select(fw => $"{fw} ({fw.GetShortFolderName()})"))}");
+        }
+
+        public void Add(ILoadedNuGetPackage package)
+        {
+            _loadedPackages.Add(package.Identity.Id, package);
+
+            Logger.Trace(() => $"Added loaded package [{package.Identity}]");
+        }
+
+        public void AddAll(IEnumerable<ILoadedNuGetPackage> packages)
+        {
+            foreach (var package in packages)
+                Add(package);
         }
     }
 }

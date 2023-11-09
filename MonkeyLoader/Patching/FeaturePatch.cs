@@ -7,6 +7,55 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Patching
 {
     /// <summary>
+    /// Contains (equality) comparers for <see cref="IFeaturePatch"/>es / <see cref="FeaturePatch{TFeature}"/> instances.
+    /// </summary>
+    public static class FeaturePatch
+    {
+        /// <summary>
+        /// Gets an <see cref="IFeaturePatch"/>-comparer, that sorts patches with lower impact first.
+        /// </summary>
+        public static IComparer<IFeaturePatch> AscendingComparer { get; } = new FeaturePatchComparer();
+
+        /// <summary>
+        /// Gets an <see cref="IFeaturePatch"/>-comparer, that sorts patches with higher impact first.
+        /// </summary>
+        public static IComparer<IFeaturePatch> DescendingComparer { get; } = new FeaturePatchComparer(false);
+
+        /// <summary>
+        /// Gets an equality comparer that uses the patch's feature and impact.
+        /// </summary>
+        public static IEqualityComparer<IFeaturePatch> EqualityComparer { get; } = new FeaturePatchComparer();
+
+        private sealed class FeaturePatchComparer : IEqualityComparer<IFeaturePatch>, IComparer<IFeaturePatch>
+        {
+            private readonly int _factor;
+
+            public FeaturePatchComparer(bool ascending = true)
+            {
+                _factor = ascending ? 1 : -1;
+            }
+
+            public int Compare(IFeaturePatch x, IFeaturePatch y)
+            {
+                var featureComparison = _factor * x.Feature.CompareTo(y.Feature);
+
+                // If patched features compare the same, compatibility acts as tie breaker.
+                // Flipped operands, because bigger compatibility = smaller impact.
+                if (featureComparison == 0)
+                    return _factor * (x.Compatibility - y.Compatibility);
+
+                return featureComparison;
+            }
+
+            public bool Equals(IFeaturePatch x, IFeaturePatch y)
+                => ReferenceEquals(x, y) || (x.Compatibility == y.Compatibility && x.Feature.Equals(y.Feature));
+
+            public int GetHashCode(IFeaturePatch obj)
+                => unchecked(obj.Compatibility.GetHashCode() + (31 * obj.Feature.GetHashCode()));
+        }
+    }
+
+    /// <summary>
     /// Specifies how much a (pre-)patcher affects a particular <see cref="global::MonkeyLoader.Feature"/>.
     /// </summary>
     /// <typeparam name="TFeature">The patched game feature.</typeparam>
@@ -35,30 +84,23 @@ namespace MonkeyLoader.Patching
         }
 
         /// <summary>
-        /// Compares the impact of this patch to another.<br/>
-        /// Patches on unrelated features or with the same <see cref="Compatibility">compatibility</see> compare equal.
+        /// Compares the impact of this patch to another.
         /// </summary>
         /// <inheritdoc/>
         public int CompareTo(IFeaturePatch other)
-        {
-            // If patches apply to the same feature, compatibility acts as tie breaker.
-            // Flipped operands, because bigger compatibility = smaller impact.
-            if (Feature == other.Feature)
-                return other.Compatibility - Compatibility;
-
-            return Feature.CompareTo(other.Feature);
-        }
+            => FeaturePatch.AscendingComparer.Compare(this, other);
 
         /// <inheritdoc/>
         public bool Equals(IFeaturePatch other)
-             => ReferenceEquals(other, this) || (Compatibility == other.Compatibility && Feature.Equals(other.Feature));
+             => FeaturePatch.EqualityComparer.Equals(this, other);
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) => obj is IFeaturePatch patch && Equals(patch);
+        public override bool Equals(object obj)
+            => obj is IFeaturePatch patch && Equals(patch);
 
         /// <inheritdoc/>
         public override int GetHashCode()
-            => unchecked(Compatibility.GetHashCode() + (31 * Feature.GetHashCode()));
+            => FeaturePatch.EqualityComparer.GetHashCode(this);
     }
 
     /// <summary>

@@ -1,13 +1,57 @@
 ﻿using HarmonyLib;
+using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
 namespace MonkeyLoader.Patching
 {
+    /// <summary>
+    /// Contains comparers for <see cref="IMonkey"/>s / derived <see cref="MonkeyBase{TMonkey}"/> instances.
+    /// </summary>
+    public static class Monkey
+    {
+        /// <summary>
+        /// Gets an <see cref="IMonkey"/>-comparer, that sorts patches with lower impact first.
+        /// </summary>
+        public static IComparer<IMonkey> AscendingComparer { get; } = new MonkeyComparer();
+
+        /// <summary>
+        /// Gets an <see cref="IMonkey"/>-comparer, that sorts patches with higher impact first.
+        /// </summary>
+        public static IComparer<IMonkey> DescendingComparer { get; } = new MonkeyComparer(false);
+
+        private sealed class MonkeyComparer : IComparer<IMonkey>
+        {
+            private readonly int _factor;
+
+            public MonkeyComparer(bool ascending = true)
+            {
+                _factor = ascending ? 1 : -1;
+            }
+
+            public int Compare(IMonkey x, IMonkey y)
+            {
+                // Only need the first as they're the highest impact ones.
+                var biggestX = x.FeaturePatches.FirstOrDefault();
+                var biggestY = y.FeaturePatches.FirstOrDefault();
+
+                // Better declare features if you want to sort high
+                if (biggestX is null)
+                    return biggestY is null ? 0 : (-1 * _factor);
+
+                if (biggestY is null)
+                    return _factor;
+
+                return _factor * biggestX.CompareTo(biggestY);
+            }
+        }
+    }
+
     /// <summary>
     /// Represents the base class for patchers that run after a game's assemblies have been loaded.<br/>
     /// All mod defined derivatives must derive from <see cref="Monkey{TMonkey}"/>,

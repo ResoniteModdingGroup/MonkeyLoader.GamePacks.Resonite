@@ -1,5 +1,8 @@
 ﻿using MonkeyLoader.Logging;
+using MonkeyLoader.NuGet;
 using Mono.Cecil;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -54,6 +57,20 @@ namespace MonkeyLoader
 
         public void Dispose()
         {
+        }
+
+        public IEnumerable<ILoadedNuGetPackage> GetAllAsLoadedPackages()
+        {
+            foreach (var entry in _assemblies.Values)
+            {
+                var assemblyDefinition = entry.GetResolveDefinition();
+
+                var identity = new PackageIdentity(entry.Name.Name, new NuGetVersion(assemblyDefinition.Name.Version));
+                var targetFramework = assemblyDefinition.GetTargetFramework();
+                var dependencies = assemblyDefinition.GetAssemblyReferences().ToPackageDependencies();
+
+                yield return new LoadedNuGetPackage(identity, targetFramework, dependencies);
+            }
         }
 
         /// <summary>
@@ -294,7 +311,7 @@ namespace MonkeyLoader
             {
                 var fullNames = Loaded ?
                     _loadedAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name)
-                    : _definition.Modules.SelectMany(module => module.AssemblyReferences)
+                    : _definition.GetAssemblyReferences()
                         .Select(reference => AssemblyNameReference.Parse(reference.Name).Name);
 
                 return fullNames.Select(name => new AssemblyName(name))

@@ -46,7 +46,7 @@ namespace MonkeyLoader.Meta
         public Config Config { get; }
 
         /// <summary>
-        /// Gets the impacts this (pre-)patcher has on certain features in the order of their size.
+        /// Gets the impacts this (pre-)patcher has on certain features ordered by descending impact.
         /// </summary>
         public IEnumerable<IFeaturePatch> FeaturePatches { get; }
 

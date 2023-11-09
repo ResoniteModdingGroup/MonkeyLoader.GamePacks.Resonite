@@ -26,7 +26,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Stores the dependencies of this mod.
         /// </summary>
-        protected readonly HashSet<PackageDependency> dependencies = new(PackageDependencyComparer.Default);
+        protected readonly Dictionary<string, PackageDependency> dependencies = new(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Stores the pre-patchers of this mod.
@@ -42,6 +42,11 @@ namespace MonkeyLoader.Meta
         /// Stores the tags of this mod.
         /// </summary>
         protected readonly HashSet<string> tags = new(StringComparer.InvariantCultureIgnoreCase);
+
+        /// <summary>
+        /// Gets an <see cref="IComparer{T}"/> that keeps <see cref="Mod"/>s sorted in topological order.
+        /// </summary>
+        public static IComparer<Mod> Comparer { get; } = new ModComparer();
 
         /// <summary>
         /// Gets the names of the authors of this mod.
@@ -61,17 +66,12 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the dependencies of this mod.
         /// </summary>
-        public IEnumerable<PackageDependency> Dependencies => dependencies.AsSafeEnumerable();
+        public IEnumerable<PackageDependency> Dependencies => dependencies.Values.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the description of this mod.
         /// </summary>
         public string Description { get; }
-
-        /// <summary>
-        /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() failed when it was called.
-        /// </summary>
-        public bool LoadEarlyMonkeysFailed { get; private set; }
 
         /// <summary>
         /// Gets the available <see cref="IEarlyMonkey"/>s of this mod.
@@ -89,13 +89,14 @@ namespace MonkeyLoader.Meta
         public Harmony Harmony { get; }
 
         /// <summary>
-        /// Gets whether this mod has any <see cref="EarlyMonkeys">early monkeys</see>.
-        /// </summary>
-        public bool HasPrePatchers => earlyMonkeys.Count > 0;
-        /// <summary>
         /// Gets whether this mod has any <see cref="Monkeys">monkeys</see>.
         /// </summary>
         public bool HasPatchers => monkeys.Count > 0;
+
+        /// <summary>
+        /// Gets whether this mod has any <see cref="EarlyMonkeys">early monkeys</see>.
+        /// </summary>
+        public bool HasPrePatchers => earlyMonkeys.Count > 0;
 
         /// <summary>
         /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
@@ -125,6 +126,21 @@ namespace MonkeyLoader.Meta
         public bool IsGamePack { get; }
 
         /// <summary>
+        /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() failed when it was called.
+        /// </summary>
+        public bool LoadEarlyMonkeysFailed { get; private set; }
+
+        /// <summary>
+        /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() method has been called.
+        /// </summary>
+        public bool LoadedEarlyMonkeys { get; private set; } = false;
+
+        /// <summary>
+        /// Gets whether this mod's <see cref="LoadMonkeys">LoadMonkeys</see>() method has been called.
+        /// </summary>
+        public bool LoadedMonkeys { get; private set; } = false;
+
+        /// <summary>
         /// Gets the <see cref="MonkeyLoader"/> instance that loaded this mod.
         /// </summary>
         public MonkeyLoader Loader { get; }
@@ -135,6 +151,11 @@ namespace MonkeyLoader.Meta
         public bool LoadFailed => LoadEarlyMonkeysFailed || LoadMonkeysFailed;
 
         /// <summary>
+        /// Gets whether this mod's <see cref="LoadMonkeys">LoadMonkeys</see>() failed when it was called.
+        /// </summary>
+        public bool LoadMonkeysFailed { get; private set; } = false;
+
+        /// <summary>
         /// Gets the logger to be used by this mod.
         /// </summary>
         /// <remarks>
@@ -142,11 +163,6 @@ namespace MonkeyLoader.Meta
         /// They do all share the <see cref="Loader">Loader's</see> <see cref="MonkeyLoader.LoggingHandler">LoggingHandler</see> though.
         /// </remarks>
         public MonkeyLogger Logger { get; }
-
-        /// <summary>
-        /// Gets whether this mod's <see cref="LoadMonkeys">LoadMonkeys</see>() failed when it was called.
-        /// </summary>
-        public bool LoadMonkeysFailed { get; private set; } = false;
 
         /// <summary>
         /// Gets the available <see cref="IMonkey"/>s of this mod.
@@ -195,20 +211,6 @@ namespace MonkeyLoader.Meta
         public NuGetVersion Version => Identity.Version;
 
         /// <summary>
-        /// Efficiently checks, whether a given name is listed as an author for this mod.
-        /// </summary>
-        /// <param name="author">The name to check for.</param>
-        /// <returns><c>true</c> if the given name is listed as an author for this mod.</returns>
-        public bool HasAuthor(string author) => authors.Contains(author);
-
-        /// <summary>
-        /// Efficiently checks, whether a given tag is listed for this mod.
-        /// </summary>
-        /// <param name="tag">The tag to check for.</param>
-        /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
-        public bool HasTag(string tag) => tags.Contains(tag);
-
-        /// <summary>
         /// Creates a new mod instance with the given details.
         /// </summary>
         /// <param name="loader">The loader instance that loaded this mod.</param>
@@ -246,6 +248,20 @@ namespace MonkeyLoader.Meta
         }
 
         /// <summary>
+        /// Efficiently checks, whether a given name is listed as an author for this mod.
+        /// </summary>
+        /// <param name="author">The name to check for.</param>
+        /// <returns><c>true</c> if the given name is listed as an author for this mod.</returns>
+        public bool HasAuthor(string author) => authors.Contains(author);
+
+        /// <summary>
+        /// Efficiently checks, whether a given tag is listed for this mod.
+        /// </summary>
+        /// <param name="tag">The tag to check for.</param>
+        /// <returns><c>true</c> if the given tag is listed for this mod.</returns>
+        public bool HasTag(string tag) => tags.Contains(tag);
+
+        /// <summary>
         /// Lets this mod cleanup and shutdown.<br/>
         /// Must only be called once.
         /// </summary>
@@ -276,15 +292,6 @@ namespace MonkeyLoader.Meta
 
             return !ShutdownFailed;
         }
-
-        /// <summary>
-        /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() method has been called.
-        /// </summary>
-        public bool LoadedEarlyMonkeys { get; private set; } = false;
-        /// <summary>
-        /// Gets whether this mod's <see cref="LoadMonkeys">LoadMonkeys</see>() method has been called.
-        /// </summary>
-        public bool LoadedMonkeys { get; private set; } = false;
 
         internal bool LoadEarlyMonkeys()
         {
@@ -345,5 +352,22 @@ namespace MonkeyLoader.Meta
         /// </summary>
         /// <returns>Whether it ran successfully.</returns>
         protected abstract bool OnLoadMonkeys();
+
+        private sealed class ModComparer : IComparer<Mod>
+        {
+            public int Compare(Mod x, Mod y)
+            {
+                // TODO: Make this not a partial order?
+                // If x depends on a mod depending on y, it should count the same
+
+                if (x.dependencies.ContainsKey(y.Id))
+                    return 1;
+
+                if (y.dependencies.ContainsKey(x.Id))
+                    return -1;
+
+                return 0;
+            }
+        }
     }
 }

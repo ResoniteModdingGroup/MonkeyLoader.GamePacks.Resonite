@@ -78,61 +78,14 @@ namespace MonkeyLoader.Patching
             _featurePatches = new Lazy<IFeaturePatch[]>(() =>
             {
                 var featurePatches = GetFeaturePatches().ToArray();
-                Array.Sort(featurePatches);
-                Array.Reverse(featurePatches);
+                Array.Sort(featurePatches, FeaturePatch.DescendingComparer);
+
                 return featurePatches;
             });
         }
 
         /// <inheritdoc/>
-        public int CompareTo(IMonkey other)
-        {
-            var thisBigger = false;
-            var otherBigger = false;
-
-            // Better declare features if you want to sort high
-            if (_featurePatches.Value.Length == 0)
-                return other.FeaturePatches.Count() == 0 ? 0 : -1;
-
-            if (other.FeaturePatches.Count() == 0)
-                return 1;
-
-            foreach (var thisFeaturePatch in _featurePatches.Value)
-            {
-                foreach (var otherFeaturePatch in other.FeaturePatches)
-                {
-                    var comparison = thisFeaturePatch.CompareTo(otherFeaturePatch);
-
-                    if (comparison < 0)
-                    {
-                        otherBigger = true;
-
-                        if (thisBigger)
-                            break;
-                    }
-                    else if (comparison > 0)
-                    {
-                        thisBigger = true;
-
-                        if (otherBigger)
-                            break;
-                    }
-                }
-
-                if (thisBigger && otherBigger)
-                    break;
-            }
-
-            // If none or both have feature patch impacts larger than the other
-            if (!(thisBigger ^ otherBigger))
-                return 0;
-
-            if (thisBigger)
-                return 1;
-
-            // Only otherBigger left
-            return -1;
-        }
+        public int CompareTo(IMonkey other) => Monkey.AscendingComparer.Compare(this, other);
 
         /// <summary>
         /// Runs this monkey to let it patch.<br/>

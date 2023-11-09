@@ -22,7 +22,7 @@ namespace MonkeyLoader
     /// </summary>
     public sealed class MonkeyLoader : IConfigOwner, IShutdown
     {
-        private readonly HashSet<Mod> _allMods = new();
+        private readonly SortedSet<Mod> _allMods = new(Mod.Comparer);
         private LoggingHandler _loggingHandler = new MissingLoggingHandler();
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace MonkeyLoader
         public string GameAssemblyPath { get; }
 
         /// <summary>
-        /// Gets all loaded game pack <see cref="Mod"/>s.
+        /// Gets all loaded game pack <see cref="Mod"/>s in topological order.
         /// </summary>
         public IEnumerable<Mod> GamePacks => _allMods.Where(mod => mod.IsGamePack);
 
@@ -95,7 +95,7 @@ namespace MonkeyLoader
         public LoggingLevel LoggingLevel { get; set; }
 
         /// <summary>
-        /// Gets all loaded regular <see cref="Mod"/>s.
+        /// Gets all loaded regular <see cref="Mod"/>s in topological order.
         /// </summary>
         public IEnumerable<Mod> Mods => _allMods.Where(mod => !mod.IsGamePack);
 
@@ -189,6 +189,12 @@ namespace MonkeyLoader
             }
         }
 
+        public void AddMod(Mod mod)
+        {
+            _allMods.Add(mod);
+            NuGet.Add(mod);
+        }
+
         /// <summary>
         /// Tries to create all <see cref="Locations">Locations</see> used by this loader.
         /// </summary>
@@ -224,10 +230,11 @@ namespace MonkeyLoader
         public void FullLoad()
         {
             EnsureAllLocationsExist();
+            LoadGameAssemblyDefinitions();
+
             LoadAllGamePacks();
             LoadAllMods();
 
-            LoadGameAssemblyDefinitions();
             LoadGamePackEarlyMonkeys();
             RunGamePackEarlyMonkeys();
 
@@ -286,7 +293,7 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every given <see cref="NuGetPackageMod"/>'s patcher assemblies and <see cref="IEarlyMonkey"/>s.
+        /// Loads every given <see cref="Mod"/>'s patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
         public void LoadEarlyMonkeys(IEnumerable<Mod> mods)
         {
@@ -317,6 +324,8 @@ namespace MonkeyLoader
                     Logger.Debug(() => ex.Format($"Exception while trying to load assembly {assemblyFile}"));
                 }
             }
+
+            NuGet.AddAll(GameAssemblyPool.GetAllAsLoadedPackages());
         }
 
         /// <summary>
@@ -338,8 +347,8 @@ namespace MonkeyLoader
         public NuGetPackageMod LoadMod(string path, bool isGamePack = false)
         {
             var mod = NuGetPackageMod.Load(this, path, isGamePack);
-            _allMods.Add(mod);
 
+            AddMod(mod);
             return mod;
         }
 
@@ -409,8 +418,7 @@ namespace MonkeyLoader
             // Add check for mod.MonkeyLoadError
 
             var monkeys = mods.SelectMany(mod => mod.Monkeys).ToArray();
-            Array.Sort(monkeys);
-            Array.Reverse(monkeys);
+            Array.Sort(monkeys, Monkey.DescendingComparer);
 
             foreach (var monkey in monkeys)
                 monkey.Run();
