@@ -102,7 +102,7 @@ namespace MonkeyLoader
             //    entry.LoadAssembly(_logger, PatchedAssemblyPath);
 
             // Only need to save and manually load those that were modified or have dependencies that were modified
-            foreach (var assemblyPath in _assemblies.Values.Select(entry => entry.SaveAssembly(path, _logger)).Where(path => path is not null).ToArray())
+            foreach (var assemblyPath in _assemblies.Values.Where(entry => entry.Changes).Select(entry => entry.SaveAssembly(path, _logger)).Where(path => path is not null).ToArray())
                 Assembly.LoadFile(assemblyPath);
 
             _logger.Info(() => $"Loaded all {_assemblies.Count} assembly definitions in {sw.ElapsedMilliseconds}ms!");
@@ -273,12 +273,12 @@ namespace MonkeyLoader
         private sealed class AssemblyEntry : IDisposable
         {
             public readonly AssemblyName Name;
-            private bool _changes = false;
             private AssemblyDefinition _definition;
             private AutoResetEvent? _definitionLock;
             private MemoryStream? _definitionSnapshot;
             private bool _disposedValue = false;
             private Assembly? _loadedAssembly;
+            public bool Changes { get; private set; } = false;
 
             [MemberNotNullWhen(true, nameof(_loadedAssembly))]
             [MemberNotNullWhen(false, nameof(_definition), nameof(_definitionLock), nameof(_definitionSnapshot))]
@@ -334,7 +334,7 @@ namespace MonkeyLoader
                     WaitForDefinition();
                     var definitionBytes = _definitionSnapshot.ToArray();
 
-                    if (saveAssemblies && _changes)
+                    if (saveAssemblies && Changes)
                     {
                         var targetPath = Path.Combine(patchedAssemblyPath, $"{Name}.dll");
 
@@ -385,7 +385,7 @@ namespace MonkeyLoader
 
                 _definition = assemblyDefinition;
                 _definitionLock.Set();
-                _changes = true;
+                Changes = true;
             }
 
             public AssemblyDefinition WaitForDefinition()

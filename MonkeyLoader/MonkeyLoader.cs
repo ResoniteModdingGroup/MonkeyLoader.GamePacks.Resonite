@@ -306,9 +306,20 @@ namespace MonkeyLoader
         /// </summary>
         public void LoadGameAssemblies()
         {
-            //    Assembly.Load("System.Web");
-            //    Assembly.Load("System.ServiceModel");
             GameAssemblyPool.LoadAll(Locations.PatchedAssemblies);
+
+            // Load all unmodified assemblies that weren't loaded already
+            foreach (var assemblyFile in Directory.EnumerateFiles(GameAssemblyPath, "*.dll", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    Assembly.LoadFile(assemblyFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug(() => ex.Format($"Exception while trying to load assembly {assemblyFile}"));
+                }
+            }
         }
 
         public void LoadGameAssemblyDefinitions()
