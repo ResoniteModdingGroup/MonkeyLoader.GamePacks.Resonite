@@ -1,6 +1,7 @@
 ﻿using MonkeyLoader.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -59,5 +60,16 @@ namespace MonkeyLoader.NuGet
             foreach (var package in packages)
                 Add(package);
         }
+
+        public ILoadedNuGetPackage Resolve(string id)
+        {
+            if (!TryResolve(id, out var package))
+                throw new KeyNotFoundException($"No package with id [{id}] could be found!");
+
+            return package;
+        }
+
+        public bool TryResolve(string id, [NotNullWhen(true)] out ILoadedNuGetPackage? package)
+            => _loadedPackages.TryGetValue(id, out package);
     }
 }

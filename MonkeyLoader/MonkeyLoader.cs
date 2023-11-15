@@ -147,10 +147,10 @@ namespace MonkeyLoader
             if (!Directory.Exists(GameAssemblyPath))
                 GameAssemblyPath = Path.GetDirectoryName(executablePath);
 
-            GameAssemblyPool = new AssemblyPool(new MonkeyLogger(Logger, "GameAssemblyPool"), () => Locations.PatchedAssemblies);
+            GameAssemblyPool = new AssemblyPool(this, "GameAssemblyPool", () => Locations.PatchedAssemblies);
             GameAssemblyPool.AddSearchDirectory(GameAssemblyPath);
 
-            PatcherAssemblyPool = new AssemblyPool(new MonkeyLogger(Logger, "PatcherAssemblyPool"), () => Locations.PatchedAssemblies);
+            PatcherAssemblyPool = new AssemblyPool(this, "PatcherAssemblyPool", () => Locations.PatchedAssemblies);
             PatcherAssemblyPool.AddFallbackPool(GameAssemblyPool);
         }
 
@@ -298,7 +298,14 @@ namespace MonkeyLoader
         public void LoadEarlyMonkeys(IEnumerable<Mod> mods)
         {
             foreach (var mod in mods)
+                mod.TryResolveDependencies();
+
+            foreach (var mod in mods)
                 mod.LoadEarlyMonkeys();
+
+            // TODO: Add checking NuGet
+            foreach (var mod in mods.Where(mod => !mod.AllDependenciesLoaded))
+                Logger.Error(() => $"Couldn't load monkeys for mod [{mod.Title}] because some dependencies weren't present!");
         }
 
         /// <summary>
@@ -336,7 +343,14 @@ namespace MonkeyLoader
                 }
             }
 
-            NuGet.AddAll(GameAssemblyPool.GetAllAsLoadedPackages());
+            var loadedPackages = GameAssemblyPool.GetAllAsLoadedPackages().ToArray();
+            NuGet.AddAll(loadedPackages);
+
+            foreach (var package in loadedPackages)
+                package.TryResolveDependencies();
+
+            //if (!loadedPackages.All(package => package.AllDependenciesLoaded))
+            //    throw new InvalidOperationException("Game assemblies contained unresolvable references!");
         }
 
         /// <summary>
@@ -378,8 +392,17 @@ namespace MonkeyLoader
         /// </summary>
         public void LoadMonkeys(IEnumerable<Mod> mods)
         {
+            // For a FullLoad this shouldn't make a difference since LoadEarlyMonkeys does the same.
+            // However users of the library may add more mods inbetween those phases or even later afterwards.
             foreach (var mod in mods)
+                mod.TryResolveDependencies();
+
+            foreach (var mod in mods.Where(mod => mod.AllDependenciesLoaded))
                 mod.LoadMonkeys();
+
+            // TODO: Add checking NuGet
+            foreach (var mod in mods.Where(mod => !mod.AllDependenciesLoaded))
+                Logger.Error(() => $"Couldn't load monkeys for mod [{mod.Title}] because some dependencies weren't present!");
         }
 
         /// <summary>

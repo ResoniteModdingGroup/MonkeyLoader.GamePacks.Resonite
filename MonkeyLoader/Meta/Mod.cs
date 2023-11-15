@@ -26,7 +26,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Stores the dependencies of this mod.
         /// </summary>
-        protected readonly Dictionary<string, PackageDependency> dependencies = new(StringComparer.InvariantCultureIgnoreCase);
+        protected readonly Dictionary<string, DependencyReference> dependencies = new(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Stores the pre-patchers of this mod.
@@ -43,10 +43,24 @@ namespace MonkeyLoader.Meta
         /// </summary>
         protected readonly HashSet<string> tags = new(StringComparer.InvariantCultureIgnoreCase);
 
+        private bool _allDependenciesLoaded = false;
+
         /// <summary>
         /// Gets an <see cref="IComparer{T}"/> that keeps <see cref="Mod"/>s sorted in topological order.
         /// </summary>
         public static IComparer<Mod> Comparer { get; } = new ModComparer();
+
+        /// <inheritdoc/>
+        public bool AllDependenciesLoaded
+        {
+            get
+            {
+                if (!_allDependenciesLoaded)
+                    _allDependenciesLoaded = dependencies.Values.All(dep => dep.AllDependenciesLoaded);
+
+                return _allDependenciesLoaded;
+            }
+        }
 
         /// <summary>
         /// Gets the names of the authors of this mod.
@@ -66,7 +80,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the dependencies of this mod.
         /// </summary>
-        public IEnumerable<PackageDependency> Dependencies => dependencies.Values.AsSafeEnumerable();
+        public IEnumerable<DependencyReference> Dependencies => dependencies.Values.AsSafeEnumerable();
 
         /// <summary>
         /// Gets the description of this mod.
@@ -292,6 +306,9 @@ namespace MonkeyLoader.Meta
 
             return !ShutdownFailed;
         }
+
+        public bool TryResolveDependencies()
+            => dependencies.Values.Select(dep => dep.TryResolve()).All();
 
         internal bool LoadEarlyMonkeys()
         {

@@ -27,6 +27,8 @@ namespace MonkeyLoader
         private readonly Func<string?>? _getPatchedAssemblyPath;
         private readonly MonkeyLogger _logger;
 
+        public MonkeyLoader Loader { get; }
+
         /// <summary>
         /// Gets whether assemblies will be loaded when asked to resolve them.
         /// </summary>
@@ -39,9 +41,10 @@ namespace MonkeyLoader
         /// </summary>
         /// <param name="getPatchedAssemblyPath">Provides the path where to save patched assemblies. Return <c>null</c> to disable.</param>
         /// <param name="loadForResolve">Whether to load assemblies when asked to resolve them.</param>
-        public AssemblyPool(MonkeyLogger logger, Func<string?>? getPatchedAssemblyPath = null, bool loadForResolve = true)
+        public AssemblyPool(MonkeyLoader loader, string poolName = "AssemblyPool", Func<string?>? getPatchedAssemblyPath = null, bool loadForResolve = true)
         {
-            _logger = logger;
+            Loader = loader;
+            _logger = new MonkeyLogger(loader.Logger, poolName);
             _getPatchedAssemblyPath = getPatchedAssemblyPath;
             LoadForResolve = loadForResolve;
 
@@ -69,7 +72,7 @@ namespace MonkeyLoader
                 var targetFramework = assemblyDefinition.GetTargetFramework();
                 var dependencies = assemblyDefinition.GetAssemblyReferences().ToPackageDependencies();
 
-                yield return new LoadedNuGetPackage(identity, targetFramework, dependencies);
+                yield return new LoadedNuGetPackage(identity, targetFramework, dependencies.Select(dep => new DependencyReference(Loader.NuGet, dep)));
             }
         }
 

@@ -27,6 +27,57 @@ namespace MonkeyLoader
     public static class EnumerableExtensions
     {
         /// <summary>
+        /// Determines whether all elements of a boolean sequence are <c>true</c>.<br/>
+        /// </summary>
+        /// <param name="source">The source sequence to check.</param>
+        /// <returns>
+        /// <c>true</c> if every element of the source sequence is <c>true</c>,
+        /// or if the sequence is empty; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool All(this IEnumerable<bool> source)
+        {
+            foreach (var item in source)
+            {
+                if (!item)
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether any element of a boolean sequence is <c>true</c>.<br/>
+        /// </summary>
+        /// <param name="source">The source sequence to check.</param>
+        /// <returns><c>true</c> if any element of the source sequence is <c>true</c>; otherwise, <c>false</c>.</returns>
+        public static bool AnyFalse(this IEnumerable<bool> source)
+        {
+            foreach (var item in source)
+            {
+                if (!item)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether any element of a boolean sequence is <c>true</c>.<br/>
+        /// </summary>
+        /// <param name="source">The source sequence to check.</param>
+        /// <returns><c>true</c> if any element of the source sequence is <c>true</c>; otherwise, <c>false</c>.</returns>
+        public static bool AnyTrue(this IEnumerable<bool> source)
+        {
+            foreach (var item in source)
+            {
+                if (item)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Wraps the given <see cref="IEnumerable{T}"/> in an iterator to prevent casting it to its underlaying type.
         /// </summary>
         /// <typeparam name="T">The type of items in the sequence.</typeparam>

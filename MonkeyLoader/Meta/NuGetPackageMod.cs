@@ -83,7 +83,7 @@ namespace MonkeyLoader.Meta
                 return;
 
             foreach (var package in deps.Packages)
-                dependencies.Add(package.Id, package);
+                dependencies.Add(package.Id, new DependencyReference(loader.NuGet, package));
         }
 
         /// <summary>

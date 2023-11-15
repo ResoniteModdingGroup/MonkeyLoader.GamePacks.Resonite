@@ -13,10 +13,12 @@ namespace MonkeyLoader.NuGet
     /// </summary>
     public interface ILoadedNuGetPackage
     {
+        public bool AllDependenciesLoaded { get; }
+
         /// <summary>
         /// Gets the dependencies of the package.
         /// </summary>
-        public IEnumerable<PackageDependency> Dependencies { get; }
+        public IEnumerable<DependencyReference> Dependencies { get; }
 
         /// <summary>
         /// Gets the identity of the package.
@@ -27,6 +29,8 @@ namespace MonkeyLoader.NuGet
         /// Gets the framework targeted with this dependency.
         /// </summary>
         public NuGetFramework TargetFramework { get; }
+
+        public bool TryResolveDependencies();
     }
 
     /// <summary>
@@ -35,10 +39,23 @@ namespace MonkeyLoader.NuGet
     /// </summary>
     public sealed class LoadedNuGetPackage : ILoadedNuGetPackage
     {
-        private readonly PackageDependency[] _dependencies;
+        private readonly DependencyReference[] _dependencies;
+        private bool _allDependenciesLoaded = false;
 
         /// <inheritdoc/>
-        public IEnumerable<PackageDependency> Dependencies => _dependencies.AsSafeEnumerable();
+        public bool AllDependenciesLoaded
+        {
+            get
+            {
+                if (!_allDependenciesLoaded)
+                    _allDependenciesLoaded = _dependencies.All(dep => dep.AllDependenciesLoaded);
+
+                return _allDependenciesLoaded;
+            }
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<DependencyReference> Dependencies => _dependencies.AsSafeEnumerable();
 
         /// <inheritdoc/>
         public PackageIdentity Identity { get; }
@@ -52,7 +69,7 @@ namespace MonkeyLoader.NuGet
         /// <param name="identity">The identity of the loaded package.</param>
         /// <param name="targetFramework">The framework targeted by the package.</param>
         /// <param name="dependencies">The dependencies of the package.</param>
-        public LoadedNuGetPackage(PackageIdentity identity, NuGetFramework targetFramework, params PackageDependency[] dependencies)
+        public LoadedNuGetPackage(PackageIdentity identity, NuGetFramework targetFramework, params DependencyReference[] dependencies)
         {
             Identity = identity;
             TargetFramework = targetFramework;
@@ -65,8 +82,11 @@ namespace MonkeyLoader.NuGet
         /// <param name="identity">The identity of the loaded package.</param>
         /// <param name="targetFramework">The framework targeted by the package.</param>
         /// <param name="dependencies">The dependencies of the package.</param>
-        public LoadedNuGetPackage(PackageIdentity identity, NuGetFramework targetFramework, IEnumerable<PackageDependency> dependencies)
+        public LoadedNuGetPackage(PackageIdentity identity, NuGetFramework targetFramework, IEnumerable<DependencyReference> dependencies)
             : this(identity, targetFramework, dependencies.ToArray())
         { }
+
+        public bool TryResolveDependencies()
+            => _dependencies.Select(dep => dep.TryResolve()).All();
     }
 }
