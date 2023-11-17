@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.ResoniteModLoader", "MonkeyLoader.ResoniteModLoader\MonkeyLoader.ResoniteModLoader.csproj", "{41F303F4-2BE1-4462-B5DC-144ECA630242}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{40835522-1978-431B-A395-0870583B80F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40835522-1978-431B-A395-0870583B80F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40835522-1978-431B-A395-0870583B80F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41F303F4-2BE1-4462-B5DC-144ECA630242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41F303F4-2BE1-4462-B5DC-144ECA630242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41F303F4-2BE1-4462-B5DC-144ECA630242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41F303F4-2BE1-4462-B5DC-144ECA630242}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
