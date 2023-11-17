@@ -19,6 +19,11 @@ namespace MonkeyLoader.Configuration
         public string ConfigPath { get; }
 
         /// <summary>
+        /// Gets the unique identifier of this owner.
+        /// </summary>
+        public string Id { get; }
+
+        /// <summary>
         /// Gets the <see cref="MonkeyLoader"/> instance that loaded this owner.
         /// </summary>
         public MonkeyLoader Loader { get; }

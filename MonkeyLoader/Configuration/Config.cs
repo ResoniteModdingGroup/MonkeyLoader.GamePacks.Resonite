@@ -61,8 +61,8 @@ namespace MonkeyLoader.Configuration
             Logger = new MonkeyLogger(owner.Logger, "Config");
 
             _loadedConfig = LoadConfig();
-            if (_loadedConfig[OwnerKey]?.ToObject<string>() != Path.GetFileNameWithoutExtension(Owner.ConfigPath))
-                throw new ConfigLoadException("Config malformed! Recorded owner must match the loader!");
+            if (_loadedConfig[OwnerKey]?.ToObject<string>() != Owner.Id)
+                throw new ConfigLoadException("Config malformed! Recorded owner must match the loading owner!");
 
             if (_loadedConfig[SectionsKey] is not JObject)
             {

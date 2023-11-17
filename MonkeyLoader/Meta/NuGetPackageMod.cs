@@ -2,6 +2,7 @@
 using MonkeyLoader.Patching;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,8 +30,28 @@ namespace MonkeyLoader.Meta
         internal readonly HashSet<Assembly> PrePatcherAssemblies = new();
 
         private const string AssemblyExtension = ".dll";
+        private const char AuthorsSeparator = ',';
         private const string PrePatchersFolderName = "pre-patchers";
+        private const char TagsSeparator = ' ';
         private readonly UPath[] _assemblyPaths;
+
+        /// <inheritdoc/>
+        public override string ConfigPath { get; }
+
+        /// <inheritdoc/>
+        public override string Description { get; }
+
+        /// <inheritdoc/>
+        public override IFileSystem FileSystem { get; }
+
+        /// <inheritdoc/>
+        public override UPath? IconPath { get; }
+
+        /// <inheritdoc/>
+        public override Uri? IconUrl { get; }
+
+        /// <inheritdoc/>
+        public override PackageIdentity Identity { get; }
 
         /// <summary>
         /// Gets the absolute file path to this mod's file.
@@ -47,23 +68,78 @@ namespace MonkeyLoader.Meta
         /// </summary>
         public IEnumerable<UPath> PrePatcherAssemblyPaths => _assemblyPaths.Where(path => path.FullName.Contains(PrePatchersFolderName));
 
-        private NuGetPackageMod(MonkeyLoader loader, PackageArchiveReader packageReader, NuspecReader nuspecReader, FrameworkSpecificGroup? nearestLib,
-            string location, IFileSystem fileSystem, bool isGamePack,
-            UPath? iconPath, Uri? iconUrl, Uri? projectUrl)
-            : base(loader, nuspecReader.GetIdentity(), nearestLib?.TargetFramework ?? NuGetFramework.AnyFramework, isGamePack, fileSystem, nuspecReader.GetTitle(), nuspecReader.GetDescription(), nuspecReader.GetReleaseNotes(), iconPath, iconUrl, projectUrl)
+        /// <inheritdoc/>
+        public override Uri? ProjectUrl { get; }
+
+        /// <inheritdoc/>
+        public override string? ReleaseNotes { get; }
+
+        /// <inheritdoc/>
+        public override NuGetFramework TargetFramework { get; }
+
+        /// <inheritdoc/>
+        public override string Title { get; }
+
+        /// <summary>
+        /// Creates a new <see cref="NuGetPackageMod"/> instance for the given <paramref name="loader"/>, loading a .nupkg from the given <paramref name="location"/>.<br/>
+        /// The metadata gets loaded from a <c>.nuspec</c> file, which must be at the root of the file system.
+        /// </summary>
+        /// <param name="loader">The loader instance that loaded this mod.</param>
+        /// <param name="location">The absolute file path to the mod's file.</param>
+        /// <param name="isGamePack">Whether this mod is a game pack.</param>
+        public NuGetPackageMod(MonkeyLoader loader, string location, bool isGamePack) : base(loader, isGamePack)
         {
             Location = location;
-            tags.AddRange(nuspecReader.GetTags().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-            authors.AddRange(nuspecReader.GetAuthors().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+            ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
 
+            using var fileStream = File.OpenRead(location);
+            var memoryStream = new MemoryStream((int)fileStream.Length);
+            fileStream.CopyTo(memoryStream);
+
+            var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Read, true);
+            var packageReader = new PackageArchiveReader(zipArchive, NuGetHelper.NameProvider, NuGetHelper.CompatibilityProvider);
+            FileSystem = new ZipArchiveFileSystem(zipArchive);
+
+            var nuspecReader = packageReader.NuspecReader;
+
+            Title = nuspecReader.GetTitle();
+            Identity = nuspecReader.GetIdentity();
+
+            Description = nuspecReader.GetDescription();
+            ReleaseNotes = nuspecReader.GetReleaseNotes();
+
+            tags.AddRange(nuspecReader.GetTags().Split(new[] { TagsSeparator }, StringSplitOptions.RemoveEmptyEntries));
+            authors.AddRange(nuspecReader.GetAuthors().Split(new[] { AuthorsSeparator }, StringSplitOptions.RemoveEmptyEntries).Select(name => name.Trim()));
+
+            var iconPath = nuspecReader.GetIcon();
+            if (FileSystem.FileExists(iconPath))
+                IconPath = new UPath(iconPath).ToAbsolute();
+            else if (!string.IsNullOrWhiteSpace(iconPath))
+                Logger.Warn(() => $"Icon Path [{iconPath}] is set but the file doesn't exist for mod: {location}");
+
+            var iconUrl = nuspecReader.GetIconUrl();
+            if (Uri.TryCreate(iconUrl, UriKind.Absolute, out var iconUri))
+                IconUrl = iconUri;
+            else if (!string.IsNullOrWhiteSpace(iconUrl))
+                Logger.Warn(() => $"Icon Url [{iconUrl}] is set but is invalid for mod: {location}");
+
+            var projectUrl = nuspecReader.GetProjectUrl();
+            if (Uri.TryCreate(projectUrl, UriKind.Absolute, out var projectUri))
+                ProjectUrl = projectUri;
+            else if (!string.IsNullOrWhiteSpace(projectUrl))
+                Logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
+
+            var nearestLib = packageReader.GetLibItems().GetNearestCompatible();
             if (nearestLib is null)
             {
                 _assemblyPaths = Array.Empty<UPath>();
+                TargetFramework = NuGetFramework.AnyFramework;
                 Logger.Warn(() => $"No compatible lib entry found!");
 
                 return;
             }
 
+            TargetFramework = nearestLib.TargetFramework;
             Logger.Debug(() => $"Nearest compatible lib entry: {nearestLib.TargetFramework}");
 
             _assemblyPaths = nearestLib.Items
@@ -84,65 +160,6 @@ namespace MonkeyLoader.Meta
 
             foreach (var package in deps.Packages)
                 dependencies.Add(package.Id, new DependencyReference(loader.NuGet, package));
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="NuGetPackageMod"/> instance for the given <paramref name="loader"/>, loading a .nupkg from the given <paramref name="location"/>.<br/>
-        /// The metadata gets loaded from a <c>.nuspec</c> file, which must be at the root of the file system.
-        /// </summary>
-        /// <param name="loader">The loader instance that loaded this mod.</param>
-        /// <param name="location">The absolute file path to the mod's file.</param>
-        /// <param name="isGamePack">Whether this mod is a game pack.</param>
-        public static NuGetPackageMod Load(MonkeyLoader loader, string location, bool isGamePack)
-        {
-            using var fileStream = File.OpenRead(location);
-            var memoryStream = new MemoryStream((int)fileStream.Length);
-            fileStream.CopyTo(memoryStream);
-
-            var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Read, true);
-            var packageReader = new PackageArchiveReader(zipArchive, NuGetHelper.NameProvider, NuGetHelper.CompatibilityProvider);
-            var fileSystem = new ZipArchiveFileSystem(zipArchive);
-
-            var nuspecReader = packageReader.NuspecReader;
-
-            var iconP = nuspecReader.GetIcon();
-            UPath? iconPath = null;
-            var iconPathWarn = false;
-            if (fileSystem.FileExists(iconP))
-                iconPath = new UPath(iconP).ToAbsolute();
-            else if (!string.IsNullOrWhiteSpace(iconP))
-                iconPathWarn = true;
-
-            var iconU = nuspecReader.GetIconUrl();
-            Uri? iconUrl = null;
-            var iconUrlWarn = false;
-            if (Uri.TryCreate(iconU, UriKind.Absolute, out var iconUri))
-                iconUrl = iconUri;
-            else if (!string.IsNullOrWhiteSpace(iconU))
-                iconUrlWarn = true;
-
-            var projectU = nuspecReader.GetProjectUrl();
-            Uri? projectUrl = null;
-            var projectUrlWarn = false;
-            if (Uri.TryCreate(projectU, UriKind.Absolute, out var projectUri))
-                projectUrl = projectUri;
-            else if (!string.IsNullOrWhiteSpace(projectU))
-                projectUrlWarn = true;
-
-            var nearestLib = packageReader.GetLibItems().GetNearestCompatible();
-
-            var mod = new NuGetPackageMod(loader, packageReader, nuspecReader, nearestLib, location, fileSystem, isGamePack, iconPath, iconUrl, projectUrl);
-
-            if (iconPathWarn)
-                mod.Logger.Warn(() => $"Icon Path [{iconP}] is set but the file doesn't exist for mod: {location}");
-
-            if (iconUrlWarn)
-                mod.Logger.Warn(() => $"Icon Url [{iconU}] is set but is invalid for mod: {location}");
-
-            if (projectUrlWarn)
-                mod.Logger.Warn(() => $"Project Url [{projectUrl}] is set but is invalid for mod: {location}");
-
-            return mod;
         }
 
         /// <inheritdoc/>

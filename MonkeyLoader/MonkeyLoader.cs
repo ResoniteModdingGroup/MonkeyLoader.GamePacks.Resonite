@@ -51,6 +51,11 @@ namespace MonkeyLoader
         public IEnumerable<Mod> GamePacks => _allMods.Where(mod => mod.IsGamePack);
 
         /// <summary>
+        /// Gets this loader's id.
+        /// </summary>
+        public string Id { get; }
+
+        /// <summary>
         /// Gets the json serializer used by this loader and any mods it loads.<br/>
         /// Will be populated with any converters picked up from game integration packs.
         /// </summary>
@@ -132,7 +137,9 @@ namespace MonkeyLoader
         {
             Logger = new(this);
             LoggingLevel = loggingLevel;
+
             ConfigPath = configPath;
+            Id = Path.GetFileNameWithoutExtension(configPath);
 
             JsonSerializer = new();
 
@@ -371,7 +378,7 @@ namespace MonkeyLoader
         /// <returns>The loaded mod.</returns>
         public NuGetPackageMod LoadMod(string path, bool isGamePack = false)
         {
-            var mod = NuGetPackageMod.Load(this, path, isGamePack);
+            var mod = new NuGetPackageMod(this, path, isGamePack);
 
             AddMod(mod);
             return mod;

@@ -33,8 +33,7 @@ namespace MonkeyLoader.Logging
         private LoggingHandler Handler => Loader.LoggingHandler;
 
         /// <summary>
-        /// Creates a new logger instance starting with the same <see cref="Level">LoggingLevel</see>
-        /// as the given <paramref name="logger"/> instance and owned by the same <see cref="Loader">MonkeyLoader</see>.
+        /// Creates a new logger instance owned by the same <see cref="Loader">MonkeyLoader</see>.
         /// </summary>
         /// <param name="logger">The logger instance to copy.</param>
         /// <param name="extraIdentifier">The extra identifier to append to the <paramref name="logger"/>'s.</param>
@@ -45,7 +44,7 @@ namespace MonkeyLoader.Logging
         }
 
         /// <summary>
-        /// Creates a new logger instance starting with <see cref="LoggingLevel.Info"/> working for the given loader.
+        /// Creates a new logger instance working for the given loader.
         /// </summary>
         /// <param name="loader">The loader that this logger works for.</param>
         internal MonkeyLogger(MonkeyLoader loader)

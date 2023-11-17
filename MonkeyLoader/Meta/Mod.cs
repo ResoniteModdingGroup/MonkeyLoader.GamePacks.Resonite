@@ -43,6 +43,7 @@ namespace MonkeyLoader.Meta
         /// </summary>
         protected readonly HashSet<string> tags = new(StringComparer.InvariantCultureIgnoreCase);
 
+        private readonly Lazy<Config> _config;
         private bool _allDependenciesLoaded = false;
 
         /// <summary>
@@ -70,12 +71,12 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the config that this mod's (pre-)patcher(s) can use to load <see cref="ConfigSection"/>s.
         /// </summary>
-        public Config Config { get; }
+        public Config Config => _config.Value;
 
         /// <summary>
         /// Gets the path where this mod's config file should be.
         /// </summary>
-        public string ConfigPath { get; }
+        public abstract string ConfigPath { get; }
 
         /// <summary>
         /// Gets the dependencies of this mod.
@@ -85,7 +86,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the description of this mod.
         /// </summary>
-        public string Description { get; }
+        public abstract string Description { get; }
 
         /// <summary>
         /// Gets the available <see cref="IEarlyMonkey"/>s of this mod.
@@ -95,7 +96,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the readonly file system of this mod's file.
         /// </summary>
-        public IFileSystem FileSystem { get; }
+        public abstract IFileSystem FileSystem { get; }
 
         /// <summary>
         /// Gets the <see cref="HarmonyLib.Harmony"/> instance to be used by this mod's (pre-)patcher(s).
@@ -116,13 +117,13 @@ namespace MonkeyLoader.Meta
         /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
         /// <c>null</c> if it wasn't given or doesn't exist.
         /// </summary>
-        public UPath? IconPath { get; }
+        public abstract UPath? IconPath { get; }
 
         /// <summary>
         /// Gets the Url to the mod's icon on the web.<br/>
         /// <c>null</c> if it wasn't given or was invalid.
         /// </summary>
-        public Uri? IconUrl { get; }
+        public abstract Uri? IconUrl { get; }
 
         /// <summary>
         /// Gets the unique identifier of this mod.
@@ -132,7 +133,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the package identity of this mod.
         /// </summary>
-        public PackageIdentity Identity { get; }
+        public abstract PackageIdentity Identity { get; }
 
         /// <summary>
         /// Gets whether this mod is a game pack.
@@ -187,12 +188,12 @@ namespace MonkeyLoader.Meta
         /// Gets the Url to this mod's project website.<br/>
         /// <c>null</c> if it wasn't given or was invalid.
         /// </summary>
-        public Uri? ProjectUrl { get; }
+        public abstract Uri? ProjectUrl { get; }
 
         /// <summary>
         /// Gets the release notes for this mod's version.
         /// </summary>
-        public string? ReleaseNotes { get; }
+        public abstract string? ReleaseNotes { get; }
 
         /// <summary>
         /// Gets whether this <see cref="NuGetPackageMod"/>'s <see cref="Shutdown"/> method failed when it was called.
@@ -212,12 +213,12 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the framework targeted by this mod.
         /// </summary>
-        public NuGetFramework TargetFramework { get; }
+        public abstract NuGetFramework TargetFramework { get; }
 
         /// <summary>
         /// Gets the nice identifier of this mod.
         /// </summary>
-        public string Title { get; }
+        public abstract string Title { get; }
 
         /// <summary>
         /// Gets this mod's version.
@@ -228,37 +229,17 @@ namespace MonkeyLoader.Meta
         /// Creates a new mod instance with the given details.
         /// </summary>
         /// <param name="loader">The loader instance that loaded this mod.</param>
-        /// <param name="identity">The package identity of this mod.</param>
-        /// <param name="targetFramework">The framework that this mod targets.</param>
         /// <param name="isGamePack">Whether this mod is a game pack.</param>
-        /// <param name="fileSystem">The file system this mod should use.</param>
-        /// <param name="title">The nice identified of this mod.</param>
-        /// <param name="description">The description of this mod.</param>
-        /// <param name="releaseNotes">The release notes for this mod's version.</param>
-        /// <param name="iconPath">The path to the mod's icon inside its <paramref name="fileSystem"/>.</param>
-        /// <param name="iconUrl">The url to the mod's icon on the web.</param>
-        /// <param name="projectUrl">The url to the mod's project on the web.</param>
-        protected Mod(MonkeyLoader loader, PackageIdentity identity, NuGetFramework targetFramework, bool isGamePack,
-            IFileSystem fileSystem, string title, string description, string? releaseNotes = null,
-            UPath? iconPath = null, Uri? iconUrl = null, Uri? projectUrl = null)
+        protected Mod(MonkeyLoader loader, bool isGamePack)
         {
             Loader = loader;
-            Identity = identity;
-            TargetFramework = targetFramework;
             IsGamePack = isGamePack;
-            FileSystem = fileSystem;
-            Title = title;
-            Description = description;
-            ReleaseNotes = releaseNotes;
-            IconPath = iconPath;
-            IconUrl = iconUrl;
-            ProjectUrl = projectUrl;
 
             Harmony = new Harmony(Id);
             Logger = new MonkeyLogger(loader.Logger, Title);
 
-            ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
-            Config = new Config(this);
+            // Lazy, because the ConfigPath property used to create it is only assigned after this constructor.
+            _config = new(() => new Config(this));
         }
 
         /// <summary>
