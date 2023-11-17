@@ -14,7 +14,7 @@ using Zio;
 namespace MonkeyLoader.Meta
 {
     /// <summary>
-    /// Contains all metadata and references for a mod.
+    /// Contains the base metadata and references for a mod.
     /// </summary>
     public abstract class Mod : IConfigOwner, IShutdown, ILoadedNuGetPackage
     {
@@ -44,12 +44,13 @@ namespace MonkeyLoader.Meta
         protected readonly HashSet<string> tags = new(StringComparer.InvariantCultureIgnoreCase);
 
         private readonly Lazy<Config> _config;
+        private readonly Lazy<MonkeyLogger> _logger;
         private bool _allDependenciesLoaded = false;
 
         /// <summary>
         /// Gets an <see cref="IComparer{T}"/> that keeps <see cref="Mod"/>s sorted in topological order.
         /// </summary>
-        public static IComparer<Mod> Comparer { get; } = new ModComparer();
+        public static IComparer<IMod> Comparer { get; } = new ModComparer();
 
         /// <inheritdoc/>
         public bool AllDependenciesLoaded
@@ -84,19 +85,9 @@ namespace MonkeyLoader.Meta
         public IEnumerable<DependencyReference> Dependencies => dependencies.Values.AsSafeEnumerable();
 
         /// <summary>
-        /// Gets the description of this mod.
-        /// </summary>
-        public abstract string Description { get; }
-
-        /// <summary>
         /// Gets the available <see cref="IEarlyMonkey"/>s of this mod.
         /// </summary>
         public IEnumerable<IEarlyMonkey> EarlyMonkeys => earlyMonkeys.AsSafeEnumerable();
-
-        /// <summary>
-        /// Gets the readonly file system of this mod's file.
-        /// </summary>
-        public abstract IFileSystem FileSystem { get; }
 
         /// <summary>
         /// Gets the <see cref="HarmonyLib.Harmony"/> instance to be used by this mod's (pre-)patcher(s).
@@ -114,24 +105,12 @@ namespace MonkeyLoader.Meta
         public bool HasPrePatchers => earlyMonkeys.Count > 0;
 
         /// <summary>
-        /// Gets the path to the mod's icon inside the mod's <see cref="FileSystem">FileSystem</see>.<br/>
-        /// <c>null</c> if it wasn't given or doesn't exist.
-        /// </summary>
-        public abstract UPath? IconPath { get; }
-
-        /// <summary>
-        /// Gets the Url to the mod's icon on the web.<br/>
-        /// <c>null</c> if it wasn't given or was invalid.
-        /// </summary>
-        public abstract Uri? IconUrl { get; }
-
-        /// <summary>
         /// Gets the unique identifier of this mod.
         /// </summary>
         public string Id => Identity.Id;
 
         /// <summary>
-        /// Gets the package identity of this mod.
+        /// Gets the identity of this mod.
         /// </summary>
         public abstract PackageIdentity Identity { get; }
 
@@ -143,7 +122,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() failed when it was called.
         /// </summary>
-        public bool LoadEarlyMonkeysFailed { get; private set; }
+        public bool LoadEarlyMonkeysFailed { get; private set; } = false;
 
         /// <summary>
         /// Gets whether this mod's <see cref="LoadEarlyMonkeys">LoadEarlyMonkeys</see>() method has been called.
@@ -177,23 +156,12 @@ namespace MonkeyLoader.Meta
         /// Every mod instance has its own logger and can thus have a different <see cref="LoggingLevel"/>.<br/>
         /// They do all share the <see cref="Loader">Loader's</see> <see cref="MonkeyLoader.LoggingHandler">LoggingHandler</see> though.
         /// </remarks>
-        public MonkeyLogger Logger { get; }
+        public MonkeyLogger Logger => _logger.Value;
 
         /// <summary>
         /// Gets the available <see cref="IMonkey"/>s of this mod.
         /// </summary>
         public IEnumerable<IMonkey> Monkeys => monkeys.AsSafeEnumerable();
-
-        /// <summary>
-        /// Gets the Url to this mod's project website.<br/>
-        /// <c>null</c> if it wasn't given or was invalid.
-        /// </summary>
-        public abstract Uri? ProjectUrl { get; }
-
-        /// <summary>
-        /// Gets the release notes for this mod's version.
-        /// </summary>
-        public abstract string? ReleaseNotes { get; }
 
         /// <summary>
         /// Gets whether this <see cref="NuGetPackageMod"/>'s <see cref="Shutdown"/> method failed when it was called.
@@ -218,12 +186,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the nice identifier of this mod.
         /// </summary>
-        public abstract string Title { get; }
-
-        /// <summary>
-        /// Gets this mod's version.
-        /// </summary>
-        public NuGetVersion Version => Identity.Version;
+        public virtual string Title => Id;
 
         /// <summary>
         /// Creates a new mod instance with the given details.
@@ -236,9 +199,9 @@ namespace MonkeyLoader.Meta
             IsGamePack = isGamePack;
 
             Harmony = new Harmony(Id);
-            Logger = new MonkeyLogger(loader.Logger, Title);
 
-            // Lazy, because the ConfigPath property used to create it is only assigned after this constructor.
+            // Lazy, because the properties used to create them are only assigned after this constructor.
+            _logger = new(() => new MonkeyLogger(loader.Logger, Title));
             _config = new(() => new Config(this));
         }
 
@@ -291,7 +254,7 @@ namespace MonkeyLoader.Meta
         public bool TryResolveDependencies()
             => dependencies.Values.Select(dep => dep.TryResolve()).All();
 
-        internal bool LoadEarlyMonkeys()
+        protected bool LoadEarlyMonkeys()
         {
             if (LoadedEarlyMonkeys)
                 throw new InvalidOperationException("A mod's LoadEarlyMonkeys() method must only be called once!");
@@ -315,7 +278,7 @@ namespace MonkeyLoader.Meta
             return !LoadEarlyMonkeysFailed;
         }
 
-        internal bool LoadMonkeys()
+        protected bool LoadMonkeys()
         {
             if (LoadedMonkeys)
                 throw new InvalidOperationException("A mod's LoadMonkeys() method must only be called once!");
@@ -351,17 +314,17 @@ namespace MonkeyLoader.Meta
         /// <returns>Whether it ran successfully.</returns>
         protected abstract bool OnLoadMonkeys();
 
-        private sealed class ModComparer : IComparer<Mod>
+        private sealed class ModComparer : IComparer<IMod>
         {
-            public int Compare(Mod x, Mod y)
+            public int Compare(IMod x, IMod y)
             {
                 // TODO: Make this not a partial order?
                 // If x depends on a mod depending on y, it should count the same
 
-                if (x.dependencies.ContainsKey(y.Id))
+                if (x.Dependencies.Any(dep => dep.Equals(y.Id)))
                     return 1;
 
-                if (y.dependencies.ContainsKey(x.Id))
+                if (y.Dependencies.Any(dep => dep.Equals(x.Id)))
                     return -1;
 
                 return 0;

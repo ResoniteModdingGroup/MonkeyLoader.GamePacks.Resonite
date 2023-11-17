@@ -3,6 +3,7 @@ using MonkeyLoader.Patching;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +20,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Contains all the metadata and references to loaded patchers from a .nupkg mod file.
     /// </summary>
-    public sealed class NuGetPackageMod : Mod
+    public sealed class NuGetPackageMod : Mod, IModInternal
     {
         /// <summary>
         /// The search pattern for mod files.
@@ -35,20 +36,22 @@ namespace MonkeyLoader.Meta
         private const char TagsSeparator = ' ';
         private readonly UPath[] _assemblyPaths;
 
+        private readonly string? _title;
+
         /// <inheritdoc/>
         public override string ConfigPath { get; }
 
         /// <inheritdoc/>
-        public override string Description { get; }
+        public string Description { get; }
 
         /// <inheritdoc/>
-        public override IFileSystem FileSystem { get; }
+        public IFileSystem FileSystem { get; }
 
         /// <inheritdoc/>
-        public override UPath? IconPath { get; }
+        public UPath? IconPath { get; }
 
         /// <inheritdoc/>
-        public override Uri? IconUrl { get; }
+        public Uri? IconUrl { get; }
 
         /// <inheritdoc/>
         public override PackageIdentity Identity { get; }
@@ -59,26 +62,29 @@ namespace MonkeyLoader.Meta
         public string Location { get; }
 
         /// <summary>
-        /// Gets the paths inside this mod's <see cref="Mod.FileSystem">FileSystem</see> that point to patcher assemblies that should be loaded.
+        /// Gets the paths inside this mod's <see cref="FileSystem">FileSystem</see> that point to patcher assemblies that should be loaded.
         /// </summary>
         public IEnumerable<UPath> PatcherAssemblyPaths => _assemblyPaths.Where(path => !path.FullName.Contains(PrePatchersFolderName));
 
         /// <summary>
-        /// Gets the paths inside this mod's <see cref="Mod.FileSystem">FileSystem</see> that point to pre-patcher assemblies that should be loaded.
+        /// Gets the paths inside this mod's <see cref="FileSystem">FileSystem</see> that point to pre-patcher assemblies that should be loaded.
         /// </summary>
         public IEnumerable<UPath> PrePatcherAssemblyPaths => _assemblyPaths.Where(path => path.FullName.Contains(PrePatchersFolderName));
 
         /// <inheritdoc/>
-        public override Uri? ProjectUrl { get; }
+        public Uri? ProjectUrl { get; }
 
         /// <inheritdoc/>
-        public override string? ReleaseNotes { get; }
+        public string? ReleaseNotes { get; }
 
         /// <inheritdoc/>
         public override NuGetFramework TargetFramework { get; }
 
         /// <inheritdoc/>
-        public override string Title { get; }
+        public override string Title => _title ?? base.Title;
+
+        /// <inheritdoc/>
+        public NuGetVersion Version => Identity.Version;
 
         /// <summary>
         /// Creates a new <see cref="NuGetPackageMod"/> instance for the given <paramref name="loader"/>, loading a .nupkg from the given <paramref name="location"/>.<br/>
@@ -102,9 +108,10 @@ namespace MonkeyLoader.Meta
 
             var nuspecReader = packageReader.NuspecReader;
 
-            Title = nuspecReader.GetTitle();
-            Identity = nuspecReader.GetIdentity();
+            var title = nuspecReader.GetTitle();
+            _title = string.IsNullOrWhiteSpace(title) ? null : title;
 
+            Identity = nuspecReader.GetIdentity();
             Description = nuspecReader.GetDescription();
             ReleaseNotes = nuspecReader.GetReleaseNotes();
 
@@ -161,6 +168,10 @@ namespace MonkeyLoader.Meta
             foreach (var package in deps.Packages)
                 dependencies.Add(package.Id, new DependencyReference(loader.NuGet, package));
         }
+
+        bool IModInternal.LoadEarlyMonkeys() => LoadEarlyMonkeys();
+
+        bool IModInternal.LoadMonkeys() => LoadMonkeys();
 
         /// <inheritdoc/>
         protected override bool OnLoadEarlyMonkeys()
