@@ -9,10 +9,11 @@
     <AssemblyTitle>MonkeyLoader.Resonite.Data</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
-    <DebugSymbols Condition="'$(Configuration)'=='Release'">false</DebugSymbols>
-    <DebugType Condition="'$(Configuration)'=='Release'">None</DebugType>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
+    <PDB2MDBPath>$(SolutionDir)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
+    <NuSpecPath>$(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec</NuSpecPath>
+    <NuSpecPath Condition="'$(Configuration)'=='Debug'">$(SolutionDir)MonkeyLoader.GamePacks.Resonite.Debug.nuspec</NuSpecPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ResonitePath)'==''">
@@ -23,19 +24,25 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>none</DebugType>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DebugType>embedded</DebugType>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
 
-  <Target Name="CustomPack" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Release'">
-    <Message Text="Packing Resonite Game Pack" Importance="high" />
-    <Exec Command="S:\NuGet\nuget.exe pack $(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
+  <Target Name="CustomPack" AfterTargets="PostBuildEvent">
+    <Message Text="Generating MDB for $(TargetFileName)" Importance="High" />
+    <Exec Command="$(PDB2MDBPath) $(TargetFileName)" WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
+
+    <Message Text="Packing Resonite Game Pack" Importance="high" />
+    <Exec Command="S:\NuGet\nuget.exe pack $(NuSpecPath) -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
+
     <Copy SourceFiles="$(ProjectDir)MonkeyLoader.GamePacks.Resonite.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" />
     <Message Text="Copied MonkeyLoader.GamePacks.Resonite.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" Importance="high" />
   </Target>

@@ -13,10 +13,14 @@
       <group targetFramework=".NETFramework4.6.2"/>
     </dependencies>
   </metadata>
+  
   <files>
     <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.dll" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll" />
     <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.xml" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.xml" />
+    <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.dll.mdb" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll.mdb" />
+    
     <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.dll" target="lib\net462\MonkeyLoader.Resonite.Integration.dll" />
     <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.xml" target="lib\net462\MonkeyLoader.Resonite.Integration.xml" />
+    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.dll.mdb" target="lib\net462\MonkeyLoader.Resonite.Integration.dll.mdb" />
   </files>
 </package>

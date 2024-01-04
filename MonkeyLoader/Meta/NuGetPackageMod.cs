@@ -184,10 +184,25 @@ namespace MonkeyLoader.Meta
                 try
                 {
                     using var assemblyFile = FileSystem.OpenFile(prepatcherPath, FileMode.Open, FileAccess.Read);
-                    using var memStream = new MemoryStream();
-                    assemblyFile.CopyTo(memStream);
+                    using var assemblyStream = new MemoryStream();
+                    assemblyFile.CopyTo(assemblyStream);
 
-                    var assembly = Assembly.Load(memStream.ToArray());
+                    var mdbPath = prepatcherPath + ".mdb";
+                    var pdbPath = prepatcherPath.GetDirectory() / prepatcherPath.GetNameWithoutExtension()! / ".pdb";
+                    using var symbolStream = new MemoryStream();
+
+                    if (FileSystem.FileExists(mdbPath))
+                    {
+                        using var mdbFile = FileSystem.OpenFile(mdbPath, FileMode.Open, FileAccess.Read);
+                        mdbFile.CopyTo(symbolStream);
+                    }
+                    else if (FileSystem.FileExists(pdbPath))
+                    {
+                        using var pdbFile = FileSystem.OpenFile(pdbPath, FileMode.Open, FileAccess.Read);
+                        pdbFile.CopyTo(symbolStream);
+                    }
+
+                    var assembly = Assembly.Load(assemblyStream.ToArray(), symbolStream.ToArray());
                     Loader.AddJsonConverters(assembly);
                     PrePatcherAssemblies.Add(assembly);
 
@@ -225,10 +240,25 @@ namespace MonkeyLoader.Meta
                     Logger.Debug(() => $"Loading patcher assembly from: {patcherPath}");
 
                     using var assemblyFile = FileSystem.OpenFile(patcherPath, FileMode.Open, FileAccess.Read);
-                    using var memStream = new MemoryStream();
-                    assemblyFile.CopyTo(memStream);
+                    using var assemblyStream = new MemoryStream();
+                    assemblyFile.CopyTo(assemblyStream);
 
-                    var assembly = Assembly.Load(memStream.ToArray());
+                    var mdbPath = patcherPath + ".mdb";
+                    var pdbPath = patcherPath.GetDirectory() / patcherPath.GetNameWithoutExtension()! / ".pdb";
+                    using var symbolStream = new MemoryStream();
+
+                    if (FileSystem.FileExists(mdbPath))
+                    {
+                        using var mdbFile = FileSystem.OpenFile(mdbPath, FileMode.Open, FileAccess.Read);
+                        mdbFile.CopyTo(symbolStream);
+                    }
+                    else if (FileSystem.FileExists(pdbPath))
+                    {
+                        using var pdbFile = FileSystem.OpenFile(pdbPath, FileMode.Open, FileAccess.Read);
+                        pdbFile.CopyTo(symbolStream);
+                    }
+
+                    var assembly = Assembly.Load(assemblyStream.ToArray(), symbolStream.ToArray());
                     Loader.AddJsonConverters(assembly);
                     PatcherAssemblies.Add(assembly);
 
