@@ -96,7 +96,6 @@ namespace MonkeyLoader.Meta
         public NuGetPackageMod(MonkeyLoader loader, string location, bool isGamePack) : base(loader, isGamePack)
         {
             Location = location;
-            ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
 
             using var fileStream = File.OpenRead(location);
             var memoryStream = new MemoryStream((int)fileStream.Length);
@@ -112,6 +111,8 @@ namespace MonkeyLoader.Meta
             _title = string.IsNullOrWhiteSpace(title) ? null : title;
 
             Identity = nuspecReader.GetIdentity();
+            ConfigPath = Path.Combine(Loader.Locations.Configs, $"{Id}.json");
+
             Description = nuspecReader.GetDescription();
             ReleaseNotes = nuspecReader.GetReleaseNotes();
 

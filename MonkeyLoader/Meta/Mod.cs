@@ -44,6 +44,7 @@ namespace MonkeyLoader.Meta
         protected readonly HashSet<string> tags = new(StringComparer.InvariantCultureIgnoreCase);
 
         private readonly Lazy<Config> _config;
+        private readonly Lazy<Harmony> _harmony;
         private readonly Lazy<MonkeyLogger> _logger;
         private bool _allDependenciesLoaded = false;
 
@@ -92,7 +93,7 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets the <see cref="HarmonyLib.Harmony"/> instance to be used by this mod's (pre-)patcher(s).
         /// </summary>
-        public Harmony Harmony { get; }
+        public Harmony Harmony => _harmony.Value;
 
         /// <summary>
         /// Gets whether this mod has any <see cref="Monkeys">monkeys</see>.
@@ -198,11 +199,10 @@ namespace MonkeyLoader.Meta
             Loader = loader;
             IsGamePack = isGamePack;
 
-            Harmony = new Harmony(Id);
-
             // Lazy, because the properties used to create them are only assigned after this constructor.
             _logger = new(() => new MonkeyLogger(loader.Logger, Title));
             _config = new(() => new Config(this));
+            _harmony = new(() => new Harmony(Id));
         }
 
         /// <summary>
