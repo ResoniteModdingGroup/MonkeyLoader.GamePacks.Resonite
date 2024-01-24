@@ -44,13 +44,19 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
+        /// Creates a new <see cref="ConfigKey"/> instance from the given name.
+        /// </summary>
+        /// <param name="name">The mod-unique name of the config item.</param>
+        public static implicit operator ConfigKey(string name) => new(name);
+
+        /// <summary>
         /// Checks if two <see cref="ConfigKey"/>s are unequal.
         /// </summary>
         /// <param name="left">The first key.</param>
         /// <param name="right">The second key.</param>
         /// <returns><c>true</c> if they're considered unequal.</returns>
         public static bool operator !=(ConfigKey? left, ConfigKey? right)
-            => !(left == right);
+            => !EqualityComparer.Equals(left!, right!);
 
         /// <summary>
         /// Checks if two <see cref="ConfigKey"/>s are equal.
@@ -59,18 +65,20 @@ namespace MonkeyLoader.Configuration
         /// <param name="right">The second key.</param>
         /// <returns><c>true</c> if they're considered equal.</returns>
         public static bool operator ==(ConfigKey? left, ConfigKey? right)
-            => ReferenceEquals(left, right)
-            || (left is not null && right is not null && left.Name == right.Name);
+            => EqualityComparer.Equals(left!, right!);
 
         /// <summary>
         /// Checks if the given object can be considered equal to this one.
         /// </summary>
         /// <param name="obj">The other object.</param>
         /// <returns><c>true</c> if the other object is considered equal.</returns>
-        public override bool Equals(object obj) => obj is ConfigKey key && key == this;
+        public override bool Equals(object? obj) => obj is IConfigKey otherKey && Equals(otherKey);
 
         /// <inheritdoc/>
-        public override int GetHashCode() => Name.GetHashCode();
+        public bool Equals(IConfigKey? other) => EqualityComparer.Equals(this, other!);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => EqualityComparer.GetHashCode(this);
 
         /// <summary>
         /// <see cref="IEqualityComparer{T}"/> for <see cref="IConfigKey"/>s.
@@ -78,16 +86,31 @@ namespace MonkeyLoader.Configuration
         private sealed class ConfigKeyEqualityComparer : IEqualityComparer<IConfigKey>
         {
             /// <inheritdoc/>
-            public bool Equals(IConfigKey x, IConfigKey y) => ReferenceEquals(x, y) || x.Name == y.Name;
+            public bool Equals(IConfigKey? x, IConfigKey? y)
+            {
+                if (ReferenceEquals(x, y))
+                    return true;
+
+                if (x is ITypedConfigKey typedX && y is ITypedConfigKey typedY)
+                    return typedX.ValueType == typedY.ValueType && typedX.Name == typedY.Name;
+
+                return x is not null && y is not null && x.Name == y.Name;
+            }
 
             /// <inheritdoc/>
-            public int GetHashCode(IConfigKey obj) => obj.Name.GetHashCode();
+            public int GetHashCode(IConfigKey? obj)
+            {
+                if (obj is ITypedConfigKey typedKey)
+                    return unchecked((31 * typedKey.ValueType.GetHashCode()) + obj.Name.GetHashCode());
+
+                return obj?.Name.GetHashCode() ?? 0;
+            }
         }
     }
 
     /// <inheritdoc/>
     /// <typeparam name="T">The type of this config item's value.</typeparam>
-    public class ConfigKey<T> : ConfigKey, IConfigKey<T>
+    public class ConfigKey<T> : ConfigKey, ITypedConfigKey<T>
     {
         /// <inheritdoc/>
         public Type ValueType { get; } = typeof(T);
@@ -95,12 +118,18 @@ namespace MonkeyLoader.Configuration
         /// <inheritdoc/>
         public ConfigKey(string name) : base(name)
         { }
+
+        /// <summary>
+        /// Creates a new <see cref="ConfigKey{T}"/> instance from the given name.
+        /// </summary>
+        /// <param name="name">The mod-unique name of the config item.</param>
+        public static implicit operator ConfigKey<T>(string name) => new(name);
     }
 
     /// <summary>
     /// Represents a name-only configuration item, which can be used to get or set the values of defining keys with the same name.
     /// </summary>
-    public interface IConfigKey
+    public interface IConfigKey : IEquatable<IConfigKey>
     {
         /// <summary>
         /// Gets whether this instance defines the config item with this <see cref="Name">Name</see>.
@@ -116,11 +145,20 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// Represents a name-only typed configuration item, which can be used to get or set the values of defining keys with the same name.
     /// </summary>
-    public interface IConfigKey<T> : IConfigKey
+    /// <remarks>
+    /// Generally <see cref="ITypedConfigKey{T}"/> should be used instead, unless the generic type gets in the way.
+    /// </remarks>
+    public interface ITypedConfigKey : IConfigKey
     {
         /// <summary>
         /// Get the <see cref="Type"/> of this config item's value.
         /// </summary>
         public Type ValueType { get; }
     }
+
+    /// <summary>
+    /// Represents a name-only typed configuration item, which can be used to get or set the values of defining keys with the same name.
+    /// </summary>
+    public interface ITypedConfigKey<T> : IConfigKey
+    { }
 }

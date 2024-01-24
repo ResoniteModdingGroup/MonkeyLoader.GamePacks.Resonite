@@ -84,6 +84,15 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <inheritdoc/>
+        public bool Equals(IConfigKey other) => ConfigKey.EqualityComparer.Equals(this, other);
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => obj is IConfigKey otherKey && Equals(otherKey);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => ConfigKey.EqualityComparer.GetHashCode(this);
+
+        /// <inheritdoc/>
         public T? GetValue()
         {
             TryGetValue(out T? value);
@@ -263,7 +272,7 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// Represents the definition for a config item.
     /// </summary>
-    public interface IDefiningConfigKey : IConfigKey
+    public interface IDefiningConfigKey : ITypedConfigKey
     {
         /// <summary>
         /// Gets the config this item belongs to.
@@ -290,11 +299,6 @@ namespace MonkeyLoader.Configuration
         /// Gets whether only the owning mod should have access to this config item.
         /// </summary>
         public bool InternalAccessOnly { get; }
-
-        /// <summary>
-        /// Get the <see cref="Type"/> of this config item's value.
-        /// </summary>
-        public Type ValueType { get; }
 
         /// <summary>
         /// Gets this config item's set value, falling back to the <see cref="TryComputeDefault">computed default</see>.
@@ -354,7 +358,7 @@ namespace MonkeyLoader.Configuration
     /// <summary>
     /// Represents the typed definition for a config item.
     /// </summary>
-    public interface IDefiningConfigKey<T> : IDefiningConfigKey, IConfigKey<T>
+    public interface IDefiningConfigKey<T> : IDefiningConfigKey, ITypedConfigKey<T>
     {
         /// <summary>
         /// Gets this config item's set value, falling back to the <see cref="TryComputeDefault">computed default</see>.

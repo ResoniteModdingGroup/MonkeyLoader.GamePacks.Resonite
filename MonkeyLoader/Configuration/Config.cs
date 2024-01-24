@@ -1,8 +1,6 @@
 // Adapted from the NeosModLoader project.
 
-using HarmonyLib;
 using MonkeyLoader.Logging;
-using MonkeyLoader.Meta;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,9 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Configuration
 {
@@ -55,6 +50,23 @@ namespace MonkeyLoader.Configuration
         /// </summary>
         public IEnumerable<ConfigSection> Sections => _sections.AsSafeEnumerable();
 
+        /// <summary>
+        /// Gets or sets a configuration value for the given key,
+        /// throwing a <see cref="KeyNotFoundException"/> if the key is not found.
+        /// May throw an <see cref="ArgumentException"/> if the value is not valid for it.
+        /// </summary>
+        /// <remarks>
+        /// This shorthand does not exist for <see cref="GetValue{T}"/>, because generic indexers aren't supported.
+        /// </remarks>
+        /// <param name="key">The key to get or set the value for.</param>
+        /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
+        /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
+        public object? this[IConfigKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+
         internal Config(IConfigOwner owner)
         {
             Owner = owner;
@@ -72,7 +84,8 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
-        /// Get a value, throwing a <see cref="KeyNotFoundException"/> if the key is not found.
+        /// Gets the configuration value for the given key,
+        /// throwing a <see cref="KeyNotFoundException"/> if the key is not found.
         /// </summary>
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
@@ -86,13 +99,14 @@ namespace MonkeyLoader.Configuration
         }
 
         /// <summary>
-        /// Get a value, throwing a <see cref="KeyNotFoundException"/> if the key is not found.
+        /// Gets the configuration value for the given key,
+        /// throwing a <see cref="KeyNotFoundException"/> if the key is not found.
         /// </summary>
         /// <typeparam name="T">The type of the key's value.</typeparam>
         /// <param name="key">The key to get the value for.</param>
         /// <returns>The value for the key.</returns>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
-        public T GetValue<T>(IConfigKey<T> key)
+        public T GetValue<T>(ITypedConfigKey<T> key)
         {
             if (!TryGetValue(key, out var value))
                 ThrowKeyNotFound(key);
@@ -209,7 +223,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="eventLabel">A custom label you may assign to this change event.</param>
         /// <exception cref="KeyNotFoundException">The given key does not exist in the configuration.</exception>
         /// <exception cref="ArgumentException">The new value is not valid for the given key.</exception>
-        public void SetValue<T>(IConfigKey<T> key, T value, string? eventLabel = null)
+        public void SetValue<T>(ITypedConfigKey<T> key, T value, string? eventLabel = null)
         {
             if (!TryGetDefiningKey(key, out IDefiningConfigKey? definingKey))
                 ThrowKeyNotFound(key);
@@ -257,7 +271,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to check.</param>
         /// <param name="definingKey">The defining key in this config when this returns <c>true</c>, otherwise <c>null</c>.</param>
         /// <returns><c>true</c> if the key is defined in this config.</returns>
-        public bool TryGetDefiningKey<T>(IConfigKey<T> key, [NotNullWhen(true)] out IDefiningConfigKey<T>? definingKey)
+        public bool TryGetDefiningKey<T>(ITypedConfigKey<T> key, [NotNullWhen(true)] out IDefiningConfigKey<T>? definingKey)
         {
             if (_configurationItemDefinitionsSelfMap.TryGetValue(key, out var untypedDefiningKey))
             {
@@ -293,7 +307,7 @@ namespace MonkeyLoader.Configuration
         /// <param name="key">The key to get the value for.</param>
         /// <param name="value">The value if the return value is <c>true</c>, or <c>default</c> if <c>false</c>.</param>
         /// <returns><c>true</c> if the value was read successfully.</returns>
-        public bool TryGetValue<T>(IConfigKey<T> key, out T? value)
+        public bool TryGetValue<T>(ITypedConfigKey<T> key, out T? value)
         {
             if (TryGetDefiningKey(key, out var definingKey) && definingKey.TryGetValue(out value))
                 return true;
@@ -316,16 +330,6 @@ namespace MonkeyLoader.Configuration
 
             return definingKey.Unset();
         }
-
-        internal void EnsureDirectoryExists() => Directory.CreateDirectory(Owner.Loader.Locations.Configs);
-
-        /// <summary>
-        /// Checks if the given key is the defining key.
-        /// </summary>
-        /// <param name="key">The key to check.</param>
-        /// <returns><c>true</c> if the key is the defining key.</returns>
-        // a key is the defining key if and only if its DefiningKey property references itself
-        internal bool IsKeyDefiningKey(IConfigKey key) => key.IsDefiningKey;
 
         internal void OnItemChanged(IConfigKeyChangedEventArgs configKeyChangedEventArgs)
         {

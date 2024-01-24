@@ -68,6 +68,9 @@ namespace MonkeyLoader.Configuration
 
             foreach (var key in _keys)
                 key.Section = this;
+
+            // Make the Compiler shut up about Config not being set - it gets set by the Config loading the section.
+            Config = null!;
         }
 
         /// <summary>
