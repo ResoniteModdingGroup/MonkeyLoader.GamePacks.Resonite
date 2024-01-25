@@ -56,7 +56,7 @@ namespace MonkeyLoader.Logging
         {
             lock (_streamWriter)
             {
-                _streamWriter.WriteLine($"[{DateTime.Now:HH:mm:ss:ffff}] {message}");
+                _streamWriter.WriteLine($"[{DateTime.Now:HH:mm:ss.ffff}] {message}");
             }
         }
 

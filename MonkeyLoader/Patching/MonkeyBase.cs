@@ -199,10 +199,34 @@ namespace MonkeyLoader.Patching
         public static void Debug(Func<object> messageProducer) => Logger.Debug(messageProducer);
 
         /// <summary>
+        /// Logs events considered to be useful during debugging when more granular information is needed.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Debug(params Func<object>[] messageProducers) => Logger.Debug(messageProducers);
+
+        /// <summary>
+        /// Logs events considered to be useful during debugging when more granular information is needed.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Debug(IEnumerable<Func<object>> messageProducers) => Logger.Debug(messageProducers);
+
+        /// <summary>
         /// Logs that one or more functionalities are not working, preventing some from working correctly.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public static void Error(Func<object> messageProducer) => Logger.Error(messageProducer);
+
+        /// <summary>
+        /// Logs that one or more functionalities are not working, preventing some from working correctly.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Error(params Func<object>[] messageProducers) => Logger.Error(messageProducers);
+
+        /// <summary>
+        /// Logs that one or more functionalities are not working, preventing some from working correctly.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Error(IEnumerable<Func<object>> messageProducers) => Logger.Error(messageProducers);
 
         /// <summary>
         /// Logs that one or more key functionalities, or the whole system isn't working.
@@ -211,10 +235,34 @@ namespace MonkeyLoader.Patching
         public static void Fatal(Func<object> messageProducer) => Logger.Fatal(messageProducer);
 
         /// <summary>
+        /// Logs that one or more key functionalities, or the whole system isn't working.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Fatal(params Func<object>[] messageProducers) => Logger.Fatal(messageProducers);
+
+        /// <summary>
+        /// Logs that one or more key functionalities, or the whole system isn't working.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Fatal(IEnumerable<Func<object>> messageProducers) => Logger.Fatal(messageProducers);
+
+        /// <summary>
         /// Logs that something happened, which is purely informative and can be ignored during normal use.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public static void Info(Func<object> messageProducer) => Logger.Info(messageProducer);
+
+        /// <summary>
+        /// Logs that something happened, which is purely informative and can be ignored during normal use.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Info(params Func<object>[] messageProducers) => Logger.Info(messageProducers);
+
+        /// <summary>
+        /// Logs that something happened, which is purely informative and can be ignored during normal use.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Info(IEnumerable<Func<object>> messageProducers) => Logger.Info(messageProducers);
 
         /// <summary>
         /// Logs step by step execution of code that can be ignored during standard operation,
@@ -224,9 +272,35 @@ namespace MonkeyLoader.Patching
         public static void Trace(Func<object> messageProducer) => Logger.Trace(messageProducer);
 
         /// <summary>
+        /// Logs step by step execution of code that can be ignored during standard operation,
+        /// but may be useful during extended debugging sessions.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Trace(params Func<object>[] messageProducers) => Logger.Trace(messageProducers);
+
+        /// <summary>
+        /// Logs step by step execution of code that can be ignored during standard operation,
+        /// but may be useful during extended debugging sessions.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Trace(IEnumerable<Func<object>> messageProducers) => Logger.Trace(messageProducers);
+
+        /// <summary>
         /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public static void Warn(Func<object> messageProducer) => Logger.Warn(messageProducer);
+
+        /// <summary>
+        /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Warn(params Func<object>[] messageProducers) => Logger.Warn(messageProducers);
+
+        /// <summary>
+        /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public static void Warn(IEnumerable<Func<object>> messageProducers) => Logger.Warn(messageProducers);
     }
 }
