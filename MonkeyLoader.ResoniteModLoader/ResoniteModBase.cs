@@ -1,4 +1,5 @@
 using MonkeyLoader;
+using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ namespace ResoniteModLoader
     /// </summary>
     public abstract class ResoniteModBase : Mod, IMonkey
     {
+        private static MonkeyLoader.MonkeyLoader _monkeyLoader = null!;
+
         /// <inheritdoc/>
         public AssemblyName AssemblyName { get; }
 
@@ -44,17 +47,27 @@ namespace ResoniteModLoader
         /// <summary>
         /// Gets the mod's semantic version.
         /// </summary>
-        public abstract new string Version { get; }
+        public abstract string Version { get; }
 
-        internal static MonkeyLoader.MonkeyLoader MonkeyLoader { get; set; } = null!;
+        internal new static MonkeyLogger Logger { get; private set; } = null!;
 
-        protected Mod()
-            : base(MonkeyLoader, new NuGet.Packaging.Core.PackageIdentity( , new NuGet.Versioning.NuGetVersion(Version)
+        internal static MonkeyLoader.MonkeyLoader MonkeyLoader
+        {
+            get => _monkeyLoader;
+            set
             {
+                _monkeyLoader = value;
+                Logger = new(value.Logger, "ResoniteModLoader");
             }
+        }
 
+        protected ResoniteModBase() : base(MonkeyLoader, false)
+        {
+            monkeys.Add(this);
+        }
 
-public int CompareTo(IMonkey other) => Comparer<IMonkey>.Default.Compare(this, other);
+        /// <inheritdoc/>
+        public int CompareTo(IMonkey other) => Comparer<IMonkey>.Default.Compare(this, other);
 
         /// <summary>
         /// Gets this mod's current <see cref="ModConfiguration"/>.
@@ -70,6 +83,9 @@ public int CompareTo(IMonkey other) => Comparer<IMonkey>.Default.Compare(this, o
             return loadedResoniteMod?.ModConfiguration;
         }
 
-        public bool Run() => throw new System.NotImplementedException();
+        /// <inheritdoc/>
+        bool IRun.Run() => Run();
+
+        private protected abstract bool Run();
     }
 }

@@ -688,11 +688,9 @@ namespace ResoniteModLoader
     public class ModConfigurationException : Exception
     {
         internal ModConfigurationException(string message) : base(message)
-        {
-        }
+        { }
 
         internal ModConfigurationException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        { }
     }
 }
