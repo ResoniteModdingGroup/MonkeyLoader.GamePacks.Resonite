@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <LangVersion>11.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
@@ -14,6 +14,7 @@
     <PDB2MDBPath>$(SolutionDir)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
     <NuSpecPath>$(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec</NuSpecPath>
     <NuSpecPath Condition="'$(Configuration)'=='Debug'">$(SolutionDir)MonkeyLoader.GamePacks.Resonite.Debug.nuspec</NuSpecPath>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ResonitePath)'==''">
@@ -48,11 +49,11 @@
 
 
   <ItemGroup>
-    <PackageReference Include="PolySharp" Version="1.13.2">
+    <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Lib.Harmony" Version="2.3.0-prerelease.2" />
+    <PackageReference Include="Lib.Harmony" Version="2.3.0-prerelease.5" />
     <Reference Include="FrooxEngine">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
     </Reference>
@@ -64,6 +65,9 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
