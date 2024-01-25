@@ -17,6 +17,18 @@ namespace MonkeyLoader.Resonite
     {
         /// <summary>
         /// Gets whether this <see cref="ResoniteMonkey{TMonkey}">ResoniteMonkey</see> failed when
+        /// <see cref="ResoniteMonkey{TMonkey}.OnEngineInit">OnEngineReady</see>() was called.
+        /// </summary>
+        public bool EngineInitFailed { get; }
+
+        /// <summary>
+        /// Gets whether this <see cref="ResoniteMonkey{TMonkey}">ResoniteMonkey's</see>
+        /// <see cref="ResoniteMonkey{TMonkey}.OnEngineInit">OnEngineInit</see>() method has been called.
+        /// </summary>
+        public bool EngineInitRan { get; }
+
+        /// <summary>
+        /// Gets whether this <see cref="ResoniteMonkey{TMonkey}">ResoniteMonkey</see> failed when
         /// <see cref="ResoniteMonkey{TMonkey}.OnEngineReady">OnEngineReady</see>() was called.
         /// </summary>
         public bool EngineReadyFailed { get; }
@@ -40,6 +52,12 @@ namespace MonkeyLoader.Resonite
         where TMonkey : ResoniteMonkey<TMonkey>, new()
     {
         /// <inheritdoc/>
+        public bool EngineInitFailed { get; private set; }
+
+        /// <inheritdoc/>
+        public bool EngineInitRan { get; private set; }
+
+        /// <inheritdoc/>
         public bool EngineReadyFailed { get; private set; }
 
         /// <inheritdoc/>
@@ -51,11 +69,41 @@ namespace MonkeyLoader.Resonite
         protected ResoniteMonkey()
         { }
 
-        bool IResoniteMonkeyInternal.EngineReady()
+        bool IResoniteMonkeyInternal.EngineInit()
         {
             if (Failed)
             {
-                Warn(() => "Monkey already failed, skipping OnEngineReady!");
+                Warn(() => "Monkey already failed Run, skipping OnEngineInit!");
+                return false;
+            }
+
+            if (EngineInitRan)
+                throw new InvalidOperationException("A Resonite monkey's OnEngineInit() method must only be called once!");
+
+            EngineInitRan = true;
+
+            try
+            {
+                if (!OnEngineInit())
+                {
+                    EngineInitFailed = true;
+                    Warn(() => "OnEngineInit failed!");
+                }
+            }
+            catch (Exception ex)
+            {
+                EngineInitFailed = true;
+                Error(() => ex.Format("OnEngineInit threw an Exception:"));
+            }
+
+            return !EngineInitFailed;
+        }
+
+        bool IResoniteMonkeyInternal.EngineReady()
+        {
+            if (EngineInitFailed)
+            {
+                Warn(() => "Monkey already failed OnEngineInit, skipping OnEngineReady!");
                 return false;
             }
 
@@ -68,17 +116,17 @@ namespace MonkeyLoader.Resonite
             {
                 if (!OnEngineReady())
                 {
-                    Failed = true;
+                    EngineReadyFailed = true;
                     Warn(() => "OnEngineReady failed!");
                 }
             }
             catch (Exception ex)
             {
-                Failed = true;
+                EngineReadyFailed = true;
                 Error(() => ex.Format("OnEngineReady threw an Exception:"));
             }
 
-            return !Failed;
+            return !EngineReadyFailed;
         }
 
         void IResoniteMonkeyInternal.EngineShutdownRequested(string reason)
@@ -92,6 +140,22 @@ namespace MonkeyLoader.Resonite
                 Error(() => ex.Format("OnEngineShutdownRequested threw an Exception:"));
             }
         }
+
+        /// <summary>
+        /// Override this method to be called when the <see cref="Engine"/>'s <see cref="Engine.Initialize">Initialize</see>() method has just been called.<br/>
+        /// This method can be used if elements of the initialization need to be modified,
+        /// such as changing <see cref="LoadProgressIndicator.TotalFixedPhaseCount"/>.<br/>
+        /// Return <c>true</c> if patching was successful.
+        /// </summary>
+        /// <remarks>
+        /// Override <see cref="OnLoaded">OnLoaded</see>() to patch before <i>anything</i> is initialized,
+        /// or <see cref="OnEngineReady">OnEngineReady</see>() to patch when basic facilities of the game
+        /// are ready to use, while most other code hasn't been run yet.
+        /// <para/>
+        /// <i>By default:</i> Doesn't do anything except return <c>true</c>.
+        /// </remarks>
+        /// <returns>Whether the patching was successful.</returns>
+        protected virtual bool OnEngineInit() => true;
 
         /// <summary>
         /// Override this method to be called when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.<br/>
@@ -134,6 +198,13 @@ namespace MonkeyLoader.Resonite
 
     internal interface IResoniteMonkeyInternal : IResoniteMonkey
     {
+        /// <summary>
+        /// Call when the <see cref="Engine"/>'s <see cref="Engine.Initialize">Initialize</see>()
+        /// method has just been called.
+        /// </summary>
+        /// <returns>Whether the patching was successful.</returns>
+        public bool EngineInit();
+
         /// <summary>
         /// Call when the <see cref="Engine"/> is <see cref="Engine.OnReady">ready</see>.
         /// </summary>
