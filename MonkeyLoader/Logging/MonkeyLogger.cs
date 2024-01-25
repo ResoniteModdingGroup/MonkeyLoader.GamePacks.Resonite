@@ -60,10 +60,34 @@ namespace MonkeyLoader.Logging
         public void Debug(Func<object> messageProducer) => LogInternal(LoggingLevel.Debug, messageProducer);
 
         /// <summary>
+        /// Logs events considered to be useful during debugging when more granular information is needed.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Debug(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Debug, messageProducers);
+
+        /// <summary>
+        /// Logs events considered to be useful during debugging when more granular information is needed.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Debug(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Debug, messageProducers);
+
+        /// <summary>
         /// Logs that one or more functionalities are not working, preventing some from working correctly.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public void Error(Func<object> messageProducer) => LogInternal(LoggingLevel.Error, messageProducer);
+
+        /// <summary>
+        /// Logs that one or more functionalities are not working, preventing some from working correctly.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Error(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Error, messageProducers);
+
+        /// <summary>
+        /// Logs that one or more functionalities are not working, preventing some from working correctly.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Error(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Error, messageProducers);
 
         /// <summary>
         /// Logs that one or more key functionalities, or the whole system isn't working.
@@ -72,10 +96,34 @@ namespace MonkeyLoader.Logging
         public void Fatal(Func<object> messageProducer) => LogInternal(LoggingLevel.Fatal, messageProducer);
 
         /// <summary>
+        /// Logs that one or more key functionalities, or the whole system isn't working.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Fatal(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Fatal, messageProducers);
+
+        /// <summary>
+        /// Logs that one or more key functionalities, or the whole system isn't working.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Fatal(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Fatal, messageProducers);
+
+        /// <summary>
         /// Logs that something happened, which is purely informative and can be ignored during normal use.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public void Info(Func<object> messageProducer) => LogInternal(LoggingLevel.Info, messageProducer);
+
+        /// <summary>
+        /// Logs that something happened, which is purely informative and can be ignored during normal use.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Info(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Info, messageProducers);
+
+        /// <summary>
+        /// Logs that something happened, which is purely informative and can be ignored during normal use.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Info(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Info, messageProducers);
 
         /// <summary>
         /// Determines whether the given <see cref="LoggingLevel"/> should be logged at the current <see cref="Level">Level</see>.
@@ -92,10 +140,36 @@ namespace MonkeyLoader.Logging
         public void Trace(Func<object> messageProducer) => LogInternal(LoggingLevel.Trace, messageProducer);
 
         /// <summary>
+        /// Logs step by step execution of code that can be ignored during standard operation,
+        /// but may be useful during extended debugging sessions.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Trace(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Trace, messageProducers);
+
+        /// <summary>
+        /// Logs step by step execution of code that can be ignored during standard operation,
+        /// but may be useful during extended debugging sessions.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Trace(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Trace, messageProducers);
+
+        /// <summary>
         /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
         /// </summary>
         /// <param name="messageProducer">The producer to log if possible.</param>
         public void Warn(Func<object> messageProducer) => LogInternal(LoggingLevel.Warn, messageProducer);
+
+        /// <summary>
+        /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Warn(params Func<object>[] messageProducers) => LogInternal(LoggingLevel.Warn, messageProducers);
+
+        /// <summary>
+        /// Logs that unexpected behavior happened, but work is continuing and the key functionalities are operating as expected.
+        /// </summary>
+        /// <param name="messageProducers">The producers to log as individual lines if possible.</param>
+        public void Warn(IEnumerable<Func<object>> messageProducers) => LogInternal(LoggingLevel.Warn, messageProducers);
 
         internal void FlushDeferredMessages()
         {
@@ -122,6 +196,17 @@ namespace MonkeyLoader.Logging
                 return;
 
             LogLevelToLogger(level)(MakeMessageProducer(level, messageProducer));
+        }
+
+        private void LogInternal(LoggingLevel level, IEnumerable<Func<object>> messageProducers)
+        {
+            if (!ShouldLog(level))
+                return;
+
+            var logger = LogLevelToLogger(level);
+
+            foreach (var messageProducer in messageProducers)
+                logger(MakeMessageProducer(level, messageProducer));
         }
 
         private Action<Func<object>> LogLevelToLogger(LoggingLevel level)
