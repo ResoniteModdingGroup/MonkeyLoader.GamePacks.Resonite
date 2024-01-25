@@ -30,6 +30,9 @@ namespace MonkeyLoader.Resonite
 
             Mod.Loader.LoggingHandler += ResoniteLoggingHandler.Instance;
 
+            // add extra OnEngineInit phase to resonite monkeys for doing this or other things.
+            LoadProgressIndicator.AddFixedPhase();
+
             __instance.OnReady += OnEngineReady;
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
@@ -37,8 +40,17 @@ namespace MonkeyLoader.Resonite
 
         private static void OnEngineReady()
         {
+            LoadProgressIndicator.AdvanceFixedPhase();
+            LoadProgressIndicator.EnterCustomPhase("Executing EngineReady Hooks");
+
             foreach (var resoniteMonkey in Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>())
+            {
+                LoadProgressIndicator.EnterCustomPhase($"EngineReady for Resonite Monkey: {resoniteMonkey.Name}");
                 resoniteMonkey.EngineReady();
+                LoadProgressIndicator.ExitCustomPhase();
+            }
+
+            LoadProgressIndicator.ExitCustomPhase();
         }
 
         private static void OnEngineShutdown() => Mod.Loader.Shutdown();
