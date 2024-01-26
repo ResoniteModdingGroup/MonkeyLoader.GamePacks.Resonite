@@ -42,7 +42,7 @@
     <PackageTags>mod; mods; modding; mod loader; harmony; unity; game; games; mono; config; configuration; nuget; logging</PackageTags>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <Version>0.1.0-alpha</Version>
+    <Version>0.2.0-alpha</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
