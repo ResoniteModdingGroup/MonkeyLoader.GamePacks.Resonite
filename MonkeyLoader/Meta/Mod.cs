@@ -16,7 +16,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Contains the base metadata and references for a mod.
     /// </summary>
-    public abstract class Mod : IConfigOwner, IShutdown, ILoadedNuGetPackage
+    public abstract class Mod : IConfigOwner, IShutdown, ILoadedNuGetPackage, IComparable<Mod>, IComparable<IMod>
     {
         /// <summary>
         /// Stores the authors of this mod.
@@ -51,7 +51,12 @@ namespace MonkeyLoader.Meta
         /// <summary>
         /// Gets an <see cref="IComparer{T}"/> that keeps <see cref="Mod"/>s sorted in topological order.
         /// </summary>
-        public static IComparer<IMod> Comparer { get; } = new ModComparer();
+        public static IComparer<IMod> AscendingComparer { get; } = new ModComparer();
+
+        /// <summary>
+        /// Gets an <see cref="IComparer{T}"/> that keeps <see cref="Mod"/>s sorted in reverse topological order.
+        /// </summary>
+        public static IComparer<IMod> DescendingComparer { get; } = new ModComparer();
 
         /// <inheritdoc/>
         public bool AllDependenciesLoaded
@@ -206,6 +211,32 @@ namespace MonkeyLoader.Meta
         }
 
         /// <summary>
+        /// Compares this mod with another and returns a value indicating whether
+        /// one is dependent on the other, independent, or the other dependent on this.
+        /// </summary>
+        /// <param name="other">A mod to compare with this instance.</param>
+        /// <returns>
+        /// A signed integer that indicates the dependency relation:<br/>
+        /// <i>Less than zero:</i> this is a dependency of <paramref name="other"/>.<br/>
+        /// <i>Zero:</i> this and <paramref name="other"/> are independent.<br/>
+        /// <i>Greater than zero:</i> this is dependent on <paramref name="other"/>.
+        /// </returns>
+        public int CompareTo(Mod other) => AscendingComparer.Compare((IMod)this, (IMod)other);
+
+        /// <summary>
+        /// Compares this mod with another and returns a value indicating whether
+        /// one is dependent on the other, independent, or the other dependent on this.
+        /// </summary>
+        /// <param name="other">A mod to compare with this instance.</param>
+        /// <returns>
+        /// A signed integer that indicates the dependency relation:<br/>
+        /// <i>Less than zero:</i> this is a dependency of <paramref name="other"/>.<br/>
+        /// <i>Zero:</i> this and <paramref name="other"/> are independent.<br/>
+        /// <i>Greater than zero:</i> this is dependent on <paramref name="other"/>.
+        /// </returns>
+        public int CompareTo(IMod other) => AscendingComparer.Compare((IMod)this, other);
+
+        /// <summary>
         /// Efficiently checks, whether a given name is listed as an author for this mod.
         /// </summary>
         /// <param name="author">The name to check for.</param>
@@ -316,18 +347,27 @@ namespace MonkeyLoader.Meta
 
         private sealed class ModComparer : IComparer<IMod>
         {
+            private readonly int _factor;
+
+            public ModComparer(bool ascending = true)
+            {
+                _factor = ascending ? 1 : -1;
+            }
+
+            /// <inheritdoc/>
             public int Compare(IMod x, IMod y)
             {
                 // TODO: Make this not a partial order?
                 // If x depends on a mod depending on y, it should count the same
 
-                if (x.Dependencies.Any(dep => dep.Equals(y.Id)))
-                    return 1;
+                if (x.Dependencies.Any(dep => dep.Id.Equals(y.Id)))
+                    return _factor;
 
-                if (y.Dependencies.Any(dep => dep.Equals(x.Id)))
-                    return -1;
+                if (y.Dependencies.Any(dep => dep.Id.Equals(x.Id)))
+                    return -1 * _factor;
 
-                return 0;
+                // Fall back to alphabetical order, otherwise things get stupid.
+                return _factor * x.Id.CompareTo(y.Id);
             }
         }
     }

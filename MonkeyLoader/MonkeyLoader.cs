@@ -22,8 +22,8 @@ namespace MonkeyLoader
     /// </summary>
     public sealed class MonkeyLoader : IConfigOwner, IShutdown
     {
-        private readonly SortedSet<IModInternal> _allMods = new(Mod.Comparer);
-        private LoggingHandler _loggingHandler = new MissingLoggingHandler();
+        private readonly SortedSet<IModInternal> _allMods = new(Mod.AscendingComparer);
+        private LoggingHandler _loggingHandler = MissingLoggingHandler.Instance;
 
         /// <summary>
         /// Gets the config that this loader uses to load <see cref="ConfigSection"/>s.
@@ -36,14 +36,24 @@ namespace MonkeyLoader
         public string ConfigPath { get; }
 
         /// <summary>
-        /// Gets the <see cref="IEarlyMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// Gets the <see cref="IEarlyMonkey"/>s of <i>all</i> loaded <see cref="Mods">mods</see>.
         /// </summary>
-        public IEnumerable<IEarlyMonkey> EarlyMonkeys => Mods.SelectMany(mod => mod.EarlyMonkeys);
+        public IEnumerable<IEarlyMonkey> EarlyMonkeys => _allMods.SelectMany(mod => mod.EarlyMonkeys);
 
         /// <summary>
         /// Gets the path pointing of the directory containing the game's assemblies.
         /// </summary>
         public string GameAssemblyPath { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IEarlyMonkey"/>s of all loaded <see cref="GamePacks">game pack mods</see>.
+        /// </summary>
+        public IEnumerable<IEarlyMonkey> GamePackEarlyMonkeys => GamePacks.SelectMany(mod => mod.EarlyMonkeys);
+
+        /// <summary>
+        /// Gets the <see cref="IMonkey"/>s of all loaded <see cref="RegularMods">game pack mods</see>.
+        /// </summary>
+        public IEnumerable<IMonkey> GamePackMonkeys => GamePacks.SelectMany(mod => mod.Monkeys);
 
         /// <summary>
         /// Gets all loaded game pack <see cref="Mod"/>s in topological order.
@@ -83,7 +93,7 @@ namespace MonkeyLoader
             {
                 if (value is null)
                 {
-                    _loggingHandler = new MissingLoggingHandler();
+                    _loggingHandler = MissingLoggingHandler.Instance;
                     return;
                 }
 
@@ -100,19 +110,34 @@ namespace MonkeyLoader
         public LoggingLevel LoggingLevel { get; set; }
 
         /// <summary>
-        /// Gets all loaded regular <see cref="Mod"/>s in topological order.
+        /// Gets <i>all</i> loaded <see cref="Mod"/>s in topological order.
         /// </summary>
-        public IEnumerable<IMod> Mods => _allMods.Where(mod => !mod.IsGamePack);
+        public IEnumerable<IMod> Mods => _allMods.AsSafeEnumerable();
 
         /// <summary>
-        /// Gets the <see cref="IMonkey"/>s of all loaded <see cref="Mods">Mods</see>.
+        /// Gets the <see cref="IMonkey"/>s of <i>all</i> loaded <see cref="Mods">mods</see>.
         /// </summary>
-        public IEnumerable<IMonkey> Monkeys => Mods.SelectMany(mod => mod.Monkeys);
+        public IEnumerable<IMonkey> Monkeys => _allMods.SelectMany(mod => mod.Monkeys);
 
         /// <summary>
         /// Gets the NuGet manager used by this loader.
         /// </summary>
         public NuGetManager NuGet { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="IEarlyMonkey"/>s of all loaded <see cref="RegularMods">regular mods</see>.
+        /// </summary>
+        public IEnumerable<IEarlyMonkey> RegularEarlyMonkeys => RegularMods.SelectMany(mod => mod.EarlyMonkeys);
+
+        /// <summary>
+        /// Gets all loaded regular <see cref="Mod"/>s in topological order.
+        /// </summary>
+        public IEnumerable<IMod> RegularMods => _allMods.Where(mod => !mod.IsGamePack);
+
+        /// <summary>
+        /// Gets the <see cref="IMonkey"/>s of all loaded <see cref="RegularMods">regular mods</see>.
+        /// </summary>
+        public IEnumerable<IMonkey> RegularMonkeys => RegularMods.SelectMany(mod => mod.Monkeys);
 
         /// <summary>
         /// Gets whether this loaders's <see cref="Shutdown">Shutdown</see>() failed when it was called.
@@ -198,6 +223,8 @@ namespace MonkeyLoader
 
         public void AddMod(IMod mod)
         {
+            Logger.Debug(() => $"Adding {(mod.IsGamePack ? "game pack" : "regular")} mod: {mod.Title}");
+
             _allMods.Add((IModInternal)mod);
             NuGet.Add(mod);
         }
@@ -304,6 +331,9 @@ namespace MonkeyLoader
         /// </summary>
         public void LoadEarlyMonkeys(IEnumerable<IMod> mods)
         {
+            Logger.Trace(() => "Loading early monkeys in this order:");
+            Logger.Trace(mods.Cast<IModInternal>().Select(mod => new Func<object>(() => mod.Title)));
+
             foreach (var mod in mods)
                 mod.TryResolveDependencies();
 
@@ -361,14 +391,22 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every loaded game pack <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
+        /// Loads every loaded game pack <see cref="RegularMods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
-        public void LoadGamePackEarlyMonkeys() => LoadEarlyMonkeys(GamePacks);
+        public void LoadGamePackEarlyMonkeys()
+        {
+            Logger.Info(() => $"Loading every loaded game pack mod's pre-patcher assemblies.");
+            LoadEarlyMonkeys(GamePacks);
+        }
 
         /// <summary>
-        /// Loads every loaded game pack <see cref="Mods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
+        /// Loads every loaded game pack <see cref="RegularMods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
-        public void LoadGamePackMonkeys() => LoadMonkeys(GamePacks);
+        public void LoadGamePackMonkeys()
+        {
+            Logger.Info(() => $"Loading every loaded game pack mod's patcher assemblies.");
+            LoadMonkeys(GamePacks);
+        }
 
         /// <summary>
         /// Loads the mod from the given path, making no checks.
@@ -378,6 +416,8 @@ namespace MonkeyLoader
         /// <returns>The loaded mod.</returns>
         public NuGetPackageMod LoadMod(string path, bool isGamePack = false)
         {
+            Logger.Debug(() => $"Loading {(isGamePack ? "game pack" : "regular")} mod from: {path}");
+
             var mod = new NuGetPackageMod(this, path, isGamePack);
 
             AddMod(mod);
@@ -385,21 +425,24 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Loads every loaded regular <see cref="Mods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
+        /// Loads every loaded regular <see cref="RegularMods">mod's</see> pre-patcher assemblies and <see cref="IEarlyMonkey"/>s.
         /// </summary>
-        public void LoadModEarlyMonkeys() => LoadEarlyMonkeys(Mods);
+        public void LoadModEarlyMonkeys() => LoadEarlyMonkeys(RegularMods);
 
         /// <summary>
-        /// Loads every loaded regular <see cref="Mods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
+        /// Loads every loaded regular <see cref="RegularMods">mod's</see> patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
-        public void LoadModMonkeys() => LoadMonkeys(Mods);
+        public void LoadModMonkeys() => LoadMonkeys(RegularMods);
 
         /// <summary>
         /// Loads every given <see cref="IMod"/>'s patcher assemblies and <see cref="IMonkey"/>s.
         /// </summary>
         public void LoadMonkeys(IEnumerable<IMod> mods)
         {
-            // For a FullLoad this shouldn't make a difference since LoadEarlyMonkeys does the same.
+            Logger.Trace(() => "Loading monkeys in this order:");
+            Logger.Trace(mods.Cast<IModInternal>().Select(mod => new Func<object>(() => mod.Title)));
+
+            // TODO: For a FullLoad this shouldn't make a difference since LoadEarlyMonkeys does the same.
             // However users of the library may add more mods inbetween those phases or even later afterwards.
             foreach (var mod in mods)
                 mod.TryResolveDependencies();
@@ -413,7 +456,7 @@ namespace MonkeyLoader
         }
 
         /// <summary>
-        /// Runs every given <see cref="Mod"/>'s loaded
+        /// Runs every given <see cref="RegularMods">mod's</see> loaded
         /// <see cref="IEarlyMonkey"/>s <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
         public void RunEarlyMonkeys(IEnumerable<IMod> mods)
@@ -421,34 +464,52 @@ namespace MonkeyLoader
             // Add check for mod.EarlyMonkeyLoadError
 
             var earlyMonkeys = mods.SelectMany(mod => mod.EarlyMonkeys).ToArray();
-            Array.Sort(earlyMonkeys);
-            Array.Reverse(earlyMonkeys);
+            Array.Sort(earlyMonkeys, Monkey.AscendingComparer);
+
+            Logger.Trace(() => "Running early monkeys in this order:");
+            Logger.Trace(earlyMonkeys.Select(eM => new Func<object>(() => $"{eM.Mod.Title}/{eM.Name}")));
 
             foreach (var earlyMonkey in earlyMonkeys)
                 earlyMonkey.Run();
         }
 
         /// <summary>
-        /// Runs every loaded game pack <see cref="IMod"/>'s loaded <see cref="IEarlyMonkey"/>s.
+        /// Runs every loaded game pack <see cref="RegularMods">mod's</see> loaded <see cref="IEarlyMonkey"/>s.
         /// </summary>
-        public void RunGamePackEarlyMonkeys() => RunEarlyMonkeys(GamePacks);
+        public void RunGamePackEarlyMonkeys()
+        {
+            Logger.Info(() => "Running every loaded game pack mod's loaded early monkeys.");
+            RunEarlyMonkeys(GamePacks);
+        }
 
         /// <summary>
-        /// Runs every loaded game pack <see cref="IMod"/>'s loaded
+        /// Runs every loaded game pack <see cref="RegularMods">mod's</see> loaded
         /// <see cref="IMod.Monkeys">monkeys'</see> <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
-        public void RunGamePackMonkeys() => RunMonkeys(GamePacks);
+        public void RunGamePackMonkeys()
+        {
+            Logger.Info(() => "Running every loaded game pack mod's loaded monkeys.");
+            RunMonkeys(GamePacks);
+        }
 
         /// <summary>
-        /// Runs every loaded regular <see cref="IMod"/>'s loaded <see cref="IEarlyMonkey"/>s.
+        /// Runs every loaded regular <see cref="RegularMods">mod's</see> loaded <see cref="IEarlyMonkey"/>s.
         /// </summary>
-        public void RunModEarlyMonkeys() => RunEarlyMonkeys(Mods);
+        public void RunModEarlyMonkeys()
+        {
+            Logger.Info(() => "Running every loaded regular mod's loaded early monkeys.");
+            RunEarlyMonkeys(RegularMods);
+        }
 
         /// <summary>
-        /// Runs every loaded regular <see cref="IMod"/>'s loaded
+        /// Runs every loaded regular <see cref="RegularMods">mod's</see> loaded
         /// <see cref="IMod.Monkeys">monkeys'</see> <see cref="MonkeyBase.Run">Run</see>() method.
         /// </summary>
-        public void RunModMonkeys() => RunMonkeys(Mods);
+        public void RunModMonkeys()
+        {
+            Logger.Info(() => "Running every loaded regular mod's loaded monkeys.");
+            RunMonkeys(RegularMods);
+        }
 
         /// <summary>
         /// Runs every given <see cref="IMod"/>'s loaded
@@ -459,7 +520,10 @@ namespace MonkeyLoader
             // Add check for mod.MonkeyLoadError
 
             var monkeys = mods.SelectMany(mod => mod.Monkeys).ToArray();
-            Array.Sort(monkeys, Monkey.DescendingComparer);
+            Array.Sort(monkeys, Monkey.AscendingComparer);
+
+            Logger.Trace(() => "Running monkeys in this order:");
+            Logger.Trace(monkeys.Select(m => new Func<object>(() => $"{m.Mod.Title}/{m.Name}")));
 
             foreach (var monkey in monkeys)
                 monkey.Run();
@@ -467,7 +531,7 @@ namespace MonkeyLoader
 
         /// <summary>
         /// Should be called by the game integration or application using this as a library when things are shutting down.<br/>
-        /// Saves its config and triggers <see cref="Mod.Shutdown">Shutdown</see>() on all <see cref="Mods">Mods</see>.
+        /// Saves its config and triggers <see cref="Mod.Shutdown">Shutdown</see>() on all <see cref="RegularMods">Mods</see>.
         /// </summary>
         /// <inheritdoc/>
         public bool Shutdown()

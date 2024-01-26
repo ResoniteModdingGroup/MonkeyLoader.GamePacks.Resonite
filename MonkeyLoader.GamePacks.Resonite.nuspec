@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>MonkeyLoader.GamePacks.Resonite</id>
-    <version>1.0.1</version>
+    <version>1.0.0</version>
     <title>Resonite GamePack</title>
     <authors>Banane9</authors>
     <owners>Banane9</owners>
@@ -10,17 +10,19 @@
     <description>A MonkeyLoader Game Pack for Resonite.</description>
   
     <dependencies>
-      <group targetFramework=".NETFramework4.6.2"/>
+      <group targetFramework=".NETFramework4.6.2">
+        <dependency id="MonkeyLoader.GamePacks.Unity" version="1.0.0" />
+      </group>
     </dependencies>
   </metadata>
   
   <files>
-    <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.dll" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll" />
-    <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.xml" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.xml" />
-    <file src="MonkeyLoader.Resonite.Data\bin\Release\net462\MonkeyLoader.Resonite.Data.dll.mdb" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll.mdb" />
+    <file src="MonkeyLoader.Resonite.Data\bin\Release\net472\MonkeyLoader.Resonite.Data.dll" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll" />
+    <file src="MonkeyLoader.Resonite.Data\bin\Release\net472\MonkeyLoader.Resonite.Data.xml" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.xml" />
+    <file src="MonkeyLoader.Resonite.Data\bin\Release\net472\MonkeyLoader.Resonite.Data.dll.mdb" target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll.mdb" />
     
-    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.dll" target="lib\net462\MonkeyLoader.Resonite.Integration.dll" />
-    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.xml" target="lib\net462\MonkeyLoader.Resonite.Integration.xml" />
-    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net462\MonkeyLoader.Resonite.Integration.dll.mdb" target="lib\net462\MonkeyLoader.Resonite.Integration.dll.mdb" />
+    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net472\MonkeyLoader.Resonite.Integration.dll" target="lib\net462\MonkeyLoader.Resonite.Integration.dll" />
+    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net472\MonkeyLoader.Resonite.Integration.xml" target="lib\net462\MonkeyLoader.Resonite.Integration.xml" />
+    <file src="MonkeyLoader.Resonite.Integration\bin\Release\net472\MonkeyLoader.Resonite.Integration.dll.mdb" target="lib\net462\MonkeyLoader.Resonite.Integration.dll.mdb" />
   </files>
 </package>

@@ -44,7 +44,7 @@ namespace ResoniteModLoader
         /// <returns>A new list containing each loaded mod</returns>
         public static IEnumerable<ResoniteModBase> Mods()
         {
-            return Mod.Loader.Mods
+            return Mod.Loader.RegularMods
                 .SelectCastable<IMod, ResoniteModBase>()
                 .ToList();
         }

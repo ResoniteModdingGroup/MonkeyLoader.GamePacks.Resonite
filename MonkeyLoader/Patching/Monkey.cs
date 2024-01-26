@@ -34,8 +34,15 @@ namespace MonkeyLoader.Patching
                 _factor = ascending ? 1 : -1;
             }
 
+            /// <inheritdoc/>
             public int Compare(IMonkey x, IMonkey y)
             {
+                // If one of the mods has to come before the other,
+                // all its patchers have to come before as well
+                var modComparison = x.Mod.CompareTo(y.Mod);
+                if (modComparison != 0)
+                    return _factor * modComparison;
+
                 // Only need the first as they're the highest impact ones.
                 var biggestX = x.FeaturePatches.FirstOrDefault();
                 var biggestY = y.FeaturePatches.FirstOrDefault();
@@ -47,7 +54,12 @@ namespace MonkeyLoader.Patching
                 if (biggestY is null)
                     return _factor;
 
-                return _factor * biggestX.CompareTo(biggestY);
+                var impactComparison = _factor * biggestX.CompareTo(biggestY);
+                if (impactComparison != 0)
+                    return _factor * impactComparison;
+
+                // Fall back to type name comparison just to avoid false ==
+                return _factor * x.GetType().FullName.CompareTo(y.GetType().FullName);
             }
         }
     }
@@ -75,7 +87,7 @@ namespace MonkeyLoader.Patching
             ThrowIfRan();
             Ran = true;
 
-            Trace(() => "Running Monkey's OnLoaded!");
+            Debug(() => "Running OnLoaded!");
 
             try
             {

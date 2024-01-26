@@ -11,7 +11,7 @@ namespace MonkeyLoader.Meta
     /// <summary>
     /// Contains all metadata and references for a mod.
     /// </summary>
-    public interface IMod : IConfigOwner, ILoadedNuGetPackage, IShutdown
+    public interface IMod : IConfigOwner, ILoadedNuGetPackage, IShutdown, IComparable<IMod>
     {
         /// <summary>
         /// Gets the names of the authors of this mod.

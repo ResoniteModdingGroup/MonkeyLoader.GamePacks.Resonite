@@ -39,6 +39,7 @@ namespace MonkeyLoader.Resonite
 
             LoadProgressIndicator.AddFixedPhases(3);
             LoadProgressIndicator.AdvanceFixedPhase("Executing EngineInit Hooks...");
+            Info(() => "Engine started initializing! Calling OnEngineInit on ResoniteMonkeys!");
 
             foreach (var resoniteMonkey in ResoniteMonkeys)
             {
@@ -51,6 +52,7 @@ namespace MonkeyLoader.Resonite
         private static void OnEngineReady()
         {
             LoadProgressIndicator.AdvanceFixedPhase("Executing EngineReady Hooks...");
+            Info(() => "Engine initialized! Calling OnEngineReady on ResoniteMonkeys!");
 
             foreach (var resoniteMonkey in ResoniteMonkeys)
             {

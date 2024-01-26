@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Patching;
+using MonkeyLoader.Unity;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +18,7 @@ namespace MonkeyLoader.Resonite
     /// </summary>
     [HarmonyPatch(typeof(EngineLoadProgress))]
     [HarmonyPatchCategory(nameof(LoadProgressIndicator))]
-    public class LoadProgressIndicator : Monkey<LoadProgressIndicator>
+    public class LoadProgressIndicator : UnityMonkey<LoadProgressIndicator>
     {
         private static EngineLoadProgress? _loadProgress;
 
@@ -187,10 +188,15 @@ namespace MonkeyLoader.Resonite
             => Enumerable.Empty<IFeaturePatch>();
 
         /// <inheritdoc/>
-        protected override bool OnLoaded()
+        protected override bool OnFirstSceneReady(Scene scene)
         {
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            return true;
+            _loadProgress = scene.GetRootGameObjects()
+                .Select(g => g.GetComponentInChildren<EngineLoadProgress>())
+                .FirstOrDefault(elp => elp != null);
+
+            Info(() => $"Hooked EngineLoadProgress indicator: {Available}");
+
+            return base.OnFirstSceneReady(scene);
         }
 
         [HarmonyPostfix]
@@ -220,20 +226,5 @@ namespace MonkeyLoader.Resonite
         //    }
         //    return false;
         //}
-
-        private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            Debug(() => $"First scene loaded!");
-
-            base.OnLoaded();
-
-            SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
-
-            _loadProgress = scene.GetRootGameObjects()
-                .Select(g => g.GetComponentInChildren<EngineLoadProgress>())
-                .FirstOrDefault(elp => elp != null);
-
-            Info(() => $"Hooked EngineLoadProgress indicator: {Available}");
-        }
     }
 }

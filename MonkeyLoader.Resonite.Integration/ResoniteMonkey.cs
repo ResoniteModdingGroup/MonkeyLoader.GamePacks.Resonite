@@ -81,6 +81,7 @@ namespace MonkeyLoader.Resonite
                 throw new InvalidOperationException("A Resonite monkey's OnEngineInit() method must only be called once!");
 
             EngineInitRan = true;
+            Debug(() => "Running OnEngineInit");
 
             try
             {
@@ -111,6 +112,7 @@ namespace MonkeyLoader.Resonite
                 throw new InvalidOperationException("A Resonite monkey's OnEngineReady() method must only be called once!");
 
             EngineReadyRan = true;
+            Debug(() => "Running OnEngineReady");
 
             try
             {
@@ -133,6 +135,7 @@ namespace MonkeyLoader.Resonite
         {
             try
             {
+                Debug(() => "Running OnEngineShutdownRequested");
                 OnEngineShutdownRequested(reason);
             }
             catch (Exception ex)

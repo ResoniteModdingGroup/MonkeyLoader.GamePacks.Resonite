@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -6,14 +6,14 @@
     <LangVersion>11.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
-    <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
+    <AssemblyTitle>MonkeyLoader.Unity.Integration</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
+    <RootNamespace>MonkeyLoader.Unity</RootNamespace>
     <PDB2MDBPath>$(SolutionDir)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
-    <NuSpecPath>$(SolutionDir)MonkeyLoader.GamePacks.Resonite.nuspec</NuSpecPath>
-    <NuSpecPath Condition="'$(Configuration)'=='Debug'">$(SolutionDir)MonkeyLoader.GamePacks.Resonite.Debug.nuspec</NuSpecPath>
+    <NuSpecPath>$(SolutionDir)MonkeyLoader.GamePacks.Unity.nuspec</NuSpecPath>
+    <NuSpecPath Condition="'$(Configuration)'=='Debug'">$(SolutionDir)MonkeyLoader.GamePacks.Unity.Debug.nuspec</NuSpecPath>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -37,17 +37,16 @@
     <Exec Command="$(PDB2MDBPath) $(TargetFileName)" WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
-    
-    <Message Text="Packing Resonite Game Pack" Importance="high" />
+
+    <Message Text="Packing Unity Game Pack" Importance="high" />
     <Exec Command="S:\NuGet\nuget.exe pack $(NuSpecPath) -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
     </Exec>
-    
-    <Copy SourceFiles="$(ProjectDir)MonkeyLoader.GamePacks.Resonite.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" />
-    <Message Text="Copied MonkeyLoader.GamePacks.Resonite.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Resonite.nupkg" Importance="high" />
+
+    <Copy SourceFiles="$(ProjectDir)MonkeyLoader.GamePacks.Unity.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Unity.nupkg" />
+    <Message Text="Copied MonkeyLoader.GamePacks.Unity.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Unity.nupkg" Importance="high" />
   </Target>
-
-
+  
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
@@ -57,23 +56,12 @@
     <Reference Include="FrooxEngine">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
     </Reference>
-    <Reference Include="Elements.Core">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Elements.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\Assembly-CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" />
-    <ProjectReference Include="..\MonkeyLoader.Unity.Integration\MonkeyLoader.Unity.Integration.csproj" />
     <ProjectReference Include="..\MonkeyLoader\MonkeyLoader.csproj" />
   </ItemGroup>
 

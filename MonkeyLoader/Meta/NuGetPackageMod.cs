@@ -168,6 +168,9 @@ namespace MonkeyLoader.Meta
 
             foreach (var package in deps.Packages)
                 dependencies.Add(package.Id, new DependencyReference(loader.NuGet, package));
+
+            if (dependencies.Any())
+                Logger.Debug(() => $"Found the following dependencies:{Environment.NewLine}    - {string.Join($"{Environment.NewLine}    - ", dependencies.Keys)}");
         }
 
         bool IModInternal.LoadEarlyMonkeys() => LoadEarlyMonkeys();
@@ -206,9 +209,12 @@ namespace MonkeyLoader.Meta
                     Loader.AddJsonConverters(assembly);
                     PrePatcherAssemblies.Add(assembly);
 
-                    foreach (var type in assembly.GetTypes().Instantiable<IEarlyMonkey>())
+                    var instantiableTypes = assembly.GetTypes().Instantiable<IEarlyMonkey>().ToArray();
+                    Logger.Trace(() => $"Found the following instantiable EarlyMonkey Types:{Environment.NewLine}    - {string.Join($"{Environment.NewLine}    - ", instantiableTypes.Select(t => t.FullName))}");
+
+                    foreach (var type in instantiableTypes)
                     {
-                        Logger.Debug(() => $"Found instantiable EarlyMonkey Type: {type.FullName}");
+                        Logger.Debug(() => $"Instantiating EarlyMonkey Type: {type.FullName}");
                         var monkey = MonkeyBase.GetInstance(type);
                         monkey.Mod = this;
                         earlyMonkeys.Add((IEarlyMonkey)monkey);
@@ -264,9 +270,12 @@ namespace MonkeyLoader.Meta
 
                     Logger.Info(() => $"Loaded patcher assembly: {assembly.FullName}");
 
-                    foreach (var type in assembly.GetTypes().Instantiable<MonkeyBase>())
+                    var instantiableTypes = assembly.GetTypes().Instantiable<MonkeyBase>();
+                    Logger.Trace(() => $"Found the following instantiable Monkey Types:{Environment.NewLine}    - {string.Join($"{Environment.NewLine}    - ", instantiableTypes.Select(t => t.FullName))}");
+
+                    foreach (var type in instantiableTypes)
                     {
-                        Logger.Debug(() => $"Found instantiable Monkey Type: {type.FullName}");
+                        Logger.Debug(() => $"Instantiating Monkey Type: {type.FullName}");
                         var monkey = MonkeyBase.GetInstance(type);
                         monkey.Mod = this;
                         monkeys.Add(monkey);
