@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ensure working directory exists
-        run: mkdir -p '${{ env.PROJECT_PATH }}'
-        working-directory: "${{ github.workspace }}"
       - name: Get Resonite Infos
         run: |
           {
