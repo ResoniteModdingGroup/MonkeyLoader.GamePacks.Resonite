@@ -4,7 +4,7 @@
     <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PublicizerLogFilePath>$(MSBuildThisFileDirectory)publicizer.log</PublicizerLogFilePath>
   </PropertyGroup>
 
   <Target Name="PackProject" AfterTargets="PostBuildEvent">
@@ -21,9 +21,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Lib.Harmony" Version="2.3.0-prerelease.5" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" />
+
     <Reference Include="FrooxEngine">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
     </Reference>
+    <Publicize
+      Include="FrooxEngine"
+      IncludeCompilerGeneratedMembers="false"
+      IncludeVirtualMembers="false" />
+
     <Reference Include="Elements.Core">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\Elements.Core.dll</HintPath>
     </Reference>

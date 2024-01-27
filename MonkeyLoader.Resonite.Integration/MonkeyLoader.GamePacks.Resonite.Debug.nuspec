@@ -17,18 +17,24 @@
   </metadata>
 
   <files>
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Data.dll"
+    <file
+      src="../MonkeyLoader.Resonite.Data/bin\Debug\net472\MonkeyLoader.Resonite.Data.dll"
       target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll" />
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Data.xml"
+    <file
+      src="../MonkeyLoader.Resonite.Data/bin\Debug\net472\MonkeyLoader.Resonite.Data.xml"
       target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.xml" />
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Data.dll.mdb"
+    <file
+      src="../MonkeyLoader.Resonite.Data/bin\Debug\net472\MonkeyLoader.Resonite.Data.dll.mdb"
       target="lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll.mdb" />
 
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.dll"
+    <file
+      src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.dll"
       target="lib\net462\MonkeyLoader.Resonite.Integration.dll" />
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.xml"
+    <file
+      src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.xml"
       target="lib\net462\MonkeyLoader.Resonite.Integration.xml" />
-    <file src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.dll.mdb"
+    <file
+      src="bin\Debug\net472\MonkeyLoader.Resonite.Integration.dll.mdb"
       target="lib\net462\MonkeyLoader.Resonite.Integration.dll.mdb" />
   </files>
 </package>
