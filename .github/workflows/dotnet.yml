@@ -36,20 +36,20 @@ jobs:
           steamcmd '+@sSteamCmdForcePlatformType windows' '+force_install_dir "${{ env.ResonitePath }}"' '+login "${{ secrets.STEAM_USER }}" "${{ secrets.STEAM_TOKEN }}"' '+app_license_request 2519830' '+app_update 2519830 validate' '+quit'
           #The following line makes the cache much much smaller:
           rm -r '${{ env.ResonitePath }}/RuntimeData/PreCache'
-        - name: Setup dotnet
-          uses: actions/setup-dotnet@v3
-          with:
-            dotnet-version: '6.x'
-        - uses: actions/checkout@v4
-        - uses: actions/cache@v3
-          with:
-            path: ~/.nuget/packages
-            key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-            restore-keys: |
-              ${{ runner.os }}-nuget
-        - name: Install dependencies
-          run: dotnet restore
-        - name: Build
-          run: dotnet build
-        - name: Test
-          run: dotnet test
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.x'
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build
+      - name: Test
+        run: dotnet test
