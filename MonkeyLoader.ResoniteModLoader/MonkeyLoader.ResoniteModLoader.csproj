@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
@@ -7,7 +6,6 @@
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
     <AssemblyTitle>ResoniteModLoader</AssemblyTitle>
-    <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
     <DebugSymbols Condition="'$(Configuration)'=='Release'">false</DebugSymbols>
     <DebugType Condition="'$(Configuration)'=='Release'">None</DebugType>

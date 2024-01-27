@@ -1,0 +1,82 @@
+<Project>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net462</TargetFramework>
+		<LangVersion>11.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<Deterministic>true</Deterministic>
+		<AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+		<DebugType>full</DebugType>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+		<CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(NugetPath)'==''">
+		<NugetPath Condition="'$(OS)' == 'Windows_NT'">nuget.exe</NugetPath>
+		<NugetPath Condition="'$(OS)' != 'Windows_NT'">/bin/nuget</NugetPath>
+		<NugetPath Condition="Exists('S:\NuGet\nuget.exe')">S:\NuGet\nuget.exe</NugetPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(PDB2MDBPath)'==''">
+		<PDB2MDBPath Condition="'$(OS)' == 'Windows_NT'">$(MSBuildThisFileDirectory)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
+		<!-- See https://github.com/dotnet/msbuild/issues/4223
+			<PDB2MDBPath Condition="'$(OS)' != 'Windows_NT'">pdb2mdb</PDB2MDBPath>
+		-->
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(ResonitePath)'==''">
+		<ResonitePath>$(MSBuildThisFileDirectory)Resonite</ResonitePath>
+		<ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite</ResonitePath>
+		<ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite</ResonitePath>
+		<ResonitePath Condition="Exists('D:/Files/Games/Resonite/app/')">D:/Files/Games/Resonite/app</ResonitePath>
+	</PropertyGroup>
+
+	<Target Name="pdb2mdb" AfterTargets="PostBuildEvent" Condition="$(PDB2MDBPath) != ''">
+		<Message Text="Generating MDB for '$(TargetFileName)'" Importance="High" />
+		<Exec
+			Command="$(PDB2MDBPath) '$(TargetFileName)'"
+			WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)"
+		>
+			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+		</Exec>
+	</Target>
+
+
+	<Target Name="PlaceholderMDB" AfterTargets="PostBuildEvent" Condition="$(PDB2MDBPath) == ''">
+		<Exec
+			Command="touch '$(MSBuildProjectDirectory)\$(OutputPath)$(TargetFileName).mdb'"
+			WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)"
+		>
+			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+		</Exec>
+	</Target>
+
+	<Target Name="PackNugetPkg">
+		<Message Text="Packing Resonite Game Pack" Importance="high" />
+		<Exec
+			Condition="'$(Configuration)'!='Release'"
+			Command="$(NugetPath) pack '$(ProjectDir)$(NuPkgName).Debug.nuspec' -OutputFileNamesWithoutVersion"
+			ConsoleToMSBuild="true"
+		>
+			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+		</Exec>
+		<Exec
+			Condition="'$(Configuration)'=='Release'"
+			Command="$(NugetPath) pack '$(ProjectDir)$(NuPkgName).nuspec' -OutputFileNamesWithoutVersion"
+			ConsoleToMSBuild="true"
+		>
+			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+		</Exec>
+
+		<Copy
+			Condition="'$(CopyToLibraries)'=='true'"
+			SourceFiles="$(ProjectDir)$(NuPkgName).nupkg"
+			DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nuget" />
+		<Message
+			Condition="'$(CopyToLibraries)'=='true'"
+			Text="Copied '$(NuPkgName).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nuget'"
+			Importance="high" />
+	</Target>
+
+</Project>
