@@ -11,6 +11,7 @@
     <DebugType Condition="'$(Configuration)'=='Release'">None</DebugType>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>ResoniteModLoader</RootNamespace>
+    <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ResonitePath)'==''">

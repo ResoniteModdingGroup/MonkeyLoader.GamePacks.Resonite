@@ -4,7 +4,6 @@
     <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
-    <PublicizerLogFilePath>$(MSBuildThisFileDirectory)publicizer.log</PublicizerLogFilePath>
   </PropertyGroup>
 
   <Target Name="PackProject" AfterTargets="PostBuildEvent">

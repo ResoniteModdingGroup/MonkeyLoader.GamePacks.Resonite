@@ -216,9 +216,12 @@ namespace MonkeyLoader.Resonite
         [HarmonyPatch(nameof(EngineLoadProgress.SetSubphase))]
         private static void SetSubphasePostfix(EngineLoadProgress __instance, string subphase)
         {
-            _monkeyingSubphase = true;
-            __instance.SetSubphase($"{_phase}   {subphase}");
-            _monkeyingSubphase = false;
+            if (!_monkeyingSubphase)
+            {
+                _monkeyingSubphase = true;
+                __instance.SetSubphase($"{_phase}   {subphase}");
+                _monkeyingSubphase = false;
+            }
         }
 
         // Returned true means success, false means something went wrong.
