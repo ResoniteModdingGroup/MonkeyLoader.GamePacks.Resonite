@@ -5,9 +5,8 @@ on: [push]
 env:
   ResonitePath: "${{ github.workspace }}/Resonite"
 
-
 jobs:
-  ci:
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
