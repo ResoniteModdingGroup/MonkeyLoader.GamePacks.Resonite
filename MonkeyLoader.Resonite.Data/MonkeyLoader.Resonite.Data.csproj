@@ -20,8 +20,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MonkeyLoader\MonkeyLoader.csproj" />
-  </ItemGroup>
-
 </Project>

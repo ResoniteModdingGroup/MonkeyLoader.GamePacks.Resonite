@@ -25,7 +25,6 @@ namespace MonkeyLoader.Resonite
         //private static bool failed;
 
         private static string? _phase;
-        private static bool _monkeyingSubphase = false;
 
         /// <summary>
         /// Gets whether the progress indicator is available.
@@ -178,9 +177,9 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            _monkeyingSubphase = true;
-            _loadProgress.SetSubphase(subphase);
-            _monkeyingSubphase = false;
+            lock (_loadProgress)
+                _loadProgress.SetSubphase(subphase);
+
             Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
 
             return true;
@@ -207,21 +206,17 @@ namespace MonkeyLoader.Resonite
         private static void SetFixedPhasedPostfix(EngineLoadProgress __instance, string phase)
         {
             _phase = phase;
-            _monkeyingSubphase = true;
-            __instance.SetSubphase(phase);
-            _monkeyingSubphase = false;
+
+            lock (__instance)
+                __instance.SetSubphase(phase);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(EngineLoadProgress.SetSubphase))]
         private static void SetSubphasePostfix(EngineLoadProgress __instance, string subphase)
         {
-            if (!_monkeyingSubphase)
-            {
-                _monkeyingSubphase = true;
+            lock (__instance)
                 __instance.SetSubphase($"{_phase}   {subphase}");
-                _monkeyingSubphase = false;
-            }
         }
 
         // Returned true means success, false means something went wrong.
