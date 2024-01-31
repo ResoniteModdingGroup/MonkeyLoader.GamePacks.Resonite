@@ -1,34 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net462</TargetFramework>
-    <LangVersion>11.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <Deterministic>true</Deterministic>
     <AssemblyTitle>MonkeyLoader</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
-    <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <PDB2MDBPath>$(SolutionDir)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(ResonitePath)'==''">
-    <ResonitePath>$(MSBuildThisFileDirectory)Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('D:/Files/Games/Resonite/app/')">D:/Files/Games/Resonite/app</ResonitePath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -45,33 +18,34 @@
     <Version>0.2.0-alpha</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-
   <ItemGroup>
     <!-- Exclude the output of source generators from the compilation -->
     <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Message Text="Generating MDB for $(TargetFileName)" Importance="High" />
-    <Exec Command="$(PDB2MDBPath) $(TargetFileName)" WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)">
-      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-    </Exec>
-    
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)\MonkeyLoader\$(AssemblyFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)\MonkeyLoader\$(AssemblyFileName)" Importance="high" />
-    
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFiles="$(ResonitePath)\MonkeyLoader\$(AssemblyTitle).xml" />
-    <Message Text="Copied $(TargetName).xml to $(ResonitePath)\MonkeyLoader\$(AssemblyTitle).xml" Importance="high" />
-    
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName).mdb" DestinationFiles="$(ResonitePath)\MonkeyLoader\$(AssemblyFileName).mdb" />
-    <Message Text="Copied $(TargetFileName).mdb to $(ResonitePath)\MonkeyLoader\$(AssemblyFileName).mdb" Importance="high" />
+    <Copy
+      SourceFiles="$(TargetDir)$(TargetFileName)"
+      DestinationFiles="$(ResonitePath)/MonkeyLoader/$(AssemblyFileName)" />
+    <Message
+      Text="Copied $(TargetFileName) to $(ResonitePath)/MonkeyLoader/$(AssemblyFileName)"
+      Importance="high" />
+
+    <Copy
+      SourceFiles="$(TargetDir)$(TargetName).xml"
+      DestinationFiles="$(ResonitePath)/MonkeyLoader/$(AssemblyTitle).xml" />
+    <Message
+      Text="Copied $(TargetName).xml to $(ResonitePath)/MonkeyLoader/$(AssemblyTitle).xml"
+      Importance="high" />
+
+    <Copy
+      Condition="$(PDB2MDBPath) != ''"
+      SourceFiles="$(TargetDir)$(TargetFileName).mdb"
+      DestinationFiles="$(ResonitePath)/MonkeyLoader/$(AssemblyFileName).mdb" />
+    <Message
+      Condition="$(PDB2MDBPath) != ''"
+      Text="Copied $(TargetFileName).mdb to $(ResonitePath)/MonkeyLoader/$(AssemblyFileName).mdb"
+      Importance="high" />
   </Target>
 
   <ItemGroup>

@@ -1,50 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <LangVersion>11.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <Deterministic>true</Deterministic>
     <AssemblyTitle>MonkeyLoader.Unity.Integration</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
-    <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>MonkeyLoader.Unity</RootNamespace>
-    <PDB2MDBPath>$(SolutionDir)pdb2mdb/pdb2mdb.exe</PDB2MDBPath>
-    <NuSpecPath>$(SolutionDir)MonkeyLoader.GamePacks.Unity.nuspec</NuSpecPath>
-    <NuSpecPath Condition="'$(Configuration)'=='Debug'">$(SolutionDir)MonkeyLoader.GamePacks.Unity.Debug.nuspec</NuSpecPath>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(ResonitePath)'==''">
-    <ResonitePath>$(MSBuildThisFileDirectory)Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite</ResonitePath>
-    <ResonitePath Condition="Exists('D:/Files/Games/Resonite/app/')">D:/Files/Games/Resonite/app</ResonitePath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-
-  <Target Name="CustomPack" AfterTargets="PostBuildEvent">
-    <Message Text="Generating MDB for $(TargetFileName)" Importance="High" />
-    <Exec Command="$(PDB2MDBPath) $(TargetFileName)" WorkingDirectory="$(MSBuildProjectDirectory)\$(OutputPath)">
-      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-    </Exec>
-
-    <Message Text="Packing Unity Game Pack" Importance="high" />
-    <Exec Command="S:\NuGet\nuget.exe pack $(NuSpecPath) -OutputFileNamesWithoutVersion" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-    </Exec>
-
-    <Copy SourceFiles="$(ProjectDir)MonkeyLoader.GamePacks.Unity.nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Unity.nupkg" />
-    <Message Text="Copied MonkeyLoader.GamePacks.Unity.nupkg to $(ResonitePath)\MonkeyLoader\GamePacks\MonkeyLoader.GamePacks.Unity.nupkg" Importance="high" />
+  <Target Name="PackProject" AfterTargets="PostBuildEvent">
+    <MSBuild
+      Projects="$(MSBuildProjectFile)"
+      Properties="NuPkgName=MonkeyLoader.GamePacks.Unity"
+      Targets="PackNugetPkg">
+    </MSBuild>
   </Target>
   
   <ItemGroup>
@@ -54,10 +22,13 @@
     </PackageReference>
     <PackageReference Include="Lib.Harmony" Version="2.3.0-prerelease.5" />
     <Reference Include="FrooxEngine">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
+      <HintPath>$(ResonitePath)/Resonite_Data/Managed/FrooxEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ResonitePath)/Resonite_Data/Managed/UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Public\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(ResonitePath)/Resonite_Data/Managed/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
