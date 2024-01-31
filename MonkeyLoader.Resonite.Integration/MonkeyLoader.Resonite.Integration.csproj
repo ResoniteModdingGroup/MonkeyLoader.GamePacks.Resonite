@@ -7,14 +7,13 @@
   </PropertyGroup>
 
   <Target Name="PackProject" AfterTargets="PostBuildEvent">
-    <MSBuild
-      Projects="$(MSBuildProjectFile)"
-      Properties="NuPkgName=MonkeyLoader.GamePacks.Resonite"
-      Targets="PackNugetPkg">
+    <MSBuild Projects="$(MSBuildProjectFile)" Properties="NuPkgName=MonkeyLoader.GamePacks.Resonite" Targets="PackNugetPkg">
     </MSBuild>
   </Target>
 
   <ItemGroup>
+    <PackageReference Include="MonkeyLoader" Version="0.3.0-beta" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.3.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,10 +24,7 @@
     <Reference Include="FrooxEngine">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
     </Reference>
-    <Publicize
-      Include="FrooxEngine"
-      IncludeCompilerGeneratedMembers="false"
-      IncludeVirtualMembers="false" />
+    <Publicize Include="FrooxEngine" IncludeCompilerGeneratedMembers="false" IncludeVirtualMembers="false" />
 
     <Reference Include="Elements.Core">
       <HintPath>$(ResonitePath)\Resonite_Data\Managed\Elements.Core.dll</HintPath>

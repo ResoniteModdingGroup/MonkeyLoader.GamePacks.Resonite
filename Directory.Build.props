@@ -29,14 +29,14 @@
 		<Message Text="Packing Resonite Game Pack" Importance="high" />
 		<Exec
 			Condition="'$(Configuration)'!='Release'"
-			Command="$(NugetPath) pack '$(ProjectDir)$(NuPkgName).Debug.nuspec' -OutputFileNamesWithoutVersion"
+			Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).Debug.nuspec&quot; -OutputFileNamesWithoutVersion -Symbols -SymbolPackageFormat snupkg"
 			ConsoleToMSBuild="true"
 		>
 			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
 		</Exec>
 		<Exec
 			Condition="'$(Configuration)'=='Release'"
-			Command="$(NugetPath) pack '$(ProjectDir)$(NuPkgName).nuspec' -OutputFileNamesWithoutVersion"
+			Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).nuspec&quot; -OutputFileNamesWithoutVersion -Symbols -SymbolPackageFormat snupkg"
 			ConsoleToMSBuild="true"
 		>
 			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
