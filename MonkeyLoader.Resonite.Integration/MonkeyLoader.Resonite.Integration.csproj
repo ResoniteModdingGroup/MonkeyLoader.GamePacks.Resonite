@@ -12,6 +12,14 @@
   </Target>
 
   <ItemGroup>
+    <Compile Remove="InstantResoniteLog.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="InstantResoniteLog.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MonkeyLoader" Version="0.3.0-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.3.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">

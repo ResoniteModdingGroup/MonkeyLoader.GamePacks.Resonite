@@ -177,8 +177,8 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            lock (_loadProgress)
-                _loadProgress.SetSubphase(subphase);
+            //lock (_loadProgress)
+            _loadProgress.SetSubphase(subphase);
 
             Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
 
@@ -203,20 +203,17 @@ namespace MonkeyLoader.Resonite
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(EngineLoadProgress.SetFixedPhase))]
-        private static void SetFixedPhasedPostfix(EngineLoadProgress __instance, string phase)
+        private static void SetFixedPhasedPostfix(string phase, ref string ____showSubphase)
         {
             _phase = phase;
-
-            lock (__instance)
-                __instance.SetSubphase(phase);
+            ____showSubphase = phase;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(EngineLoadProgress.SetSubphase))]
-        private static void SetSubphasePostfix(EngineLoadProgress __instance, string subphase)
+        private static void SetSubphasePostfix(string subphase, ref string ____showSubphase)
         {
-            lock (__instance)
-                __instance.SetSubphase($"{_phase}   {subphase}");
+            ____showSubphase = $"{_phase}   {subphase}";
         }
 
         // Returned true means success, false means something went wrong.
