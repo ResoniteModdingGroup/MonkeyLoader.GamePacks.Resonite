@@ -45,10 +45,10 @@
 		<Copy
 			Condition="'$(CopyToLibraries)'=='true'"
 			SourceFiles="$(ProjectDir)$(NuPkgName).nupkg"
-			DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nuget" />
+			DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg" />
 		<Message
 			Condition="'$(CopyToLibraries)'=='true'"
-			Text="Copied '$(NuPkgName).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nuget'"
+			Text="Copied '$(NuPkgName).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg'"
 			Importance="high" />
 	</Target>
 
