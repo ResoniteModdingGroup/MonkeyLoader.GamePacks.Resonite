@@ -17,7 +17,7 @@ namespace MonkeyLoader.Resonite
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         [HarmonyPrefix]
-        [HarmonyPatch("Brotli.NativeLibraryLoader, Brotli.Core", "GetPossibleRuntimeDirectories")]
+        [HarmonyPatch("Brotli.NativeLibraryLoader", "GetPossibleRuntimeDirectories")]
         private static bool GetPossibleRuntimeDirectoriesPrefix(ref string[] __result)
         {
             __result = new[] { Mod.Loader.GameAssemblyPath };

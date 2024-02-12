@@ -10,6 +10,10 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 
 		<CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
+        
+        <RestoreAdditionalProjectSources>
+            https://pkg.munally.com/MonkeyModdingTroop/index.json
+        </RestoreAdditionalProjectSources>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(NugetPath)'==''">
