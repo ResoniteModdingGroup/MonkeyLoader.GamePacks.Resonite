@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>MonkeyLoader.GamePacks.Resonite</id>
-    <version>0.3.1-beta</version>
+    <version>0.4.0-beta</version>
     <title>Resonite GamePack</title>
     <authors>Banane9</authors>
     <owners>Banane9</owners>
@@ -20,8 +20,8 @@
 
     <dependencies>
       <group targetFramework=".NETFramework4.6.2">
-        <dependency id="MonkeyLoader" version="0.3.0-beta" />
-        <dependency id="MonkeyLoader.GamePacks.Unity" version="0.3.0-beta" />
+        <dependency id="MonkeyLoader" version="0.4.0-beta" />
+        <dependency id="MonkeyLoader.GamePacks.Unity" version="0.4.0-beta" />
       </group>
     </dependencies>
   </metadata>
