@@ -38,59 +38,27 @@ namespace MonkeyLoader.Resonite
             yield return new FeaturePatch<EngineInitialization>(PatchCompatibility.HookOnly);
         }
 
+        [HarmonyPostfix]
+        private static async Task InitializePostfixAsync(Task __result)
+        {
+            await RunEngineInitHooksAsync();
+            await __result;
+            await RunEngineReadyHooksAsync();
+        }
+
         [HarmonyPrefix]
         private static void InitializePrefix(Engine __instance)
         {
-            Info(() => "Engine started initializing! Adding engine hooks and executing EngineInit hooks on ResoniteMonkeys!");
+            Info(() => "Engine started initializing! Adding shutdown hooks and executing EngineInit hooks on ResoniteMonkeys!");
 
             Mod.Loader.LoggingHandler += ResoniteLoggingHandler.Instance;
 
-            __instance.OnReady += OnEngineReady;
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
-
-            var resoniteMonkeys = ResoniteMonkeys;
-            Logger.Trace(() => "Running EngineInit hooks in this order:");
-            Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
 
             // Have to add 3 phases because the indicator
             // will immediately disappear upon entering the last one
             LoadProgressIndicator.AddFixedPhases(3);
-            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineInit Hooks...");
-
-            var sw = Stopwatch.StartNew();
-
-            foreach (var resoniteMonkey in resoniteMonkeys)
-            {
-                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
-                resoniteMonkey.EngineInit();
-                LoadProgressIndicator.ExitSubphase();
-            }
-
-            Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
-        }
-
-        private static void OnEngineReady()
-        {
-            // Potentially move this to be a postfix of init or run as Task as otherwise it's blocking.
-            Info(() => "Engine is ready! Executing EngineReady hooks on ResoniteMonkeys!");
-
-            var resoniteMonkeys = ResoniteMonkeys;
-            Logger.Trace(() => "Running EngineReady hooks in this order:");
-            Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
-
-            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineReady Hooks...");
-            var sw = Stopwatch.StartNew();
-
-            foreach (var resoniteMonkey in resoniteMonkeys)
-            {
-                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
-                resoniteMonkey.EngineReady();
-                LoadProgressIndicator.ExitSubphase();
-            }
-
-            Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
-            LoadProgressIndicator.AdvanceFixedPhase("Mods Fully Loaded");
         }
 
         private static void OnEngineShutdown()
@@ -104,10 +72,7 @@ namespace MonkeyLoader.Resonite
         {
             Info(() => "Engine shutdown has been requested! Executing EngineShutdownRequested hooks on ResoniteMonkeys!");
 
-            // Go through monkeys in reverse order compared to launch
             var resoniteMonkeys = ResoniteMonkeys;
-            Array.Reverse(resoniteMonkeys);
-
             Logger.Trace(() => "Running EngineShutdownRequested hooks in this order:");
             Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
 
@@ -117,6 +82,48 @@ namespace MonkeyLoader.Resonite
                 resoniteMonkey.EngineShutdownRequested(reason);
 
             Info(() => $"Done executing EngineShutdownRequested hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+        }
+
+        private static async Task RunEngineInitHooksAsync()
+        {
+            var resoniteMonkeys = ResoniteMonkeys;
+            Logger.Trace(() => "Running EngineInit hooks in this order:");
+            Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
+
+            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineInit Hooks...");
+
+            var sw = Stopwatch.StartNew();
+
+            foreach (var resoniteMonkey in resoniteMonkeys)
+            {
+                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
+                await Task.Run(resoniteMonkey.EngineInit);
+                LoadProgressIndicator.ExitSubphase();
+            }
+
+            Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+        }
+
+        private static async Task RunEngineReadyHooksAsync()
+        {
+            Info(() => "Engine is done initializing! Executing EngineReady hooks on ResoniteMonkeys!");
+
+            var resoniteMonkeys = ResoniteMonkeys;
+            Logger.Trace(() => "Running EngineReady hooks in this order:");
+            Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
+
+            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineReady Hooks...");
+            var sw = Stopwatch.StartNew();
+
+            foreach (var resoniteMonkey in resoniteMonkeys)
+            {
+                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
+                await Task.Run(resoniteMonkey.EngineReady);
+                LoadProgressIndicator.ExitSubphase();
+            }
+
+            Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            LoadProgressIndicator.AdvanceFixedPhase("Mods Fully Loaded");
         }
     }
 }
