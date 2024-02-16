@@ -19,8 +19,19 @@ namespace MonkeyLoader.Resonite
     {
         public override string Name { get; } = "Engine Init Hook";
 
-        private static IEnumerable<IResoniteMonkeyInternal> ResoniteMonkeys
-            => Mod.Loader.Monkeys.SelectCastable<IMonkey, IResoniteMonkeyInternal>();
+        private static IResoniteMonkeyInternal[] ResoniteMonkeys
+        {
+            get
+            {
+                var monkeys = Mod.Loader.Monkeys
+                    .SelectCastable<IMonkey, IResoniteMonkeyInternal>()
+                    .ToArray();
+
+                Array.Sort(monkeys, Monkey.AscendingComparer);
+
+                return monkeys;
+            }
+        }
 
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
         {
@@ -38,7 +49,7 @@ namespace MonkeyLoader.Resonite
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
 
-            var resoniteMonkeys = ResoniteMonkeys.ToArray();
+            var resoniteMonkeys = ResoniteMonkeys;
             Logger.Trace(() => "Running EngineInit hooks in this order:");
             Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
 
@@ -49,7 +60,7 @@ namespace MonkeyLoader.Resonite
 
             var sw = Stopwatch.StartNew();
 
-            foreach (var resoniteMonkey in ResoniteMonkeys)
+            foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
                 resoniteMonkey.EngineInit();
@@ -64,14 +75,14 @@ namespace MonkeyLoader.Resonite
             // Potentially move this to be a postfix of init or run as Task as otherwise it's blocking.
             Info(() => "Engine is ready! Executing EngineReady hooks on ResoniteMonkeys!");
 
-            var resoniteMonkeys = ResoniteMonkeys.ToArray();
+            var resoniteMonkeys = ResoniteMonkeys;
             Logger.Trace(() => "Running EngineReady hooks in this order:");
             Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
 
             LoadProgressIndicator.AdvanceFixedPhase("Executing EngineReady Hooks...");
             var sw = Stopwatch.StartNew();
 
-            foreach (var resoniteMonkey in ResoniteMonkeys)
+            foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
                 resoniteMonkey.EngineReady();
@@ -93,7 +104,10 @@ namespace MonkeyLoader.Resonite
         {
             Info(() => "Engine shutdown has been requested! Executing EngineShutdownRequested hooks on ResoniteMonkeys!");
 
-            var resoniteMonkeys = ResoniteMonkeys.ToArray();
+            // Go through monkeys in reverse order compared to launch
+            var resoniteMonkeys = ResoniteMonkeys;
+            Array.Reverse(resoniteMonkeys);
+
             Logger.Trace(() => "Running EngineShutdownRequested hooks in this order:");
             Logger.Trace(resoniteMonkeys.Select(rM => new Func<object>(() => $"{rM.Mod.Title}/{rM.Name}")));
 
