@@ -17,17 +17,14 @@ namespace MonkeyLoader.Resonite
     [HarmonyPatch(typeof(Engine), nameof(Engine.Initialize))]
     internal sealed class EngineInitHook : Monkey<EngineInitHook>
     {
-        public override string Name { get; } = "Engine Init Hook";
-
         private static IResoniteMonkeyInternal[] ResoniteMonkeys
         {
             get
             {
-                var monkeys = Mod.Loader.Monkeys
+                var monkeys = Mod.Loader.Mods
+                    .GetMonkeysAscending()
                     .SelectCastable<IMonkey, IResoniteMonkeyInternal>()
                     .ToArray();
-
-                Array.Sort(monkeys, Monkey.AscendingComparer);
 
                 return monkeys;
             }

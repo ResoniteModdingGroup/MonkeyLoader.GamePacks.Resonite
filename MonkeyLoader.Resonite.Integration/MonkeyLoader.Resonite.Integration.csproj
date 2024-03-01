@@ -20,31 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.4.0-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.5.0-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.4.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" />
-
-    <Reference Include="FrooxEngine">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\FrooxEngine.dll</HintPath>
-    </Reference>
-    <Publicize Include="FrooxEngine" IncludeCompilerGeneratedMembers="false" IncludeVirtualMembers="false" />
-
-    <Reference Include="Elements.Core">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Elements.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(ResonitePath)\Resonite_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Resonite.Assembly-CSharp" Version="1.0.0" />
+    <PackageReference Include="Resonite.Elements.Core" Version="1.0.0" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.3.1.1178" />
+    <PackageReference Include="Resonite.UnityEngine.CoreModule" Version="1.0.0" />
+    <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
