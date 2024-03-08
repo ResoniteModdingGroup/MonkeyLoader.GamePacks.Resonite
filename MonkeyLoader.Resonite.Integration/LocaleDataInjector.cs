@@ -1,9 +1,11 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,10 +17,96 @@ using Zio;
 
 namespace MonkeyLoader.Resonite
 {
+    /// <summary>
+    /// <para>
+    /// Handles injecting the <see cref="Elements.Assets.LocaleData">locale data</see> provided by
+    /// <see cref="Mod">mods</see> in their <see cref="Mod.FileSystem">FileSystem</see> or through
+    /// <see cref="ILocaleDataProvider"/>s into the loading process of the <see cref="LocaleResource"/> asset.
+    /// </para>
+    /// <para>
+    /// Data files are automatically loaded from any <see cref="Mod">mods</see> that provide them.<br/>
+    /// <see cref="ILocaleDataProvider"/>s have to be <see cref="AddProvider">registered</see> with this class.
+    /// They are queried <i>after</i> files.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// To be considered for loading, <see cref="Elements.Assets.LocaleData">locale data</see> files have
+    /// to be in <i>any</i> folder called <c>Locale</c> <i>anywhere</i> in a mod's <see cref="Mod.ContentPaths">content files</see>.
+    /// Multiple <c>Locale</c> folders with files for the same locale are no problem.
+    /// </para>
+    /// <para>
+    /// <see cref="Elements.Assets.LocaleData">Locale data</see> files need to have their language code
+    /// as their filename, for example: <c>de-at.json</c> for austrian german, or <c>de.json</c> for any german.<br/>
+    /// The locale definitions are loaded with the exact locale code (de-at) coming first,
+    /// falling back to the base locale code (de), and finally the universal fallback english (en).<br/>
+    /// All <see cref="Elements.Core.LocaleHelper.AsLocaleKey(string, ValueTuple{string, object}[])">locale keys</see>
+    /// will use the first definition encountered for them:
+    /// A key that's the same for <c>de-at</c> and <c>de</c> would not have to be present in <c>de-at</c>,
+    /// while a different one in <c>de-at</c> would take priority over the one in <c>de</c>.
+    /// </para>
+    /// <para>
+    /// The json files need to be in the following format (for <c>en.json</c> here),
+    /// although the <see cref="Mod.Id">ModId</see>-prefix is just convention:
+    /// <code>
+    /// {
+    ///   "localeCode": "en",
+    ///   "authors": [ "Mod", "Locale", "Author", "Names" ],
+    ///   "messages": {
+    ///     "ModId.KeyA": "A first message.",
+    ///     "ModId.KeyB": "Better locale support!"
+    ///   }
+    /// }
+    /// </code>
+    /// </para>
+    /// </remarks>
     [HarmonyPatchCategory(nameof(LocaleDataInjector))]
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadTargetVariant))]
-    internal class LocaleDataInjector : Monkey<LocaleDataInjector>
+    public sealed class LocaleDataInjector : Monkey<LocaleDataInjector>
     {
+        private static readonly SortedSet<ILocaleDataProvider> _localeDataProviders = new(LocaleDataProviderComparer);
+
+        /// <summary>
+        /// Gets an <see cref="IComparer{T}"/> that compares <see cref="ILocaleDataProvider"/>s
+        /// based on their <see cref="ILocaleDataProvider.Priority">priority</see>.
+        /// </summary>
+        public static IComparer<ILocaleDataProvider> LocaleDataProviderComparer { get; } = new LocaleDataProviderComparerImpl();
+
+        /// <summary>
+        /// Gets all the <see cref="ILocaleDataProvider"/> which currently
+        /// get queried during the loading of locale data, ordered by their
+        /// <see cref="ILocaleDataProvider.Priority">priority</see>.
+        /// </summary>
+        public static IEnumerable<ILocaleDataProvider> LocaleDataProviders => _localeDataProviders.AsSafeEnumerable();
+
+        /// <summary>
+        /// Adds the given <see cref="ILocaleDataProvider"/> to the set of providers queried
+        /// during the loading of locale data.
+        /// </summary>
+        /// <param name="localeDataProvider">The provider to add.</param>
+        /// <returns><c>true</c> if the provider was added; <c>false</c> if it was already present.</returns>
+        public bool AddProvider(ILocaleDataProvider localeDataProvider)
+            => _localeDataProviders.Add(localeDataProvider);
+
+        /// <summary>
+        /// Determines whether the set of providers queried
+        /// during the loading of locale data contains the given one.
+        /// </summary>
+        /// <param name="localeDataProvider">The provider to locate.</param>
+        /// <returns><c>true</c> if the provider is present; otherwise, <c>false</c>.</returns>
+        public bool HasProvider(ILocaleDataProvider localeDataProvider)
+            => _localeDataProviders.Contains(localeDataProvider);
+
+        /// <summary>
+        /// Removes the given <see cref="ILocaleDataProvider"/> from the set of providers queried
+        /// during the loading of locale data.
+        /// </summary>
+        /// <param name="localeDataProvider">The provider to remove.</param>
+        /// <returns><c>true</c> if the provider was removed; <c>false</c> if it could not be found.</returns>
+        public bool RemoveProvider(ILocaleDataProvider localeDataProvider)
+            => _localeDataProviders.Remove(localeDataProvider);
+
+        /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         [HarmonyTranspiler]
@@ -26,37 +114,6 @@ namespace MonkeyLoader.Resonite
         private static IEnumerable<CodeInstruction> LoadTargetVariantMoveNextTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase targetMethod)
         {
             var onLoadStateChangeMethod = AccessTools.Method(typeof(Asset), nameof(Asset.OnLoadStateChanged));
-            //var variantField = AccessTools.Field(targetMethod.DeclaringType, "variant");
-
-            //var injectLocaleLoadingMethod = AccessTools.Method(typeof(LocaleDataInjector), nameof(InjectLocaleLoading));
-
-            //var instructionList = new List<CodeInstruction>(instructions);
-
-            /*
-             * Instructions at this point - bool flag for whether to call on stack and target being added
-             *
-             X   IL_0233: ldloc.1
-             X   IL_0234: call instance class [Elements.Assets]Elements.Assets.LocaleResource FrooxEngine.LocaleResource::get_Data()
-             X   IL_0239: ldnull
-             X   IL_023a: cgt.un
-             *   IL_023c: ldloc.1
-             *   IL_023d: ldarg.0
-             *   IL_023e: ldfld class [Elements.Assets]Elements.Assets.LocaleResource FrooxEngine.LocaleResource/'<LoadTargetVariant>d__6'::'<resource>5__2'
-             *   IL_0243: call instance void FrooxEngine.LocaleResource::set_Data(class [Elements.Assets]Elements.Assets.LocaleResource)
-             X   IL_0248: brfalse.s IL_0250
-             X   IL_024a: ldloc.1
-             X   IL_024b: callvirt instance void FrooxEngine.Asset::OnLoadStateChanged()
-             */
-
-            // Only once, but at the end, so start there
-            //var onLoadStateChangeIndex = instructionList.FindLastIndex(instruction => instruction.Calls(onLoadStateChangeMethod));
-
-            //instructionList[onLoadStateChangeIndex] = new CodeInstruction(OpCodes.Call, injectLocaleLoadingMethod);
-            //instructionList.InsertRange(onLoadStateChangeIndex, new[] { new CodeInstruction(OpCodes.Ldarg_0), new CodeInstruction(OpCodes.Ldfld, variantField) });
-            //instructionList.RemoveAt(onLoadStateChangeIndex - 2);
-
-            //instructionList.RemoveRange(onLoadStateChangeIndex - 10, 4);
-            //instructionList.RemoveRange(onLoadStateChangeIndex - 2, 3); // 1, 2 works, as is fails
 
             foreach (var instruction in instructions)
             {
@@ -83,15 +140,19 @@ namespace MonkeyLoader.Resonite
 
                 foreach (var mod in Mod.Loader.Mods)
                 {
-                    var localeFilePaths = mod.ContentPaths.Where(path => path.ToString().EndsWith(searchPath, StringComparison.OrdinalIgnoreCase)).ToArray();
-
-                    foreach (var localeFilePath in localeFilePaths)
+                    foreach (var localeFilePath in mod.ContentPaths.Where(path => path.ToString().EndsWith(searchPath, StringComparison.OrdinalIgnoreCase)))
                     {
                         try
                         {
                             using var localeFileStream = mod.FileSystem.OpenFile(localeFilePath, FileMode.Open, FileAccess.Read);
 
                             var localeData = await JsonSerializer.DeserializeAsync<Elements.Assets.LocaleData>(localeFileStream);
+
+                            if (localeData is null)
+                                continue;
+
+                            if (!localeCode.Equals(localeData.LocaleCode, StringComparison.OrdinalIgnoreCase))
+                                Warn(() => $"Detected locale data with wrong locale code from locale file! Wanted [{localeCode}] - got [{localeData.LocaleCode}] in file: {mod.Id}:/{localeFilePath}");
 
                             __instance.Data.LoadDataAdditively(localeData);
                         }
@@ -101,6 +162,37 @@ namespace MonkeyLoader.Resonite
                         }
                     }
                 }
+
+                _localeDataProviders.Where(ldp => ldp.SupportsLocale(localeCode))
+                    .TrySelect((ILocaleDataProvider ldp, [NotNullWhen(true)] out Elements.Assets.LocaleData? localeData) =>
+                    {
+                        try
+                        {
+                            localeData = ldp.GetLocaleData(localeCode);
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            localeData = null;
+                            Warn(() => ex.Format($"Locale Data Provider threw an exception while getting locale data!"));
+
+                            return false;
+                        }
+                    })
+                    .Where(data =>
+                    {
+                        if (data is null)
+                            return false;
+
+                        if (!localeCode.Equals(data.LocaleCode, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Warn(() => $"Detected locale data with wrong locale code from LocaleDataProvider! Wanted [{localeCode}] - got [{data.LocaleCode}]! Messages:");
+                            Warn(data.Messages.Select(message => $"{message.Key}: {message.Value}"));
+                        }
+
+                        return true;
+                    })
+                    .Do(__instance.Data.LoadDataAdditively);
             }
 
             if (__state)
@@ -109,8 +201,12 @@ namespace MonkeyLoader.Resonite
 
         [HarmonyPrefix]
         private static void LoadTargetVariantPrefix(LocaleResource __instance, ref bool __state)
+            => __state = __instance.Data != null;
+
+        private sealed class LocaleDataProviderComparerImpl : IComparer<ILocaleDataProvider>
         {
-            __state = __instance.Data != null;
+            public int Compare(ILocaleDataProvider x, ILocaleDataProvider y)
+                => x.Priority.CompareTo(y.Priority);
         }
     }
 }

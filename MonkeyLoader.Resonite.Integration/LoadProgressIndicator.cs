@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace MonkeyLoader.Resonite
@@ -18,16 +17,15 @@ namespace MonkeyLoader.Resonite
     /// </summary>
     [HarmonyPatch(typeof(EngineLoadProgress))]
     [HarmonyPatchCategory(nameof(LoadProgressIndicator))]
-    public class LoadProgressIndicator : UnityMonkey<LoadProgressIndicator>
+    public sealed class LoadProgressIndicator : UnityMonkey<LoadProgressIndicator>
     {
         private static EngineLoadProgress? _loadProgress;
-
-        //private static bool failed;
 
         private static string? _phase;
 
         /// <summary>
-        /// Gets whether the progress indicator is available.
+        /// Gets whether the progress indicator is available,
+        /// determining the availability of the methods and properties of this class.
         /// </summary>
         [MemberNotNullWhen(true, nameof(_loadProgress),
             nameof(FixedPhaseIndex), nameof(TotalFixedPhaseCount))]
@@ -37,26 +35,26 @@ namespace MonkeyLoader.Resonite
             {
                 if (_loadProgress == null)
                 {
+                    // Clear reference to UnityObject when it compares as null
                     _loadProgress = null;
                     return false;
                 }
 
+#pragma warning disable CS8775 // Member must have a non-null value when exiting in some condition.
                 return true;
+#pragma warning restore CS8775 // Member must have a non-null value when exiting in some condition.
             }
         }
 
         /// <summary>
         /// Gets the index of the current fixed phase, if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
-        public static int? FixedPhaseIndex => Available ? _loadProgress.FixedPhaseIndex : null;
+        public static int? FixedPhaseIndex => _loadProgress?.FixedPhaseIndex;
 
         /// <summary>
         /// Gets the number of fixed phases, if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
-        public static int? TotalFixedPhaseCount => Available ? _loadProgress.TotalFixedPhaseCount : null;
-
-        /// <inheritdoc/>
-        public override string Name { get; } = "Load Progress Indicator";
+        public static int? TotalFixedPhaseCount => _loadProgress?.TotalFixedPhaseCount;
 
         /// <summary>
         /// Increments the <see cref="EngineLoadProgress.TotalFixedPhaseCount"/> to make space for an additional phase,
@@ -77,28 +75,6 @@ namespace MonkeyLoader.Resonite
             return true;
         }
 
-        //private static FieldInfo? ShowSubphase
-        //{
-        //    get
-        //    {
-        //        if (_showSubphase is null)
-        //        {
-        //            try
-        //            {
-        //                _showSubphase = typeof(EngineLoadProgress).GetField("_showSubphase", BindingFlags.NonPublic | BindingFlags.Instance);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                if (!failed)
-        //                {
-        //                    Logger.WarnInternal("_showSubphase not found: " + ex.ToString());
-        //                }
-        //                failed = true;
-        //            }
-        //        }
-        //        return _showSubphase;
-        //    }
-        //}
         /// <summary>
         /// Increments the <see cref="EngineLoadProgress.TotalFixedPhaseCount"/> by <paramref name="count"/> to make space for additional phases,
         /// if the progress indicator is <see cref="Available">available</see>.
@@ -118,7 +94,6 @@ namespace MonkeyLoader.Resonite
             return true;
         }
 
-        //private static bool isHeadless => Type.GetType("FrooxEngine.Headless.HeadlessCommands, Resonite") != null;
         /// <summary>
         /// Increments the <see cref="EngineLoadProgress.FixedPhaseIndex"/> and sets the fixed phase to advance the progress bar,
         /// if the progress indicator is <see cref="Available">available</see>.
@@ -134,22 +109,6 @@ namespace MonkeyLoader.Resonite
             Trace(() => $"Advanced EngineLoadProgress phase to: {phase}");
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns the full hierarchy name of the game object.
-        /// </summary>
-        /// <param name="gameObject">The game object.</param>
-        public static IEnumerable<Func<object>> DebugHierarchy(GameObject gameObject)
-        {
-            do
-            {
-                var transform = gameObject.transform;
-                yield return () => $"{gameObject.name} (T: {transform.localPosition}; S: {transform.localScale}; R: {transform.rotation.eulerAngles})";
-
-                gameObject = gameObject.transform.parent.gameObject;
-            }
-            while (gameObject != null);
         }
 
         /// <summary>
@@ -177,7 +136,6 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            //lock (_loadProgress)
             _loadProgress.SetSubphase(subphase);
 
             Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
@@ -203,32 +161,15 @@ namespace MonkeyLoader.Resonite
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(EngineLoadProgress.SetFixedPhase))]
-        private static void SetFixedPhasedPostfix(string phase, ref string ____showSubphase)
+        private static void SetFixedPhasedPostfix(EngineLoadProgress __instance, string phase)
         {
             _phase = phase;
-            ____showSubphase = phase;
+            __instance._showSubphase = phase;
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(EngineLoadProgress.SetSubphase))]
-        private static void SetSubphasePostfix(string subphase, ref string ____showSubphase)
-        {
-            ____showSubphase = $"{_phase}   {subphase}";
-        }
-
-        // Returned true means success, false means something went wrong.
-        //public static bool SetCustom(string text)
-        //{
-        //    if (ModLoaderConfiguration.Get().HideVisuals) { return true; }
-        //    if (!isHeadless)
-        //    {
-        //        if (ShowSubphase != null)
-        //        {
-        //            ShowSubphase.SetValue(Engine.Current.InitProgress, text);
-        //        }
-        //        return true;
-        //    }
-        //    return false;
-        //}
+        private static void SetSubphasePostfix(EngineLoadProgress __instance, string subphase)
+            => __instance._showSubphase = $"{_phase}   {subphase}";
     }
 }
