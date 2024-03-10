@@ -4,6 +4,7 @@ using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -206,7 +207,14 @@ namespace MonkeyLoader.Resonite
         private sealed class LocaleDataProviderComparerImpl : IComparer<ILocaleDataProvider>
         {
             public int Compare(ILocaleDataProvider x, ILocaleDataProvider y)
-                => x.Priority.CompareTo(y.Priority);
+            {
+                var priorityComparison = x.Priority.CompareTo(y.Priority);
+
+                if (priorityComparison != 0)
+                    return priorityComparison;
+
+                return Comparer.DefaultInvariant.Compare(x, y);
+            }
         }
     }
 }
