@@ -19,7 +19,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/> and <paramref name="action"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <param name="builder">The builder to use for creating the button.</param>
         /// <param name="text">The text displayed on the button.</param>
@@ -31,7 +31,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Creates a <see cref="Button"/> using the given <paramref name="icon"/> and <paramref name="action"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <param name="builder">The builder to use for creating the button.</param>
         /// <param name="icon">The icon displayed on the button.</param>
@@ -44,7 +44,7 @@ namespace MonkeyLoader.Resonite.UI
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/>,
         /// <paramref name="icon"/> and <paramref name="action"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <param name="builder">The builder to use for creating the button.</param>
         /// <param name="icon">The icon displayed on the button.</param>
@@ -58,7 +58,7 @@ namespace MonkeyLoader.Resonite.UI
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/>,
         /// <paramref name="icon"/>, tints and <paramref name="action"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <param name="builder">The builder to use for creating the button.</param>
         /// <param name="icon">The icon displayed on the button.</param>
@@ -74,7 +74,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/> and <paramref name="action"/> with an extra <paramref name="argument"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="T">The type of the extra argument to pass to the action.</typeparam>
         /// <param name="builder">The builder to use for creating the button.</param>
@@ -88,7 +88,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Creates a <see cref="Button"/> using the given <paramref name="icon"/> and <paramref name="action"/> with an extra <paramref name="argument"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="T">The type of the extra argument to pass to the action.</typeparam>
         /// <param name="builder">The builder to use for creating the button.</param>
@@ -103,7 +103,7 @@ namespace MonkeyLoader.Resonite.UI
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/>,
         /// <paramref name="icon"/> and <paramref name="action"/> with an extra <paramref name="argument"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="T">The type of the extra argument to pass to the action.</typeparam>
         /// <param name="builder">The builder to use for creating the button.</param>
@@ -119,7 +119,7 @@ namespace MonkeyLoader.Resonite.UI
         /// Creates a <see cref="Button"/> using the given <paramref name="text"/>,
         /// <paramref name="icon"/>, tints and <paramref name="action"/> with an extra <paramref name="argument"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="T">The type of the extra argument to pass to the action.</typeparam>
         /// <param name="builder">The builder to use for creating the button.</param>
@@ -137,7 +137,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Sets up an <see cref="IButton"/> with the given <paramref name="action"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="TButton">The specific type of the button.</typeparam>
         /// <param name="button">The button to set up with an action.</param>
@@ -160,7 +160,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Sets up an <see cref="IButton"/> with the given <paramref name="action"/> and extra <paramref name="argument"/>.<br/>
         /// The <paramref name="action"/> will be triggerable by anyone, as long as the creating <see cref="User"/> hasn't left the session.
-        /// As such, they will be destroyed when the local user leaves.
+        /// As such, it will be destroyed when the local user leaves.
         /// </summary>
         /// <typeparam name="TButton">The specific type of the button.</typeparam>
         /// <typeparam name="TArgument">The type of the extra argument to pass to the action.</typeparam>
