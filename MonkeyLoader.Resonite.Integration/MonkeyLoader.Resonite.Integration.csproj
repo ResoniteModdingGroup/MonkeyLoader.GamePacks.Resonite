@@ -1,14 +1,44 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
+    <Title>Resonite Game Pack</Title>
+    <Authors>Banane9</Authors>
+    <Version>0.5.0-beta</Version>
+    <Description>
+      This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite,
+      which uses FrooxEngine. It provides hooks for the beginning of initialization,
+      when initialization is done, and when the game shuts down.
+    </Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
+    <IncludeSymbols>False</IncludeSymbols>
+    <EmbedAllSources>True</EmbedAllSources>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
 
-  <Target Name="PackProject" AfterTargets="PostBuildEvent">
-    <MSBuild Projects="$(MSBuildProjectFile)" Properties="NuPkgName=MonkeyLoader.GamePacks.Resonite" Targets="PackNugetPkg">
-    </MSBuild>
+  <Target Name="AddExtraFilesToPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutDir)$(AssemblyName).pdb" PackagePath="lib/$(TargetFramework)/" />
+      <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.Resonite.Data\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.Resonite.Data.*" PackagePath="lib/$(TargetFramework)/" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <Copy Condition="'$(CopyToLibraries)'=='true'" SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(PackageId).nupkg" />
+    <Message Condition="'$(CopyToLibraries)'=='true'" Text="Copied '$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(PackageId).nupkg'" Importance="high" />
   </Target>
 
   <ItemGroup>
@@ -17,10 +47,11 @@
 
   <ItemGroup>
     <None Include="InstantResoniteLog.cs" />
+    <None Include="..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.6.0-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.8.0-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.4.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
@@ -37,6 +68,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" />
+    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" PrivateAssets="All" />
   </ItemGroup>
 </Project>

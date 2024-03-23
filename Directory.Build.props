@@ -1,59 +1,59 @@
 <Project>
-	<PropertyGroup>
-		<OutputType>Library</OutputType>
-		<TargetFramework>net462</TargetFramework>
-		<LangVersion>11.0</LangVersion>
-		<Nullable>enable</Nullable>
-		<Deterministic>true</Deterministic>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<DebugType>portable</DebugType>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>11.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <DebugType>portable</DebugType>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
 
-		<CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
+    <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
         
-        <RestoreAdditionalProjectSources>
-            https://pkg.munally.com/MonkeyModdingTroop/index.json
-        </RestoreAdditionalProjectSources>
-	</PropertyGroup>
+    <RestoreAdditionalProjectSources>
+      https://pkg.munally.com/MonkeyModdingTroop/index.json
+    </RestoreAdditionalProjectSources>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(NugetPath)'==''">
-		<NugetPath Condition="'$(OS)' == 'Windows_NT'">nuget.exe</NugetPath>
-		<NugetPath Condition="'$(OS)' != 'Windows_NT'">/bin/nuget</NugetPath>
-		<NugetPath Condition="Exists('S:\NuGet\nuget.exe')">S:\NuGet\nuget.exe</NugetPath>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(NugetPath)'==''">
+    <NugetPath Condition="'$(OS)' == 'Windows_NT'">nuget.exe</NugetPath>
+    <NugetPath Condition="'$(OS)' != 'Windows_NT'">/bin/nuget</NugetPath>
+    <NugetPath Condition="Exists('S:\NuGet\nuget.exe')">S:\NuGet\nuget.exe</NugetPath>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(ResonitePath)'==''">
-		<ResonitePath>$(MSBuildThisFileDirectory)Resonite</ResonitePath>
-		<ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite</ResonitePath>
-		<ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite</ResonitePath>
-		<ResonitePath Condition="Exists('D:/Files/Games/Resonite/app/')">D:/Files/Games/Resonite/app</ResonitePath>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(ResonitePath)'==''">
+    <ResonitePath>$(MSBuildThisFileDirectory)Resonite</ResonitePath>
+    <ResonitePath Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite</ResonitePath>
+    <ResonitePath Condition="Exists('$(HOME)/.steam/steam/steamapps/common/Resonite/')">$(HOME)/.steam/steam/steamapps/common/Resonite</ResonitePath>
+    <ResonitePath Condition="Exists('D:/Files/Games/Resonite/app/')">D:/Files/Games/Resonite/app</ResonitePath>
+  </PropertyGroup>
 
-	<Target Name="PackNugetPkg">
-		<Message Text="Packing Resonite Game Pack" Importance="high" />
-		<Exec
-			Condition="'$(Configuration)'!='Release'"
-			Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).Debug.nuspec&quot; -OutputFileNamesWithoutVersion"
-			ConsoleToMSBuild="true"
-		>
-			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-		</Exec>
-		<Exec
-			Condition="'$(Configuration)'=='Release'"
-			Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).nuspec&quot; -OutputFileNamesWithoutVersion"
-			ConsoleToMSBuild="true"
-		>
-			<Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
-		</Exec>
+  <Target Name="PackNugetPkg">
+    <Message Text="Packing Resonite Game Pack" Importance="high" />
+    <Exec
+      Condition="'$(Configuration)'!='Release'"
+      Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).Debug.nuspec&quot; -OutputFileNamesWithoutVersion"
+      ConsoleToMSBuild="true"
+    >
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
+    <Exec
+      Condition="'$(Configuration)'=='Release'"
+      Command="$(NugetPath) pack &quot;$(ProjectDir)$(NuPkgName).nuspec&quot; -OutputFileNamesWithoutVersion"
+      ConsoleToMSBuild="true"
+    >
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
 
-		<Copy
-			Condition="'$(CopyToLibraries)'=='true'"
-			SourceFiles="$(ProjectDir)$(NuPkgName).nupkg"
-			DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg" />
-		<Message
-			Condition="'$(CopyToLibraries)'=='true'"
-			Text="Copied '$(NuPkgName).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg'"
-			Importance="high" />
-	</Target>
+    <Copy
+      Condition="'$(CopyToLibraries)'=='true'"
+      SourceFiles="$(ProjectDir)$(NuPkgName).nupkg"
+      DestinationFiles="$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg" />
+    <Message
+      Condition="'$(CopyToLibraries)'=='true'"
+      Text="Copied '$(NuPkgName).nupkg' to '$(ResonitePath)\MonkeyLoader\GamePacks\$(NuPkgName).nupkg'"
+      Importance="high" />
+  </Target>
 
 </Project>

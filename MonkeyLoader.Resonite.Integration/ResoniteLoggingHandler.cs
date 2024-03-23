@@ -17,6 +17,9 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc/>
         public override bool Connected => true;
 
+        private ResoniteLoggingHandler()
+        { }
+
         /// <inheritdoc/>
         public override void Debug(Func<object> messageProducer) => UniLog.Log(messageProducer());
 
@@ -25,6 +28,10 @@ namespace MonkeyLoader.Resonite
 
         /// <inheritdoc/>
         public override void Fatal(Func<object> messageProducer) => UniLog.Error(messageProducer().ToString());
+
+        /// <inheritdoc/>
+        public override void Flush()
+        { }
 
         /// <inheritdoc/>
         public override void Info(Func<object> messageProducer) => UniLog.Log(messageProducer());
