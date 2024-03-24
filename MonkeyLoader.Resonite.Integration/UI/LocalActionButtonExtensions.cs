@@ -152,7 +152,7 @@ namespace MonkeyLoader.Resonite.UI
             var toggle = button.Slot.AttachComponent<ButtonToggle>();
             toggle.TargetValue.Target = valueField;
 
-            button.DestroyWhenLocalUserLeaves();
+            button.Slot.DestroyWhenLocalUserLeaves();
 
             return button;
         }
@@ -177,7 +177,7 @@ namespace MonkeyLoader.Resonite.UI
             var toggle = button.Slot.AttachComponent<ButtonToggle>();
             toggle.TargetValue.Target = valueField;
 
-            button.DestroyWhenLocalUserLeaves();
+            button.Slot.DestroyWhenLocalUserLeaves();
 
             return button;
         }
