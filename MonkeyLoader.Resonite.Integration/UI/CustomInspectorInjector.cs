@@ -120,10 +120,13 @@ namespace MonkeyLoader.Resonite.UI
             return true;
         }
 
-        protected override bool OnShutdown()
+        /// <inheritdoc/>
+        protected override bool OnShutdown(bool applicationExiting)
         {
-            RemoveSegment(_inspectorSegment);
-            return base.OnShutdown();
+            if (!applicationExiting)
+                RemoveSegment(_inspectorSegment);
+
+            return base.OnShutdown(applicationExiting);
         }
 
         private static void BuildCustomInspectorUI(Worker worker, UIBuilder ui, Predicate<ISyncMember>? memberFilter)

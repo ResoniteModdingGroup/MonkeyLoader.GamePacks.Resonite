@@ -70,7 +70,7 @@ namespace MonkeyLoader.Resonite
                 return false;
 
             ++_loadProgress.TotalFixedPhaseCount;
-            Trace(() => "Incremented EngineLoadProgress.TotalFixedPhaseCount by 1.");
+            Logger.Trace(() => "Incremented EngineLoadProgress.TotalFixedPhaseCount by 1.");
 
             return true;
         }
@@ -89,7 +89,7 @@ namespace MonkeyLoader.Resonite
                 return false;
 
             _loadProgress.TotalFixedPhaseCount += count;
-            Trace(() => $"Incremented EngineLoadProgress.TotalFixedPhaseCount by {count}.");
+            Logger.Trace(() => $"Incremented EngineLoadProgress.TotalFixedPhaseCount by {count}.");
 
             return true;
         }
@@ -106,7 +106,7 @@ namespace MonkeyLoader.Resonite
                 return false;
 
             _loadProgress.SetFixedPhase(phase);
-            Trace(() => $"Advanced EngineLoadProgress phase to: {phase}");
+            Logger.Trace(() => $"Advanced EngineLoadProgress phase to: {phase}");
 
             return true;
         }
@@ -121,7 +121,7 @@ namespace MonkeyLoader.Resonite
                 return false;
 
             _loadProgress.SetSubphase(null);
-            Trace(() => "Reset the EngineLoadProgress subphase.");
+            Logger.Trace(() => "Reset the EngineLoadProgress subphase.");
 
             return true;
         }
@@ -138,7 +138,7 @@ namespace MonkeyLoader.Resonite
 
             _loadProgress.SetSubphase(subphase);
 
-            Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
+            Logger.Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
 
             return true;
         }
@@ -154,7 +154,7 @@ namespace MonkeyLoader.Resonite
                 .Select(g => g.GetComponentInChildren<EngineLoadProgress>())
                 .FirstOrDefault(elp => elp != null);
 
-            Info(() => $"Hooked EngineLoadProgress indicator: {Available}");
+            Logger.Info(() => $"Hooked EngineLoadProgress indicator: {Available}");
 
             return base.OnFirstSceneReady(scene);
         }

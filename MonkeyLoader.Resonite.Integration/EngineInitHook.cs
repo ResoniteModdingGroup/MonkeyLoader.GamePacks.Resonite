@@ -49,9 +49,9 @@ namespace MonkeyLoader.Resonite
         [HarmonyPrefix]
         private static void InitializePrefix(Engine __instance)
         {
-            Info(() => "Engine started initializing! Adding shutdown hooks and executing EngineInit hooks on ResoniteMonkeys!");
+            Logger.Info(() => "Engine started initializing! Adding shutdown hooks and executing EngineInit hooks on ResoniteMonkeys!");
 
-            Mod.Loader.LoggingHandler += ResoniteLoggingHandler.Instance;
+            Mod.Loader.LoggingController.Handler += ResoniteLoggingHandler.Instance;
 
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
@@ -75,7 +75,7 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
                 resoniteMonkey.EngineInit();
 
-            Info(() => $"Done late-executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => $"Done late-executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
 
             // ------------------------------------------------------------------------------------------------ //
 
@@ -87,19 +87,19 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
                 resoniteMonkey.EngineReady();
 
-            Info(() => $"Done late-executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => $"Done late-executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
         }
 
         private static void OnEngineShutdown()
         {
-            Info(() => "Engine shutdown has been triggered! Passing shutdown through to MonkeyLoader!");
+            Logger.Info(() => "Engine shutdown has been triggered! Passing shutdown through to MonkeyLoader!");
 
             Mod.Loader.Shutdown();
         }
 
         private static void OnEngineShutdownRequested(string reason)
         {
-            Info(() => "Engine shutdown has been requested! Executing EngineShutdownRequested hooks on ResoniteMonkeys!");
+            Logger.Info(() => "Engine shutdown has been requested! Executing EngineShutdownRequested hooks on ResoniteMonkeys!");
 
             var resoniteMonkeys = ResoniteMonkeys;
             Logger.Trace(() => "Running EngineShutdownRequested hooks in this order:");
@@ -110,7 +110,7 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
                 resoniteMonkey.EngineShutdownRequested(reason);
 
-            Info(() => $"Done executing EngineShutdownRequested hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => $"Done executing EngineShutdownRequested hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
         }
 
         private static async Task RunEngineInitHooksAsync()
@@ -130,12 +130,12 @@ namespace MonkeyLoader.Resonite
                 LoadProgressIndicator.ExitSubphase();
             }
 
-            Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
         }
 
         private static async Task RunEngineReadyHooksAsync()
         {
-            Info(() => "Engine is done initializing! Executing EngineReady hooks on ResoniteMonkeys!");
+            Logger.Info(() => "Engine is done initializing! Executing EngineReady hooks on ResoniteMonkeys!");
 
             var resoniteMonkeys = ResoniteMonkeys;
             Logger.Trace(() => "Running EngineReady hooks in this order:");
@@ -151,7 +151,7 @@ namespace MonkeyLoader.Resonite
                 LoadProgressIndicator.ExitSubphase();
             }
 
-            Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
             LoadProgressIndicator.AdvanceFixedPhase("Mods Fully Loaded");
         }
     }

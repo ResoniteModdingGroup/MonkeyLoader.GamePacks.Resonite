@@ -155,13 +155,13 @@ namespace MonkeyLoader.Resonite
                                 continue;
 
                             if (!localeCode.Equals(localeData.LocaleCode, StringComparison.OrdinalIgnoreCase))
-                                Warn(() => $"Detected locale data with wrong locale code from locale file! Wanted [{localeCode}] - got [{localeData.LocaleCode}] in file: {mod.Id}:/{localeFilePath}");
+                                Logger.Warn(() => $"Detected locale data with wrong locale code from locale file! Wanted [{localeCode}] - got [{localeData.LocaleCode}] in file: {mod.Id}:/{localeFilePath}");
 
                             __instance.Data.LoadDataAdditively(localeData);
                         }
                         catch (Exception ex)
                         {
-                            Warn(() => ex.Format($"Failed to deserialize file as LocaleData: {localeFilePath}"));
+                            Logger.Warn(() => ex.Format($"Failed to deserialize file as LocaleData: {localeFilePath}"));
                         }
                     }
                 }
@@ -177,7 +177,7 @@ namespace MonkeyLoader.Resonite
                         catch (Exception ex)
                         {
                             localeData = null;
-                            Warn(() => ex.Format($"Locale Data Provider threw an exception while getting locale data!"));
+                            Logger.Warn(() => ex.Format($"Locale Data Provider threw an exception while getting locale data!"));
 
                             return false;
                         }
@@ -189,8 +189,8 @@ namespace MonkeyLoader.Resonite
 
                         if (!localeCode.Equals(data.LocaleCode, StringComparison.OrdinalIgnoreCase))
                         {
-                            Warn(() => $"Detected locale data with wrong locale code from LocaleDataProvider! Wanted [{localeCode}] - got [{data.LocaleCode}]! Messages:");
-                            Warn(data.Messages.Select(message => $"{message.Key}: {message.Value}"));
+                            Logger.Warn(() => $"Detected locale data with wrong locale code from LocaleDataProvider! Wanted [{localeCode}] - got [{data.LocaleCode}]! Messages:");
+                            Logger.Warn(data.Messages.Select(message => $"{message.Key}: {message.Value}"));
                         }
 
                         return true;
