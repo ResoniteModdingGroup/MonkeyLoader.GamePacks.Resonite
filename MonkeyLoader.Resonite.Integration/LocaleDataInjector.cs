@@ -27,7 +27,8 @@ namespace MonkeyLoader.Resonite
     /// <para>
     /// Data files are automatically loaded from any <see cref="Mod">mods</see> that provide them.<br/>
     /// <see cref="ILocaleDataProvider"/>s have to be <see cref="AddProvider">registered</see> with this class.
-    /// They are queried <i>after</i> files.
+    /// They are queried <i>after</i> files.<br/>
+    /// <b>Make sure to <see cref="RemoveProvider">remove</see> them during Shutdown.</b>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -81,8 +82,9 @@ namespace MonkeyLoader.Resonite
         public static IEnumerable<ILocaleDataProvider> LocaleDataProviders => _localeDataProviders.AsSafeEnumerable();
 
         /// <summary>
-        /// Adds the given <see cref="ILocaleDataProvider"/> to the set of providers queried
-        /// during the loading of locale data.
+        /// Adds the given <see cref="ILocaleDataProvider"/> to the
+        /// set of providers queried during the loading of locale data.<br/>
+        /// <b>Make sure to <see cref="RemoveProvider">remove</see> it during Shutdown.</b>
         /// </summary>
         /// <param name="localeDataProvider">The provider to add.</param>
         /// <returns><c>true</c> if the provider was added; <c>false</c> if it was already present.</returns>
@@ -99,8 +101,8 @@ namespace MonkeyLoader.Resonite
             => _localeDataProviders.Contains(localeDataProvider);
 
         /// <summary>
-        /// Removes the given <see cref="ILocaleDataProvider"/> from the set of providers queried
-        /// during the loading of locale data.
+        /// Removes the given <see cref="ILocaleDataProvider"/>
+        /// from the set of providers queried during the loading of locale data.
         /// </summary>
         /// <param name="localeDataProvider">The provider to remove.</param>
         /// <returns><c>true</c> if the provider was removed; <c>false</c> if it could not be found.</returns>

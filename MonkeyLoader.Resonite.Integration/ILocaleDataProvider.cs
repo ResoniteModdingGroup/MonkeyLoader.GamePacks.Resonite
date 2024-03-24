@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
-    /// Defines the interface for locale data providers used by the <see cref="LocaleDataInjector"/>.
+    /// Defines the interface for locale data providers used by the <see cref="LocaleDataInjector"/>.<br/>
+    /// <b>Make sure to <see cref="LocaleDataInjector.RemoveProvider">remove</see> them during Shutdown.</b>
     /// </summary>
     public interface ILocaleDataProvider
     {
