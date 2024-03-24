@@ -73,7 +73,7 @@ namespace MonkeyLoader.Resonite
         {
             if (Failed)
             {
-                Warn(() => "Monkey already failed Run, skipping OnEngineInit!");
+                Logger.Warn(() => "Monkey already failed Run, skipping OnEngineInit!");
                 return false;
             }
 
@@ -81,20 +81,20 @@ namespace MonkeyLoader.Resonite
                 throw new InvalidOperationException("A Resonite monkey's OnEngineInit() method must only be called once!");
 
             EngineInitRan = true;
-            Debug(() => "Running OnEngineInit");
+            Logger.Debug(() => "Running OnEngineInit");
 
             try
             {
                 if (!OnEngineInit())
                 {
                     EngineInitFailed = true;
-                    Warn(() => "OnEngineInit failed!");
+                    Logger.Warn(() => "OnEngineInit failed!");
                 }
             }
             catch (Exception ex)
             {
                 EngineInitFailed = true;
-                Error(() => ex.Format("OnEngineInit threw an Exception:"));
+                Logger.Error(() => ex.Format("OnEngineInit threw an Exception:"));
             }
 
             return !EngineInitFailed;
@@ -104,7 +104,7 @@ namespace MonkeyLoader.Resonite
         {
             if (EngineInitFailed)
             {
-                Warn(() => "Monkey already failed OnEngineInit, skipping OnEngineReady!");
+                Logger.Warn(() => "Monkey already failed OnEngineInit, skipping OnEngineReady!");
                 return false;
             }
 
@@ -112,20 +112,20 @@ namespace MonkeyLoader.Resonite
                 throw new InvalidOperationException("A Resonite monkey's OnEngineReady() method must only be called once!");
 
             EngineReadyRan = true;
-            Debug(() => "Running OnEngineReady");
+            Logger.Debug(() => "Running OnEngineReady");
 
             try
             {
                 if (!OnEngineReady())
                 {
                     EngineReadyFailed = true;
-                    Warn(() => "OnEngineReady failed!");
+                    Logger.Warn(() => "OnEngineReady failed!");
                 }
             }
             catch (Exception ex)
             {
                 EngineReadyFailed = true;
-                Error(() => ex.Format("OnEngineReady threw an Exception:"));
+                Logger.Error(() => ex.Format("OnEngineReady threw an Exception:"));
             }
 
             return !EngineReadyFailed;
@@ -135,12 +135,12 @@ namespace MonkeyLoader.Resonite
         {
             try
             {
-                Debug(() => "Running OnEngineShutdownRequested");
+                Logger.Debug(() => "Running OnEngineShutdownRequested");
                 OnEngineShutdownRequested(reason);
             }
             catch (Exception ex)
             {
-                Error(() => ex.Format("OnEngineShutdownRequested threw an Exception:"));
+                Logger.Error(() => ex.Format("OnEngineShutdownRequested threw an Exception:"));
             }
         }
 

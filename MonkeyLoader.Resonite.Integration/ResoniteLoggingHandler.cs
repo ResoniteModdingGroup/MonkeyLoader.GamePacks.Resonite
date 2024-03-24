@@ -5,7 +5,7 @@ using System;
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
-    /// Maps the <see cref="MonkeyLogger"/> functions to Resonite's <see cref="UniLog"/>.
+    /// Maps the <see cref="LoggingHandler"/> functions to Resonite's <see cref="UniLog"/>.
     /// </summary>
     public sealed class ResoniteLoggingHandler : LoggingHandler
     {

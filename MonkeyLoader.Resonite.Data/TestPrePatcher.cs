@@ -16,7 +16,7 @@ namespace MonkeyLoader.Resonite
         public override string Name { get; } = "Test";
 
         public static void HelloMethod()
-            => Info(() => $"Hello from pre-patched-in FrooxEngine.Engine static constructor!");
+            => Logger.Info(() => $"Hello from pre-patched-in FrooxEngine.Engine static constructor!");
 
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
         {
