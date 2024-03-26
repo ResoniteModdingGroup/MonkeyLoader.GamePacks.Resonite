@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Patching;
@@ -11,17 +12,19 @@ using System.Reflection.Emit;
 namespace MonkeyLoader.Resonite.UI
 {
     /// <summary>
-    /// Handles injecting <see cref="CustomInspectorSegment"/>s provided by mods into
-    /// the UI building process of <see cref="WorkerInspector"/>s.<br/>
-    /// <b>Make sure to <see cref="RemoveSegment">remove</see> them during Shutdown.</b>
+    /// Handles injecting <see cref="ICustomInspectorSegment"/>s provided by mods into
+    /// the UI building process of <see cref="WorkerInspector"/>s.
     /// </summary>
+    /// <remarks>
+    /// <b>Make sure to <see cref="RemoveSegment">remove</see> them during Shutdown.</b>
+    /// </remarks>
     [HarmonyPatchCategory(nameof(CustomInspectorInjector))]
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
     public sealed class CustomInspectorInjector : Monkey<CustomInspectorInjector>
     {
-        private static readonly SortedSet<ICustomInspectorSegment> _customInspectorSegments = new(CustomInspectorSegmentComparer);
+        private static readonly SortedSet<ICustomInspectorSegment> _customInspectorSegments = new(InspectorHelper.CustomInspectorSegmentComparer);
 
-        private static ICustomInspectorSegment _inspectorSegment;
+        private static ICustomInspectorBody _inspectorSegment;
 
         // one way ref
         //public static CustomInspectorSegment AddOneWayReferenceFieldTo<TWorker, TReference>(Func<TWorker, TReference> selector, string name)
@@ -35,22 +38,30 @@ namespace MonkeyLoader.Resonite.UI
         //}
 
         /// <summary>
-        /// Gets an <see cref="IComparer{T}"/> that compares <see cref="ICustomInspectorSegment"/>s
-        /// based on their <see cref="ICustomInspectorSegment.Priority">priority</see>.
+        /// Gets all custom inspector segments, which add segments to the body
+        /// and currently get queried during the UI building process,
+        /// ordered by their <see cref="ICustomInspectorSegment.Priority"/>.
         /// </summary>
-        public static IComparer<ICustomInspectorSegment> CustomInspectorSegmentComparer { get; } = new CustomInspectorSegmentComparerImpl();
+        public static IEnumerable<ICustomInspectorBody> CustomBodies => _customInspectorSegments.SelectCastable<ICustomInspectorSegment, ICustomInspectorBody>();
 
         /// <summary>
-        /// Gets all custom inspector segments which currently
+        /// Gets all custom inspector segments, which add segments to the header
+        /// and currently get queried during the UI building process,
+        /// ordered by their <see cref="ICustomInspectorSegment.Priority"/>.
+        /// </summary>
+        public static IEnumerable<ICustomInspectorHeader> CustomHeaders => _customInspectorSegments.SelectCastable<ICustomInspectorSegment, ICustomInspectorHeader>();
+
+        /// <summary>
+        /// Gets all custom inspector segments, which currently
         /// get queried during the UI building process, ordered by their
         /// <see cref="ICustomInspectorSegment.Priority"/>.
         /// </summary>
-        public static IEnumerable<ICustomInspectorSegment> Segments => _customInspectorSegments.AsSafeEnumerable();
+        public static IEnumerable<ICustomInspectorSegment> CustomSegments => _customInspectorSegments.AsSafeEnumerable();
 
-        public static ICustomInspectorSegment AddOneWayReferenceFieldTo<TReference>(Type baseType, Func<Worker, TReference> selector, string name)
+        public static ICustomInspectorBody AddOneWayReferenceFieldTo<TReference>(Type baseType, Func<Worker, TReference> selector, string name)
                             where TReference : class, IWorldElement
         {
-            var segment = new GenericWorkerDelegateInspectorSegment(baseType, (worker, ui, _) => BuildOneWayReferenceSegmentUI(selector(worker), name, ui));
+            var segment = new LambdaCustomInspectorBody(baseType, (ui, worker, _, _, _) => InspectorHelper.BuildOneWayReferenceSegmentUI(ui, name, selector(worker)));
 
             _customInspectorSegments.Add(segment);
             return segment;
@@ -65,34 +76,27 @@ namespace MonkeyLoader.Resonite.UI
         //}
 
         /// <summary>
-        /// Adds the given <see cref="ICustomInspectorSegment"/>
+        /// Adds the given <see cref="ICustomInspectorHeader"/>
         /// to the set of segments queried during the UI building process.<br/>
         /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
         /// </summary>
-        /// <param name="segment">The segment to add.</param>
+        /// <param name="customHeader">The custom header to add.</param>
         /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
-        public static bool AddSegment(ICustomInspectorSegment segment)
-            => _customInspectorSegments.Add(segment);
-
-        public static void BuildOneWayReferenceSegmentUI<TReference>(TReference reference, string name, UIBuilder ui)
-                    where TReference : class, IWorldElement
-        {
-            ui.PushStyle();
-            ui.Style.MinHeight = 24f;
-            var slot = ui.Panel().Slot;
-            var referenceField = slot.AttachComponent<ReferenceField<TReference>>();
-            referenceField.Reference.Target = reference;
-            referenceField.Reference.DriveFrom(referenceField.Reference);
-
-            slot = SyncMemberEditorBuilder.GenerateMemberField(referenceField.Reference, name, ui);
-            slot.AttachComponent<RefEditor>().Setup(referenceField.Reference);
-
-            ui.NestOut();
-            ui.PopStyle();
-        }
+        public static bool AddSegment(ICustomInspectorHeader customHeader)
+            => _customInspectorSegments.Add(customHeader);
 
         /// <summary>
-        /// Determines whether the set of <see cref="ICustomInspectorSegment"/>s
+        /// Adds the given <see cref="ICustomInspectorBody"/>
+        /// to the set of segments queried during the UI building process.<br/>
+        /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
+        /// </summary>
+        /// <param name="customBody">The custom body to add.</param>
+        /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
+        public static bool AddSegment(ICustomInspectorBody customBody)
+            => _customInspectorSegments.Add(customBody);
+
+        /// <summary>
+        /// Determines whether the set of <see cref="ICustomInspectorBody"/>s
         /// queried during the UI building process contains the given one.
         /// </summary>
         /// <param name="segment">The segment to locate.</param>
@@ -101,7 +105,7 @@ namespace MonkeyLoader.Resonite.UI
             => _customInspectorSegments.Contains(segment);
 
         /// <summary>
-        /// Removes the given <see cref="ICustomInspectorSegment"/>
+        /// Removes the given <see cref="ICustomInspectorBody"/>
         /// from the set of segments queried during the UI building process.
         /// </summary>
         /// <param name="segment">The segment to remove.</param>
@@ -116,7 +120,6 @@ namespace MonkeyLoader.Resonite.UI
         {
             base.OnLoaded();
             _inspectorSegment = AddOneWayReferenceFieldTo(typeof(DynamicVariableBase<>), worker => (DynamicVariableSpace)Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue(), "LinkedSpace");
-            _inspectorSegment = AddOneWayReferenceFieldTo(typeof(DynamicVariableBase<bool>), worker => (DynamicVariableSpace)Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue(), "BoolsSpace");
             return true;
         }
 
@@ -129,61 +132,107 @@ namespace MonkeyLoader.Resonite.UI
             return base.OnShutdown(applicationExiting);
         }
 
-        private static void BuildCustomInspectorUI(Worker worker, UIBuilder ui, Predicate<ISyncMember>? memberFilter)
+        private static void BuildCustomInspectorBodyUI(UIBuilder ui, Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            memberFilter ??= Yes;
-
-            foreach (var segment in _customInspectorSegments)
+            foreach (var customBody in CustomBodies)
             {
-                if (segment.AppliesTo(worker))
-                    segment.BuildInspectorUI(worker, ui, memberFilter);
+                if (customBody.AppliesTo(worker))
+                    customBody.BuildInspectorBodyUI(ui, worker, allowDuplicate, allowDestroy, memberFilter);
             }
         }
 
-        [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction> BuildInspectorUITranspiler(IEnumerable<CodeInstruction> instructions)
+        private static void BuildCustomInspectorHeaderUI(IEnumerable<ICustomInspectorHeader> applicableCustomHeaders,
+            InspectorHeaderPosition headerPosition, UIBuilder ui,
+            Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var customInspectorBuildMethod = AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI));
-            var workerInspectorBuildMethod = AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI));
-
-            var instructionList = new List<CodeInstruction>(instructions);
-            var injectedCustomInspectorBuildMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(BuildCustomInspectorUI));
-
-            var customInspectorIndex = instructionList.FindLastIndex(instruction => instruction.Calls(customInspectorBuildMethod));
-
-            Label? inspectorBuiltLabel = null;
-            instructionList.FindIndex(customInspectorIndex, instruction => instruction.Branches(out inspectorBuiltLabel));
-
-            var inspectorBuiltTargetIndex = instructionList.FindIndex(customInspectorIndex, instruction => instruction.labels.Contains(inspectorBuiltLabel!.Value));
-
-            var workerInspectorIndex = instructionList.FindIndex(customInspectorIndex, instruction => instruction.Calls(workerInspectorBuildMethod));
-
-            instructionList.InsertRange(inspectorBuiltTargetIndex, new[]
+            foreach (var customHeader in applicableCustomHeaders)
             {
-                instructionList[workerInspectorIndex - 3].Clone(),
-                instructionList[workerInspectorIndex - 2].Clone(),
-                instructionList[workerInspectorIndex - 1].Clone(),
-                new CodeInstruction(OpCodes.Call, injectedCustomInspectorBuildMethod),
-            });
+                customHeader.BuildInspectorHeaderUI(headerPosition, ui,
+                    worker, allowDuplicate, allowDestroy, memberFilter);
+            }
+        }
 
-            instructionList[inspectorBuiltTargetIndex].MoveLabelsFrom(instructionList[inspectorBuiltTargetIndex + 4]);
+        [HarmonyPrefix]
+        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker, bool allowRemove, bool allowDuplicate, Predicate<ISyncMember> memberFilter)
+        {
+            memberFilter ??= Yes;
+            var applicableCustomHeaders = CustomHeaders.Where(customHeader => customHeader.AppliesTo(worker)).ToArray();
 
-            return instructionList;
+            var ui = new UIBuilder(__instance.Slot);
+            RadiantUI_Constants.SetupEditorStyle(ui);
+            ui.VerticalLayout(6f);
+
+            if (worker is not Slot)
+            {
+                ui.Style.MinHeight = 32f;
+                ui.HorizontalLayout(4f);
+                ui.Style.MinHeight = 24f;
+                ui.Style.FlexibleWidth = 1000f;
+
+                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.Start,
+                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+
+                LocaleString text = $"<b>{worker.GetType().GetNiceName()}</b>";
+                colorX? tint = RadiantUI_Constants.BUTTON_COLOR;
+
+                var button = ui.ButtonRef(in text, in tint, __instance.OnWorkerTypePressed, worker);
+                button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
+
+                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.AfterName,
+                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+
+                if (allowDuplicate || allowRemove)
+                {
+                    ui.Style.FlexibleWidth = 0f;
+                    ui.Style.MinWidth = 40f;
+
+                    if (allowDuplicate)
+                    {
+                        var duplicateIcon = OfficialAssets.Graphics.Icons.Inspector.Duplicate;
+                        tint = RadiantUI_Constants.Sub.GREEN;
+
+                        ButtonRefRelay<Worker> duplicateRelay = ui.Button(duplicateIcon, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
+                        duplicateRelay.Argument.Target = worker;
+                        duplicateRelay.ButtonPressed.Target = __instance.OnDuplicateComponentPressed;
+                    }
+
+                    if (allowRemove)
+                    {
+                        var destroyIcon = OfficialAssets.Graphics.Icons.Inspector.Destroy;
+                        tint = RadiantUI_Constants.Sub.RED;
+
+                        ButtonRefRelay<Worker> destroyRelay = ui.Button(destroyIcon, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
+                        destroyRelay.Argument.Target = worker;
+                        destroyRelay.ButtonPressed.Target = __instance.OnRemoveComponentPressed;
+                    }
+                }
+
+                button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
+                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.End,
+                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+
+                ui.NestOut();
+            }
+
+            if (worker is ICustomInspector customInspector)
+            {
+                ui.Style.MinHeight = 24f;
+                customInspector.BuildInspectorUI(ui);
+            }
+            else
+            {
+                WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
+            }
+
+            BuildCustomInspectorBodyUI(ui, worker, allowDuplicate, allowRemove, memberFilter);
+
+            ui.Style.MinHeight = 8f;
+            ui.Panel();
+            ui.NestOut();
+
+            return false;
         }
 
         private static bool Yes(ISyncMember _) => true;
-
-        private sealed class CustomInspectorSegmentComparerImpl : IComparer<ICustomInspectorSegment>
-        {
-            public int Compare(ICustomInspectorSegment x, ICustomInspectorSegment y)
-            {
-                var priorityComparison = x.Priority.CompareTo(y.Priority);
-
-                if (priorityComparison != 0)
-                    return priorityComparison;
-
-                return Comparer.DefaultInvariant.Compare(x, y);
-            }
-        }
     }
 }
