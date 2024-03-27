@@ -83,7 +83,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="customHeader">The custom header to add.</param>
         /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
         public static bool AddSegment(ICustomInspectorHeader customHeader)
-            => _customInspectorSegments.Add(customHeader);
+            => _customInspectorSegments.Add(customHeader ?? throw new ArgumentNullException(nameof(customHeader)));
 
         /// <summary>
         /// Adds the given <see cref="ICustomInspectorBody"/>
@@ -93,7 +93,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="customBody">The custom body to add.</param>
         /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
         public static bool AddSegment(ICustomInspectorBody customBody)
-            => _customInspectorSegments.Add(customBody);
+            => _customInspectorSegments.Add(customBody ?? throw new ArgumentNullException(nameof(customBody)));
 
         /// <summary>
         /// Determines whether the set of <see cref="ICustomInspectorBody"/>s
@@ -101,8 +101,8 @@ namespace MonkeyLoader.Resonite.UI
         /// </summary>
         /// <param name="segment">The segment to locate.</param>
         /// <returns><c>true</c> if the segment is present; otherwise, <c>false</c>.</returns>
-        public static bool HasSegment(ICustomInspectorSegment segment)
-            => _customInspectorSegments.Contains(segment);
+        public static bool HasSegment(ICustomInspectorSegment? segment)
+            => segment is not null && _customInspectorSegments.Contains(segment);
 
         /// <summary>
         /// Removes the given <see cref="ICustomInspectorBody"/>
@@ -110,8 +110,8 @@ namespace MonkeyLoader.Resonite.UI
         /// </summary>
         /// <param name="segment">The segment to remove.</param>
         /// <returns><c>true</c> if the segment was removed; <c>false</c> if it could not be found.</returns>
-        public static bool RemoveSegment(ICustomInspectorSegment segment)
-            => _customInspectorSegments.Remove(segment);
+        public static bool RemoveSegment(ICustomInspectorSegment? segment)
+            => segment is not null && _customInspectorSegments.Remove(segment);
 
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
