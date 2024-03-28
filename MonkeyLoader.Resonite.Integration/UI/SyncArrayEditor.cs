@@ -212,7 +212,7 @@ namespace MonkeyLoader.Resonite.UI
                     list = (ISyncList)multiplexer.GetSyncMember(nameof(ValueMultiplexer<float>.Values));
                     listField = multiplexer.GetSyncMemberFieldInfo(nameof(ValueMultiplexer<float>.Values));
 
-                    _addListValueProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list, isParticleBurst });
+                    _addListValueProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list });
                 }
                 else if (_iWorldElementType.IsAssignableFrom(arrayType))
                 {
