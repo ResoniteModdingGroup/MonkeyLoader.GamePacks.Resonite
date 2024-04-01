@@ -241,7 +241,7 @@ namespace MonkeyLoader.Resonite.UI
             return Traverse.Create(coderType).Property<bool>(nameof(Coder<float>.SupportsLerp)).Value;
         }
 
-        private static bool TryGetGenericParameters(Type baseType, Type concreteType, [NotNullWhen(true)] out TypeSet? genericParameters)
+        private static bool TryGetGenericParameters(Type baseType, Type concreteType, [NotNullWhen(true)] out Sequence<Type>? genericParameters)
         {
             genericParameters = null;
 
