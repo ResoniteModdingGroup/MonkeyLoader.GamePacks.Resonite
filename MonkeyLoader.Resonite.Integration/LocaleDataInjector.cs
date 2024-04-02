@@ -64,7 +64,7 @@ namespace MonkeyLoader.Resonite
     /// </remarks>
     [HarmonyPatchCategory(nameof(LocaleDataInjector))]
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadTargetVariant))]
-    public sealed class LocaleDataInjector : Monkey<LocaleDataInjector>
+    public sealed class LocaleDataInjector : ResoniteMonkey<LocaleDataInjector>
     {
         private static readonly SortedSet<ILocaleDataProvider> _localeDataProviders = new(LocaleDataProviderComparer);
 

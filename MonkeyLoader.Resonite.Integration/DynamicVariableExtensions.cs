@@ -11,17 +11,17 @@ namespace MonkeyLoader.Resonite
 {
     public static class DynamicVariableExtensions
     {
-        public static DynamicReference<T> CreateReferenceVariable<T>(this SyncRef<T> syncRef, string name, bool overrideOnLink = false, bool persistent = true)
-            where T : class, IWorldElement
-        {
-            var variable = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReference<T>>();
-            variable.TargetReference.Target = syncRef;
-            variable.VariableName.Value = name;
-            variable.OverrideOnLink.Value = overrideOnLink;
-            variable.Persistent = persistent;
+        //public static DynamicReference<T> CreateReferenceVariable<T>(this SyncRef<T> syncRef, string name, bool overrideOnLink = false, bool persistent = true)
+        //    where T : class, IWorldElement
+        //{
+        //    var variable = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReference<T>>();
+        //    variable.TargetReference.Target = syncRef;
+        //    variable.VariableName.Value = name;
+        //    variable.OverrideOnLink.Value = overrideOnLink;
+        //    variable.Persistent = persistent;
 
-            return variable;
-        }
+        //    return variable;
+        //}
 
         public static DynamicVariableSpace CreateSpace(this Slot slot, string? spaceName, bool onlyDirectBinding = false)
         {
@@ -32,39 +32,39 @@ namespace MonkeyLoader.Resonite
             return space;
         }
 
-        public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
-        {
-            var variable = field.FindNearestParent<Slot>().AttachComponent<DynamicField<T>>();
-            variable.TargetField.Target = field;
-            variable.VariableName.Value = name;
-            variable.OverrideOnLink.Value = overrideOnLink;
-            variable.Persistent = persistent;
+        //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
+        //{
+        //    var variable = field.FindNearestParent<Slot>().AttachComponent<DynamicField<T>>();
+        //    variable.TargetField.Target = field;
+        //    variable.VariableName.Value = name;
+        //    variable.OverrideOnLink.Value = overrideOnLink;
+        //    variable.Persistent = persistent;
 
-            return variable;
-        }
+        //    return variable;
+        //}
 
-        public static DynamicReferenceVariableDriver<T> DriveReferenceFromVariable<T>(this SyncRef<T> syncRef, string name, T? defaultTarget = default, bool persistent = true)
-            where T : class, IWorldElement
-        {
-            var driver = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReferenceVariableDriver<T>>();
-            driver.Target.Target = syncRef;
-            driver.VariableName.Value = name;
-            driver.DefaultTarget.Target = defaultTarget!;
-            driver.Persistent = persistent;
+        //public static DynamicReferenceVariableDriver<T> DriveReferenceFromVariable<T>(this SyncRef<T> syncRef, string name, T? defaultTarget = default, bool persistent = true)
+        //    where T : class, IWorldElement
+        //{
+        //    var driver = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReferenceVariableDriver<T>>();
+        //    driver.Target.Target = syncRef;
+        //    driver.VariableName.Value = name;
+        //    driver.DefaultTarget.Target = defaultTarget!;
+        //    driver.Persistent = persistent;
 
-            return driver;
-        }
+        //    return driver;
+        //}
 
-        public static DynamicValueVariableDriver<T> DriveValueFromVariable<T>(this IField<T> field, string name, T? defaultValue = default, bool persistent = true)
-        {
-            var driver = field.FindNearestParent<Slot>().AttachComponent<DynamicValueVariableDriver<T>>();
-            driver.Target.Target = field;
-            driver.VariableName.Value = name;
-            driver.DefaultValue.Value = defaultValue!;
-            driver.Persistent = persistent;
+        //public static DynamicValueVariableDriver<T> DriveValueFromVariable<T>(this IField<T> field, string name, T? defaultValue = default, bool persistent = true)
+        //{
+        //    var driver = field.FindNearestParent<Slot>().AttachComponent<DynamicValueVariableDriver<T>>();
+        //    driver.Target.Target = field;
+        //    driver.VariableName.Value = name;
+        //    driver.DefaultValue.Value = defaultValue!;
+        //    driver.Persistent = persistent;
 
-            return driver;
-        }
+        //    return driver;
+        //}
 
         public static DynamicVariableSpace FindOrCreateSpace(this Slot slot, string? spaceName, bool onlyDirectBinding = false)
             => slot.FindSpace(spaceName) ?? CreateSpace(slot, spaceName, onlyDirectBinding);
