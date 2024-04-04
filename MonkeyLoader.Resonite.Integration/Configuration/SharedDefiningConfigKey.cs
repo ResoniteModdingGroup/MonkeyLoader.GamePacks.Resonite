@@ -48,8 +48,15 @@ namespace MonkeyLoader.Resonite.Configuration
         /// Ensures that the shared value field and overrides for
         /// this config item exist in the given <see cref="World"/>.
         /// </summary>
-        /// <param name="world"></param>
+        /// <param name="world">The world to set up the override for.</param>
         public void SetupOverride(World world);
+
+        /// <summary>
+        /// Removes the connection between this config item
+        /// and the given <see cref="World"/>'s shared value field.
+        /// </summary>
+        /// <param name="world">The world to remove the connection from.</param>
+        public void ShutdownOverride(World world);
     }
 
     /// <summary>
@@ -165,6 +172,10 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <inheritdoc/>
         public void SetupOverride(World world)
             => world.RunSynchronously(() => GetSharedValue(world));
+
+        /// <inheritdoc/>
+        public void ShutdownOverride(World world)
+            => world.RunSynchronously(() => GetSharedValue(world).Value.OnValueChange -= SharedValueChanged);
 
         private ValueUserOverride<T> GetSharedOverride(World world)
             => GetSharedValue(world).Value.GetUserOverride();

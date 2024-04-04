@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -97,6 +98,7 @@ namespace MonkeyLoader.Resonite.Configuration
         internal static bool Initialize()
         {
             Engine.Current.WorldManager.WorldAdded += world => world.WorldRunning += InitializeSharedConfig;
+            EngineInitHook.Mod.Loader.ModsShutdown += ShutdownSharedConfig;
 
             foreach (var world in Engine.Current.WorldManager.Worlds)
                 InitializeSharedConfig(world);
@@ -115,10 +117,27 @@ namespace MonkeyLoader.Resonite.Configuration
                 sharedKeyWrapper.SetupOverride(world);
         }
 
+        internal static void Unregister(ISharedDefiningConfigKey sharedConfigKey)
+        {
+            _sharedConfigKeys.Remove(sharedConfigKey);
+
+            foreach (var world in Engine.Current.WorldManager.Worlds)
+                sharedConfigKey.ShutdownOverride(world);
+        }
+
         private static void InitializeSharedConfig(World world)
         {
             foreach (var sharedConfigKey in _sharedConfigKeys)
                 sharedConfigKey.SetupOverride(world);
+        }
+
+        private static void ShutdownSharedConfig(MonkeyLoader loader, IEnumerable<Mod> mods)
+        {
+            foreach (var sharedConfigKey in mods.SelectMany(mod => mod.Config.ConfigurationItemDefinitions)
+                .SelectCastable<IDefiningConfigKey, ISharedDefiningConfigKey>())
+            {
+                Unregister(sharedConfigKey);
+            }
         }
     }
 }
