@@ -128,7 +128,7 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
-                await Task.Run(resoniteMonkey.EngineInit);
+                await Task.WhenAll(Task.Delay(50), Task.Run(resoniteMonkey.EngineInit));
                 LoadProgressIndicator.ExitSubphase();
             }
 
@@ -149,7 +149,7 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
-                await Task.Run(resoniteMonkey.EngineReady);
+                await Task.WhenAll(Task.Delay(50), Task.Run(resoniteMonkey.EngineReady));
                 LoadProgressIndicator.ExitSubphase();
             }
 
