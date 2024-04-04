@@ -215,7 +215,8 @@ namespace MonkeyLoader.Resonite
                 if (priorityComparison != 0)
                     return priorityComparison;
 
-                return Comparer.DefaultInvariant.Compare(x, y);
+                // Technically not fully unique, buuuut probably good enough.
+                return string.Compare(x.GetType().FullName, y.GetType().FullName, StringComparison.InvariantCulture);
             }
         }
     }
