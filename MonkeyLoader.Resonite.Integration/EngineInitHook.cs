@@ -2,6 +2,7 @@
 using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
+using MonkeyLoader.Resonite.Configuration;
 using MonkeyLoader.Resonite.Features.FrooxEngine;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace MonkeyLoader.Resonite
         {
             await RunEngineInitHooksAsync();
             await __result;
+            SharedConfig.Initialize();
             await RunEngineReadyHooksAsync();
 
             Mod.Loader.ModsRan += LateRunEngineHooks;

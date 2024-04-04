@@ -32,6 +32,19 @@ namespace MonkeyLoader.Resonite
             return space;
         }
 
+        public static DynamicVariableSpace FindOrCreateSpace(this Slot slot, string? spaceName, bool onlyDirectBinding = false)
+            => slot.FindSpace(spaceName) ?? CreateSpace(slot, spaceName, onlyDirectBinding);
+
+        public static DynamicField<T> GetSyncWithVariable<T>(this IField<T> field, string variable, bool setupReset = false, bool forceCurrentValue = false)
+        {
+            var slot = field.FindNearestParent<Slot>();
+
+            if (slot.GetComponent<DynamicField<T>>(dynField => dynField.TargetField.Target == field && dynField.VariableName == variable) is DynamicField<T> foundField)
+                return foundField;
+
+            return field.SyncWithVariable(variable, setupReset, forceCurrentValue);
+        }
+
         //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
         //{
         //    var variable = field.FindNearestParent<Slot>().AttachComponent<DynamicField<T>>();
@@ -65,10 +78,6 @@ namespace MonkeyLoader.Resonite
 
         //    return driver;
         //}
-
-        public static DynamicVariableSpace FindOrCreateSpace(this Slot slot, string? spaceName, bool onlyDirectBinding = false)
-            => slot.FindSpace(spaceName) ?? CreateSpace(slot, spaceName, onlyDirectBinding);
-
         public static bool IsValidName(this string? variableName)
             => DynamicVariableHelper.IsValidName(variableName);
 

@@ -11,7 +11,7 @@
     <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
     <Title>Resonite Game Pack</Title>
     <Authors>Banane9</Authors>
-    <Version>0.7.0-beta</Version>
+    <Version>0.9.0-beta</Version>
     <Description>
       This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite,
       which uses FrooxEngine. It provides hooks for the beginning of initialization,
