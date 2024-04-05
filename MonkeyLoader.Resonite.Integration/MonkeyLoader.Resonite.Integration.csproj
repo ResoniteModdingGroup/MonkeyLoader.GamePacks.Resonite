@@ -32,7 +32,7 @@
   <Target Name="AddExtraFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutDir)$(AssemblyName).pdb" PackagePath="lib/$(TargetFramework)/" />
-      <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.Resonite.Data\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.Resonite.Data.*" PackagePath="lib/$(TargetFramework)/" />
+      <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.Resonite.Data\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.Resonite.Data.*" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
     </ItemGroup>
   </Target>
 
