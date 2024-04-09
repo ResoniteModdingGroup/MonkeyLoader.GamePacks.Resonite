@@ -21,7 +21,7 @@ namespace MonkeyLoader.Resonite.UI
         public static IComparer<ICustomInspectorSegment> CustomInspectorSegmentComparer { get; } = new CustomInspectorSegmentComparerImpl();
 
         public static void BuildOneWayReferenceSegmentUI<TReference>(UIBuilder ui, string name, TReference reference)
-                    where TReference : class, IWorldElement
+            where TReference : class, IWorldElement
         {
             var refSlot = ui.Current.AddSlot($"{name}-Reference");
             refSlot.DestroyWhenLocalUserLeaves();

@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 
 namespace MonkeyLoader.Resonite.UI
 {
@@ -24,7 +23,7 @@ namespace MonkeyLoader.Resonite.UI
     {
         private static readonly SortedSet<ICustomInspectorSegment> _customInspectorSegments = new(InspectorHelper.CustomInspectorSegmentComparer);
 
-        private static ICustomInspectorBody _inspectorSegment;
+        private static ICustomInspectorHeader _inspectorSegment;
 
         // one way ref
         //public static CustomInspectorSegment AddOneWayReferenceFieldTo<TWorker, TReference>(Func<TWorker, TReference> selector, string name)
@@ -119,7 +118,33 @@ namespace MonkeyLoader.Resonite.UI
         protected override bool OnLoaded()
         {
             base.OnLoaded();
-            _inspectorSegment = AddOneWayReferenceFieldTo(typeof(DynamicVariableBase<>), worker => (DynamicVariableSpace)Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue(), "LinkedSpace");
+
+            _inspectorSegment = new LambdaCustomInspectorHeader(typeof(DynamicVariableBase<>), (headerPosition, ui, worker, _, _, _) =>
+            {
+                if (headerPosition != InspectorHeaderPosition.Start
+                || Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)
+                    return;
+
+                ui.PushStyle();
+                ui.Style.FlexibleWidth = -1;
+                ui.Style.MinWidth = 40;
+
+                var button = ui.Button("⤴");
+
+                var refField = button.Slot.AttachComponent<ReferenceField<DynamicVariableSpace>>();
+                refField.Reference.Target = space;
+
+                var refEditor = button.Slot.AttachComponent<RefEditor>();
+                refEditor._targetRef.Target = refField.Reference;
+
+                button.Pressed.Target = refEditor.OpenInspectorButton;
+                ui.Button("↑").Pressed.Target = refEditor.OpenWorkerInspectorButton;
+
+                ui.PopStyle();
+            });
+
+            AddSegment(_inspectorSegment);
+
             return true;
         }
 

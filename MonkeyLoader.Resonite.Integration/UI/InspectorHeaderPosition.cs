@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MonkeyLoader.Resonite.UI
+﻿namespace MonkeyLoader.Resonite.UI
 {
     /// <summary>
     /// Describes where added header elements will appear.
