@@ -14,7 +14,7 @@ namespace MonkeyLoader.Resonite.UI
     /// which add elements to both the header and the body of the <see cref="WorkerInspector"/> being build.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class CustomInspector : CustomInspectorSegment, ICustomInspectorHeader, ICustomInspectorBody
+    public abstract class CustomInspector : CustomInspectorSegment, ICustomInspector
     {
         /// <inheritdoc/>
         protected CustomInspector(Type baseType) : base(baseType) { }
@@ -31,7 +31,7 @@ namespace MonkeyLoader.Resonite.UI
     /// for specific <typeparamref name="TWorker"/>s, which add elements to both the header and the body of the <see cref="WorkerInspector"/> being build.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class CustomInspector<TWorker> : CustomInspectorSegment<TWorker>, ICustomInspectorHeader, ICustomInspectorBody
+    public abstract class CustomInspector<TWorker> : CustomInspectorSegment<TWorker>, ICustomInspector
         where TWorker : Worker
     {
         /// <remarks>
@@ -74,4 +74,12 @@ namespace MonkeyLoader.Resonite.UI
         public abstract void BuildInspectorHeaderUI(InspectorHeaderPosition headerPosition, UIBuilder ui,
             TWorker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter);
     }
+
+    /// <summary>
+    /// Defines the interface for custom inspector segments used by the <see cref="CustomInspectorInjector"/>,
+    /// which add elements to both the header and the body of the <see cref="WorkerInspector"/> being build.
+    /// </summary>
+    /// <inheritdoc/>
+    public interface ICustomInspector : ICustomInspectorHeader, ICustomInspectorBody
+    { }
 }

@@ -19,9 +19,9 @@ namespace MonkeyLoader.Resonite.UI
     /// </remarks>
     [HarmonyPatchCategory(nameof(CustomInspectorInjector))]
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
-    public sealed class CustomInspectorInjector : Monkey<CustomInspectorInjector>
+    public sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>
     {
-        private static readonly SortedSet<ICustomInspectorSegment> _customInspectorSegments = new(InspectorHelper.CustomInspectorSegmentComparer);
+        private static readonly SortedCollection<ICustomInspectorSegment> _customInspectorSegments = new(InspectorHelper.CustomInspectorSegmentComparer);
 
         private static ICustomInspectorHeader _inspectorSegment;
 
@@ -80,8 +80,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
         /// </summary>
         /// <param name="customHeader">The custom header to add.</param>
-        /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
-        public static bool AddSegment(ICustomInspectorHeader customHeader)
+        public static void AddSegment(ICustomInspectorHeader customHeader)
             => _customInspectorSegments.Add(customHeader ?? throw new ArgumentNullException(nameof(customHeader)));
 
         /// <summary>
@@ -90,9 +89,17 @@ namespace MonkeyLoader.Resonite.UI
         /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
         /// </summary>
         /// <param name="customBody">The custom body to add.</param>
-        /// <returns><c>true</c> if the segment was added; <c>false</c> if it was already present.</returns>
-        public static bool AddSegment(ICustomInspectorBody customBody)
+        public static void AddSegment(ICustomInspectorBody customBody)
             => _customInspectorSegments.Add(customBody ?? throw new ArgumentNullException(nameof(customBody)));
+
+        /// <summary>
+        /// Adds the given <see cref="ICustomInspector"/>
+        /// to the set of segments queried during the UI building process.<br/>
+        /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
+        /// </summary>
+        /// <param name="customInspector">The custom inspector to add.</param>
+        public static void AddSegment(ICustomInspector customInspector)
+            => _customInspectorSegments.Add(customInspector ?? throw new ArgumentNullException(nameof(customInspector)));
 
         /// <summary>
         /// Determines whether the set of <see cref="ICustomInspectorBody"/>s
@@ -239,7 +246,7 @@ namespace MonkeyLoader.Resonite.UI
                 ui.NestOut();
             }
 
-            if (worker is ICustomInspector customInspector)
+            if (worker is FrooxEngine.ICustomInspector customInspector)
             {
                 ui.Style.MinHeight = 24f;
                 customInspector.BuildInspectorUI(ui);

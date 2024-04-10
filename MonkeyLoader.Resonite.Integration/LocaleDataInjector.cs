@@ -66,7 +66,7 @@ namespace MonkeyLoader.Resonite
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadTargetVariant))]
     public sealed class LocaleDataInjector : ResoniteMonkey<LocaleDataInjector>
     {
-        private static readonly SortedSet<ILocaleDataProvider> _localeDataProviders = new(LocaleDataProviderComparer);
+        private static readonly SortedCollection<ILocaleDataProvider> _localeDataProviders;
 
         /// <summary>
         /// Gets an <see cref="IComparer{T}"/> that compares <see cref="ILocaleDataProvider"/>s
@@ -81,14 +81,18 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         public static IEnumerable<ILocaleDataProvider> LocaleDataProviders => _localeDataProviders.AsSafeEnumerable();
 
+        static LocaleDataInjector()
+        {
+            _localeDataProviders = new(LocaleDataProviderComparer);
+        }
+
         /// <summary>
         /// Adds the given <see cref="ILocaleDataProvider"/> to the
         /// set of providers queried during the loading of locale data.<br/>
         /// <b>Make sure to <see cref="RemoveProvider">remove</see> it during Shutdown.</b>
         /// </summary>
         /// <param name="localeDataProvider">The provider to add.</param>
-        /// <returns><c>true</c> if the provider was added; <c>false</c> if it was already present.</returns>
-        public bool AddProvider(ILocaleDataProvider localeDataProvider)
+        public void AddProvider(ILocaleDataProvider localeDataProvider)
             => _localeDataProviders.Add(localeDataProvider);
 
         /// <summary>
@@ -209,15 +213,7 @@ namespace MonkeyLoader.Resonite
         private sealed class LocaleDataProviderComparerImpl : IComparer<ILocaleDataProvider>
         {
             public int Compare(ILocaleDataProvider x, ILocaleDataProvider y)
-            {
-                var priorityComparison = x.Priority.CompareTo(y.Priority);
-
-                if (priorityComparison != 0)
-                    return priorityComparison;
-
-                // Technically not fully unique, buuuut probably good enough.
-                return string.Compare(x.GetType().FullName, y.GetType().FullName, StringComparison.InvariantCulture);
-            }
+                => x.Priority.CompareTo(y.Priority);
         }
     }
 }
