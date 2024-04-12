@@ -61,11 +61,11 @@ namespace MonkeyLoader.Resonite.Locale
             localeCodes.AddUnique(Elements.Assets.LocaleResource.GetMainLanguage(variant.LocaleCode));
             localeCodes.AddUnique("en");
 
-            foreach (var localeCode in localeCodes)
+            for (var i = 0; i < localeCodes.Count; ++i)
             {
                 try
                 {
-                    var eventData = new LocaleLoadingEvent(__instance.Data, localeCode);
+                    var eventData = new LocaleLoadingEvent(__instance.Data, localeCodes[i], i == localeCodes.Count - 1);
 
                     _localeLoading?.TryInvokeAllAsync(eventData);
                 }

@@ -9,6 +9,12 @@ namespace MonkeyLoader.Resonite.Locale
     public sealed class LocaleLoadingEvent : IAsyncEvent<LocaleResource>
     {
         /// <summary>
+        /// Gets whether this is the last locale code
+        /// being queried for the current locale loading process.
+        /// </summary>
+        public bool Last { get; }
+
+        /// <summary>
         /// Gets the locale code that data should be loaded for.<br/>
         /// No processing needs to be done on this, fallbacks create their own events.
         /// </summary>
@@ -20,10 +26,11 @@ namespace MonkeyLoader.Resonite.Locale
         /// </summary>
         public LocaleResource Target { get; }
 
-        internal LocaleLoadingEvent(LocaleResource localeData, string localeCode)
+        internal LocaleLoadingEvent(LocaleResource localeData, string localeCode, bool last)
         {
             Target = localeData;
             LocaleCode = localeCode;
+            Last = last;
         }
     }
 }
