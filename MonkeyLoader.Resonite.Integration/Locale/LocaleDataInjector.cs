@@ -7,15 +7,11 @@ using MonkeyLoader.Patching;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Zio;
 
 namespace MonkeyLoader.Resonite.Locale
 {
