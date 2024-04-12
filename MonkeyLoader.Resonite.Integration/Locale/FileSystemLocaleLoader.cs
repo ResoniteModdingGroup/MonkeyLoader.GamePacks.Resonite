@@ -43,7 +43,7 @@ namespace MonkeyLoader.Resonite.Locale
                         if (!eventData.LocaleCode.Equals(localeData.LocaleCode, StringComparison.OrdinalIgnoreCase))
                             Logger.Warn(() => $"Detected locale data with wrong locale code from locale file! Wanted [{eventData.LocaleCode}] - got [{localeData.LocaleCode}] in file: {mod.Id}:/{localeFilePath}");
 
-                        eventData.Target.LoadDataAdditively(localeData);
+                        eventData.LocaleResource.LoadDataAdditively(localeData);
                     }
                     catch (Exception ex)
                     {

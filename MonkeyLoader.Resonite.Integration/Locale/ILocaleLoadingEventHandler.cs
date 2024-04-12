@@ -45,6 +45,6 @@ namespace MonkeyLoader.Resonite.Locale
     /// </code>
     /// </para>
     /// </remarks>
-    public interface ILocaleLoadingEventHandler : IAsyncEventHandler<LocaleLoadingEvent, LocaleResource>
+    public interface ILocaleLoadingEventHandler : IAsyncEventHandler<LocaleLoadingEvent>
     { }
 }

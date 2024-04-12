@@ -6,7 +6,7 @@ namespace MonkeyLoader.Resonite.Locale
     /// <summary>
     /// Represents the event data for a locale loading event.
     /// </summary>
-    public sealed class LocaleLoadingEvent : IAsyncEvent<LocaleResource>
+    public sealed class LocaleLoadingEvent
     {
         /// <summary>
         /// Gets whether this is the last locale code
@@ -21,14 +21,14 @@ namespace MonkeyLoader.Resonite.Locale
         public string LocaleCode { get; }
 
         /// <summary>
-        /// Gets the <see cref="LocaleResource"/> instance that
-        /// new locale authors and keys should be added to.
+        /// Gets the <see cref="Elements.Assets.LocaleResource"/>
+        /// instance that new locale authors and keys should be added to.
         /// </summary>
-        public LocaleResource Target { get; }
+        public LocaleResource LocaleResource { get; }
 
-        internal LocaleLoadingEvent(LocaleResource localeData, string localeCode, bool last)
+        internal LocaleLoadingEvent(LocaleResource localeResource, string localeCode, bool last)
         {
-            Target = localeData;
+            LocaleResource = localeResource;
             LocaleCode = localeCode;
             Last = last;
         }

@@ -21,9 +21,9 @@ namespace MonkeyLoader.Resonite.Locale
 {
     [HarmonyPatchCategory(nameof(LocaleDataInjector))]
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadTargetVariant))]
-    internal sealed class LocaleDataInjector : ResoniteMonkey<LocaleDataInjector>, IAsyncEventSource<LocaleLoadingEvent, Elements.Assets.LocaleResource>
+    internal sealed class LocaleDataInjector : ResoniteMonkey<LocaleDataInjector>, IAsyncEventSource<LocaleLoadingEvent>
     {
-        private static AsyncEventDispatching<LocaleLoadingEvent, Elements.Assets.LocaleResource>? _localeLoading;
+        private static AsyncEventDispatching<LocaleLoadingEvent>? _localeLoading;
 
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
@@ -84,7 +84,7 @@ namespace MonkeyLoader.Resonite.Locale
             => __state = __instance.Data != null;
 
         /// <inheritdoc/>
-        event AsyncEventDispatching<LocaleLoadingEvent, Elements.Assets.LocaleResource>? IAsyncEventSource<LocaleLoadingEvent, Elements.Assets.LocaleResource>.Dispatching
+        event AsyncEventDispatching<LocaleLoadingEvent>? IAsyncEventSource<LocaleLoadingEvent>.Dispatching
         {
             add => _localeLoading += value;
             remove => _localeLoading -= value;
