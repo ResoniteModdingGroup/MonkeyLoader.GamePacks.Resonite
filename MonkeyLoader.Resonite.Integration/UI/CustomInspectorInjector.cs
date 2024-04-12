@@ -11,47 +11,17 @@ using System.Linq;
 
 namespace MonkeyLoader.Resonite.UI
 {
-    /// <summary>
-    /// Handles injecting <see cref="ICustomInspectorSegment"/>s provided by mods into
-    /// the UI building process of <see cref="WorkerInspector"/>s.
-    /// </summary>
     [HarmonyPatchCategory(nameof(CustomInspectorInjector))]
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
-    internal sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>, IEventSource<BuildInspectorHeaderEvent>, IEventSource<BuildInspectorBodyEvent>
+    internal sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>,
+        IEventSource<BuildInspectorHeaderEvent>, IEventSource<BuildInspectorBodyEvent>
     {
-        // one way ref
-        //public static CustomInspectorSegment AddOneWayReferenceFieldTo<TWorker, TReference>(Func<TWorker, TReference> selector, string name)
-        //    where TWorker : Worker
-        //    where TReference : class, IWorldElement
-        //{
-        //    var segment = new CustomInspectorSegment(Is<TWorker>, (worker, ui, _) => BuildOneWayReferenceSegmentUI(selector((TWorker)worker), name, ui));
-
-        //    _customInspectorSegments.Add(segment);
-        //    return segment;
-        //}
-
         private static EventDispatching<BuildInspectorBodyEvent>? _buildInspectorBody;
         private static EventDispatching<BuildInspectorHeaderEvent>? _buildInspectorHeader;
-
-        public static ICustomInspectorBody AddOneWayReferenceFieldTo<TReference>(Type baseType, Func<Worker, TReference> selector, string name)
-                            where TReference : class, IWorldElement
-        {
-            var segment = new LambdaCustomInspectorBody(baseType, (ui, worker, _, _, _) => InspectorHelper.BuildOneWayReferenceSegmentUI(ui, name, selector(worker)));
-
-            _customInspectorSegments.Add(segment);
-            return segment;
-        }
 
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
-        //// two way ref
-        //public static CustomInspectorSegment AddReferenceFieldTo<TWorker, TReference>(Func<Worker, ISyncRef<TReference>> selector, string name)
-        //    where TWorker : Worker
-        //    where TReference : class, IWorldElement
-        //{
-        //    return null;
-        //}
         protected override bool OnLoaded()
         {
             Mod.RegisterEventSource<BuildInspectorHeaderEvent>(this);
@@ -59,33 +29,31 @@ namespace MonkeyLoader.Resonite.UI
 
             return base.OnLoaded();
 
-            _inspectorSegment = new LambdaCustomInspectorHeader(typeof(DynamicVariableBase<>), (headerPosition, ui, worker, _, _, _) =>
-            {
-                if (headerPosition != InspectorHeaderPosition.Start
-                || Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)
-                    return;
+            //_inspectorSegment = new LambdaCustomInspectorHeader(typeof(DynamicVariableBase<>), (headerPosition, ui, worker, _, _, _) =>
+            //{
+            //    if (headerPosition != InspectorHeaderPosition.Start
+            //    || Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)
+            //        return;
 
-                ui.PushStyle();
-                ui.Style.FlexibleWidth = -1;
-                ui.Style.MinWidth = 40;
+            //    ui.PushStyle();
+            //    ui.Style.FlexibleWidth = -1;
+            //    ui.Style.MinWidth = 40;
 
-                var button = ui.Button("⤴");
+            //    var button = ui.Button("⤴");
 
-                var refField = button.Slot.AttachComponent<ReferenceField<DynamicVariableSpace>>();
-                refField.Reference.Target = space;
+            //    var refField = button.Slot.AttachComponent<ReferenceField<DynamicVariableSpace>>();
+            //    refField.Reference.Target = space;
 
-                var refEditor = button.Slot.AttachComponent<RefEditor>();
-                refEditor._targetRef.Target = refField.Reference;
+            //    var refEditor = button.Slot.AttachComponent<RefEditor>();
+            //    refEditor._targetRef.Target = refField.Reference;
 
-                button.Pressed.Target = refEditor.OpenInspectorButton;
-                ui.Button("↑").Pressed.Target = refEditor.OpenWorkerInspectorButton;
+            //    button.Pressed.Target = refEditor.OpenInspectorButton;
+            //    ui.Button("↑").Pressed.Target = refEditor.OpenWorkerInspectorButton;
 
-                ui.PopStyle();
-            });
+            //    ui.PopStyle();
+            //});
 
-            AddSegment(_inspectorSegment);
-
-            return true;
+            //AddSegment(_inspectorSegment);
         }
 
         [HarmonyPrefix]
@@ -144,7 +112,7 @@ namespace MonkeyLoader.Resonite.UI
                 ui.NestOut();
             }
 
-            if (worker is FrooxEngine.ICustomInspector customInspector)
+            if (worker is ICustomInspector customInspector)
             {
                 ui.Style.MinHeight = 24f;
                 customInspector.BuildInspectorUI(ui);

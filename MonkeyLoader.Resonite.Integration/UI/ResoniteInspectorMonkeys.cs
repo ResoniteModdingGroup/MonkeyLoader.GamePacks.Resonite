@@ -40,6 +40,9 @@ namespace MonkeyLoader.Resonite.UI
             BaseType = baseType.GetGenericTypeDefinition();
         }
 
+        /// <remarks>
+        /// Ensures that the worker given in the event derives from the <see cref="BaseType">base type</see>.
+        /// </remarks>
         /// <inheritdoc/>
         protected override bool AppliesTo(TEvent eventData)
         {
