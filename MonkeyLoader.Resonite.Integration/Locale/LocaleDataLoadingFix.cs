@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
+    [HarmonyPatchCategory(nameof(LocaleDataLoadingFix))]
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadDataAdditively), new[] { typeof(LocaleData) })]
     internal sealed class LocaleDataLoadingFix : ResoniteMonkey<LocaleDataLoadingFix>
     {

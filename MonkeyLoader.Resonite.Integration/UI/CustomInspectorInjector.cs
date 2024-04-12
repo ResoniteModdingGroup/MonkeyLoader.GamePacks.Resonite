@@ -28,32 +28,6 @@ namespace MonkeyLoader.Resonite.UI
             Mod.RegisterEventSource<BuildInspectorBodyEvent>(this);
 
             return base.OnLoaded();
-
-            //_inspectorSegment = new LambdaCustomInspectorHeader(typeof(DynamicVariableBase<>), (headerPosition, ui, worker, _, _, _) =>
-            //{
-            //    if (headerPosition != InspectorHeaderPosition.Start
-            //    || Traverse.Create(worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)
-            //        return;
-
-            //    ui.PushStyle();
-            //    ui.Style.FlexibleWidth = -1;
-            //    ui.Style.MinWidth = 40;
-
-            //    var button = ui.Button("⤴");
-
-            //    var refField = button.Slot.AttachComponent<ReferenceField<DynamicVariableSpace>>();
-            //    refField.Reference.Target = space;
-
-            //    var refEditor = button.Slot.AttachComponent<RefEditor>();
-            //    refEditor._targetRef.Target = refField.Reference;
-
-            //    button.Pressed.Target = refEditor.OpenInspectorButton;
-            //    ui.Button("↑").Pressed.Target = refEditor.OpenWorkerInspectorButton;
-
-            //    ui.PopStyle();
-            //});
-
-            //AddSegment(_inspectorSegment);
         }
 
         [HarmonyPrefix]
