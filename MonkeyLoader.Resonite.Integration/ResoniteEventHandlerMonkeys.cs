@@ -24,6 +24,10 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc/>
         public abstract bool SkipCanceled { get; }
 
+        /// <inheritdoc/>
+        protected ResoniteCancelableEventHandlerMonkey()
+        { }
+
         void ICancelableEventHandler<TEvent>.Handle(TEvent eventData)
         {
             if (AppliesTo(eventData))
@@ -74,6 +78,10 @@ namespace MonkeyLoader.Resonite
     {
         /// <inheritdoc/>
         public abstract int Priority { get; }
+
+        /// <inheritdoc/>
+        protected ResoniteEventHandlerMonkey()
+        { }
 
         void IEventHandler<TEvent>.Handle(TEvent eventData)
         {

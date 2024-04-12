@@ -27,8 +27,8 @@ namespace MonkeyLoader.Resonite.UI
         public Type BaseType { get; }
 
         /// <summary>
-        /// Creates a new instance of a custom inspector segment that get added
-        /// to <see cref="WorkerInspector"/>s for a given (open) generic base type.
+        /// Allows creating only a single <typeparamref name="TMonkey"/> instance of this custom inspector segment
+        /// that gets added to <see cref="WorkerInspector"/>s for a given (open) generic base type.
         /// </summary>
         /// <param name="baseType">The (open) generic base type to check for.</param>
         /// <exception cref="ArgumentException">When the <paramref name="baseType"/> isn't generic.</exception>
@@ -82,10 +82,14 @@ namespace MonkeyLoader.Resonite.UI
     /// </summary>
     /// <inheritdoc/>
     public abstract class ResoniteInspectorMonkey<TMonkey, TEvent, TWorker> : ResoniteEventHandlerMonkey<TMonkey, TEvent>
-        where TMonkey : ResoniteInspectorMonkey<TMonkey, TEvent>, new()
+        where TMonkey : ResoniteInspectorMonkey<TMonkey, TEvent, TWorker>, new()
         where TEvent : BuildInspectorEvent
         where TWorker : Worker
     {
+        /// <inheritdoc/>
+        protected ResoniteInspectorMonkey()
+        { }
+
         /// <remarks>
         /// Ensures that the worker given in the event is a <typeparamref name="TWorker"/>.
         /// </remarks>
