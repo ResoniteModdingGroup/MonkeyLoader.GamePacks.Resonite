@@ -2,6 +2,7 @@
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
+using MonkeyLoader.Events;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections;
@@ -14,17 +15,10 @@ namespace MonkeyLoader.Resonite.UI
     /// Handles injecting <see cref="ICustomInspectorSegment"/>s provided by mods into
     /// the UI building process of <see cref="WorkerInspector"/>s.
     /// </summary>
-    /// <remarks>
-    /// <b>Make sure to <see cref="RemoveSegment">remove</see> them during Shutdown.</b>
-    /// </remarks>
     [HarmonyPatchCategory(nameof(CustomInspectorInjector))]
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
-    public sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>
+    internal sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>, IEventSource<BuildInspectorHeaderEvent>, IEventSource<BuildInspectorBodyEvent>
     {
-        private static readonly SortedCollection<ICustomInspectorSegment> _customInspectorSegments = new(InspectorHelper.CustomInspectorSegmentComparer);
-
-        private static ICustomInspectorHeader _inspectorSegment;
-
         // one way ref
         //public static CustomInspectorSegment AddOneWayReferenceFieldTo<TWorker, TReference>(Func<TWorker, TReference> selector, string name)
         //    where TWorker : Worker
@@ -36,26 +30,8 @@ namespace MonkeyLoader.Resonite.UI
         //    return segment;
         //}
 
-        /// <summary>
-        /// Gets all custom inspector segments, which add segments to the body
-        /// and currently get queried during the UI building process,
-        /// ordered by their <see cref="ICustomInspectorSegment.Priority"/>.
-        /// </summary>
-        public static IEnumerable<ICustomInspectorBody> CustomBodies => _customInspectorSegments.SelectCastable<ICustomInspectorSegment, ICustomInspectorBody>();
-
-        /// <summary>
-        /// Gets all custom inspector segments, which add segments to the header
-        /// and currently get queried during the UI building process,
-        /// ordered by their <see cref="ICustomInspectorSegment.Priority"/>.
-        /// </summary>
-        public static IEnumerable<ICustomInspectorHeader> CustomHeaders => _customInspectorSegments.SelectCastable<ICustomInspectorSegment, ICustomInspectorHeader>();
-
-        /// <summary>
-        /// Gets all custom inspector segments, which currently
-        /// get queried during the UI building process, ordered by their
-        /// <see cref="ICustomInspectorSegment.Priority"/>.
-        /// </summary>
-        public static IEnumerable<ICustomInspectorSegment> CustomSegments => _customInspectorSegments.AsSafeEnumerable();
+        private static EventDispatching<BuildInspectorBodyEvent>? _buildInspectorBody;
+        private static EventDispatching<BuildInspectorHeaderEvent>? _buildInspectorHeader;
 
         public static ICustomInspectorBody AddOneWayReferenceFieldTo<TReference>(Type baseType, Func<Worker, TReference> selector, string name)
                             where TReference : class, IWorldElement
@@ -66,6 +42,9 @@ namespace MonkeyLoader.Resonite.UI
             return segment;
         }
 
+        /// <inheritdoc/>
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
         //// two way ref
         //public static CustomInspectorSegment AddReferenceFieldTo<TWorker, TReference>(Func<Worker, ISyncRef<TReference>> selector, string name)
         //    where TWorker : Worker
@@ -73,58 +52,12 @@ namespace MonkeyLoader.Resonite.UI
         //{
         //    return null;
         //}
-
-        /// <summary>
-        /// Adds the given <see cref="ICustomInspectorHeader"/>
-        /// to the set of segments queried during the UI building process.<br/>
-        /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
-        /// </summary>
-        /// <param name="customHeader">The custom header to add.</param>
-        public static void AddSegment(ICustomInspectorHeader customHeader)
-            => _customInspectorSegments.Add(customHeader ?? throw new ArgumentNullException(nameof(customHeader)));
-
-        /// <summary>
-        /// Adds the given <see cref="ICustomInspectorBody"/>
-        /// to the set of segments queried during the UI building process.<br/>
-        /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
-        /// </summary>
-        /// <param name="customBody">The custom body to add.</param>
-        public static void AddSegment(ICustomInspectorBody customBody)
-            => _customInspectorSegments.Add(customBody ?? throw new ArgumentNullException(nameof(customBody)));
-
-        /// <summary>
-        /// Adds the given <see cref="ICustomInspector"/>
-        /// to the set of segments queried during the UI building process.<br/>
-        /// <b>Make sure to <see cref="RemoveSegment">remove</see> it during Shutdown.</b>
-        /// </summary>
-        /// <param name="customInspector">The custom inspector to add.</param>
-        public static void AddSegment(ICustomInspector customInspector)
-            => _customInspectorSegments.Add(customInspector ?? throw new ArgumentNullException(nameof(customInspector)));
-
-        /// <summary>
-        /// Determines whether the set of <see cref="ICustomInspectorBody"/>s
-        /// queried during the UI building process contains the given one.
-        /// </summary>
-        /// <param name="segment">The segment to locate.</param>
-        /// <returns><c>true</c> if the segment is present; otherwise, <c>false</c>.</returns>
-        public static bool HasSegment(ICustomInspectorSegment? segment)
-            => segment is not null && _customInspectorSegments.Contains(segment);
-
-        /// <summary>
-        /// Removes the given <see cref="ICustomInspectorBody"/>
-        /// from the set of segments queried during the UI building process.
-        /// </summary>
-        /// <param name="segment">The segment to remove.</param>
-        /// <returns><c>true</c> if the segment was removed; <c>false</c> if it could not be found.</returns>
-        public static bool RemoveSegment(ICustomInspectorSegment? segment)
-            => segment is not null && _customInspectorSegments.Remove(segment);
-
-        /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
-
         protected override bool OnLoaded()
         {
-            base.OnLoaded();
+            Mod.RegisterEventSource<BuildInspectorHeaderEvent>(this);
+            Mod.RegisterEventSource<BuildInspectorBodyEvent>(this);
+
+            return base.OnLoaded();
 
             _inspectorSegment = new LambdaCustomInspectorHeader(typeof(DynamicVariableBase<>), (headerPosition, ui, worker, _, _, _) =>
             {
@@ -155,41 +88,9 @@ namespace MonkeyLoader.Resonite.UI
             return true;
         }
 
-        /// <inheritdoc/>
-        protected override bool OnShutdown(bool applicationExiting)
-        {
-            if (!applicationExiting)
-                RemoveSegment(_inspectorSegment);
-
-            return base.OnShutdown(applicationExiting);
-        }
-
-        private static void BuildCustomInspectorBodyUI(UIBuilder ui, Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
-        {
-            foreach (var customBody in CustomBodies)
-            {
-                if (customBody.AppliesTo(worker))
-                    customBody.BuildInspectorBodyUI(ui, worker, allowDuplicate, allowDestroy, memberFilter);
-            }
-        }
-
-        private static void BuildCustomInspectorHeaderUI(IEnumerable<ICustomInspectorHeader> applicableCustomHeaders,
-            InspectorHeaderPosition headerPosition, UIBuilder ui,
-            Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
-        {
-            foreach (var customHeader in applicableCustomHeaders)
-            {
-                customHeader.BuildInspectorHeaderUI(headerPosition, ui,
-                    worker, allowDuplicate, allowDestroy, memberFilter);
-            }
-        }
-
         [HarmonyPrefix]
         private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker, bool allowRemove, bool allowDuplicate, Predicate<ISyncMember> memberFilter)
         {
-            memberFilter ??= Yes;
-            var applicableCustomHeaders = CustomHeaders.Where(customHeader => customHeader.AppliesTo(worker)).ToArray();
-
             var ui = new UIBuilder(__instance.Slot);
             RadiantUI_Constants.SetupEditorStyle(ui);
             ui.VerticalLayout(6f);
@@ -201,8 +102,7 @@ namespace MonkeyLoader.Resonite.UI
                 ui.Style.MinHeight = 24f;
                 ui.Style.FlexibleWidth = 1000f;
 
-                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.Start,
-                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+                OnBuildInspectorHeader(InspectorHeaderPosition.Start, ui, worker, allowDuplicate, allowRemove, memberFilter);
 
                 LocaleString text = $"<b>{worker.GetType().GetNiceName()}</b>";
                 colorX? tint = RadiantUI_Constants.BUTTON_COLOR;
@@ -210,8 +110,7 @@ namespace MonkeyLoader.Resonite.UI
                 var button = ui.ButtonRef(in text, in tint, __instance.OnWorkerTypePressed, worker);
                 button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
 
-                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.AfterName,
-                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+                OnBuildInspectorHeader(InspectorHeaderPosition.AfterName, ui, worker, allowDuplicate, allowRemove, memberFilter);
 
                 if (allowDuplicate || allowRemove)
                 {
@@ -240,8 +139,7 @@ namespace MonkeyLoader.Resonite.UI
                 }
 
                 button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
-                BuildCustomInspectorHeaderUI(applicableCustomHeaders, InspectorHeaderPosition.End,
-                    ui, worker, allowDuplicate, allowRemove, memberFilter);
+                OnBuildInspectorHeader(InspectorHeaderPosition.End, ui, worker, allowDuplicate, allowRemove, memberFilter);
 
                 ui.NestOut();
             }
@@ -256,7 +154,7 @@ namespace MonkeyLoader.Resonite.UI
                 WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
             }
 
-            BuildCustomInspectorBodyUI(ui, worker, allowDuplicate, allowRemove, memberFilter);
+            OnBuildInspectorBody(ui, worker, allowDuplicate, allowRemove, memberFilter);
 
             ui.Style.MinHeight = 8f;
             ui.Panel();
@@ -265,6 +163,46 @@ namespace MonkeyLoader.Resonite.UI
             return false;
         }
 
-        private static bool Yes(ISyncMember _) => true;
+        private static void OnBuildInspectorBody(UIBuilder ui, Worker worker,
+            bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+        {
+            try
+            {
+                var eventData = new BuildInspectorBodyEvent(ui, worker, allowDuplicate, allowDestroy, memberFilter);
+
+                _buildInspectorBody?.TryInvokeAll(eventData);
+            }
+            catch (AggregateException ex)
+            {
+                Logger.Warn(() => ex.Format("Some Build Inspector Body Event handlers threw an exception:"));
+            }
+        }
+
+        private static void OnBuildInspectorHeader(InspectorHeaderPosition headerPosition, UIBuilder ui,
+            Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+        {
+            try
+            {
+                var eventData = new BuildInspectorHeaderEvent(headerPosition, ui, worker, allowDuplicate, allowDestroy, memberFilter);
+
+                _buildInspectorHeader?.TryInvokeAll(eventData);
+            }
+            catch (AggregateException ex)
+            {
+                Logger.Warn(() => ex.Format("Some Build Inspector Header Event handlers threw an exception:"));
+            }
+        }
+
+        event EventDispatching<BuildInspectorHeaderEvent>? IEventSource<BuildInspectorHeaderEvent>.Dispatching
+        {
+            add => _buildInspectorHeader += value;
+            remove => _buildInspectorHeader -= value;
+        }
+
+        event EventDispatching<BuildInspectorBodyEvent>? IEventSource<BuildInspectorBodyEvent>.Dispatching
+        {
+            add => _buildInspectorBody += value;
+            remove => _buildInspectorBody -= value;
+        }
     }
 }

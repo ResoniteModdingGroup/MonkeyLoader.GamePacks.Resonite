@@ -13,17 +13,21 @@ using Zio;
 
 namespace MonkeyLoader.Resonite.Locale
 {
-    internal sealed class FileSystemLocaleLoader : ResoniteMonkey<FileSystemLocaleLoader>, ILocaleLoadingEventHandler
+    internal sealed class FileSystemLocaleLoader : ResoniteAsyncEventHandlerMonkey<FileSystemLocaleLoader, LocaleLoadingEvent>
     {
         /// <inheritdoc/>
-        public int Priority => HarmonyLib.Priority.First;
+        public override int Priority => HarmonyLib.Priority.First;
+
+        protected override bool AppliesTo(LocaleLoadingEvent eventData) => true;
+
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         /// <summary>
         /// Handles the given locale loading event by checking every loaded mod's
         /// <see cref="Mod.FileSystem">FileSystem</see> for matching <c>Locale/[localeCode].json</c> files.
         /// </summary>
         /// <inheritdoc/>
-        public async Task Handle(LocaleLoadingEvent eventData)
+        protected override async Task Handle(LocaleLoadingEvent eventData)
         {
             var searchPath = (new UPath("Locale") / $"{eventData.LocaleCode}.json").ToRelative().ToString();
 
@@ -52,9 +56,5 @@ namespace MonkeyLoader.Resonite.Locale
                 }
             }
         }
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
-
-        protected override bool OnEngineReady() => Mod.RegisterEventHandler(this);
     }
 }
