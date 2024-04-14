@@ -1,0 +1,9 @@
+{
+  "localeCode": "en",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "Settings.Category.MonkeyLoader": "Monkey Loader",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyToggles": "Open available Monkeys",
+    "MonkeyLoader.GamePacks.Resonite.OpenConfigSections": "Open available Settings"
+  }
+}
