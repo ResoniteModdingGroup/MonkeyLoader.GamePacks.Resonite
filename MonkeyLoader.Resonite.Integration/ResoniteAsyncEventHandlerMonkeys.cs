@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite
     /// <inheritdoc/>
     public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent> : ResoniteMonkey<TMonkey>, IAsyncEventHandler<TEvent>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>, new()
-        where TEvent : class
+        where TEvent : class, IAsyncEvent
     {
         /// <inheritdoc/>
         public abstract int Priority { get; }
@@ -65,7 +65,7 @@ namespace MonkeyLoader.Resonite
     /// <inheritdoc/>
     public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent> : ResoniteMonkey<TMonkey>, ICancelableAsyncEventHandler<TEvent>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>, new()
-        where TEvent : class, ICancelableEvent
+        where TEvent : class, ICancelableEvent, IAsyncEvent
     {
         /// <inheritdoc/>
         public abstract int Priority { get; }

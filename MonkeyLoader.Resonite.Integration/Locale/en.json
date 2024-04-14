@@ -4,6 +4,8 @@
   "messages": {
     "Settings.Category.MonkeyLoader": "Monkey Loader",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyToggles": "Open available Monkeys",
-    "MonkeyLoader.GamePacks.Resonite.OpenConfigSections": "Open available Settings"
+    "Settings.MonkeyToggles.Breadcrumb": "Monkeys",
+    "MonkeyLoader.GamePacks.Resonite.OpenConfigSections": "Open available Settings",
+    "Settings.ConfigSections.Breadcrumb": "Settings"
   }
 }

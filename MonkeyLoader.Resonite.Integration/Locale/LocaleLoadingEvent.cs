@@ -45,7 +45,7 @@ namespace MonkeyLoader.Resonite.Locale
     /// </code>
     /// </para>
     /// </remarks>
-    public sealed class LocaleLoadingEvent
+    public sealed class LocaleLoadingEvent : IAsyncEvent
     {
         /// <summary>
         /// Gets whether this is the last locale code

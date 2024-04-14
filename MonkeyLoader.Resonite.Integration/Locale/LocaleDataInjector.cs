@@ -63,7 +63,7 @@ namespace MonkeyLoader.Resonite.Locale
                 {
                     var eventData = new LocaleLoadingEvent(__instance.Data, localeCodes[i], i == localeCodes.Count - 1);
 
-                    _localeLoading?.TryInvokeAllAsync(eventData);
+                    await (_localeLoading?.TryInvokeAllAsync(eventData) ?? Task.CompletedTask);
                 }
                 catch (AggregateException ex)
                 {

@@ -16,7 +16,7 @@ namespace MonkeyLoader.Resonite.Configuration
 {
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
-    internal sealed class SettingsDataFeedInjector : ResoniteMonkey<SettingsDataFeedInjector>
+    internal sealed class SettingsDataFeedInjector : ResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, FallbackLocaleGenerationEvent>
     {
         public const string ConfigSections = "ConfigSections";
 
@@ -24,28 +24,44 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static MethodInfo _generateValueField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateValueField));
 
+        public override int Priority => HarmonyLib.Priority.Normal;
+
+        protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
+
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
+        protected override Task Handle(FallbackLocaleGenerationEvent eventData)
+        {
+            foreach (var mod in Mod.Loader.Mods)
+            {
+                var modNameKey = $"{mod.Id}.Name";
+
+                eventData.AddMessage(modNameKey, mod.Title);
+                eventData.AddMessage($"Settings.{mod.Id}.Breadcrumb", eventData.GetMessage(modNameKey));
+
+                foreach (var configSection in mod.Config.Sections)
+                {
+                    eventData.AddMessage($"{configSection.FullId}.Name", configSection.Name);
+
+                    foreach (var configKey in configSection.Keys)
+                    {
+                        eventData.AddMessage($"{configKey.FullId}.Name", configKey.Id);
+                        eventData.AddMessage($"{configKey.FullId}.Description", configKey.Description ?? "No Description");
+                    }
+                }
+            }
+
+            return Task.CompletedTask;
+        }
 
         protected override bool OnEngineReady()
         {
-            AddLocaleGeneratorMappers();
-
             var monkeyLoaderCategory = new SettingCategoryInfo(OfficialAssets.Graphics.Icons.Dash.Tools, 255);
             monkeyLoaderCategory.InitKey("MonkeyLoader");
 
             Settings._categoryInfos.Add(monkeyLoaderCategory.Key, monkeyLoaderCategory);
 
             return base.OnEngineReady();
-        }
-
-        private static void AddLocaleGeneratorMappers()
-        {
-            FallbackLocaleGenerator.AddMapper(mod => $"{mod.Id}.Name", mod => mod.Title);
-            FallbackLocaleGenerator.AddMapper(mod => $"Settings.{mod.Id}.MonkeyToggles.Breadcrumb", mod => $"{mod.Title} Monkeys");
-            FallbackLocaleGenerator.AddMapper(mod => $"Settings.{mod.Id}.ConfigSections.Breadcrumb", mod => $"{mod.Title} Settings");
-
-            //foreach (var mod in Mod.Loader.Mods) {
-            //FallbackLocaleGenerator.AddMapper(mod)
         }
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
@@ -101,7 +117,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     foreach (var configSection in mod.Config.Sections)
                     {
                         var sectionGroup = new DataFeedGroup();
-                        sectionGroup.InitBase(configSection.Id, path, null, $"{mod.Id}.{configSection.Id}.Name".AsLocaleKey());
+                        sectionGroup.InitBase(configSection.Id, path, null, $"{configSection.FullId}.Name".AsLocaleKey());
                         yield return sectionGroup;
 
                         await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
@@ -140,10 +156,23 @@ namespace MonkeyLoader.Resonite.Configuration
         private static DataFeedValueField<T> GenerateValueField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
         {
             var valueField = new DataFeedValueField<T>();
-            valueField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description");
-            valueField.InitSetupValue(field => ((Sync<T>)field).OnValueChange += syncField => configKey.SetValue(syncField.Value));
+            valueField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
+            valueField.InitSetupValue(field => field.SyncWithConfigKey(configKey, "Settings"));
 
             return valueField;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(SettingsDataFeed.PathSegmentName))]
+        private static bool PathSegmentNamePrefix(string pathSegment, int depth, ref LocaleString __result)
+        {
+            __result = depth switch
+            {
+                1 => $"Settings.Category.{pathSegment}".AsLocaleKey(),
+                _ => $"Settings.{pathSegment}.Breadcrumb".AsLocaleKey()
+            };
+
+            return false;
         }
     }
 }

@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.13.3-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.13.4-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.5.1-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
