@@ -1,4 +1,6 @@
 ﻿using Elements.Assets;
+using MonkeyLoader.Configuration;
+using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
@@ -9,19 +11,22 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
-    public sealed class FallbackLocaleGenerator : ResoniteAsyncEventHandlerMonkey<FallbackLocaleGenerator, LocaleLoadingEvent>
+    public sealed class FallbackLocaleGenerator : ResoniteAsyncEventHandlerMonkey<FallbackLocaleGenerator, LocaleLoadingEvent>,
+        IAsyncEventSource<FallbackLocaleGenerationEvent>
     {
         private const string LocaleCode = "en";
-        private static readonly HashSet<Mapper> _mappers = new();
+        private static readonly HashSet<ConfigKeyMapper> _configKeyMappers = new();
+        private static readonly HashSet<ConfigSectionMapper> _configSectionMappers = new();
+        private static readonly HashSet<ModMapper> _modMappers = new();
 
         /// <inheritdoc/>
         public override int Priority => -4096;
 
-        public static bool AddMapper(Func<Mod, string> mapKey, Func<Mod, string> mapMessage)
-            => _mappers.Add(new(mapKey, mapMessage));
+        public static bool AddMapper(MapKey<Mod> mapKey, Func<Mod, string> mapMessage)
+            => _modMappers.Add(new(mapKey, mapMessage));
 
-        public static bool RemoveMapper(Func<Mod, string> mapKey)
-            => _mappers.Remove(new(mapKey, mapKey));
+        public static bool RemoveMapper(MapKey<Mod> mapKey)
+            => _modMappers.Remove(new(mapKey, mapKey));
 
         /// <inheritdoc/>
         protected override bool AppliesTo(LocaleLoadingEvent eventData) => eventData.LocaleCode == LocaleCode;
@@ -36,7 +41,7 @@ namespace MonkeyLoader.Resonite.Locale
 
             foreach (var mod in Mod.Loader.Mods)
             {
-                foreach (var mapper in _mappers)
+                foreach (var mapper in _modMappers)
                 {
                     var key = mapper.MapKey(mod);
 
@@ -48,23 +53,51 @@ namespace MonkeyLoader.Resonite.Locale
             return Task.CompletedTask;
         }
 
-        private sealed class Mapper
+        public delegate string MapKey<T>(T input);
+
+        public delegate string MapMessage<T>(T input, Dictionary<string, LocaleResource.Message> messages);
+
+        private sealed class ConfigKeyMapper : Mapper<IDefiningConfigKey>
         {
-            public Func<Mod, string> MapKey { get; }
+            protected override IDefiningConfigKey TestInput => Mod.Loader.Config.Sections.First().Keys.First();
 
-            public Func<Mod, string> MapMessage { get; }
+            public ConfigKeyMapper(Func<IDefiningConfigKey, string> mapKey, Func<IDefiningConfigKey, string> mapMessage)
+                : base(mapKey, mapMessage) { }
+        }
 
-            public Mapper(Func<Mod, string> mapKey, Func<Mod, string> mapMessage)
+        private sealed class ConfigSectionMapper : Mapper<ConfigSection>
+        {
+            protected override ConfigSection TestInput => Mod.Loader.Locations;
+
+            public ConfigSectionMapper(Func<ConfigSection, string> mapKey, Func<ConfigSection, string> mapMessage)
+                : base(mapKey, mapMessage) { }
+        }
+
+        private abstract class Mapper<T>
+        {
+            public MapKey<T> MapKey { get; }
+            public Func<T, string> MapMessage { get; }
+            protected abstract T TestInput { get; }
+
+            protected Mapper(MapKey<T> mapKey, Func<T, string> mapMessage)
             {
                 MapKey = mapKey;
                 MapMessage = mapMessage;
             }
 
-            public override bool Equals(object obj)
+            public override sealed bool Equals(object obj)
                 => ReferenceEquals(this, obj)
-                || (obj is Mapper otherMapper && MapKey(Mod) == otherMapper.MapKey(Mod));
+                || (obj is Mapper<T> otherMapper && MapKey(TestInput) == otherMapper.MapKey(TestInput));
 
-            public override int GetHashCode() => MapKey(Mod).GetHashCode();
+            public override sealed int GetHashCode() => MapKey(TestInput).GetHashCode();
+        }
+
+        private sealed class ModMapper : Mapper<Mod>
+        {
+            protected override Mod TestInput => Mod;
+
+            public ModMapper(MapKey<Mod> mapKey, Func<Mod, string> mapMessage)
+                : base(mapKey, mapMessage) { }
         }
     }
 }

@@ -30,7 +30,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             AddLocaleGeneratorMappers();
 
-            var monkeyLoaderCategory = new SettingCategoryInfo(OfficialAssets.Graphics.Settings.Misc, 255);
+            var monkeyLoaderCategory = new SettingCategoryInfo(OfficialAssets.Graphics.Icons.Dash.Tools, 255);
             monkeyLoaderCategory.InitKey("MonkeyLoader");
 
             Settings._categoryInfos.Add(monkeyLoaderCategory.Key, monkeyLoaderCategory);
