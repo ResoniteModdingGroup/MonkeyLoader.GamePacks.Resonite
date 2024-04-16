@@ -1,0 +1,60 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "./",
+          "files": [
+            "**/*.csproj"
+          ]
+        }
+      ],
+      "dest": "./Docs/api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "src": "./Docs/",
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "src": "./Docs/",
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "./Docs/_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "MonkeyLoader.GamePacks.Resonite",
+      "_appTitle": "MonkeyLoader Resonite Game Pack",
+      "_enableSearch": true,
+      "pdf": false,
+      "sitemap": {
+        "baseUrl": "https://monkeymoddingtroop.github.io/MonkeyLoader",
+        "priority": 0.1,
+        "changefreq": "daily",
+        "fileOptions": {
+          "**/api/**.yml": {
+            "priority": 0.3
+          }
+        }
+      }
+    },
+    "xref": [
+        "https://monkeymoddingtroop.github.io/MonkeyLoader/xrefmap.yml"
+    ]
+  }
+}
