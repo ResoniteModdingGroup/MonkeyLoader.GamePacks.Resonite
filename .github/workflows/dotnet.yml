@@ -1,9 +1,16 @@
 name: CI
 
-on: [push]
+# Trigger the action on push to master
+on:
+  push:
+    branches:
+      - master
 
-# Sets permissions of the GITHUB_TOKEN to allow reading packages
+# Sets permissions of the GITHUB_TOKEN to allow reading packages and writing to GH pages
 permissions:
+  actions: read
+  pages: write
+  id-token: write
   packages: read
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
@@ -13,29 +20,53 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci:
+  publish-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.x'
-          source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Add MonkeyLoader NuGet source
-        run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
-      - uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget
-      - name: Install dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build
-      - name: Test
-        run: dotnet test
+    # Setup environment
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Dotnet Setup
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.x
+        source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Add MonkeyLoader NuGet source
+      run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
+      
+    # Cache NuGet packages
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+          
+    # Build and test projects
+    - name: Install dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build
+    
+    - name: Test
+      run: dotnet test
+    
+    # Generate and upload docs
+    - run: dotnet tool update -g docfx
+    - run: docfx ./docfx.json
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        # Upload entire repository
+        path: './Docs/_site'
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
