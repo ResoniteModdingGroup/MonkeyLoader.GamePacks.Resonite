@@ -2,6 +2,16 @@
 items:
 - name: Getting Started
   href: getting-started.md
-- name: Introduction
+- name: Introduction to MonkeyLoader
   href: introduction.md
+- name: Configuration
+  href: configuration.md
+- name: Localization
+  href: localization.md
+- name: Event System
+  href: event-system.md
+- name: Pre-Patching
+  href: pre-patching.md
+- name: Main Differences to RML
+  href: rml-differences.md
 memberLayout: SamePage
