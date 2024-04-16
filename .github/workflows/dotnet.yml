@@ -22,15 +22,11 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.x'
+          source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Add MonkeyLoader NuGet source
         run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
-      - name: Add ResoniteModdingGroup NuGet source
-        run: |
-          dotnet nuget add source https://nuget.pkg.github.com/ResoniteModdingGroup/index.json \
-            -n github \
-            -u ${{ secrets.GHB_USER }} \
-            -p ${{ secrets.GHB_TOKEN }} \
-            --store-password-in-clear-text
       - uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
