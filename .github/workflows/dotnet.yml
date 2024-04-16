@@ -2,8 +2,15 @@ name: CI
 
 on: [push]
 
-env:
-  ResonitePath: "${{ github.workspace }}/Resonite"
+# Sets permissions of the GITHUB_TOKEN to allow reading packages
+permissions:
+  packages: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "ci"
+  cancel-in-progress: false
 
 jobs:
   ci:
@@ -11,33 +18,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Get Resonite Infos
-        run: |
-          {
-            echo "APP_INFO<<EOFEOF"
-            curl https://api.steamcmd.net/v1/info/2519830
-            echo ""
-            echo "EOFEOF"
-          } >> "$GITHUB_ENV"
-      - name: Get Resonite from Cache
-        id: cache-resonite
-        uses: actions/cache@v3
-        with:
-          path: "${{ env.ResonitePath }}"
-          key: "${{ fromJson( env.APP_INFO ).data['2519830'].depots.branches.public.buildid }}"
-      - name: Download Steam
-        if: steps.cache-resonite.outputs.cache-hit != 'true'
-        uses: CyberAndrii/setup-steamcmd@b786e0da44db3d817e66fa3910a9560cb28c9323
-      - name: Download Resonite
-        if: steps.cache-resonite.outputs.cache-hit != 'true'
-        run: |
-          steamcmd '+@sSteamCmdForcePlatformType windows' '+force_install_dir "${{ env.ResonitePath }}"' '+login "${{ secrets.STEAM_USER }}" "${{ secrets.STEAM_TOKEN }}"' '+app_license_request 2519830' '+app_update 2519830 validate' '+quit'
-          #The following line makes the cache much much smaller:
-          rm -r '${{ env.ResonitePath }}/RuntimeData/PreCache'
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.x'
+          dotnet-version: '8.x'
+          source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add MonkeyLoader NuGet source
+        run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
       - uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
