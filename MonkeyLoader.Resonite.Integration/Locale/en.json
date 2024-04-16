@@ -1,0 +1,31 @@
+{
+  "localeCode": "en",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "Settings.Category.MonkeyLoader": "Monkey Loader",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Use the buttons to open the different settings for this mod.",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Open available Settings",
+    "Settings.ConfigSections.Breadcrumb": "Settings",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "Open available Monkeys",
+    "Settings.MonkeyToggles.Breadcrumb": "Monkeys",
+
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Name": "Monkeys",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Lists details about all available Monkeys of this Mod and allows toggling them.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Count",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "The number of Monkeys of this Mod.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Enabled",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Toggles whether this Monkey is active.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "Type",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "Shows this Monkey's base Type.",
+
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Name": "Early Monkeys",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Lists details about all available Early Monkeys (pre-patchers) of this Mod and allows toggling them.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Count",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active."
+  }
+}

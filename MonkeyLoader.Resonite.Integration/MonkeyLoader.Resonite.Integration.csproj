@@ -48,6 +48,7 @@
   <ItemGroup>
     <None Include="InstantResoniteLog.cs" />
     <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="Locale\*.json" Pack="true" PackagePath="content/Locale/" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,7 +61,7 @@
     <PackageReference Include="Resonite.Assembly-CSharp" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.3.3.1178" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.4.14.1259-prerelease" />
     <PackageReference Include="Resonite.UnityEngine.CoreModule" Version="1.0.3" />
     <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.3" />
     <PackageReference Include="System.Text.Json" Version="8.0.2" />
