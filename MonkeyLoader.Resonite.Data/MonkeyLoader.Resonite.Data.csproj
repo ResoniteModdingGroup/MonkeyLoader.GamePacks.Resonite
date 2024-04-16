@@ -4,6 +4,7 @@
     <AssemblyTitle>MonkeyLoader.Resonite.Data</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
+    <Version>0.12.0-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>

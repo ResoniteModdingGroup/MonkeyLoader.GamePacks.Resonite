@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Events;
-using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System.Threading.Tasks;
 
