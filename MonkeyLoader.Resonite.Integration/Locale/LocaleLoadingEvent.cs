@@ -5,7 +5,7 @@ using MonkeyLoader.Meta;
 namespace MonkeyLoader.Resonite.Locale
 {
     /// <summary>
-    /// Represents the event data for a locale loading event.
+    /// Represents the event data for the Locale Loading Event.
     /// </summary>
     /// <remarks>
     /// <para>

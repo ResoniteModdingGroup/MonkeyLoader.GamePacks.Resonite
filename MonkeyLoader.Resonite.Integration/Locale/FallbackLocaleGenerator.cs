@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
+    /// <summary>
+    /// Subscribes to the <see cref="LocaleLoadingEvent"/> and generates the <see cref="FallbackLocaleGenerationEvent"/>
+    /// when it's loading the final fallback locale to inject programmatically generated keys.
+    /// </summary>
     public sealed class FallbackLocaleGenerator
         : ResoniteAsyncEventHandlerMonkey<FallbackLocaleGenerator, LocaleLoadingEvent>, IAsyncEventSource<FallbackLocaleGenerationEvent>
     {

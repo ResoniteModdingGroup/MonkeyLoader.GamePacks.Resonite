@@ -59,14 +59,14 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 foreach (var monkey in mod.Monkeys)
                 {
-                    eventData.AddMessage($"{mod.Id}.{monkey.Name}.Name", monkey.Name);
-                    eventData.AddMessage($"{mod.Id}.{monkey.Name}.Description", "No Description");
+                    eventData.AddMessage($"{mod.Id}.{monkey.Id}.Name", monkey.Name);
+                    eventData.AddMessage($"{mod.Id}.{monkey.Id}.Description", "No Description");
                 }
 
                 foreach (var earlyMonkey in mod.EarlyMonkeys)
                 {
-                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Name}.Name", earlyMonkey.Name);
-                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Name}.Description", "No Description");
+                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Id}.Name", earlyMonkey.Name);
+                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Id}.Description", "No Description");
                 }
             }
 
@@ -172,19 +172,29 @@ namespace MonkeyLoader.Resonite.Configuration
                     foreach (var monkey in mod.Monkeys)
                     {
                         var monkeyGroup = new DataFeedGroup();
-                        monkeyGroup.InitBase($"{monkey.Name}", path, monkeysGrouping, $"{mod.Id}.{monkey.Name}.Name".AsLocaleKey(), $"{mod.Id}.{monkey.Name}.Description".AsLocaleKey());
+                        monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, $"{mod.Id}.{monkey.Id}.Name".AsLocaleKey(), $"{mod.Id}.{monkey.Id}.Description".AsLocaleKey());
                         yield return monkeyGroup;
 
-                        var monkeyGrouping = new[] { Monkeys, monkey.Name };
+                        var monkeyGrouping = new[] { Monkeys, monkey.Id };
 
-                        var toggle = new DataFeedToggle();
-                        toggle.InitBase($"{monkey.Name}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
-                        toggle.InitSetupValue(field => field.Value = true);
-                        yield return toggle;
+                        if (monkey.CanBeDisabled)
+                        {
+                            var toggle = new DataFeedToggle();
+                            toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
+                            toggle.InitSetupValue(field => field.Value = true);
+                            yield return toggle;
+                        }
+                        else
+                        {
+                            var enabledIndicator = new DataFeedIndicator<string>();
+                            enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
+                            enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
+                            yield return enabledIndicator;
+                        }
 
                         var typeIndicator = new DataFeedIndicator<string>();
-                        typeIndicator.InitBase($"{monkey.Name}.Type", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Type.Description".AsLocaleKey());
-                        typeIndicator.InitSetupValue(field => field.Value = monkey.GetType().BaseType.Name);
+                        typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Type.Description".AsLocaleKey());
+                        typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.Name);
                         yield return typeIndicator;
                     }
 
@@ -202,15 +212,30 @@ namespace MonkeyLoader.Resonite.Configuration
                     foreach (var earlyMonkey in mod.EarlyMonkeys)
                     {
                         var earlyMonkeyGroup = new DataFeedGroup();
-                        earlyMonkeyGroup.InitBase($"{earlyMonkey.Name}", path, monkeysGrouping, $"{mod.Id}.{earlyMonkey.Name}.Name".AsLocaleKey(), $"{mod.Id}.{earlyMonkey.Name}.Description".AsLocaleKey());
+                        earlyMonkeyGroup.InitBase(earlyMonkey.Id, path, earlyMonkeysGrouping, $"{mod.Id}.{earlyMonkey.Id}.Name".AsLocaleKey(), $"{mod.Id}.{earlyMonkey.Id}.Description".AsLocaleKey());
                         yield return earlyMonkeyGroup;
 
-                        var earlyMonkeyGrouping = new[] { EarlyMonkeys, earlyMonkey.Name };
+                        var earlyMonkeyGrouping = new[] { EarlyMonkeys, earlyMonkey.Id };
 
-                        var toggle = new DataFeedToggle();
-                        toggle.InitBase($"{earlyMonkey.Name}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{EarlyMonkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Enabled.Description".AsLocaleKey());
-                        toggle.InitSetupValue(field => field.Value = true);
-                        yield return toggle;
+                        if (earlyMonkey.CanBeDisabled)
+                        {
+                            var toggle = new DataFeedToggle();
+                            toggle.InitBase($"{earlyMonkey.Id}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{EarlyMonkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Enabled.Description".AsLocaleKey());
+                            toggle.InitSetupValue(field => field.Value = true);
+                            yield return toggle;
+                        }
+                        else
+                        {
+                            var enabledIndicator = new DataFeedIndicator<string>();
+                            enabledIndicator.InitBase($"{earlyMonkey.Id}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
+                            enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
+                            yield return enabledIndicator;
+                        }
+
+                        var typeIndicator = new DataFeedIndicator<string>();
+                        typeIndicator.InitBase($"{earlyMonkey.Id}.Type", path, earlyMonkeyGrouping, $"{Mod.Id}.{Monkeys}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Type.Description".AsLocaleKey());
+                        typeIndicator.InitSetupValue(field => field.Value = earlyMonkey.Type.BaseType.Name);
+                        yield return typeIndicator;
                     }
 
                     break;
