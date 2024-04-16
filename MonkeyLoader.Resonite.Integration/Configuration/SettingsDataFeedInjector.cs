@@ -181,7 +181,7 @@ namespace MonkeyLoader.Resonite.Configuration
                         {
                             var toggle = new DataFeedToggle();
                             toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
-                            toggle.InitSetupValue(field => field.Value = true);
+                            toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(monkey)));
                             yield return toggle;
                         }
                         else
@@ -221,7 +221,7 @@ namespace MonkeyLoader.Resonite.Configuration
                         {
                             var toggle = new DataFeedToggle();
                             toggle.InitBase($"{earlyMonkey.Id}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{EarlyMonkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Enabled.Description".AsLocaleKey());
-                            toggle.InitSetupValue(field => field.Value = true);
+                            toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(earlyMonkey)));
                             yield return toggle;
                         }
                         else
@@ -241,7 +241,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     break;
 
                 case ConfigSections:
-                    foreach (var configSection in mod.Config.Sections)
+                    foreach (var configSection in mod.Config.Sections.Where(section => !section.InternalAccessOnly))
                     {
                         var sectionGroup = new DataFeedGroup();
                         sectionGroup.InitBase(configSection.Id, path, null, $"{configSection.FullId}.Name".AsLocaleKey());
