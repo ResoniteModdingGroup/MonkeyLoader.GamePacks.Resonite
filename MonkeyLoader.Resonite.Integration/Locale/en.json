@@ -2,7 +2,11 @@
   "localeCode": "en",
   "authors": [ "Banane9" ],
   "messages": {
-    "Settings.Category.MonkeyLoader": "Monkey Loader",
+    "Settings.Category.MonkeyLoader": "MonkeyLoader",
+    "Settings.MonkeyLoader.Breadcrumb": "Settings",
+
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "Open MonkeyLoader Settings",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Opens the settings for the mod loader itself.",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Use the buttons to open the different settings for this mod.",
 
@@ -26,6 +30,6 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Count",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active."
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware, that changes will only take effect on restart."
   }
 }

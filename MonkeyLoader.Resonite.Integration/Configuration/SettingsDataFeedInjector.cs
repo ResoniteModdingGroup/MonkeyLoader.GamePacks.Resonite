@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,6 +38,17 @@ namespace MonkeyLoader.Resonite.Configuration
 
         protected override Task Handle(FallbackLocaleGenerationEvent eventData)
         {
+            foreach (var configSection in Mod.Loader.Config.Sections)
+            {
+                eventData.AddMessage($"{configSection.FullId}.Name", configSection.Name);
+
+                foreach (var configKey in configSection.Keys)
+                {
+                    eventData.AddMessage($"{configKey.FullId}.Name", configKey.Id);
+                    eventData.AddMessage($"{configKey.FullId}.Description", configKey.Description ?? "No Description");
+                }
+            }
+
             foreach (var mod in Mod.Loader.Mods)
             {
                 var modNameKey = $"{mod.Id}.Name";
@@ -83,6 +93,19 @@ namespace MonkeyLoader.Resonite.Configuration
             return base.OnEngineReady();
         }
 
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
+        {
+            foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
+            {
+                var sectionGroup = new DataFeedGroup();
+                sectionGroup.InitBase(configSection.Id, path, null, $"{configSection.FullId}.Name".AsLocaleKey());
+                yield return sectionGroup;
+
+                await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
+                    yield return sectionItem;
+            }
+        }
+
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
         {
             foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
@@ -123,8 +146,21 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateModMonkeysAsync(IReadOnlyList<string> path, Mod mod)
+        {
+            await foreach (var feedItem in EnumerateMonkeysAsync(path, mod, Monkeys))
+                yield return feedItem;
+
+            await foreach (var feedItem in EnumerateMonkeysAsync(path, mod, EarlyMonkeys))
+                yield return feedItem;
+        }
+
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModsAsync(IReadOnlyList<string> path)
         {
+            var monkeyLoaderCategory = new DataFeedCategory();
+            monkeyLoaderCategory.InitBase("MonkeyLoader", path, null, $"{Mod.Id}.OpenMonkeyLoader.Name".AsLocaleKey(), $"{Mod.Id}.OpenMonkeyLoader.Description".AsLocaleKey());
+            yield return monkeyLoaderCategory;
+
             foreach (var mod in Mod.Loader.Mods)
             {
                 var modGroup = new DataFeedGroup();
@@ -133,123 +169,51 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 var grouping = new[] { mod.Id };
 
-                var monkeysCategory = new DataFeedCategory();
-                monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, $"{Mod.Id}.Mod.Open{MonkeyToggles}".AsLocaleKey());
-                monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
-                yield return monkeysCategory;
-
                 var configSectionsCategory = new DataFeedCategory();
                 configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, $"{Mod.Id}.Mod.Open{ConfigSections}".AsLocaleKey());
                 configSectionsCategory.SetOverrideSubpath(mod.Id, ConfigSections);
                 yield return configSectionsCategory;
+
+                var monkeysCategory = new DataFeedCategory();
+                monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, $"{Mod.Id}.Mod.Open{MonkeyToggles}".AsLocaleKey());
+                monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
+                yield return monkeysCategory;
             }
         }
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModSettingsAsync(IReadOnlyList<string> path)
         {
-            // path.Count >= 3 because otherwise other methods are called
-            // Format: MonkeyLoader / modId / {page}
+            // path.Count >= 2 because otherwise other methods are called
+            // Format: MonkeyLoader / modId / [page]
             if (Mod.Loader.Mods.FirstOrDefault(mod => mod.Id == path[1]) is not Mod mod)
             {
                 Logger.Error(() => $"Tried to access non-existant mod's settings: {path[1]}");
                 yield break;
             }
 
+            if (path.Count == 2)
+            {
+                await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
+                    yield return feedItem;
+
+                await foreach (var feedItem in EnumerateModMonkeysAsync(path, Mod))
+                    yield return feedItem;
+
+                yield break;
+            }
+
             switch (path[2])
             {
-                case MonkeyToggles:
-                    var monkeysGroup = new DataFeedGroup();
-                    monkeysGroup.InitBase(Monkeys, path, null, $"{Mod.Id}.{Monkeys}.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Description".AsLocaleKey());
-                    yield return monkeysGroup;
-
-                    var monkeysGrouping = new[] { Monkeys };
-
-                    var monkeyCount = new DataFeedIndicator<string>();
-                    monkeyCount.InitBase($"{Monkeys}.Count", path, monkeysGrouping, $"{Mod.Id}.{Monkeys}.Count.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Count.Description".AsLocaleKey());
-                    monkeyCount.InitSetupValue(field => field.Value = mod.Monkeys.Count().ToString());
-                    yield return monkeyCount;
-
-                    foreach (var monkey in mod.Monkeys)
-                    {
-                        var monkeyGroup = new DataFeedGroup();
-                        monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, $"{mod.Id}.{monkey.Id}.Name".AsLocaleKey(), $"{mod.Id}.{monkey.Id}.Description".AsLocaleKey());
-                        yield return monkeyGroup;
-
-                        var monkeyGrouping = new[] { Monkeys, monkey.Id };
-
-                        if (monkey.CanBeDisabled)
-                        {
-                            var toggle = new DataFeedToggle();
-                            toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
-                            toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(monkey)));
-                            yield return toggle;
-                        }
-                        else
-                        {
-                            var enabledIndicator = new DataFeedIndicator<string>();
-                            enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
-                            enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
-                            yield return enabledIndicator;
-                        }
-
-                        var typeIndicator = new DataFeedIndicator<string>();
-                        typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.{Monkeys}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Type.Description".AsLocaleKey());
-                        typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.Name);
-                        yield return typeIndicator;
-                    }
-
-                    var earlyMonkeysGroup = new DataFeedGroup();
-                    earlyMonkeysGroup.InitBase(EarlyMonkeys, path, null, $"{Mod.Id}.{EarlyMonkeys}.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Description".AsLocaleKey());
-                    yield return earlyMonkeysGroup;
-
-                    var earlyMonkeysGrouping = new[] { EarlyMonkeys };
-
-                    var earlyMonkeyCount = new DataFeedIndicator<string>();
-                    earlyMonkeyCount.InitBase($"{EarlyMonkeys}.Count", path, earlyMonkeysGrouping, $"{Mod.Id}.{EarlyMonkeys}.Count.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Count.Description".AsLocaleKey());
-                    earlyMonkeyCount.InitSetupValue(field => field.Value = mod.EarlyMonkeys.Count().ToString());
-                    yield return earlyMonkeyCount;
-
-                    foreach (var earlyMonkey in mod.EarlyMonkeys)
-                    {
-                        var earlyMonkeyGroup = new DataFeedGroup();
-                        earlyMonkeyGroup.InitBase(earlyMonkey.Id, path, earlyMonkeysGrouping, $"{mod.Id}.{earlyMonkey.Id}.Name".AsLocaleKey(), $"{mod.Id}.{earlyMonkey.Id}.Description".AsLocaleKey());
-                        yield return earlyMonkeyGroup;
-
-                        var earlyMonkeyGrouping = new[] { EarlyMonkeys, earlyMonkey.Id };
-
-                        if (earlyMonkey.CanBeDisabled)
-                        {
-                            var toggle = new DataFeedToggle();
-                            toggle.InitBase($"{earlyMonkey.Id}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{EarlyMonkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{EarlyMonkeys}.Enabled.Description".AsLocaleKey());
-                            toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(earlyMonkey)));
-                            yield return toggle;
-                        }
-                        else
-                        {
-                            var enabledIndicator = new DataFeedIndicator<string>();
-                            enabledIndicator.InitBase($"{earlyMonkey.Id}.Enabled", path, earlyMonkeyGrouping, $"{Mod.Id}.{Monkeys}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Enabled.Description".AsLocaleKey());
-                            enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
-                            yield return enabledIndicator;
-                        }
-
-                        var typeIndicator = new DataFeedIndicator<string>();
-                        typeIndicator.InitBase($"{earlyMonkey.Id}.Type", path, earlyMonkeyGrouping, $"{Mod.Id}.{Monkeys}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{Monkeys}.Type.Description".AsLocaleKey());
-                        typeIndicator.InitSetupValue(field => field.Value = earlyMonkey.Type.BaseType.Name);
-                        yield return typeIndicator;
-                    }
+                case ConfigSections:
+                    await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
+                        yield return feedItem;
 
                     break;
 
-                case ConfigSections:
-                    foreach (var configSection in mod.Config.Sections.Where(section => !section.InternalAccessOnly))
-                    {
-                        var sectionGroup = new DataFeedGroup();
-                        sectionGroup.InitBase(configSection.Id, path, null, $"{configSection.FullId}.Name".AsLocaleKey());
-                        yield return sectionGroup;
+                case MonkeyToggles:
+                    await foreach (var feedItem in EnumerateModMonkeysAsync(path, Mod))
+                        yield return feedItem;
 
-                        await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
-                            yield return sectionItem;
-                    }
                     break;
 
                 default:
@@ -260,7 +224,58 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeyLoaderSettingsAsync(IReadOnlyList<string> path)
         {
-            yield break;
+            await foreach (var feedItem in EnumerateConfigAsync(path, Mod.Loader.Config))
+                yield return feedItem;
+        }
+
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(IReadOnlyList<string> path, Mod mod, string monkeyType)
+        {
+            var monkeys = monkeyType switch
+            {
+                Monkeys => mod.Monkeys.ToArray(),
+                EarlyMonkeys => mod.EarlyMonkeys.ToArray(),
+                _ => Array.Empty<IMonkey>()
+            };
+
+            var group = new DataFeedGroup();
+            group.InitBase(monkeyType, path, null, $"{Mod.Id}.{monkeyType}.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Description".AsLocaleKey());
+            yield return group;
+
+            var monkeysGrouping = new[] { monkeyType };
+
+            var monkeyCount = new DataFeedIndicator<string>();
+            monkeyCount.InitBase($"{monkeyType}.Count", path, monkeysGrouping, $"{Mod.Id}.{monkeyType}.Count.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Count.Description".AsLocaleKey());
+            monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
+            yield return monkeyCount;
+
+            foreach (var monkey in monkeys)
+            {
+                var monkeyGroup = new DataFeedGroup();
+                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, $"{monkey.FullId}.Name".AsLocaleKey(), $"{monkey.FullId}.Description".AsLocaleKey());
+                yield return monkeyGroup;
+
+                var monkeyGrouping = new[] { monkeyType, monkey.Id };
+
+                if (monkey.CanBeDisabled)
+                {
+                    var toggle = new DataFeedToggle();
+                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Enabled.Description".AsLocaleKey());
+                    toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(monkey)));
+                    yield return toggle;
+                }
+                else
+                {
+                    var enabledIndicator = new DataFeedIndicator<string>();
+                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Enabled.Description".AsLocaleKey());
+                    enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
+                    yield return enabledIndicator;
+                }
+
+                var typeIndicator = new DataFeedIndicator<string>();
+                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Type.Description".AsLocaleKey());
+                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.Name);
+                yield return typeIndicator;
+            }
         }
 
         [HarmonyPrefix]
@@ -270,12 +285,12 @@ namespace MonkeyLoader.Resonite.Configuration
             if (path.Count == 0 || path[0] != "MonkeyLoader")
                 return true;
 
-            if (path.Count == 1)
-                __result = EnumerateModsAsync(path);
-            else if (path.Count == 2)
-                __result = EnumerateMonkeyLoaderSettingsAsync(path);
-            else if (path.Count >= 3)
-                __result = EnumerateModSettingsAsync(path);
+            __result = path.Count switch
+            {
+                1 => EnumerateModsAsync(path),
+                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(path) : EnumerateModSettingsAsync(path),
+                _ => EnumerateModSettingsAsync(path),
+            };
 
             return false;
         }

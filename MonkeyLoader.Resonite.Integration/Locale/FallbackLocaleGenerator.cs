@@ -1,6 +1,4 @@
-﻿using Elements.Assets;
-using MonkeyLoader.Configuration;
-using MonkeyLoader.Events;
+﻿using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
@@ -41,7 +39,7 @@ namespace MonkeyLoader.Resonite.Locale
             {
                 var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource._formatMessages);
 
-                await (_generateFallbackMessages?.TryInvokeAllAsync(generatorEventData) ?? Task.CompletedTask);
+                await _generateFallbackMessages.TryInvokeAllAsync(generatorEventData);
             }
             catch (AggregateException ex)
             {
