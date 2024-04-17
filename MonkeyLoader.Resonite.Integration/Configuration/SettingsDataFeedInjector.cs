@@ -185,7 +185,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             // path.Count >= 2 because otherwise other methods are called
             // Format: MonkeyLoader / modId / [page]
-            if (Mod.Loader.Mods.FirstOrDefault(mod => mod.Id == path[1]) is not Mod mod)
+            if (!Mod.Loader.TryFindModById(path[1], out var mod))
             {
                 Logger.Error(() => $"Tried to access non-existant mod's settings: {path[1]}");
                 yield break;
@@ -196,7 +196,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
                     yield return feedItem;
 
-                await foreach (var feedItem in EnumerateModMonkeysAsync(path, Mod))
+                await foreach (var feedItem in EnumerateModMonkeysAsync(path, mod))
                     yield return feedItem;
 
                 yield break;
@@ -211,7 +211,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     break;
 
                 case MonkeyToggles:
-                    await foreach (var feedItem in EnumerateModMonkeysAsync(path, Mod))
+                    await foreach (var feedItem in EnumerateModMonkeysAsync(path, mod))
                         yield return feedItem;
 
                     break;
