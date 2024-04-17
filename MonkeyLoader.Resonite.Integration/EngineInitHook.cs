@@ -60,7 +60,7 @@ namespace MonkeyLoader.Resonite
 
             // Have to add 3 phases because the indicator
             // will immediately disappear upon entering the last one
-            LoadProgressIndicator.AddFixedPhases(3);
+            LoadProgressReporter.AddFixedPhases(3);
         }
 
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)
@@ -121,15 +121,15 @@ namespace MonkeyLoader.Resonite
             Logger.Trace(() => "Running EngineInit hooks in this order:");
             Logger.Trace(resoniteMonkeys);
 
-            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineInit Hooks...");
+            LoadProgressReporter.AdvanceFixedPhase("Executing EngineInit Hooks...");
 
             var sw = Stopwatch.StartNew();
 
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
-                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
+                LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
                 await Task.WhenAll(Task.Delay(50), Task.Run(resoniteMonkey.EngineInit));
-                LoadProgressIndicator.ExitSubphase();
+                LoadProgressReporter.ExitSubphase();
             }
 
             Logger.Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
@@ -143,18 +143,18 @@ namespace MonkeyLoader.Resonite
             Logger.Trace(() => "Running EngineReady hooks in this order:");
             Logger.Trace(resoniteMonkeys);
 
-            LoadProgressIndicator.AdvanceFixedPhase("Executing EngineReady Hooks...");
+            LoadProgressReporter.AdvanceFixedPhase("Executing EngineReady Hooks...");
             var sw = Stopwatch.StartNew();
 
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
-                LoadProgressIndicator.SetSubphase(resoniteMonkey.Name);
+                LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
                 await Task.WhenAll(Task.Delay(50), Task.Run(resoniteMonkey.EngineReady));
-                LoadProgressIndicator.ExitSubphase();
+                LoadProgressReporter.ExitSubphase();
             }
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
-            LoadProgressIndicator.AdvanceFixedPhase("Mods Fully Loaded");
+            LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
         }
     }
 }

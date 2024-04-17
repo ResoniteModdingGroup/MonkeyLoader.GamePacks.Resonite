@@ -1,42 +1,38 @@
-﻿using HarmonyLib;
-using MonkeyLoader.Patching;
-using MonkeyLoader.Unity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEngine.SceneManagement;
 
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
     /// Contains methods to update Resonite's loading progress indicator with custom phases.
     /// </summary>
-    [HarmonyPatch(typeof(EngineLoadProgress))]
-    [HarmonyPatchCategory(nameof(LoadProgressIndicator))]
-    public sealed class LoadProgressIndicator : UnityMonkey<LoadProgressIndicator>
+    public static class LoadProgressReporter
     {
-        private static EngineLoadProgress? _loadProgress;
-
-        private static string? _phase;
+        /// <summary>
+        /// Gets or sets the concrete <see cref="ILoadProgressIndicator"/>
+        /// implementation used to report the load progress of mods and their monkeys.
+        /// </summary>
+        public static ILoadProgressIndicator? LoadProgressIndicator { get; set; }
 
         /// <summary>
         /// Gets whether the progress indicator is available,
         /// determining the availability of the methods and properties of this class.
         /// </summary>
-        [MemberNotNullWhen(true, nameof(_loadProgress),
+        [MemberNotNullWhen(true, nameof(LoadProgressIndicator),
             nameof(FixedPhaseIndex), nameof(TotalFixedPhaseCount))]
         public static bool Available
         {
             get
             {
-                if (_loadProgress == null)
+                if (LoadProgressIndicator == null || !LoadProgressIndicator.Available)
                 {
-                    // Clear reference to UnityObject when it compares as null
-                    _loadProgress = null;
+                    // Clear reference to indicator when it compares as null
+                    LoadProgressIndicator = null;
                     return false;
                 }
 
@@ -49,15 +45,15 @@ namespace MonkeyLoader.Resonite
         /// <summary>
         /// Gets the index of the current fixed phase, if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
-        public static int? FixedPhaseIndex => _loadProgress?.FixedPhaseIndex;
+        public static int? FixedPhaseIndex => LoadProgressIndicator?.FixedPhaseIndex;
 
         /// <summary>
         /// Gets the number of fixed phases, if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
-        public static int? TotalFixedPhaseCount => _loadProgress?.TotalFixedPhaseCount;
+        public static int? TotalFixedPhaseCount => LoadProgressIndicator?.TotalFixedPhaseCount;
 
         /// <summary>
-        /// Increments the <see cref="EngineLoadProgress.TotalFixedPhaseCount"/> to make space for an additional phase,
+        /// Increments the <see cref="TotalFixedPhaseCount"/> to make space for an additional phase,
         /// if the progress indicator is <see cref="Available">available</see>..
         /// </summary>
         /// <remarks>
@@ -69,14 +65,11 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            ++_loadProgress.TotalFixedPhaseCount;
-            Logger.Trace(() => "Incremented EngineLoadProgress.TotalFixedPhaseCount by 1.");
-
-            return true;
+            return LoadProgressIndicator.AddFixedPhases(1);
         }
 
         /// <summary>
-        /// Increments the <see cref="EngineLoadProgress.TotalFixedPhaseCount"/> by <paramref name="count"/> to make space for additional phases,
+        /// Increments the <see cref="TotalFixedPhaseCount"/> by <paramref name="count"/> to make space for additional phases,
         /// if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
         /// <remarks>
@@ -88,14 +81,11 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            _loadProgress.TotalFixedPhaseCount += count;
-            Logger.Trace(() => $"Incremented EngineLoadProgress.TotalFixedPhaseCount by {count}.");
-
-            return true;
+            return LoadProgressIndicator.AddFixedPhases(count);
         }
 
         /// <summary>
-        /// Increments the <see cref="EngineLoadProgress.FixedPhaseIndex"/> and sets the fixed phase to advance the progress bar,
+        /// Increments the <see cref="FixedPhaseIndex"/> and sets the fixed phase to advance the progress bar,
         /// if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
         /// <param name="phase">The name of the phase to advance to.</param>
@@ -105,10 +95,7 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            _loadProgress.SetFixedPhase(phase);
-            Logger.Trace(() => $"Advanced EngineLoadProgress phase to: {phase}");
-
-            return true;
+            return LoadProgressIndicator.SetFixedPhase(phase);
         }
 
         /// <summary>
@@ -120,10 +107,7 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            _loadProgress.SetSubphase(null);
-            Logger.Trace(() => "Reset the EngineLoadProgress subphase.");
-
-            return true;
+            return LoadProgressIndicator.SetSubphase(null);
         }
 
         /// <summary>
@@ -136,40 +120,7 @@ namespace MonkeyLoader.Resonite
             if (!Available)
                 return false;
 
-            _loadProgress.SetSubphase(subphase);
-
-            Logger.Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
-
-            return true;
+            return LoadProgressIndicator.SetSubphase(subphase);
         }
-
-        /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
-            => Enumerable.Empty<IFeaturePatch>();
-
-        /// <inheritdoc/>
-        protected override bool OnFirstSceneReady(Scene scene)
-        {
-            _loadProgress = scene.GetRootGameObjects()
-                .Select(g => g.GetComponentInChildren<EngineLoadProgress>())
-                .FirstOrDefault(elp => elp != null);
-
-            Logger.Info(() => $"Hooked EngineLoadProgress indicator: {Available}");
-
-            return base.OnFirstSceneReady(scene);
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(nameof(EngineLoadProgress.SetFixedPhase))]
-        private static void SetFixedPhasedPostfix(EngineLoadProgress __instance, string phase)
-        {
-            _phase = phase;
-            __instance._showSubphase = phase;
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(nameof(EngineLoadProgress.SetSubphase))]
-        private static void SetSubphasePostfix(EngineLoadProgress __instance, string subphase)
-            => __instance._showSubphase = $"{_phase}   {subphase}";
     }
 }

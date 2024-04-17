@@ -147,7 +147,7 @@ namespace MonkeyLoader.Resonite
         /// <summary>
         /// Override this method to be called when the <see cref="Engine"/>'s <see cref="Engine.Initialize">Initialize</see>() method has just been called.<br/>
         /// This method can be used if elements of the initialization need to be modified,
-        /// such as changing <see cref="LoadProgressIndicator.TotalFixedPhaseCount"/>.<br/>
+        /// such as changing <see cref="LoadProgressReporter.TotalFixedPhaseCount"/>.<br/>
         /// Return <c>true</c> if patching was successful.
         /// </summary>
         /// <remarks>

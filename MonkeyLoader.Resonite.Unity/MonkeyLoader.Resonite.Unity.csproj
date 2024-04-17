@@ -1,21 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
+    <AssemblyTitle>MonkeyLoader.Resonite.Unity</AssemblyTitle>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
-    <Title>Resonite Game Pack</Title>
+    <PackageId>MonkeyLoader.GamePacks.Resonite.Unity</PackageId>
+    <Title>Resonite (Unity) Game Pack</Title>
     <Authors>Banane9</Authors>
     <Version>0.13.0-beta</Version>
     <Description>
-      This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite,
-      which uses FrooxEngine. It provides hooks for the beginning of initialization,
-      when initialization is done, and when the game shuts down.
+      This Game Pack for MonkeyLoader provides additional hooks for the
+      Unity version of Resonite (as opposed to the Headless server).
     </Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
@@ -32,7 +31,6 @@
   <Target Name="AddExtraFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutDir)$(AssemblyName).pdb" PackagePath="lib/$(TargetFramework)/" />
-      <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.Resonite.Data\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.Resonite.Data.*" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
     </ItemGroup>
   </Target>
 
@@ -42,29 +40,24 @@
   </Target>
 
   <ItemGroup>
-    <Compile Remove="InstantResoniteLog.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="InstantResoniteLog.cs" />
     <None Include="..\README.md" Pack="true" PackagePath="" />
-    <None Include="Locale\*.json" Pack="true" PackagePath="content/Locale/" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MonkeyLoader" Version="0.14.2-beta" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
-    <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.4.17.1407" />
+    <PackageReference Include="Resonite.Assembly-CSharp" Version="1.0.2" />
+    <PackageReference Include="Resonite.UnityEngine.CoreModule" Version="1.0.3" />
+    <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.3" />
     <PackageReference Include="System.Text.Json" Version="8.0.2" />
-    <PackageReference Include="Zio" Version="0.17.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj" PrivateAssets="All" />
   </ItemGroup>
 </Project>
