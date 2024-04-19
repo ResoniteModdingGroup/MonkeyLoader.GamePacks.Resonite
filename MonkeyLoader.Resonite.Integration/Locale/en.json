@@ -8,7 +8,12 @@
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "Open MonkeyLoader Settings",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Opens the settings for the mod loader itself.",
 
-    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Use the buttons to open the different settings for this mod.",
+    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Shows an overview of the mod.",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenSettings": "Open Mod Settings",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Description",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Version": "Version",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "Authors",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Project",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Open available Settings",
     "Settings.ConfigSections.Breadcrumb": "Settings",

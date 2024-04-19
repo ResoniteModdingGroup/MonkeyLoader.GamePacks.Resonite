@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
@@ -55,6 +56,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 eventData.AddMessage(modNameKey, mod.Title);
                 eventData.AddMessage($"Settings.{mod.Id}.Breadcrumb", eventData.GetMessage(modNameKey));
+
+                eventData.AddMessage($"{mod.Id}.Description", mod.Description);
 
                 foreach (var configSection in mod.Config.Sections)
                 {
@@ -164,20 +167,59 @@ namespace MonkeyLoader.Resonite.Configuration
             foreach (var mod in Mod.Loader.Mods)
             {
                 var modGroup = new DataFeedGroup();
-                modGroup.InitBase(mod.Id, path, null, $"{mod.Id}.Name".AsLocaleKey(), $"{Mod.Id}.Mod.Description");
+                modGroup.InitBase(mod.Id, path, null, $"{mod.Id}.Name".AsLocaleKey(), $"{Mod.Id}.Mod.GroupDescription");
                 yield return modGroup;
 
                 var grouping = new[] { mod.Id };
 
-                var configSectionsCategory = new DataFeedCategory();
-                configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, $"{Mod.Id}.Mod.Open{ConfigSections}".AsLocaleKey());
-                configSectionsCategory.SetOverrideSubpath(mod.Id, ConfigSections);
-                yield return configSectionsCategory;
+                var modCategory = new DataFeedCategory();
+                modCategory.InitBase($"{mod.Id}.Settings", path, grouping, $"{Mod.Id}.Mod.OpenSettings".AsLocaleKey());
+                modCategory.SetOverrideSubpath(mod.Id);
+                yield return modCategory;
 
-                var monkeysCategory = new DataFeedCategory();
-                monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, $"{Mod.Id}.Mod.Open{MonkeyToggles}".AsLocaleKey());
-                monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
-                yield return monkeysCategory;
+                var description = new DataFeedIndicator<string>();
+                description.InitBase($"{mod.Id}.Description", path, grouping, $"{Mod.Id}.Mod.Description".AsLocaleKey());
+                description.InitSetupValue(field => field.AssignLocaleString($"{mod.Id}.Description".AsLocaleKey()));
+                yield return description;
+
+                var version = new DataFeedIndicator<string>();
+                version.InitBase($"{mod.Id}.Version", path, grouping, $"{Mod.Id}.Mod.Version".AsLocaleKey());
+                version.InitSetupValue(field => field.Value = mod.Version.ToString());
+                yield return version;
+
+                var authors = new DataFeedIndicator<string>();
+                authors.InitBase($"{mod.Id}.Authors", path, grouping, $"{Mod.Id}.Mod.Authors".AsLocaleKey());
+                authors.InitSetupValue(field => field.Value = string.Join(", ", mod.Authors));
+                yield return authors;
+
+                var project = new DataFeedIndicator<string>();
+                project.InitBase($"{mod.Id}.Project", path, grouping, $"{Mod.Id}.Mod.Project".AsLocaleKey());
+                project.InitSetupValue(field =>
+                {
+                    if (mod.ProjectUrl is null)
+                    {
+                        field.Value = "<i>None</i>";
+                        return;
+                    }
+
+                    field.Value = $"<u>{mod.ProjectUrl}</u>";
+                    var text = field.FindNearestParent<Text>();
+                    text.Color.Value = RadiantUI_Constants.Hero.CYAN;
+
+                    text.Slot.AttachComponent<Hyperlink>().URL.Value = mod.ProjectUrl;
+                    text.Slot.AttachComponent<Button>();
+                });
+                yield return project;
+
+                //var configSectionsCategory = new DataFeedCategory();
+                //configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, $"{Mod.Id}.Mod.Open{ConfigSections}".AsLocaleKey());
+                //configSectionsCategory.SetOverrideSubpath(mod.Id, ConfigSections);
+                //yield return configSectionsCategory;
+
+                //var monkeysCategory = new DataFeedCategory();
+                //monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, $"{Mod.Id}.Mod.Open{MonkeyToggles}".AsLocaleKey());
+                //monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
+                //yield return monkeysCategory;
             }
         }
 
