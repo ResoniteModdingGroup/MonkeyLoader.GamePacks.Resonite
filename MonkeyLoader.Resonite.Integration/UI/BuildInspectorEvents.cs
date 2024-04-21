@@ -26,7 +26,7 @@ namespace MonkeyLoader.Resonite.UI
     /// <summary>
     /// Represents the base class for the events fired during construction of a <see cref="WorkerInspector"/>
     /// </summary>
-    public abstract class BuildInspectorEvent
+    public abstract class BuildInspectorEvent : BuildUIEvent
     {
         /// <summary>
         /// Gets whether the <see cref="Worker">Worker</see> is allowed to be destroyed.
@@ -45,11 +45,6 @@ namespace MonkeyLoader.Resonite.UI
         public Predicate<ISyncMember>? MemberFilter { get; }
 
         /// <summary>
-        /// Gets the <see cref="UIBuilder"/> used to build the inspector.
-        /// </summary>
-        public UIBuilder UI { get; }
-
-        /// <summary>
         /// Gets the <see cref="FrooxEngine.Worker"/> for which an inspector is being build.
         /// </summary>
         public Worker Worker { get; }
@@ -63,8 +58,8 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="allowDestroy">Whether the <paramref name="worker"/> is allowed to be destroyed.</param>
         /// <param name="memberFilter">A predicate that determines if a <see cref="ISyncMember">member</see> should be shown.</param>
         protected BuildInspectorEvent(UIBuilder ui, Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember>? memberFilter)
+            : base(ui)
         {
-            UI = ui;
             Worker = worker;
             AllowDuplicate = allowDuplicate;
             AllowDestroy = allowDestroy;

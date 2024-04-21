@@ -121,6 +121,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (configKey.ValueType == typeof(bool))
                 {
                     yield return GenerateToggle(path, (IDefiningConfigKey<bool>)configKey);
+
                     continue;
                 }
 
@@ -129,6 +130,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     yield return (DataFeedItem)_generateEnumField
                         .MakeGenericMethod(configKey.ValueType)
                         .Invoke(null, new object[] { path, configKey });
+
                     continue;
                 }
 
@@ -137,6 +139,8 @@ namespace MonkeyLoader.Resonite.Configuration
                     yield return (DataFeedItem)_generateSlider
                         .MakeGenericMethod(configKey.ValueType)
                         .Invoke(null, new object[] { path, configKey });
+
+                    continue;
                 }
 
                 //QuantityAttribute customAttribute2 = identity.field.GetCustomAttribute<QuantityAttribute>();
@@ -314,8 +318,8 @@ namespace MonkeyLoader.Resonite.Configuration
                 }
 
                 var typeIndicator = new DataFeedIndicator<string>();
-                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Type.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Type.Description".AsLocaleKey());
-                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.Name);
+                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.Monkeys.Type.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Type.Description".AsLocaleKey());
+                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
                 yield return typeIndicator;
             }
         }
