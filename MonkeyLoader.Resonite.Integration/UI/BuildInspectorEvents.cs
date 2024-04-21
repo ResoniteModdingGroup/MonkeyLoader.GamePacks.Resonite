@@ -1,6 +1,7 @@
 ﻿using FrooxEngine.UIX;
 using FrooxEngine;
 using System;
+using MonkeyLoader.Resonite.Events;
 
 namespace MonkeyLoader.Resonite.UI
 {

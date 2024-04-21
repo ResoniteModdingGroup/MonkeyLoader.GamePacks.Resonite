@@ -1,6 +1,6 @@
 ﻿using FrooxEngine.UIX;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.Events
 {
     /// <summary>
     /// Abstract base class for all sorts of UI-generation events.
