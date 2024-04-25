@@ -1,4 +1,5 @@
 ﻿using Elements.Core;
+using Elements.Quantity;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
@@ -28,6 +29,7 @@ namespace MonkeyLoader.Resonite.Configuration
         private const string Monkeys = "Monkeys";
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
 
+        private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
         private static readonly MethodInfo _generateSlider = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateSlider));
         private static readonly MethodInfo _generateValueField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateValueField));
 
@@ -134,6 +136,15 @@ namespace MonkeyLoader.Resonite.Configuration
                     continue;
                 }
 
+                if (configKey is IQuantifiedDefiningConfigKey quantifiedKey)
+                {
+                    yield return (DataFeedItem)_generateQuantityField
+                        .MakeGenericMethod(quantifiedKey.ValueType, quantifiedKey.QuantityType)
+                        .Invoke(null, new object[] { path, configKey });
+
+                    continue;
+                }
+
                 if (configKey is IRangedDefiningKey)
                 {
                     yield return (DataFeedItem)_generateSlider
@@ -142,12 +153,6 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     continue;
                 }
-
-                //QuantityAttribute customAttribute2 = identity.field.GetCustomAttribute<QuantityAttribute>();
-                //if (customAttribute2 != null)
-                //{
-                //    return (DataFeedItem)_generateQuantityField.MakeGenericMethod(customAttribute2.QuantityType, type).Invoke(null, new object[6] { identity, setting, customAttribute2, customAttribute, path, grouping });
-                //}
 
                 yield return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.ValueType).Invoke(null, new object[] { path, configKey });
             }
@@ -364,6 +369,17 @@ namespace MonkeyLoader.Resonite.Configuration
             indicator.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
 
             return indicator;
+        }
+
+        private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IQuantifiedDefiningConfigKey<T, TQuantity> configKey)
+            where TQuantity : unmanaged, IQuantity<TQuantity>
+        {
+            var quantityField = new DataFeedQuantityField<TQuantity, T>();
+            InitBase(quantityField, path, configKey);
+            quantityField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
+            quantityField.InitUnitConfiguration(configKey.DefaultConfiguration, configKey.ImperialConfiguration);
+
+            return quantityField;
         }
 
         private static DataFeedSlider<T> GenerateSlider<T>(IReadOnlyList<string> path, IRangedDefiningKey<T> configKey)

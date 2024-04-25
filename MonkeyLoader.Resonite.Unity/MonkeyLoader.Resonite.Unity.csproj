@@ -11,7 +11,7 @@
     <PackageId>MonkeyLoader.GamePacks.Resonite.Unity</PackageId>
     <Title>Resonite (Unity) Game Pack</Title>
     <Authors>Banane9</Authors>
-    <Version>0.13.0-beta</Version>
+    <Version>0.14.0-beta</Version>
     <Description>
       This Game Pack for MonkeyLoader provides additional hooks for the
       Unity version of Resonite (as opposed to the Headless server).
@@ -44,8 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.15.1-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.15.2-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.14.0-beta" GeneratePathProperty="true" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -55,9 +56,11 @@
     <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.3" />
     <PackageReference Include="System.Text.Json" Version="8.0.2" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj" PrivateAssets="All" />
+    <!-- Reference the pre-patcher assembly from the Game Pack because PackageReference is stupid -->
+    <Reference Include="MonkeyLoader.Resonite.Data">
+      <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
