@@ -136,17 +136,17 @@ namespace MonkeyLoader.Resonite.Configuration
                     continue;
                 }
 
-                if (configKey is IQuantifiedDefiningConfigKey quantifiedKey)
-                {
-                    yield return (DataFeedItem)_generateQuantityField
-                        .MakeGenericMethod(quantifiedKey.ValueType, quantifiedKey.QuantityType)
-                        .Invoke(null, new object[] { path, configKey });
-
-                    continue;
-                }
-
                 if (configKey is IRangedDefiningKey)
                 {
+                    if (configKey is IQuantifiedDefiningConfigKey quantifiedKey)
+                    {
+                        yield return (DataFeedItem)_generateQuantityField
+                            .MakeGenericMethod(quantifiedKey.ValueType, quantifiedKey.QuantityType)
+                            .Invoke(null, new object[] { path, configKey });
+
+                        continue;
+                    }
+
                     yield return (DataFeedItem)_generateSlider
                         .MakeGenericMethod(configKey.ValueType)
                         .Invoke(null, new object[] { path, configKey });
@@ -376,8 +376,8 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             InitBase(quantityField, path, configKey);
-            quantityField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
             quantityField.InitUnitConfiguration(configKey.DefaultConfiguration, configKey.ImperialConfiguration);
+            quantityField.InitSetup(quantityField => quantityField.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), configKey.Min, configKey.Max);
 
             return quantityField;
         }

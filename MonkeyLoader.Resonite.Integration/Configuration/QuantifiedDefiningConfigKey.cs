@@ -12,19 +12,19 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
-    /// <summary>
+    /// <summary>su
     /// Defines the typed definition for a quantified config item.
     /// </summary>
     /// <typeparam name="T">The type of the config item's value.</typeparam>
     /// <typeparam name="TQuantity">The type of the config item's value's quantity.</typeparam>
-    public interface IQuantifiedDefiningConfigKey<T, TQuantity> : IDefiningConfigKeyWrapper<T>, IQuantifiedDefiningConfigKey
+    public interface IQuantifiedDefiningConfigKey<T, TQuantity> : IRangedDefiningKey<T>, IQuantifiedDefiningConfigKey
         where TQuantity : unmanaged, IQuantity<TQuantity>
     { }
 
     /// <summary>
     /// Defines the interface for a quantified <see cref="IDefiningConfigKey"/> wrapper.
     /// </summary>
-    public interface IQuantifiedDefiningConfigKey : IDefiningConfigKeyWrapper
+    public interface IQuantifiedDefiningConfigKey : IRangedDefiningKey
     {
         /// <summary>
         /// Gets the default unit configuration for this config item's value.
@@ -56,7 +56,7 @@ namespace MonkeyLoader.Resonite.Configuration
     /// </summary>
     /// <typeparam name="T">The type of the config item's value.</typeparam>
     /// <typeparam name="TQuantity">The type of the config item's value's quantity.</typeparam>
-    public class QuantifiedDefiningConfigKey<T, TQuantity> : DefiningConfigKeyWrapper<T>, IQuantifiedDefiningConfigKey<T, TQuantity>
+    public class QuantifiedDefiningConfigKey<T, TQuantity> : RangedDefiningConfigKey<T>, IQuantifiedDefiningConfigKey<T, TQuantity>
         where TQuantity : unmanaged, IQuantity<TQuantity>
     {
         /// <inheritdoc/>
@@ -73,14 +73,25 @@ namespace MonkeyLoader.Resonite.Configuration
         public Type QuantityType { get; } = typeof(TQuantity);
 
         /// <summary>
-        /// Wraps the given <see cref="IDefiningConfigKey{T}"/> with the given unit configurations.
+        /// Creates a new instance of the <see cref="QuantifiedDefiningConfigKey{T, TQuantity}"/> class with the given unit and parameters.
         /// </summary>
-        /// <param name="definingKey">The defining key to wrap.</param>
+        /// <param name="id">The mod-unique identifier of this config item. Must not be null or whitespace.</param>
         /// <param name="defaultConfiguration">The default unit configuration for this config item's value.</param>
         /// <param name="imperialConfiguration">The imperial unit configuration for this config item's value.</param>
-        public QuantifiedDefiningConfigKey(IDefiningConfigKey<T> definingKey,
-            UnitConfiguration defaultConfiguration, UnitConfiguration? imperialConfiguration = null)
-            : base(definingKey)
+        /// <param name="description">The human-readable description of this config item.</param>
+        /// <param name="computeDefault">The function that computes a default value for this key. Otherwise <c>default(<typeparamref name="T"/>)</c> will be used.</param>
+        /// <param name="min">The lower bound of the value range.</param>
+        /// <param name="max">The upper bound of the value range.</param>
+        /// <param name="comparer">The comparer to use to determine whether values fall into the range of this config item.</param>
+        /// <param name="internalAccessOnly">If <c>true</c>, only the owning mod should have access to this config item.</param>
+        /// <param name="valueValidator">The function that checks if the given value is valid for this config item. Otherwise everything will be accepted.</param>
+        /// <exception cref="ArgumentNullException">When the <paramref name="id"/> is null or whitespace; or when <paramref name="min"/> or <paramref name="max"/> are null.</exception>
+        /// <exception cref="NotSupportedException">When <paramref name="comparer"/> is null while <typeparamref name="T"/> is not <see cref="IComparable{T}"/></exception>
+        public QuantifiedDefiningConfigKey(string id, UnitConfiguration defaultConfiguration,
+            UnitConfiguration? imperialConfiguration = null, string? description = null, Func<T>? computeDefault = null,
+            T? min = default, T? max = default, IComparer<T?>? comparer = null,
+            bool internalAccessOnly = false, Predicate<T?>? valueValidator = null)
+           : base(id, description, computeDefault, min, max, comparer, internalAccessOnly, valueValidator)
         {
             DefaultConfiguration = defaultConfiguration;
             ImperialConfiguration = imperialConfiguration;
