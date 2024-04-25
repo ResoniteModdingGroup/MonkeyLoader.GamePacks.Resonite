@@ -45,41 +45,41 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 foreach (var configKey in configSection.Keys)
                 {
-                    eventData.AddMessage($"{configKey.FullId}.Name", configKey.Id);
-                    eventData.AddMessage($"{configKey.FullId}.Description", configKey.Description ?? "No Description");
+                    eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
+                    eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
                 }
             }
 
             foreach (var mod in Mod.Loader.Mods)
             {
-                var modNameKey = $"{mod.Id}.Name";
+                var modNameKey = mod.GetLocaleKey("Name");
 
                 eventData.AddMessage(modNameKey, mod.Title);
                 eventData.AddMessage($"Settings.{mod.Id}.Breadcrumb", eventData.GetMessage(modNameKey));
 
-                eventData.AddMessage($"{mod.Id}.Description", mod.Description);
+                eventData.AddMessage(mod.GetLocaleKey("Description"), mod.Description);
 
                 foreach (var configSection in mod.Config.Sections)
                 {
-                    eventData.AddMessage($"{configSection.FullId}.Name", configSection.Name);
+                    eventData.AddMessage(configSection.GetLocaleKey("Name"), configSection.Name);
 
                     foreach (var configKey in configSection.Keys)
                     {
-                        eventData.AddMessage($"{configKey.FullId}.Name", configKey.Id);
-                        eventData.AddMessage($"{configKey.FullId}.Description", configKey.Description ?? "No Description");
+                        eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
+                        eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
                     }
                 }
 
                 foreach (var monkey in mod.Monkeys)
                 {
-                    eventData.AddMessage($"{mod.Id}.{monkey.Id}.Name", monkey.Name);
-                    eventData.AddMessage($"{mod.Id}.{monkey.Id}.Description", "No Description");
+                    eventData.AddMessage(monkey.GetLocaleKey("Name"), monkey.Name);
+                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
                 }
 
                 foreach (var earlyMonkey in mod.EarlyMonkeys)
                 {
-                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Id}.Name", earlyMonkey.Name);
-                    eventData.AddMessage($"{mod.Id}.{earlyMonkey.Id}.Description", "No Description");
+                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Name"), earlyMonkey.Name);
+                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Description"), "No Description");
                 }
             }
 
@@ -165,63 +165,64 @@ namespace MonkeyLoader.Resonite.Configuration
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModsAsync(IReadOnlyList<string> path)
         {
             var monkeyLoaderCategory = new DataFeedCategory();
-            monkeyLoaderCategory.InitBase("MonkeyLoader", path, null, $"{Mod.Id}.OpenMonkeyLoader.Name".AsLocaleKey(), $"{Mod.Id}.OpenMonkeyLoader.Description".AsLocaleKey());
+            monkeyLoaderCategory.InitBase("MonkeyLoader", path, null, Mod.GetLocaleString("OpenMonkeyLoader.Name"), Mod.GetLocaleString("OpenMonkeyLoader.Description"));
             yield return monkeyLoaderCategory;
 
             foreach (var mod in Mod.Loader.Mods)
             {
                 var modGroup = new DataFeedGroup();
-                modGroup.InitBase(mod.Id, path, null, $"{mod.Id}.Name".AsLocaleKey(), $"{Mod.Id}.Mod.GroupDescription");
+                modGroup.InitBase(mod.Id, path, null, mod.GetLocaleString("Name"), Mod.GetLocaleString("Mod.GroupDescription"));
                 yield return modGroup;
 
                 var grouping = new[] { mod.Id };
 
                 var modCategory = new DataFeedCategory();
-                modCategory.InitBase($"{mod.Id}.Settings", path, grouping, $"{Mod.Id}.Mod.OpenSettings".AsLocaleKey());
+                modCategory.InitBase($"{mod.Id}.Settings", path, grouping, Mod.GetLocaleString("Mod.OpenSettings"));
                 modCategory.SetOverrideSubpath(mod.Id);
                 yield return modCategory;
 
                 var description = new DataFeedIndicator<string>();
-                description.InitBase($"{mod.Id}.Description", path, grouping, $"{Mod.Id}.Mod.Description".AsLocaleKey());
-                description.InitSetupValue(field => field.AssignLocaleString($"{mod.Id}.Description".AsLocaleKey()));
+                description.InitBase($"{mod.Id}.Description", path, grouping, Mod.GetLocaleString("Mod.Description"));
+                description.InitSetupValue(field => field.AssignLocaleString(mod.GetLocaleString("Description")));
                 yield return description;
 
                 var version = new DataFeedIndicator<string>();
-                version.InitBase($"{mod.Id}.Version", path, grouping, $"{Mod.Id}.Mod.Version".AsLocaleKey());
+                version.InitBase($"{mod.Id}.Version", path, grouping, Mod.GetLocaleString("Mod.Version"));
                 version.InitSetupValue(field => field.Value = mod.Version.ToString());
                 yield return version;
 
                 var authors = new DataFeedIndicator<string>();
-                authors.InitBase($"{mod.Id}.Authors", path, grouping, $"{Mod.Id}.Mod.Authors".AsLocaleKey());
+                authors.InitBase($"{mod.Id}.Authors", path, grouping, Mod.GetLocaleString("Mod.Authors"));
                 authors.InitSetupValue(field => field.Value = string.Join(", ", mod.Authors));
                 yield return authors;
 
                 var project = new DataFeedIndicator<string>();
-                project.InitBase($"{mod.Id}.Project", path, grouping, $"{Mod.Id}.Mod.Project".AsLocaleKey());
+                project.InitBase($"{mod.Id}.Project", path, grouping, Mod.GetLocaleString("Mod.Project"));
                 project.InitSetupValue(field =>
                 {
                     if (mod.ProjectUrl is null)
                     {
-                        field.Value = "<i>None</i>";
+                        field.AssignLocaleString(Mod.GetLocaleString("Mod.Project.None"));
                         return;
                     }
 
                     field.Value = $"<u>{mod.ProjectUrl}</u>";
                     var text = field.FindNearestParent<Text>();
-                    text.Color.Value = RadiantUI_Constants.Hero.CYAN;
 
                     text.Slot.AttachComponent<Hyperlink>().URL.Value = mod.ProjectUrl;
-                    text.Slot.AttachComponent<Button>();
+
+                    var drive = text.Slot.AttachComponent<Button>().ColorDrivers.Add();
+                    drive.ColorDrive.Target = text.Color;
                 });
                 yield return project;
 
                 //var configSectionsCategory = new DataFeedCategory();
-                //configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, $"{Mod.Id}.Mod.Open{ConfigSections}".AsLocaleKey());
+                //configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, Mod.GetLocaleKey($"Mod.Open{ConfigSections}"));
                 //configSectionsCategory.SetOverrideSubpath(mod.Id, ConfigSections);
                 //yield return configSectionsCategory;
 
                 //var monkeysCategory = new DataFeedCategory();
-                //monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, $"{Mod.Id}.Mod.Open{MonkeyToggles}".AsLocaleKey());
+                //monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, Mod.GetLocaleKey($"Mod.Open{MonkeyToggles}"));
                 //monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
                 //yield return monkeysCategory;
             }
@@ -284,20 +285,20 @@ namespace MonkeyLoader.Resonite.Configuration
             };
 
             var group = new DataFeedGroup();
-            group.InitBase(monkeyType, path, null, $"{Mod.Id}.{monkeyType}.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Description".AsLocaleKey());
+            group.InitBase(monkeyType, path, null, Mod.GetLocaleString($"{monkeyType}.Name"), Mod.GetLocaleString($"{monkeyType}.Description"));
             yield return group;
 
             var monkeysGrouping = new[] { monkeyType };
 
             var monkeyCount = new DataFeedIndicator<string>();
-            monkeyCount.InitBase($"{monkeyType}.Count", path, monkeysGrouping, $"{Mod.Id}.{monkeyType}.Count.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Count.Description".AsLocaleKey());
+            monkeyCount.InitBase($"{monkeyType}.Count", path, monkeysGrouping, Mod.GetLocaleString($"{monkeyType}.Count.Name"), Mod.GetLocaleString($"{monkeyType}.Count.Description"));
             monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
             yield return monkeyCount;
 
             foreach (var monkey in monkeys)
             {
                 var monkeyGroup = new DataFeedGroup();
-                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, $"{monkey.FullId}.Name".AsLocaleKey(), $"{monkey.FullId}.Description".AsLocaleKey());
+                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleKey("Name").AsLocaleKey());
                 yield return monkeyGroup;
 
                 var monkeyGrouping = new[] { monkeyType, monkey.Id };
@@ -305,20 +306,25 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (monkey.CanBeDisabled)
                 {
                     var toggle = new DataFeedToggle();
-                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Enabled.Description".AsLocaleKey());
+                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
                     toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(monkey)));
                     yield return toggle;
                 }
                 else
                 {
                     var enabledIndicator = new DataFeedIndicator<string>();
-                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, $"{Mod.Id}.{monkeyType}.Enabled.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Enabled.Description".AsLocaleKey());
+                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
                     enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
                     yield return enabledIndicator;
                 }
 
+                var descriptionIndicator = new DataFeedIndicator<string>();
+                descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeyGrouping, Mod.GetLocaleString("Monkeys.Description.Name"), Mod.GetLocaleString("Monkeys.Description.Description"));
+                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleKey("Description").AsLocaleKey()));
+                yield return descriptionIndicator;
+
                 var typeIndicator = new DataFeedIndicator<string>();
-                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, $"{Mod.Id}.Monkeys.Type.Name".AsLocaleKey(), $"{Mod.Id}.{monkeyType}.Type.Description".AsLocaleKey());
+                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, Mod.GetLocaleString("Monkeys.Type.Name"), Mod.GetLocaleString($"{monkeyType}.Type.Description"));
                 typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
                 yield return typeIndicator;
             }

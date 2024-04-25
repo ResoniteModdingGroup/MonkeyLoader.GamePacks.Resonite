@@ -14,6 +14,7 @@
     "MonkeyLoader.GamePacks.Resonite.Mod.Version": "Version",
     "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "Authors",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Project",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>None</i>",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Open available Settings",
     "Settings.ConfigSections.Breadcrumb": "Settings",
@@ -27,6 +28,8 @@
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "The number of Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Enabled",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Toggles whether this Monkey is active.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "Description",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "The description of this monkey.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "Type",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "Shows this Monkey's base Type.",
 
