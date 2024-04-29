@@ -41,6 +41,7 @@
       "_appName": "MonkeyLoader.GamePacks.Resonite",
       "_appTitle": "MonkeyLoader Resonite Game Pack",
       "_enableSearch": true,
+      "_appFaviconPath": "monkey.png",
       "pdf": false
     },
     "sitemap": {

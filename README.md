@@ -1,5 +1,7 @@
 # MonkeyLoader Resonite Game Pack
 
+<img align="right" width="128" height="128" src="./Docs/monkey.png"/>
+
 This Game Pack for [MonkeyLoader](https://github.com/MonkeyModdingTroop/MonkeyLoader)
 provides basic hooks for modding the game [Resonite](https://resonite.com/) by [Yellow Dog Man Studios](https://yellowdogman.com/).
 It provides additional hooks for the beginning of initialization, when initialization is done,
