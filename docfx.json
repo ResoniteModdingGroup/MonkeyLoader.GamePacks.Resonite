@@ -41,15 +41,15 @@
       "_appName": "MonkeyLoader.GamePacks.Resonite",
       "_appTitle": "MonkeyLoader Resonite Game Pack",
       "_enableSearch": true,
-      "pdf": false,
-      "sitemap": {
-        "baseUrl": "https://monkeymoddingtroop.github.io/MonkeyLoader",
-        "priority": 0.1,
-        "changefreq": "daily",
-        "fileOptions": {
-          "**/api/**.yml": {
-            "priority": 0.3
-          }
+      "pdf": false
+    },
+    "sitemap": {
+      "baseUrl": "https://monkeymoddingtroop.github.io/MonkeyLoader",
+      "priority": 0.1,
+      "changefreq": "daily",
+      "fileOptions": {
+        "**/api/**.yml": {
+          "priority": 0.3
         }
       }
     },
