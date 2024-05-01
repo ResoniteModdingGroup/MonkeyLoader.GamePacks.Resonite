@@ -30,6 +30,13 @@
         "files": [
           "images/**"
         ]
+      },
+      {
+        "src": "./Docs/favicon",
+        "dest": "./",
+        "files": [
+          "**"
+        ]
       }
     ],
     "output": "./Docs/_site",
@@ -41,7 +48,6 @@
       "_appName": "MonkeyLoader.GamePacks.Resonite",
       "_appTitle": "MonkeyLoader Resonite Game Pack",
       "_enableSearch": true,
-      "_appFaviconPath": "monkey.png",
       "pdf": false
     },
     "sitemap": {

@@ -21,6 +21,8 @@
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite.git</RepositoryUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/master/Icon.png</PackageIconUrl>
+    <PackageIconUrl>/Icon.png</PackageIconUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
     <IncludeSymbols>False</IncludeSymbols>
@@ -48,6 +50,7 @@
   <ItemGroup>
     <None Include="InstantResoniteLog.cs" />
     <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\Icon.png" Pack="true" PackagePath="" />
     <None Include="Locale\*.json" Pack="true" PackagePath="content/Locale/" />
   </ItemGroup>
 
@@ -61,6 +64,9 @@
     <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Quantity" Version="1.0.2" />
     <PackageReference Include="Resonite.FrooxEngine" Version="2024.4.26.1426" />
+    <PackageReference Include="Resonite.FrooxEngine.Store" Version="1.0.2" />
+    <PackageReference Include="Resonite.LiteDB" Version="5.0.19" />
+    <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.9" />
     <PackageReference Include="System.Text.Json" Version="8.0.2" />
     <PackageReference Include="Zio" Version="0.17.0" />
   </ItemGroup>
