@@ -20,7 +20,8 @@ namespace MonkeyLoader.Resonite.Converters
         public override bool CanConvert(Type objectType)
         {
             // handle all non-enum Resonite Primitives
-            return !objectType.IsEnum && _primitivesAssembly.Equals(objectType.Assembly) && Coder.IsEnginePrimitive(objectType);
+            return !objectType.IsEnum && _primitivesAssembly.Equals(objectType.Assembly)
+                && Coder.IsEnginePrimitive(objectType) && GetCoderMethods(objectType).SupportsStringCoding;
         }
 
         /// <inheritdoc/>
@@ -57,9 +58,12 @@ namespace MonkeyLoader.Resonite.Converters
             private static readonly Type _coderType = typeof(Coder<>);
             private static readonly string _decodeFromString = nameof(Coder<colorX>.DecodeFromString);
             private static readonly string _encodeToString = nameof(Coder<colorX>.EncodeToString);
+            private static readonly string _supportsStringCodingString = nameof(Coder<colorX>.SupportsStringCoding);
 
             private readonly MethodInfo _decode;
             private readonly MethodInfo _encode;
+
+            public bool SupportsStringCoding { get; }
 
             public CoderMethods(Type type)
             {
@@ -67,6 +71,7 @@ namespace MonkeyLoader.Resonite.Converters
 
                 _encode = specificCoder.GetMethod(_encodeToString);
                 _decode = specificCoder.GetMethod(_decodeFromString);
+                SupportsStringCoding = (bool)specificCoder.GetProperty(_supportsStringCodingString).GetValue(null);
             }
 
             public object Decode(string serialized)
