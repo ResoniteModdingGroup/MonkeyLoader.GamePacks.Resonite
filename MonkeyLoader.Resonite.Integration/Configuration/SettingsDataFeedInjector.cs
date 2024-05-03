@@ -375,7 +375,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == SaveConfig)
                         {
-                            rootCategoryView.Path.RemoveAt(path.Count() - 1);
+                            rootCategoryView.MoveUpInCategory();
                         }
                     });
                 }
