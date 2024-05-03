@@ -343,7 +343,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static void SaveModConfig(string modId)
         {
-            Logger.Info(() => "Saving config for mod: " + modId);
+            Logger.Info(() => $"Saving config for mod: {modId}");
             if (!Mod.Loader.TryFindModById(modId, out var mod))
             {
                 Logger.Error(() => $"Tried to save config for non-existant mod: {modId}");
@@ -369,13 +369,16 @@ namespace MonkeyLoader.Resonite.Configuration
                 SaveModConfig(path[1]);
 
                 var rootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
-                rootCategoryView.RunSynchronously(() =>
+                if (rootCategoryView.FilterWorldElement() != null)
                 {
-                    if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == SaveConfig)
+                    rootCategoryView.RunSynchronously(() =>
                     {
-                        rootCategoryView.Path.RemoveAt(path.Count() - 1);
-                    }
-                });
+                        if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == SaveConfig)
+                        {
+                            rootCategoryView.Path.RemoveAt(path.Count() - 1);
+                        }
+                    });
+                }
 
                 __result = YieldBreakAsync();
                 return false;
