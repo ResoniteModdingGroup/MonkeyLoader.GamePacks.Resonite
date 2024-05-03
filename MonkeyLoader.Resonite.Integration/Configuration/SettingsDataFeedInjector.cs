@@ -103,6 +103,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
         {
+            bool generateSaveConfigButton = false;
             foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
             {
                 var sectionGroup = new DataFeedGroup();
@@ -110,11 +111,18 @@ namespace MonkeyLoader.Resonite.Configuration
                 yield return sectionGroup;
 
                 await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
+                {
+                    generateSaveConfigButton = true;
                     yield return sectionItem;
+                }
             }
-            var saveConfigButton = new DataFeedCategory();
-            saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("Mod.SaveConfig"));
-            yield return saveConfigButton;
+
+            if (generateSaveConfigButton)
+            {
+                var saveConfigButton = new DataFeedCategory();
+                saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("Mod.SaveConfig"));
+                yield return saveConfigButton;
+            }
         }
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
