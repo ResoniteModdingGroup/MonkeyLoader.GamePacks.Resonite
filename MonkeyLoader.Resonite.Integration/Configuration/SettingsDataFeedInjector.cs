@@ -120,7 +120,7 @@ namespace MonkeyLoader.Resonite.Configuration
             if (generateSaveConfigButton)
             {
                 var saveConfigButton = new DataFeedCategory();
-                saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("Mod.SaveConfig"));
+                saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("SaveConfig"));
                 yield return saveConfigButton;
             }
         }
@@ -349,15 +349,23 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static void SaveModConfig(string modId)
+        private static void SaveModOrLoaderConfig(string modOrLoaderId)
         {
-            Logger.Info(() => $"Saving config for mod: {modId}");
-            if (!Mod.Loader.TryFindModById(modId, out var mod))
+            if (modOrLoaderId == Mod.Loader.Id)
             {
-                Logger.Error(() => $"Tried to save config for non-existant mod: {modId}");
-                return;
+                Logger.Info(() => $"Saving config for loader: {modOrLoaderId}");
+                Mod.Loader.Config.Save();
             }
-            mod.Config.Save();
+            else
+            {
+                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
+                {
+                    Logger.Error(() => $"Tried to save config for non-existent mod: {modOrLoaderId}");
+                    return;
+                }
+                Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
+                mod.Config.Save();
+            }
         }
 
         private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
@@ -374,7 +382,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             if (path.Last() == SaveConfig)
             {
-                SaveModConfig(path[1]);
+                SaveModOrLoaderConfig(path[1]);
 
                 var rootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
                 if (rootCategoryView.FilterWorldElement() != null)
