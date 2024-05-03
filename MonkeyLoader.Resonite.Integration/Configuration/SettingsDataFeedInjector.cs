@@ -27,6 +27,9 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private const string EarlyMonkeys = "EarlyMonkeys";
         private const string Monkeys = "Monkeys";
+
+        private const string SaveConfig = "SaveConfig";
+
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
 
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
@@ -100,6 +103,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
         {
+            bool generateSaveConfigButton = false;
             foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
             {
                 var sectionGroup = new DataFeedGroup();
@@ -107,7 +111,17 @@ namespace MonkeyLoader.Resonite.Configuration
                 yield return sectionGroup;
 
                 await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
+                {
+                    generateSaveConfigButton = true;
                     yield return sectionItem;
+                }
+            }
+
+            if (generateSaveConfigButton)
+            {
+                var saveConfigButton = new DataFeedCategory();
+                saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("Mod.SaveConfig"));
+                yield return saveConfigButton;
             }
         }
 
@@ -335,12 +349,48 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
+        private static void SaveModConfig(string modId)
+        {
+            Logger.Info(() => $"Saving config for mod: {modId}");
+            if (!Mod.Loader.TryFindModById(modId, out var mod))
+            {
+                Logger.Error(() => $"Tried to save config for non-existant mod: {modId}");
+                return;
+            }
+            mod.Config.Save();
+        }
+
+        private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
+        {
+            yield break;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
-        private static bool EnumeratePrefix(IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
+        private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
         {
             if (path.Count == 0 || path[0] != "MonkeyLoader")
                 return true;
+
+            if (path.Last() == SaveConfig)
+            {
+                SaveModConfig(path[1]);
+
+                var rootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
+                if (rootCategoryView.FilterWorldElement() != null)
+                {
+                    rootCategoryView.RunSynchronously(() =>
+                    {
+                        if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == SaveConfig)
+                        {
+                            rootCategoryView.MoveUpInCategory();
+                        }
+                    });
+                }
+
+                __result = YieldBreakAsync();
+                return false;
+            }
 
             __result = path.Count switch
             {
