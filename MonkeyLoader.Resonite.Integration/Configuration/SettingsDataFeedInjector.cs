@@ -373,12 +373,26 @@ namespace MonkeyLoader.Resonite.Configuration
             yield break;
         }
 
+        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarning(IReadOnlyList<string> path)
+        {
+            var warning = new DataFeedIndicator<string>();
+            warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
+            warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleKey("WorldNotUserspace").AsLocaleKey()));
+            yield return warning;
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
         private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
         {
             if (path.Count == 0 || path[0] != "MonkeyLoader")
                 return true;
+
+            if (!__instance.World.IsUserspace())
+            {
+                __result = WorldNotUserspaceWarning(path);
+                return false;
+            }
 
             if (path.Last() == SaveConfig)
             {
