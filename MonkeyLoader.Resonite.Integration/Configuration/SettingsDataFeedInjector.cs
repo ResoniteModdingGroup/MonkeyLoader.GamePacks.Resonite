@@ -1,4 +1,5 @@
-﻿using Elements.Core;
+﻿using Elements.Assets;
+using Elements.Core;
 using Elements.Quantity;
 using FrooxEngine;
 using FrooxEngine.UIX;
@@ -368,6 +369,63 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
+        private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
+        {
+            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
+            {
+                Slot templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
+                if (templatesRoot.FilterWorldElement() != null)
+                {
+                    var mapping = mapper.Mappings.Add();
+                    mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
+
+                    Slot template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
+                    template.ActiveSelf = false;
+                    template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
+                    UIBuilder ui = new UIBuilder(template);
+                    RadiantUI_Constants.SetupBaseStyle(ui);
+                    ui.ForceNext = template.AttachComponent<RectTransform>();
+                    ui.HorizontalLayout(11.78908f, 11.78908f);
+                    var text = ui.Text("Label");
+                    text.Size.Value = 24f;
+                    text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
+                    ui.Style.MinHeight = 32f;
+                    var field = template.AttachComponent<ValueField<colorX>>();
+                    var editor = ui.ColorXMemberEditor(field.Value);
+                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f;
+                    var feedValueFieldInterface = template.AttachComponent<FeedValueFieldInterface<colorX>>();
+                    feedValueFieldInterface.ItemName.Target = text.Content;
+                    feedValueFieldInterface.Value.Target = field.Value;
+
+                    var innerInterfaceSlot = templatesRoot.FindChild("InnerContainerItem");
+                    if (innerInterfaceSlot.FilterWorldElement() != null)
+                    {
+                        var innerInterface = innerInterfaceSlot.GetComponent<FeedItemInterface>();
+                        feedValueFieldInterface.ParentContainer.Target = innerInterface;
+                    }
+                    else
+                    {
+                        Logger.Error(() => "InnerContainerItem slot is null in EnsureColorXTemplate!");
+                    }
+
+                    mapping.Template.Target = feedValueFieldInterface;
+
+                    // Move the new mapping above the previous last element (default DataFeedItem mapping) in the list
+                    mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
+
+                    Logger.Info(() => $"Injected DataFeedValueField<colorX> template");
+                }
+                else
+                {
+                    Logger.Error(() => "Could not find Templates slot in EnsureColorXTemplate!");
+                }
+            }
+            else
+            {
+                Logger.Info(() => "Existing DataFeedValueField<colorX> template found.");
+            }
+        }
+
         private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
         {
             yield break;
@@ -412,6 +470,15 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 __result = YieldBreakAsync();
                 return false;
+            }
+
+            var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
+            if (mapper.FilterWorldElement() != null)
+            {
+                mapper.RunSynchronously(() => 
+                {
+                    EnsureColorXTemplate(mapper);
+                });
             }
 
             __result = path.Count switch
