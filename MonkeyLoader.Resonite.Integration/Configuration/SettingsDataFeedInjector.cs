@@ -392,7 +392,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     ui.Style.MinHeight = 32f;
                     var field = template.AttachComponent<ValueField<colorX>>();
                     var editor = ui.ColorXMemberEditor(field.Value);
-                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f; ;
+                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f;
                     var feedValueFieldInterface = template.AttachComponent<FeedValueFieldInterface<colorX>>();
                     feedValueFieldInterface.ItemName.Target = text.Content;
                     feedValueFieldInterface.Value.Target = field.Value;
