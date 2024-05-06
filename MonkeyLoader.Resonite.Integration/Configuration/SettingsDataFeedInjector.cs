@@ -30,6 +30,7 @@ namespace MonkeyLoader.Resonite.Configuration
         private const string Monkeys = "Monkeys";
 
         private const string SaveConfig = "SaveConfig";
+        private const string ResetConfig = "ResetConfig";
 
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
 
@@ -104,7 +105,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
         {
-            bool generateSaveConfigButton = false;
+            bool generateConfigButtons = false;
             foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
             {
                 var sectionGroup = new DataFeedGroup();
@@ -113,16 +114,20 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
                 {
-                    generateSaveConfigButton = true;
+                    generateConfigButtons = true;
                     yield return sectionItem;
                 }
             }
 
-            if (generateSaveConfigButton)
+            if (generateConfigButtons)
             {
                 var saveConfigButton = new DataFeedCategory();
                 saveConfigButton.InitBase(SaveConfig, path, null, Mod.GetLocaleString("SaveConfig"));
                 yield return saveConfigButton;
+
+                var resetConfigButton = new DataFeedCategory();
+                resetConfigButton.InitBase(ResetConfig, path, null, Mod.GetLocaleString("ResetConfig"));
+                yield return resetConfigButton;
             }
         }
 
@@ -369,6 +374,33 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
+        private static void ResetModOrLoaderConfig(string modOrLoaderId)
+        {
+            if (modOrLoaderId == Mod.Loader.Id)
+            {
+                Logger.Info(() => $"Resetting config to default for loader: {modOrLoaderId}");
+                foreach (var key in Mod.Loader.Config.ConfigurationItemDefinitions)
+                {
+                    key.TryComputeDefault(out var defaultValue);
+                    key.SetValue(defaultValue, "Default");
+                }
+            }
+            else
+            {
+                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
+                {
+                    Logger.Error(() => $"Tried to reset config to default for non-existent mod: {modOrLoaderId}");
+                    return;
+                }
+                Logger.Info(() => $"Resetting config to default for mod: {modOrLoaderId}");
+                foreach (var key in mod.Config.ConfigurationItemDefinitions)
+                {
+                    key.TryComputeDefault(out var defaultValue);
+                    key.SetValue(defaultValue, "Default");
+                }
+            }
+        }
+
         private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
         {
             if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
@@ -422,7 +454,8 @@ namespace MonkeyLoader.Resonite.Configuration
             }
             else
             {
-                Logger.Info(() => "Existing DataFeedValueField<colorX> template found.");
+                // This could cause some log spam
+                Logger.Debug(() => "Existing DataFeedValueField<colorX> template found.");
             }
         }
 
@@ -439,6 +472,14 @@ namespace MonkeyLoader.Resonite.Configuration
             yield return warning;
         }
 
+        private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
+        {
+            if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
+            {
+                rootCategoryView.MoveUpInCategory();
+            }
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
         private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
@@ -452,24 +493,38 @@ namespace MonkeyLoader.Resonite.Configuration
                 return false;
             }
 
-            if (path.Last() == SaveConfig)
+            var rootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
+
+            switch (path.Last())
             {
-                SaveModOrLoaderConfig(path[1]);
+                case SaveConfig:
+                    SaveModOrLoaderConfig(path[1]);
 
-                var rootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
-                if (rootCategoryView.FilterWorldElement() != null)
-                {
-                    rootCategoryView.RunSynchronously(() =>
+                    if (rootCategoryView.FilterWorldElement() != null)
                     {
-                        if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == SaveConfig)
+                        rootCategoryView.RunSynchronously(() =>
                         {
-                            rootCategoryView.MoveUpInCategory();
-                        }
-                    });
-                }
+                            MoveUpFromCategory(rootCategoryView, SaveConfig);
+                        });
+                    }
 
-                __result = YieldBreakAsync();
-                return false;
+                    __result = YieldBreakAsync();
+                    return false;
+                case ResetConfig:
+                    ResetModOrLoaderConfig(path[1]);
+
+                    if (rootCategoryView.FilterWorldElement() != null)
+                    {
+                        rootCategoryView.RunSynchronously(() => 
+                        {
+                            MoveUpFromCategory(rootCategoryView, ResetConfig);
+                        });
+                    }
+
+                    __result = YieldBreakAsync();
+                    return false;
+                default:
+                    break;
             }
 
             var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);

@@ -15,7 +15,9 @@
     "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "Authors",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Project",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>None</i>",
+
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Save configuration to disk",
+    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Reset configuration to default",
     "MonkeyLoader.GamePacks.Resonite.Information": "Information",
     "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "This category is only accessible in userspace.",
 
