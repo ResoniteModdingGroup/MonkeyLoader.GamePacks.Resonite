@@ -474,13 +474,10 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
-            rootCategoryView.RunSynchronously(() =>
+            if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
             {
-                if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
-                {
-                    rootCategoryView.MoveUpInCategory();
-                }
-            });
+                rootCategoryView.MoveUpInCategory();
+            }
         }
 
         [HarmonyPrefix]
@@ -505,7 +502,10 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (rootCategoryView.FilterWorldElement() != null)
                     {
-                        MoveUpFromCategory(rootCategoryView, SaveConfig);
+                        rootCategoryView.RunSynchronously(() =>
+                        {
+                            MoveUpFromCategory(rootCategoryView, SaveConfig);
+                        });
                     }
 
                     __result = YieldBreakAsync();
@@ -515,7 +515,10 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (rootCategoryView.FilterWorldElement() != null)
                     {
-                        MoveUpFromCategory(rootCategoryView, ResetConfig);
+                        rootCategoryView.RunSynchronously(() => 
+                        {
+                            MoveUpFromCategory(rootCategoryView, ResetConfig);
+                        });
                     }
 
                     __result = YieldBreakAsync();
