@@ -1,4 +1,5 @@
 ﻿using FrooxEngine;
+using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite.Configuration
 {
     /// <summary>
-    /// Contains constants and helper methods to work with <see cref="SharedDefiningConfigKey{T}"/>.
+    /// Contains constants and helper methods to work with <see cref="ConfigKeySessionShare{T}"/>.
     /// </summary>
     public static class SharedConfig
     {
@@ -31,7 +32,7 @@ namespace MonkeyLoader.Resonite.Configuration
         /// </remarks>
         public const string WriteBackPrefix = "SharedConfig.WriteBack";
 
-        private static readonly HashSet<ISharedDefiningConfigKey> _sharedConfigKeys = new();
+        private static readonly HashSet<IConfigKeySessionShare> _sharedConfigKeys = new();
 
         /// <summary>
         /// Gets the <see cref="World.SessionId"/> or the <see cref="World.Name"/>
@@ -61,7 +62,7 @@ namespace MonkeyLoader.Resonite.Configuration
             => world.GetSharedConfigSlot().FindChildOrAdd(configOwner.Id);
 
         /// <summary>
-        /// Wraps the given <see cref="IDefiningConfigKey{T}"/> in a <see cref="SharedDefiningConfigKey{T}"/>,
+        /// Wraps the given <see cref="IDefiningConfigKey{T}"/> in a <see cref="ConfigKeySessionShare{T}"/>,
         /// to make its local value available as a shared resource in Resonite sessions,
         /// and optionally allow writing back changes from the session to the config item.
         /// </summary>
@@ -70,9 +71,18 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <param name="defaultValue">The default value for the shared config item for users that don't have it themselves.</param>
         /// <param name="allowWriteBack">Whether to allow writing back changes from the session to the config item.</param>
         /// <returns>The wrapped defining key.</returns>
-        public static SharedDefiningConfigKey<T> MakeShared<T>(this IDefiningConfigKey<T> definingKey,
+        public static IDefiningConfigKey<T> MakeShared<T>(this IDefiningConfigKey<T> definingKey,
             T? defaultValue = default, bool allowWriteBack = false)
-            => new(definingKey, defaultValue, allowWriteBack);
+        {
+            var entity = (IEntity<IDefiningConfigKey<T>>)definingKey;
+
+            if (entity.Components.TryGet<IConfigKeySessionShare<T>>(out _))
+                return definingKey;
+
+            entity.Add(new ConfigKeySessionShare<T>(defaultValue, allowWriteBack));
+
+            return definingKey;
+        }
 
         /// <summary>
         /// Determines whether the <see cref="IConfigKeyChangedEventArgs"/>
@@ -106,7 +116,7 @@ namespace MonkeyLoader.Resonite.Configuration
             return true;
         }
 
-        internal static void Register(ISharedDefiningConfigKey sharedKeyWrapper)
+        internal static void Register(IConfigKeySessionShare sharedKeyWrapper)
         {
             _sharedConfigKeys.Add(sharedKeyWrapper);
 
@@ -117,7 +127,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 sharedKeyWrapper.SetupOverride(world);
         }
 
-        internal static void Unregister(ISharedDefiningConfigKey sharedConfigKey)
+        internal static void Unregister(IConfigKeySessionShare sharedConfigKey)
         {
             _sharedConfigKeys.Remove(sharedConfigKey);
 
@@ -134,7 +144,7 @@ namespace MonkeyLoader.Resonite.Configuration
         private static void ShutdownSharedConfig(MonkeyLoader loader, IEnumerable<Mod> mods)
         {
             foreach (var sharedConfigKey in mods.SelectMany(mod => mod.Config.ConfigurationItemDefinitions)
-                .SelectCastable<IDefiningConfigKey, ISharedDefiningConfigKey>())
+                .SelectCastable<IDefiningConfigKey, IConfigKeySessionShare>())
             {
                 Unregister(sharedConfigKey);
             }

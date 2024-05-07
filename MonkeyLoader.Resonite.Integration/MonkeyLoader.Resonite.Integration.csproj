@@ -11,7 +11,7 @@
     <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
     <Title>Resonite Game Pack</Title>
     <Authors>Banane9</Authors>
-    <Version>0.14.1-beta</Version>
+    <Version>0.15.0-beta</Version>
     <Description>
       This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite,
       which uses FrooxEngine. It provides hooks for the beginning of initialization,
@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.15.3-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.16.1-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -63,7 +63,7 @@
     <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Quantity" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.4.26.1426" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.4.32.495" />
     <PackageReference Include="Resonite.FrooxEngine.Store" Version="1.0.2" />
     <PackageReference Include="Resonite.LiteDB" Version="5.0.19" />
     <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.9" />

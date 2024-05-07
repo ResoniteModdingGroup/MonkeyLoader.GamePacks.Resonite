@@ -16,7 +16,7 @@ namespace MonkeyLoader.Resonite.Locale
     /// This event can be used by Monkeys that make use of locale keys to inject
     /// programmatically generated keys, if they haven't been defined previously.
     /// </remarks>
-    public sealed class FallbackLocaleGenerationEvent : IAsyncEvent
+    public sealed class FallbackLocaleGenerationEvent : AsyncEvent
     {
         private readonly Dictionary<string, LocaleResource.Message> _messages;
 

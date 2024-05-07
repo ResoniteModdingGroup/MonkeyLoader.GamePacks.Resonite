@@ -4,6 +4,7 @@ using Elements.Quantity;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
+using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
@@ -29,11 +30,11 @@ namespace MonkeyLoader.Resonite.Configuration
         private const string EarlyMonkeys = "EarlyMonkeys";
         private const string Monkeys = "Monkeys";
 
-        private const string SaveConfig = "SaveConfig";
         private const string ResetConfig = "ResetConfig";
-
+        private const string SaveConfig = "SaveConfig";
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
 
+        private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
         private static readonly MethodInfo _generateSlider = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateSlider));
         private static readonly MethodInfo _generateValueField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateValueField));
@@ -103,6 +104,64 @@ namespace MonkeyLoader.Resonite.Configuration
             return base.OnEngineReady();
         }
 
+        private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
+        {
+            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
+            {
+                Slot templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
+                if (templatesRoot.FilterWorldElement() != null)
+                {
+                    var mapping = mapper.Mappings.Add();
+                    mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
+
+                    Slot template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
+                    template.ActiveSelf = false;
+                    template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
+                    UIBuilder ui = new UIBuilder(template);
+                    RadiantUI_Constants.SetupBaseStyle(ui);
+                    ui.ForceNext = template.AttachComponent<RectTransform>();
+                    ui.HorizontalLayout(11.78908f, 11.78908f);
+                    var text = ui.Text("Label");
+                    text.Size.Value = 24f;
+                    text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
+                    ui.Style.MinHeight = 32f;
+                    var field = template.AttachComponent<ValueField<colorX>>();
+                    var editor = ui.ColorXMemberEditor(field.Value);
+                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f;
+                    var feedValueFieldInterface = template.AttachComponent<FeedValueFieldInterface<colorX>>();
+                    feedValueFieldInterface.ItemName.Target = text.Content;
+                    feedValueFieldInterface.Value.Target = field.Value;
+
+                    var innerInterfaceSlot = templatesRoot.FindChild("InnerContainerItem");
+                    if (innerInterfaceSlot.FilterWorldElement() != null)
+                    {
+                        var innerInterface = innerInterfaceSlot.GetComponent<FeedItemInterface>();
+                        feedValueFieldInterface.ParentContainer.Target = innerInterface;
+                    }
+                    else
+                    {
+                        Logger.Error(() => "InnerContainerItem slot is null in EnsureColorXTemplate!");
+                    }
+
+                    mapping.Template.Target = feedValueFieldInterface;
+
+                    // Move the new mapping above the previous last element (default DataFeedItem mapping) in the list
+                    mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
+
+                    Logger.Info(() => $"Injected DataFeedValueField<colorX> template");
+                }
+                else
+                {
+                    Logger.Error(() => "Could not find Templates slot in EnsureColorXTemplate!");
+                }
+            }
+            else
+            {
+                // This could cause some log spam
+                Logger.Debug(() => "Existing DataFeedValueField<colorX> template found.");
+            }
+        }
+
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
         {
             bool generateConfigButtons = false;
@@ -156,25 +215,9 @@ namespace MonkeyLoader.Resonite.Configuration
                     continue;
                 }
 
-                if (configKey is IRangedDefiningKey)
-                {
-                    if (configKey is IQuantifiedDefiningConfigKey quantifiedKey)
-                    {
-                        yield return (DataFeedItem)_generateQuantityField
-                            .MakeGenericMethod(quantifiedKey.ValueType, quantifiedKey.QuantityType)
-                            .Invoke(null, new object[] { path, configKey });
-
-                        continue;
-                    }
-
-                    yield return (DataFeedItem)_generateSlider
-                        .MakeGenericMethod(configKey.ValueType)
-                        .Invoke(null, new object[] { path, configKey });
-
-                    continue;
-                }
-
-                yield return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.ValueType).Invoke(null, new object[] { path, configKey });
+                yield return (DataFeedItem)_generateItemForConfigKeyMethod
+                    .MakeGenericMethod(configKey.ValueType)
+                    .Invoke(null, new object[] { path, configKey });
             }
         }
 
@@ -355,131 +398,6 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static void SaveModOrLoaderConfig(string modOrLoaderId)
-        {
-            if (modOrLoaderId == Mod.Loader.Id)
-            {
-                Logger.Info(() => $"Saving config for loader: {modOrLoaderId}");
-                Mod.Loader.Config.Save();
-            }
-            else
-            {
-                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
-                {
-                    Logger.Error(() => $"Tried to save config for non-existent mod: {modOrLoaderId}");
-                    return;
-                }
-                Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
-                mod.Config.Save();
-            }
-        }
-
-        private static void ResetModOrLoaderConfig(string modOrLoaderId)
-        {
-            if (modOrLoaderId == Mod.Loader.Id)
-            {
-                Logger.Info(() => $"Resetting config to default for loader: {modOrLoaderId}");
-                foreach (var key in Mod.Loader.Config.ConfigurationItemDefinitions)
-                {
-                    key.TryComputeDefault(out var defaultValue);
-                    key.SetValue(defaultValue, "Default");
-                }
-            }
-            else
-            {
-                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
-                {
-                    Logger.Error(() => $"Tried to reset config to default for non-existent mod: {modOrLoaderId}");
-                    return;
-                }
-                Logger.Info(() => $"Resetting config to default for mod: {modOrLoaderId}");
-                foreach (var key in mod.Config.ConfigurationItemDefinitions)
-                {
-                    key.TryComputeDefault(out var defaultValue);
-                    key.SetValue(defaultValue, "Default");
-                }
-            }
-        }
-
-        private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
-        {
-            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
-            {
-                Slot templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
-                if (templatesRoot.FilterWorldElement() != null)
-                {
-                    var mapping = mapper.Mappings.Add();
-                    mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
-
-                    Slot template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
-                    template.ActiveSelf = false;
-                    template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
-                    UIBuilder ui = new UIBuilder(template);
-                    RadiantUI_Constants.SetupBaseStyle(ui);
-                    ui.ForceNext = template.AttachComponent<RectTransform>();
-                    ui.HorizontalLayout(11.78908f, 11.78908f);
-                    var text = ui.Text("Label");
-                    text.Size.Value = 24f;
-                    text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
-                    ui.Style.MinHeight = 32f;
-                    var field = template.AttachComponent<ValueField<colorX>>();
-                    var editor = ui.ColorXMemberEditor(field.Value);
-                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f;
-                    var feedValueFieldInterface = template.AttachComponent<FeedValueFieldInterface<colorX>>();
-                    feedValueFieldInterface.ItemName.Target = text.Content;
-                    feedValueFieldInterface.Value.Target = field.Value;
-
-                    var innerInterfaceSlot = templatesRoot.FindChild("InnerContainerItem");
-                    if (innerInterfaceSlot.FilterWorldElement() != null)
-                    {
-                        var innerInterface = innerInterfaceSlot.GetComponent<FeedItemInterface>();
-                        feedValueFieldInterface.ParentContainer.Target = innerInterface;
-                    }
-                    else
-                    {
-                        Logger.Error(() => "InnerContainerItem slot is null in EnsureColorXTemplate!");
-                    }
-
-                    mapping.Template.Target = feedValueFieldInterface;
-
-                    // Move the new mapping above the previous last element (default DataFeedItem mapping) in the list
-                    mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
-
-                    Logger.Info(() => $"Injected DataFeedValueField<colorX> template");
-                }
-                else
-                {
-                    Logger.Error(() => "Could not find Templates slot in EnsureColorXTemplate!");
-                }
-            }
-            else
-            {
-                // This could cause some log spam
-                Logger.Debug(() => "Existing DataFeedValueField<colorX> template found.");
-            }
-        }
-
-        private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
-        {
-            yield break;
-        }
-
-        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarning(IReadOnlyList<string> path)
-        {
-            var warning = new DataFeedIndicator<string>();
-            warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
-            warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleKey("WorldNotUserspace").AsLocaleKey()));
-            yield return warning;
-        }
-
-        private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
-        {
-            if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
-            {
-                rootCategoryView.MoveUpInCategory();
-            }
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
         private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
@@ -510,12 +428,13 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     __result = YieldBreakAsync();
                     return false;
+
                 case ResetConfig:
                     ResetModOrLoaderConfig(path[1]);
 
                     if (rootCategoryView.FilterWorldElement() != null)
                     {
-                        rootCategoryView.RunSynchronously(() => 
+                        rootCategoryView.RunSynchronously(() =>
                         {
                             MoveUpFromCategory(rootCategoryView, ResetConfig);
                         });
@@ -523,6 +442,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     __result = YieldBreakAsync();
                     return false;
+
                 default:
                     break;
             }
@@ -530,7 +450,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
             if (mapper.FilterWorldElement() != null)
             {
-                mapper.RunSynchronously(() => 
+                mapper.RunSynchronously(() =>
                 {
                     EnsureColorXTemplate(mapper);
                 });
@@ -565,22 +485,43 @@ namespace MonkeyLoader.Resonite.Configuration
             return indicator;
         }
 
-        private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IQuantifiedDefiningConfigKey<T, TQuantity> configKey)
+        private static DataFeedItem GenerateItemForConfigKey<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
+        {
+            var entity = (IEntity<IDefiningConfigKey<T>>)configKey;
+
+            if (entity.Components.TryGet<IConfigKeyRange<T>>(out var range))
+            {
+                if (entity.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
+                {
+                    return (DataFeedItem)_generateQuantityField
+                        .MakeGenericMethod(configKey.ValueType, quantity.QuantityType)
+                        .Invoke(null, new object[] { path, configKey, quantity });
+                }
+
+                return (DataFeedItem)_generateSlider
+                    .MakeGenericMethod(configKey.ValueType)
+                    .Invoke(null, new object[] { path, configKey, range });
+            }
+
+            return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.ValueType).Invoke(null, new object[] { path, configKey });
+        }
+
+        private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
             where TQuantity : unmanaged, IQuantity<TQuantity>
         {
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             InitBase(quantityField, path, configKey);
-            quantityField.InitUnitConfiguration(configKey.DefaultConfiguration, configKey.ImperialConfiguration);
-            quantityField.InitSetup(quantityField => quantityField.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), configKey.Min, configKey.Max);
+            quantityField.InitUnitConfiguration(quantity.DefaultConfiguration, quantity.ImperialConfiguration);
+            quantityField.InitSetup(quantityField => quantityField.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), quantity.Min, quantity.Max);
 
             return quantityField;
         }
 
-        private static DataFeedSlider<T> GenerateSlider<T>(IReadOnlyList<string> path, IRangedDefiningKey<T> configKey)
+        private static DataFeedSlider<T> GenerateSlider<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyRange<T> range)
         {
             var slider = new DataFeedSlider<T>();
             InitBase(slider, path, configKey);
-            slider.InitSetup(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), configKey.Min, configKey.Max);
+            slider.InitSetup(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), range.Min, range.Max);
 
             //if (!string.IsNullOrWhiteSpace(configKey.TextFormat))
             //    slider.InitFormatting(configKey.TextFormat);
@@ -610,6 +551,14 @@ namespace MonkeyLoader.Resonite.Configuration
             => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
                 $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
 
+        private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
+        {
+            if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
+            {
+                rootCategoryView.MoveUpInCategory();
+            }
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SettingsDataFeed.PathSegmentName))]
         private static bool PathSegmentNamePrefix(string pathSegment, int depth, ref LocaleString __result)
@@ -621,6 +570,65 @@ namespace MonkeyLoader.Resonite.Configuration
             };
 
             return false;
+        }
+
+        private static void ResetModOrLoaderConfig(string modOrLoaderId)
+        {
+            if (modOrLoaderId == Mod.Loader.Id)
+            {
+                Logger.Info(() => $"Resetting config to default for loader: {modOrLoaderId}");
+                foreach (var key in Mod.Loader.Config.ConfigurationItemDefinitions)
+                {
+                    key.TryComputeDefault(out var defaultValue);
+                    key.SetValue(defaultValue, "Default");
+                }
+            }
+            else
+            {
+                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
+                {
+                    Logger.Error(() => $"Tried to reset config to default for non-existent mod: {modOrLoaderId}");
+                    return;
+                }
+                Logger.Info(() => $"Resetting config to default for mod: {modOrLoaderId}");
+                foreach (var key in mod.Config.ConfigurationItemDefinitions)
+                {
+                    key.TryComputeDefault(out var defaultValue);
+                    key.SetValue(defaultValue, "Default");
+                }
+            }
+        }
+
+        private static void SaveModOrLoaderConfig(string modOrLoaderId)
+        {
+            if (modOrLoaderId == Mod.Loader.Id)
+            {
+                Logger.Info(() => $"Saving config for loader: {modOrLoaderId}");
+                Mod.Loader.Config.Save();
+            }
+            else
+            {
+                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
+                {
+                    Logger.Error(() => $"Tried to save config for non-existent mod: {modOrLoaderId}");
+                    return;
+                }
+                Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
+                mod.Config.Save();
+            }
+        }
+
+        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarning(IReadOnlyList<string> path)
+        {
+            var warning = new DataFeedIndicator<string>();
+            warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
+            warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleKey("WorldNotUserspace").AsLocaleKey()));
+            yield return warning;
+        }
+
+        private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
+        {
+            yield break;
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using FrooxEngine.UIX;
+using MonkeyLoader.Events;
 
 namespace MonkeyLoader.Resonite.Events
 {
     /// <summary>
     /// Abstract base class for all sorts of UI-generation events.
     /// </summary>
-    public abstract class BuildUIEvent
+    public abstract class BuildUIEvent : SyncEvent
     {
         /// <summary>
         /// Gets the <see cref="UIBuilder"/> that should be used to generate extra UI elements.

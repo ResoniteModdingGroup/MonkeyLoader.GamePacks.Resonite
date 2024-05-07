@@ -15,7 +15,7 @@ namespace MonkeyLoader.Resonite
     public abstract class ConfiguredResoniteAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>
         where TMonkey : ConfiguredResoniteAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
-        where TEvent : class, IAsyncEvent
+        where TEvent : AsyncEvent
     {
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
@@ -55,7 +55,7 @@ namespace MonkeyLoader.Resonite
     public abstract class ConfiguredResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>
         where TMonkey : ConfiguredResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
-        where TEvent : class, ICancelableEvent, IAsyncEvent
+        where TEvent : CancelableAsyncEvent
     {
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.

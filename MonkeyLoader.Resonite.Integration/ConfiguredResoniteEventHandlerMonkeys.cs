@@ -19,7 +19,7 @@ namespace MonkeyLoader.Resonite
     public abstract class ConfiguredResoniteCancelableEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent>
         where TMonkey : ConfiguredResoniteCancelableEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
-        where TEvent : class, ICancelableEvent
+        where TEvent : CancelableSyncEvent
     {
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
@@ -59,7 +59,7 @@ namespace MonkeyLoader.Resonite
     public abstract class ConfiguredResoniteEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteEventHandlerMonkey<TMonkey, TEvent>
         where TMonkey : ConfiguredResoniteEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
-        where TEvent : class
+        where TEvent : SyncEvent
     {
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
