@@ -71,17 +71,15 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <param name="defaultValue">The default value for the shared config item for users that don't have it themselves.</param>
         /// <param name="allowWriteBack">Whether to allow writing back changes from the session to the config item.</param>
         /// <returns>The wrapped defining key.</returns>
-        public static IDefiningConfigKey<T> MakeShared<T>(this IDefiningConfigKey<T> definingKey,
+        public static IDefiningConfigKey<T> MakeShared<T>(this IEntity<IDefiningConfigKey<T>> definingKey,
             T? defaultValue = default, bool allowWriteBack = false)
         {
-            var entity = (IEntity<IDefiningConfigKey<T>>)definingKey;
+            if (definingKey.Components.TryGet<IConfigKeySessionShare<T>>(out _))
+                return definingKey.Self;
 
-            if (entity.Components.TryGet<IConfigKeySessionShare<T>>(out _))
-                return definingKey;
+            definingKey.Add(new ConfigKeySessionShare<T>(defaultValue, allowWriteBack));
 
-            entity.Add(new ConfigKeySessionShare<T>(defaultValue, allowWriteBack));
-
-            return definingKey;
+            return definingKey.Self;
         }
 
         /// <summary>
