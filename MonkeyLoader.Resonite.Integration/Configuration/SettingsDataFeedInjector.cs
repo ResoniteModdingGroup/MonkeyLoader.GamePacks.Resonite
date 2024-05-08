@@ -452,10 +452,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (_cachedRootCategoryView != null)
                     {
-                        _cachedRootCategoryView.RunSynchronously(() =>
-                        {
-                            MoveUpFromCategory(_cachedRootCategoryView, SaveConfig);
-                        });
+                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(rootCategoryView, SaveConfig));
                     }
 
                     __result = YieldBreakAsync();
@@ -466,10 +463,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (_cachedRootCategoryView != null)
                     {
-                        _cachedRootCategoryView.RunSynchronously(() =>
-                        {
-                            MoveUpFromCategory(_cachedRootCategoryView, ResetConfig);
-                        });
+                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(rootCategoryView, ResetConfig));
                     }
 
                     __result = YieldBreakAsync();
@@ -482,10 +476,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
             if (mapper != null)
             {
-                mapper.RunSynchronously(() =>
-                {
-                    EnsureColorXTemplate(mapper);
-                });
+                mapper.RunSynchronously(() => EnsureColorXTemplate(mapper));
             }
 
             __result = path.Count switch
@@ -563,25 +554,23 @@ namespace MonkeyLoader.Resonite.Configuration
             return indicator;
         }
 
-        private static DataFeedItem GenerateItemForConfigKey<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
+        private static DataFeedItem GenerateItemForConfigKey<T>(IReadOnlyList<string> path, IEntity<IDefiningConfigKey<T>> configKey)
         {
-            var entity = (IEntity<IDefiningConfigKey<T>>)configKey;
-
-            if (entity.Components.TryGet<IConfigKeyRange<T>>(out var range))
+            if (configKey.Components.TryGet<IConfigKeyRange<T>>(out var range))
             {
-                if (entity.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
+                if (configKey.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
                 {
                     return (DataFeedItem)_generateQuantityField
-                        .MakeGenericMethod(configKey.ValueType, quantity.QuantityType)
-                        .Invoke(null, new object[] { path, configKey, quantity });
+                        .MakeGenericMethod(configKey.Self.ValueType, quantity.QuantityType)
+                        .Invoke(null, new object[] { path, configKey.Self, quantity });
                 }
 
                 return (DataFeedItem)_generateSlider
-                    .MakeGenericMethod(configKey.ValueType)
-                    .Invoke(null, new object[] { path, configKey, range });
+                    .MakeGenericMethod(configKey.Self.ValueType)
+                    .Invoke(null, new object[] { path, configKey.Self, range });
             }
 
-            return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.ValueType).Invoke(null, new object[] { path, configKey });
+            return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.Self.ValueType).Invoke(null, new object[] { path, configKey });
         }
 
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
