@@ -452,7 +452,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (_cachedRootCategoryView != null)
                     {
-                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(rootCategoryView, SaveConfig));
+                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, SaveConfig));
                     }
 
                     __result = YieldBreakAsync();
@@ -463,7 +463,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (_cachedRootCategoryView != null)
                     {
-                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(rootCategoryView, ResetConfig));
+                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, ResetConfig));
                     }
 
                     __result = YieldBreakAsync();
