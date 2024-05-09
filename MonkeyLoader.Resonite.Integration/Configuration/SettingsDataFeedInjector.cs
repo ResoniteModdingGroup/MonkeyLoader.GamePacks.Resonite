@@ -323,6 +323,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             var openMonkeyLoaderSettings = new DataFeedCategory();
             openMonkeyLoaderSettings.InitBase("MonkeyLoader.OpenMonkeyLoader", path, monkeyLoaderGrouping, Mod.GetLocaleString("OpenMonkeyLoader.Name"), Mod.GetLocaleString("OpenMonkeyLoader.Description"));
+            openMonkeyLoaderSettings.SetOverrideSubpath("MonkeyLoader");
             yield return openMonkeyLoaderSettings;
 
             var monkeys = Mod.Loader.Mods.SelectMany(mod => mod.Monkeys);
