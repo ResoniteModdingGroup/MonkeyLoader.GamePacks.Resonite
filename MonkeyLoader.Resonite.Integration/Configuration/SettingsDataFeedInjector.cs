@@ -453,7 +453,7 @@ namespace MonkeyLoader.Resonite.Configuration
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
         private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
         {
-            if (_cachedRootCategoryView.FilterWorldElement() == null)
+            if (__instance.World.IsUserspace() && _cachedRootCategoryView.FilterWorldElement() == null)
             {
                 _cachedRootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
                 if (_cachedRootCategoryView != null)
@@ -464,7 +464,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 }
             }
 
-            if (_cachedScrollSlider.FilterWorldElement() == null)
+            if (__instance.World.IsUserspace() && _cachedScrollSlider.FilterWorldElement() == null)
             {
                 Slot settingsListSlot = __instance.Slot.FindChild(s => s.Name == "Settings List", maxDepth: 2);
                 if (settingsListSlot != null)
@@ -496,10 +496,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 case SaveConfig:
                     SaveModOrLoaderConfig(path[1]);
 
-                    if (_cachedRootCategoryView != null)
-                    {
-                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, SaveConfig));
-                    }
+                    _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, SaveConfig));
 
                     __result = YieldBreakAsync();
                     return false;
@@ -507,10 +504,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 case ResetConfig:
                     ResetModOrLoaderConfig(path[1]);
 
-                    if (_cachedRootCategoryView != null)
-                    {
-                        _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, ResetConfig));
-                    }
+                    _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, ResetConfig));
 
                     __result = YieldBreakAsync();
                     return false;
@@ -520,10 +514,7 @@ namespace MonkeyLoader.Resonite.Configuration
             }
 
             var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
-            if (mapper != null)
-            {
-                mapper.RunSynchronously(() => EnsureColorXTemplate(mapper));
-            }
+            mapper?.RunSynchronously(() => EnsureColorXTemplate(mapper));
 
             __result = path.Count switch
             {
