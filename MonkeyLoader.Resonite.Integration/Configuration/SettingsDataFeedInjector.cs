@@ -221,6 +221,55 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateModMetadataAsync(IReadOnlyList<string> path, Mod mod)
+        {
+            var modGroup = new DataFeedGroup();
+            modGroup.InitBase("Metadata", path, null, Mod.GetLocaleString("Mod.Metadata"));
+            yield return modGroup;
+
+            var grouping = new[] { "Metadata" };
+
+            var id = new DataFeedIndicator<string>();
+            id.InitBase("Id", path, grouping, Mod.GetLocaleString("Mod.Id"));
+            id.InitSetupValue(field => field.Value = mod.Id);
+            yield return id;
+
+            var version = new DataFeedIndicator<string>();
+            version.InitBase("Version", path, grouping, Mod.GetLocaleString("Mod.Version"));
+            version.InitSetupValue(field => field.Value = mod.Version.ToString());
+            yield return version;
+
+            var authors = new DataFeedIndicator<string>();
+            authors.InitBase("Authors", path, grouping, Mod.GetLocaleString("Mod.Authors", ("count", mod.Authors.Count())));
+            authors.InitSetupValue(field => field.Value = mod.Authors.Join());
+            yield return authors;
+
+            var project = new DataFeedIndicator<string>();
+            project.InitBase("Project", path, grouping, Mod.GetLocaleString("Mod.Project"));
+            project.InitSetupValue(field =>
+            {
+                if (mod.ProjectUrl is null)
+                {
+                    field.AssignLocaleString(Mod.GetLocaleString("Mod.Project.None"));
+                    return;
+                }
+
+                field.Value = $"<u>{mod.ProjectUrl}</u>";
+                var text = field.FindNearestParent<Text>();
+
+                text.Slot.AttachComponent<Hyperlink>().URL.Value = mod.ProjectUrl;
+
+                var drive = text.Slot.AttachComponent<Button>().ColorDrivers.Add();
+                drive.ColorDrive.Target = text.Color;
+            });
+            yield return project;
+
+            var description = new DataFeedIndicator<string>();
+            description.InitBase("Description", path, grouping, Mod.GetLocaleString("Mod.Description"));
+            description.InitSetupValue(field => field.AssignLocaleString(mod.GetLocaleString("Description")));
+            yield return description;
+        }
+
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModMonkeysAsync(IReadOnlyList<string> path, Mod mod)
         {
             await foreach (var feedItem in EnumerateMonkeysAsync(path, mod, Monkeys))
@@ -232,68 +281,61 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModsAsync(IReadOnlyList<string> path)
         {
-            var monkeyLoaderCategory = new DataFeedCategory();
-            monkeyLoaderCategory.InitBase("MonkeyLoader", path, null, Mod.GetLocaleString("OpenMonkeyLoader.Name"), Mod.GetLocaleString("OpenMonkeyLoader.Description"));
-            yield return monkeyLoaderCategory;
+            var modsGroup = new DataFeedGroup();
+            modsGroup.InitBase("Mods.Group", path, null, Mod.GetLocaleString("Mods"));
+            yield return modsGroup;
 
-            foreach (var mod in Mod.Loader.Mods)
+            var modsGrid = new DataFeedGrid();
+            modsGrid.InitBase("Mods.Grid", path, new[] { "Mods.Group" }, Mod.GetLocaleString("Mods"));
+            yield return modsGrid;
+
+            var modsGrouping = new[] { "Mods.Group", "Mods.Grid" };
+
+            foreach (var mod in Mod.Loader.RegularMods.OrderBy(GetLocalizedModName))
             {
-                var modGroup = new DataFeedGroup();
-                modGroup.InitBase(mod.Id, path, null, mod.GetLocaleString("Name"), Mod.GetLocaleString("Mod.GroupDescription"));
-                yield return modGroup;
-
-                var grouping = new[] { mod.Id };
-
-                var modCategory = new DataFeedCategory();
-                modCategory.InitBase($"{mod.Id}.Settings", path, grouping, Mod.GetLocaleString("Mod.OpenSettings"));
-                modCategory.SetOverrideSubpath(mod.Id);
-                yield return modCategory;
-
-                var description = new DataFeedIndicator<string>();
-                description.InitBase($"{mod.Id}.Description", path, grouping, Mod.GetLocaleString("Mod.Description"));
-                description.InitSetupValue(field => field.AssignLocaleString(mod.GetLocaleString("Description")));
-                yield return description;
-
-                var version = new DataFeedIndicator<string>();
-                version.InitBase($"{mod.Id}.Version", path, grouping, Mod.GetLocaleString("Mod.Version"));
-                version.InitSetupValue(field => field.Value = mod.Version.ToString());
-                yield return version;
-
-                var authors = new DataFeedIndicator<string>();
-                authors.InitBase($"{mod.Id}.Authors", path, grouping, Mod.GetLocaleString("Mod.Authors"));
-                authors.InitSetupValue(field => field.Value = string.Join(", ", mod.Authors));
-                yield return authors;
-
-                var project = new DataFeedIndicator<string>();
-                project.InitBase($"{mod.Id}.Project", path, grouping, Mod.GetLocaleString("Mod.Project"));
-                project.InitSetupValue(field =>
-                {
-                    if (mod.ProjectUrl is null)
-                    {
-                        field.AssignLocaleString(Mod.GetLocaleString("Mod.Project.None"));
-                        return;
-                    }
-
-                    field.Value = $"<u>{mod.ProjectUrl}</u>";
-                    var text = field.FindNearestParent<Text>();
-
-                    text.Slot.AttachComponent<Hyperlink>().URL.Value = mod.ProjectUrl;
-
-                    var drive = text.Slot.AttachComponent<Button>().ColorDrivers.Add();
-                    drive.ColorDrive.Target = text.Color;
-                });
-                yield return project;
-
-                //var configSectionsCategory = new DataFeedCategory();
-                //configSectionsCategory.InitBase($"{mod.Id}.{ConfigSections}", path, grouping, Mod.GetLocaleKey($"Mod.Open{ConfigSections}"));
-                //configSectionsCategory.SetOverrideSubpath(mod.Id, ConfigSections);
-                //yield return configSectionsCategory;
-
-                //var monkeysCategory = new DataFeedCategory();
-                //monkeysCategory.InitBase($"{mod.Id}.{MonkeyToggles}", path, grouping, Mod.GetLocaleKey($"Mod.Open{MonkeyToggles}"));
-                //monkeysCategory.SetOverrideSubpath(mod.Id, MonkeyToggles);
-                //yield return monkeysCategory;
+                var modSubCategory = new DataFeedCategory();
+                modSubCategory.InitBase(mod.Id, path, modsGrouping, mod.GetLocaleString("Name"));
+                yield return modSubCategory;
             }
+
+            var gamePacksGroup = new DataFeedGroup();
+            gamePacksGroup.InitBase("GamePacks.Group", path, null, Mod.GetLocaleString("GamePacks"));
+            yield return gamePacksGroup;
+
+            var gamePacksGrid = new DataFeedGrid();
+            gamePacksGrid.InitBase("GamePacks.Grid", path, new[] { "GamePacks.Group" }, Mod.GetLocaleString("GamePacks"));
+            yield return gamePacksGrid;
+
+            var gamePacksGrouping = new[] { "GamePacks.Group", "GamePacks.Grid" };
+
+            foreach (var gamePack in Mod.Loader.GamePacks.OrderBy(GetLocalizedModName))
+            {
+                var gamePackCategory = new DataFeedCategory();
+                gamePackCategory.InitBase(gamePack.Id, path, gamePacksGrouping, gamePack.GetLocaleString("Name"));
+                yield return gamePackCategory;
+            }
+
+            var monkeyLoaderGroup = new DataFeedGroup();
+            monkeyLoaderGroup.InitBase("MonkeyLoader", path, null, Mod.GetLocaleString("MonkeyLoader.Name"));
+            yield return monkeyLoaderGroup;
+
+            var monkeyLoaderGrouping = new[] { Mod.Loader.Id };
+
+            var openMonkeyLoaderSettings = new DataFeedCategory();
+            openMonkeyLoaderSettings.InitBase("MonkeyLoader.OpenMonkeyLoader", path, monkeyLoaderGrouping, Mod.GetLocaleString("OpenMonkeyLoader.Name"), Mod.GetLocaleString("OpenMonkeyLoader.Description"));
+            yield return openMonkeyLoaderSettings;
+
+            var monkeys = Mod.Loader.Mods.SelectMany(mod => mod.Monkeys);
+            var monkeyCountIndicator = new DataFeedIndicator<string>();
+            monkeyCountIndicator.InitBase("MonkeyLoader.MonkeyCount", path, monkeyLoaderGrouping, Mod.GetLocaleString("MonkeyLoader.MonkeyCount.Name"));
+            monkeyCountIndicator.InitSetupValue(field => field.SetLocalized(Mod.GetLocaleString("MonkeyLoader.MonkeyCount.Value", ("available", monkeys.Count()), ("active", monkeys.Count(monkey => monkey.Enabled)))));
+            yield return monkeyCountIndicator;
+
+            var earlyMonkeys = Mod.Loader.Mods.SelectMany(mod => mod.EarlyMonkeys);
+            var earlyMonkeyCountIndicator = new DataFeedIndicator<string>();
+            earlyMonkeyCountIndicator.InitBase("MonkeyLoader.EarlyMonkeyCount", path, monkeyLoaderGrouping, Mod.GetLocaleString("MonkeyLoader.EarlyMonkeyCount.Name"));
+            earlyMonkeyCountIndicator.InitSetupValue(field => field.SetLocalized(Mod.GetLocaleString("MonkeyLoader.EarlyMonkeyCount.Value", ("available", earlyMonkeys.Count()), ("active", earlyMonkeys.Count(monkey => monkey.Enabled)))));
+            yield return earlyMonkeyCountIndicator;
         }
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModSettingsAsync(IReadOnlyList<string> path)
@@ -309,6 +351,9 @@ namespace MonkeyLoader.Resonite.Configuration
             if (path.Count == 2)
             {
                 await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
+                    yield return feedItem;
+
+                await foreach (var feedItem in EnumerateModMetadataAsync(path, mod))
                     yield return feedItem;
 
                 await foreach (var feedItem in EnumerateModMonkeysAsync(path, mod))
@@ -535,6 +580,9 @@ namespace MonkeyLoader.Resonite.Configuration
 
             return valueField;
         }
+
+        private static string GetLocalizedModName(Mod mod)
+                                                                                                            => mod.GetLocaleString("Name").Format()!;
 
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
             => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
