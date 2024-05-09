@@ -163,7 +163,7 @@ namespace MonkeyLoader.Resonite.Configuration
             else
             {
                 // This could cause some log spam
-                Logger.Debug(() => "Existing DataFeedValueField<colorX> template found.");
+                Logger.Trace(() => "Existing DataFeedValueField<colorX> template found.");
             }
         }
 
@@ -491,22 +491,23 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
         {
-            //Logger.Debug(() => $"OnElementsAdded: {start} {count}");
+            Logger.Trace(() => $"OnElementsAdded. start: {start} count: {count}");
 
             if (_cachedScrollSlider.FilterWorldElement() != null)
             {
-                _scrollAmounts.Push(_cachedScrollSlider?.Value.Value ?? 0);
-                //Logger.Debug(() => $"Pushed value {_cachedScrollSlider?.Value.Value ?? 0}");
-                //Logger.Debug(() => $"_scrollAmounts count: {_scrollAmounts.Count}");
+                _scrollAmounts.Push(_cachedScrollSlider!.Value.Value);
+                Logger.Trace(() => $"Pushed value {_cachedScrollSlider!.Value.Value}. _scrollAmounts count: {_scrollAmounts.Count}");
             }
         }
 
         private static void OnElementsRemoved(SyncElementList<Sync<string>> list, int start, int count)
         {
-            //Logger.Debug(() => $"OnElementsRemoved: {start} {count}");
+            Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
 
             if (start == 0) 
             {
+                _scrollAmounts.Clear();
+                Logger.Trace(() => $"Cleared _scrollAmounts.");
                 return;
             }
 
@@ -517,8 +518,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (_scrollAmounts.Count > 0)
                 {
                     poppedValue = _scrollAmounts.Pop();
-                    //Logger.Debug(() => $"Popped value {poppedValue}");
-                    //Logger.Debug(() => $"_scrollAmounts count: {_scrollAmounts.Count}");
+                    Logger.Trace(() => $"Popped value {poppedValue}. _scrollAmounts count: {_scrollAmounts.Count}");
                 }
             }
 
@@ -529,7 +529,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     if (_cachedScrollSlider.FilterWorldElement() != null)
                     {
                         _cachedScrollSlider.Value.Value = poppedValue;
-                        //Logger.Debug(() => $"Set slider to value {poppedValue}");
+                        Logger.Debug(() => $"Set scroll slider to value {poppedValue}");
                     }
                 });
             }
