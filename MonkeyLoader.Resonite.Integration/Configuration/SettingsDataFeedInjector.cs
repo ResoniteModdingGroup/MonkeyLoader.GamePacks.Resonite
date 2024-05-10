@@ -32,17 +32,14 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private const string ResetConfig = "ResetConfig";
         private const string SaveConfig = "SaveConfig";
-        private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
 
+        private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
-        private static readonly MethodInfo _generateSlider = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateSlider));
-        private static readonly MethodInfo _generateValueField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateValueField));
 
-        private static Slider<float>? _cachedScrollSlider = null;
         private static readonly Stack<float> _scrollAmounts = new();
-
         private static RootCategoryView? _cachedRootCategoryView = null;
+        private static Slider<float>? _cachedScrollSlider = null;
 
         public override int Priority => HarmonyLib.Priority.Normal;
 
@@ -113,16 +110,16 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
             {
-                Slot templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
+                var templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
                 if (templatesRoot != null)
                 {
                     var mapping = mapper.Mappings.Add();
                     mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
 
-                    Slot template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
+                    var template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
                     template.ActiveSelf = false;
                     template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
-                    UIBuilder ui = new UIBuilder(template);
+                    var ui = new UIBuilder(template);
                     RadiantUI_Constants.SetupBaseStyle(ui);
                     ui.ForceNext = template.AttachComponent<RectTransform>();
                     ui.HorizontalLayout(11.78908f, 11.78908f);
@@ -169,7 +166,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
         {
-            bool generateConfigButtons = false;
+            var generateConfigButtons = false;
+
             foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
             {
                 var sectionGroup = new DataFeedGroup();
@@ -526,52 +524,6 @@ namespace MonkeyLoader.Resonite.Configuration
             return false;
         }
 
-        private static void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
-        {
-            Logger.Trace(() => $"OnElementsAdded. start: {start} count: {count}");
-
-            if (_cachedScrollSlider.FilterWorldElement() != null)
-            {
-                _scrollAmounts.Push(_cachedScrollSlider!.Value.Value);
-                Logger.Trace(() => $"Pushed value {_cachedScrollSlider!.Value.Value}. _scrollAmounts count: {_scrollAmounts.Count}");
-            }
-        }
-
-        private static void OnElementsRemoved(SyncElementList<Sync<string>> list, int start, int count)
-        {
-            Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
-
-            if (start == 0) 
-            {
-                _scrollAmounts.Clear();
-                Logger.Trace(() => $"Cleared _scrollAmounts.");
-                return;
-            }
-
-            float poppedValue = 0;
-            
-            for (int i = 0; i < count; i++)
-            {
-                if (_scrollAmounts.Count > 0)
-                {
-                    poppedValue = _scrollAmounts.Pop();
-                    Logger.Trace(() => $"Popped value {poppedValue}. _scrollAmounts count: {_scrollAmounts.Count}");
-                }
-            }
-
-            if (_cachedScrollSlider.FilterWorldElement() != null)
-            {
-                _cachedScrollSlider!.RunInUpdates(3, () => 
-                { 
-                    if (_cachedScrollSlider.FilterWorldElement() != null)
-                    {
-                        _cachedScrollSlider.Value.Value = poppedValue;
-                        Logger.Debug(() => $"Set scroll slider to value {poppedValue}");
-                    }
-                });
-            }
-        }
-
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
             where T : Enum
         {
@@ -602,12 +554,10 @@ namespace MonkeyLoader.Resonite.Configuration
                         .Invoke(null, new object[] { path, configKey.Self, quantity });
                 }
 
-                return (DataFeedItem)_generateSlider
-                    .MakeGenericMethod(configKey.Self.ValueType)
-                    .Invoke(null, new object[] { path, configKey.Self, range });
+                return GenerateSlider(path, configKey.Self, range);
             }
 
-            return (DataFeedItem)_generateValueField.MakeGenericMethod(configKey.Self.ValueType).Invoke(null, new object[] { path, configKey });
+            return GenerateValueField(path, configKey.Self);
         }
 
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
@@ -652,7 +602,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static string GetLocalizedModName(Mod mod)
-                                                                                                            => mod.GetLocaleString("Name").Format()!;
+            => mod.GetLocaleString("Name").Format()!;
 
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
             => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
@@ -661,8 +611,52 @@ namespace MonkeyLoader.Resonite.Configuration
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
             if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
-            {
                 rootCategoryView.MoveUpInCategory();
+        }
+
+        private static void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
+        {
+            Logger.Trace(() => $"OnElementsAdded. start: {start} count: {count}");
+
+            if (_cachedScrollSlider.FilterWorldElement() != null)
+            {
+                _scrollAmounts.Push(_cachedScrollSlider!.Value.Value);
+                Logger.Trace(() => $"Pushed value {_cachedScrollSlider!.Value.Value}. _scrollAmounts count: {_scrollAmounts.Count}");
+            }
+        }
+
+        private static void OnElementsRemoved(SyncElementList<Sync<string>> list, int start, int count)
+        {
+            Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
+
+            if (start == 0)
+            {
+                _scrollAmounts.Clear();
+                Logger.Trace(() => $"Cleared _scrollAmounts.");
+                return;
+            }
+
+            var poppedValue = 0f;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (_scrollAmounts.Count > 0)
+                {
+                    poppedValue = _scrollAmounts.Pop();
+                    Logger.Trace(() => $"Popped value {poppedValue}. _scrollAmounts count: {_scrollAmounts.Count}");
+                }
+            }
+
+            if (_cachedScrollSlider.FilterWorldElement() != null)
+            {
+                _cachedScrollSlider!.RunInUpdates(3, () =>
+                {
+                    if (_cachedScrollSlider.FilterWorldElement() != null)
+                    {
+                        _cachedScrollSlider.Value.Value = poppedValue;
+                        Logger.Debug(() => $"Set scroll slider to value {poppedValue}");
+                    }
+                });
             }
         }
 
