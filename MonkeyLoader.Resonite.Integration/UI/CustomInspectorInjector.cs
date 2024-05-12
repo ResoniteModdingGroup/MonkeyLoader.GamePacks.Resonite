@@ -108,31 +108,17 @@ namespace MonkeyLoader.Resonite.UI
         private static void OnBuildInspectorBody(UIBuilder ui, Worker worker,
             bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            try
-            {
-                var eventData = new BuildInspectorBodyEvent(ui, worker, allowDuplicate, allowDestroy, memberFilter);
+            var eventData = new BuildInspectorBodyEvent(ui, worker, allowDuplicate, allowDestroy, memberFilter);
 
-                _buildInspectorBody?.TryInvokeAll(eventData);
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Warn(() => ex.Format("Some Build Inspector Body Event handlers threw an exception:"));
-            }
+            _buildInspectorBody?.Invoke(eventData);
         }
 
         private static void OnBuildInspectorHeader(InspectorHeaderPosition headerPosition, UIBuilder ui,
             Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            try
-            {
-                var eventData = new BuildInspectorHeaderEvent(headerPosition, ui, worker, allowDuplicate, allowDestroy, memberFilter);
+            var eventData = new BuildInspectorHeaderEvent(headerPosition, ui, worker, allowDuplicate, allowDestroy, memberFilter);
 
-                _buildInspectorHeader?.TryInvokeAll(eventData);
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Warn(() => ex.Format("Some Build Inspector Header Event handlers threw an exception:"));
-            }
+            _buildInspectorHeader?.Invoke(eventData);
         }
 
         event EventDispatching<BuildInspectorHeaderEvent>? IEventSource<BuildInspectorHeaderEvent>.Dispatching

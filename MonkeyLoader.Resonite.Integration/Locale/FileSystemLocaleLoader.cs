@@ -51,7 +51,7 @@ namespace MonkeyLoader.Resonite.Locale
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(() => ex.Format($"Failed to deserialize file as LocaleData: {localeFilePath}"));
+                        Logger.Warn(() => ex.Format($"Failed to deserialize file as LocaleData: {mod.Id}:/{localeFilePath}"));
                     }
                 }
             }

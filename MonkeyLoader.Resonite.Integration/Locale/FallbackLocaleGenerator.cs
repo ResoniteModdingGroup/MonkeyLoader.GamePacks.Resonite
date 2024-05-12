@@ -35,16 +35,9 @@ namespace MonkeyLoader.Resonite.Locale
         /// <inheritdoc/>
         protected override async Task Handle(LocaleLoadingEvent eventData)
         {
-            try
-            {
-                var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource._formatMessages);
+            var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource._formatMessages);
 
-                await _generateFallbackMessages.TryInvokeAllAsync(generatorEventData);
-            }
-            catch (AggregateException ex)
-            {
-                Logger.Warn(() => ex.Format("Some Fallback Locale Generation Event handlers threw an exception:"));
-            }
+            await (_generateFallbackMessages?.Invoke(generatorEventData) ?? Task.CompletedTask);
         }
 
         /// <inheritdoc/>
