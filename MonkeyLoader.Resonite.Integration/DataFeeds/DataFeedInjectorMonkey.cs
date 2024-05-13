@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
 
             _dispatching?.Invoke(eventData);
 
-            return eventData.Result;
+            return eventData.FinalResult;
         }
 
         event AsyncEventDispatching<EnumerateDataFeedEvent<TDataFeed>>? IAsyncEventSource<EnumerateDataFeedEvent<TDataFeed>>.Dispatching
