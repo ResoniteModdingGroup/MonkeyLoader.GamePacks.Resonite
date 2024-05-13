@@ -21,14 +21,34 @@ namespace MonkeyLoader.Resonite.DataFeeds
         where TDataFeed : IDataFeed
     {
         /// <summary>
+        /// Gets the <see cref="DataFeedItem"/>s which have currently been
+        /// <see cref="AppendResult">appended</see> or <see cref="ConcatResult">concatenated</see>
+        /// to this enumeration request and will be concatenated to the base result for the <see cref="FinalResult">FinalResult</see>.
+        /// </summary>
+        public IAsyncEnumerable<DataFeedItem> AddedItems { get; private set; } = AsyncEnumerable.Empty<DataFeedItem>();
+
+        /// <summary>
         /// Gets the <see cref="IDataFeed"/> instance that the enumeration request was made on.
         /// </summary>
         public TDataFeed DataFeed { get; }
 
         /// <summary>
+        /// Gets the <see cref="IAsyncEnumerable{T}"/> that will
+        /// currently provide the final result of this enumeration request.
+        /// </summary>
+        public IAsyncEnumerable<DataFeedItem> FinalResult
+            => (ReplacementResult ?? OriginalResult).Concat(AddedItems);
+
+        /// <summary>
         /// Gets the group keys for this enumeration request. Can be empty.
         /// </summary>
         public IReadOnlyList<string> GroupKeys { get; }
+
+        /// <summary>
+        /// Gets whether this enumeration request's base result will have
+        /// any <see cref="AddedItems">items</see> concatenated to it.
+        /// </summary>
+        public bool HasAddedItems { get; private set; }
 
         /// <summary>
         /// Gets whether this enumeration request has any <see cref="GroupKeys">GroupKeys</see>.
@@ -37,16 +57,6 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// <c>true</c> when there's at least one group key; otherwise, <c>false</c>.
         /// </value>
         public bool HasGroupKeys => GroupKeys.Count > 0;
-
-        /// <summary>
-        /// Gets whether this enumeration request's <see cref="Result">Result</see> has been extended or replaced.
-        /// </summary>
-        public bool HasResultBeenExtended { get; private set; }
-
-        /// <summary>
-        /// Gets whether this enumeration request's <see cref="Result">Result</see> has been replaced.
-        /// </summary>
-        public bool HasResultBeenReplaced { get; private set; }
 
         /// <summary>
         /// Gets whether this enumeration request has a search phrase.
@@ -66,16 +76,30 @@ namespace MonkeyLoader.Resonite.DataFeeds
         public bool IsRootPath => Path.Count == 0;
 
         /// <summary>
+        /// Gets the <see cref="IAsyncEnumerable{T}"/> that would have
+        /// originally provided result of this enumeration request.
+        /// </summary>
+        public IAsyncEnumerable<DataFeedItem> OriginalResult { get; }
+
+        /// <summary>
         /// Gets the path for this enumeration request.
         /// </summary>
         public IReadOnlyList<string> Path { get; }
 
         /// <summary>
-        /// Gets the <see cref="IAsyncEnumerable{T}"/> that will
-        /// provide the result of this enumeration request.<br/>
-        /// Starts as the vanilla result.
+        /// Gets the <see cref="IAsyncEnumerable{T}"/> that will currently replace the
+        /// <see cref="OriginalResult">original Result</see> of this enumeration request.
         /// </summary>
-        public IAsyncEnumerable<DataFeedItem> Result { get; private set; }
+        public IAsyncEnumerable<DataFeedItem>? ReplacementResult { get; private set; }
+
+        /// <summary>
+        /// Gets whether this enumeration request's <see cref="OriginalResult">original Result</see> will be replaced.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if <see cref="ReplacementResult">ReplacementResult</see> is not <c>null</c>; otherwise, <c>false</c>.
+        /// </value>
+        [MemberNotNullWhen(true, nameof(ReplacementResult))]
+        public bool ReplacesOriginalResult => ReplacementResult is not null;
 
         /// <summary>
         /// Gets the search phrase for this enumeration request.
@@ -86,7 +110,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
             IReadOnlyList<string>? path, IReadOnlyList<string>? groupKeys, string? searchPhrase)
         {
             DataFeed = dataFeed;
-            Result = result;
+            OriginalResult = result;
             Path = path ?? Array.Empty<string>();
             GroupKeys = groupKeys ?? Array.Empty<string>();
             SearchPhrase = searchPhrase;
@@ -94,36 +118,45 @@ namespace MonkeyLoader.Resonite.DataFeeds
 
         /// <summary>
         /// Appends the given <see cref="DataFeedItem"/> to the current
-        /// <see cref="Result">Result</see> of this enumeration request.
+        /// <see cref="FinalResult">Result</see> of this enumeration request.
         /// </summary>
         /// <param name="item">The item to append.</param>
         public void AppendResult(DataFeedItem item)
         {
-            Result = Result.Append(item);
-            HasResultBeenExtended = true;
+            AddedItems = AddedItems.Append(item);
+            HasAddedItems = true;
         }
 
         /// <summary>
+        /// Clears any previously <see cref="AddedItems">added items</see>.
+        /// </summary>
+        public void ClearAddedItems()
+        {
+            AddedItems = AsyncEnumerable.Empty<DataFeedItem>();
+            HasAddedItems = false;
+        }
+
+        /// <summary>
+        /// Clears a previously set <see cref="ReplacementResult">ReplacementResult</see>.
+        /// </summary>
+        public void ClearReplacementResult() => ReplacementResult = null;
+
+        /// <summary>
         /// Concatenates the given <see cref="DataFeedItem"/>s to the current
-        /// <see cref="Result">Result</see> of this enumeration request.
+        /// <see cref="FinalResult">Result</see> of this enumeration request.
         /// </summary>
         /// <param name="secondResult">The items to concatenate.</param>
         public void ConcatResult(IAsyncEnumerable<DataFeedItem> secondResult)
         {
-            Result = Result.Concat(secondResult);
-            HasResultBeenExtended = true;
+            AddedItems = AddedItems.Concat(secondResult);
+            HasAddedItems = true;
         }
 
         /// <summary>
-        /// Replaces the current <see cref="Result">Result</see>
-        /// of this enumeration request with the given <see cref="DataFeedItem"/>s.
+        /// Replaces the base result of this enumeration request with the given <see cref="DataFeedItem"/>s.
         /// </summary>
-        /// <param name="newResult">The items replacing the current result.</param>
+        /// <param name="newResult">The items replacing the base result.</param>
         public void ReplaceResult(IAsyncEnumerable<DataFeedItem> newResult)
-        {
-            Result = newResult;
-            HasResultBeenReplaced = true;
-            HasResultBeenExtended = true;
-        }
+            => ReplacementResult = newResult;
     }
 }
