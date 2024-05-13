@@ -18,9 +18,34 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
+    /// <summary>
+    /// Contains settings for determining which config keys will be shown.
+    /// </summary>
+    public sealed class SettingsConfigSection : ConfigSection
+    {
+        public readonly DefiningConfigKey<bool> ShowInternalKeysKey = new("ShowInternalKeys", "Whether or not to show internal access only keys. They will be highlighted in yellow.", () => false);
+
+        private const string SetEventLabel = "Property";
+
+        public bool ShowInternalKeys
+        {
+            get => ShowInternalKeysKey.GetValue()!;
+            set => ShowInternalKeysKey.SetValue(value, SetEventLabel);
+        }
+
+        /// <inheritdoc/>
+        public override string Description { get; } = "Contains settings for determining which config keys will be shown.";
+
+        /// <inheritdoc/>
+        public override string Id { get; } = "Settings";
+
+        /// <inheritdoc/>
+        public override Version Version { get; } = new Version(1, 0);
+    }
+
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
-    internal sealed class SettingsDataFeedInjector : ResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, FallbackLocaleGenerationEvent>
+    internal sealed class SettingsDataFeedInjector : ConfiguredResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, SettingsConfigSection, FallbackLocaleGenerationEvent>
     {
         public const string ConfigKeyChangeLabel = "Settings";
         public const string ConfigSections = "ConfigSections";
@@ -195,7 +220,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
         {
-            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
+            foreach (var configKey in configSection.Keys.Where(key => ConfigSection.ShowInternalKeys || !key.InternalAccessOnly))
             {
                 //if (setting is SettingIndicatorProperty)
                 //{
@@ -605,8 +630,10 @@ namespace MonkeyLoader.Resonite.Configuration
             => mod.GetLocaleString("Name").Format()!;
 
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
-            => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
-                $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
+        {
+            var name = $"{configKey.FullId}.Name".AsLocaleKey(format: configKey.InternalAccessOnly ? "<color=hero.yellow>{0}</color>" : null);
+            item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, name, $"{configKey.FullId}.Description".AsLocaleKey());
+        }
 
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
