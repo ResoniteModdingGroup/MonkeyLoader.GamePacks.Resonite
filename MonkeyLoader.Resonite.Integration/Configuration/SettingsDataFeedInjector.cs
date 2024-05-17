@@ -143,6 +143,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     var template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
                     template.ActiveSelf = false;
+                    template.PersistentSelf = false;
                     template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
                     var ui = new UIBuilder(template);
                     RadiantUI_Constants.SetupBaseStyle(ui);
