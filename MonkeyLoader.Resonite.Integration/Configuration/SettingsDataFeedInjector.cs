@@ -114,7 +114,7 @@ namespace MonkeyLoader.Resonite.Configuration
             if (!_colorXTemplateCleanupDone)
             {
                 Logger.Info(() => "Looking for previously injected colorX templates.");
-                foreach (var mapping in mapper.Mappings.Where((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null && mapping.Template.Target.Slot.Name == InjectedColorXTemplateName).ToList())
+                foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null && mapping.Template.Target.Slot.Name == InjectedColorXTemplateName).ToArray())
                 {
                     mapping.Template.Target.Slot.Destroy();
                     mapper.Mappings.Remove(mapping);
@@ -122,13 +122,13 @@ namespace MonkeyLoader.Resonite.Configuration
                 }
                 _colorXTemplateCleanupDone = true;
             }
-            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null))
+            if (!mapper.Mappings.Any(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null))
             {
                 var templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
                 if (templatesRoot != null)
                 {
                     bool changeIndex = false;
-                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target == null);
+                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target == null);
                     if (mapping == null)
                     {
                         mapping = mapper.Mappings.Add();
