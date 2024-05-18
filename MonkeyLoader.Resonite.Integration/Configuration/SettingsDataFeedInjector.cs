@@ -114,7 +114,7 @@ namespace MonkeyLoader.Resonite.Configuration
             if (!_colorXTemplateCleanupDone)
             {
                 Logger.Info(() => "Looking for previously injected colorX templates.");
-                foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null && mapping.Template.Target.Slot.Name == InjectedColorXTemplateName).ToArray())
+                foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target?.Slot.Name == InjectedColorXTemplateName).ToArray())
                 {
                     mapping.Template.Target.Slot.Destroy();
                     mapper.Mappings.Remove(mapping);
