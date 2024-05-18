@@ -41,6 +41,9 @@ namespace MonkeyLoader.Resonite.Configuration
         private static RootCategoryView? _cachedRootCategoryView = null;
         private static Slider<float>? _cachedScrollSlider = null;
 
+        private static bool _colorXTemplateCleanupDone = false;
+        private const string InjectedColorXTemplateName = "Injected DataFeedValueField<colorX>";
+
         public override int Priority => HarmonyLib.Priority.Normal;
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
@@ -108,16 +111,34 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
         {
-            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>)))
+            if (!_colorXTemplateCleanupDone)
+            {
+                Logger.Info(() => "Looking for previously injected colorX templates.");
+                foreach (var mapping in mapper.Mappings.Where((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null && mapping.Template.Target.Slot.Name == InjectedColorXTemplateName).ToList())
+                {
+                    mapping.Template.Target.Slot.Destroy();
+                    mapper.Mappings.Remove(mapping);
+                    Logger.Info(() => "Cleaned up a previously injected colorX template.");
+                }
+                _colorXTemplateCleanupDone = true;
+            }
+            if (!mapper.Mappings.Any((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null))
             {
                 var templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
                 if (templatesRoot != null)
                 {
-                    var mapping = mapper.Mappings.Add();
-                    mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
+                    bool changeIndex = false;
+                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault((DataFeedItemMapper.ItemMapping mapping) => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target == null);
+                    if (mapping == null)
+                    {
+                        mapping = mapper.Mappings.Add();
+                        mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
+                        changeIndex = true;
+                    }
 
-                    var template = templatesRoot.AddSlot("Injected DataFeedValueField<colorX>");
+                    var template = templatesRoot.AddSlot(InjectedColorXTemplateName);
                     template.ActiveSelf = false;
+                    template.PersistentSelf = false;
                     template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
                     var ui = new UIBuilder(template);
                     RadiantUI_Constants.SetupBaseStyle(ui);
@@ -147,8 +168,11 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     mapping.Template.Target = feedValueFieldInterface;
 
-                    // Move the new mapping above the previous last element (default DataFeedItem mapping) in the list
-                    mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
+                    if (changeIndex)
+                    {
+                        // Move the new mapping above the previous last element (default DataFeedItem mapping) in the list
+                        mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
+                    }
 
                     Logger.Info(() => $"Injected DataFeedValueField<colorX> template");
                 }
