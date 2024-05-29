@@ -50,7 +50,7 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         private static void AddListReferenceProxying<T>(SyncArray<T> array, SyncElementList<SyncRef<T>> list)
-                    where T : class, IEquatable<T>, IWorldElement
+            where T : class, IEquatable<T>, IWorldElement
         {
             foreach (var reference in array)
             {
@@ -229,7 +229,7 @@ namespace MonkeyLoader.Resonite.UI
                 }
             }
 
-            SyncMemberEditorBuilder.Build(list, name, listField, ui);
+            SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
             ui.Current[ui.Current.ChildrenCount - 1].DestroyWhenLocalUserLeaves();
 
             return false;
