@@ -213,7 +213,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     }
                     else
                     {
-                        Logger.Error(() => "InnerContainerItem slot is null in EnsurePrimitiveValueTemplate!");
+                        Logger.Error(() => "InnerContainerItem slot is null in EnsureDataFeedValueFieldTemplate!");
                     }
 
                     mapping.Template.Target = (FeedItemInterface)feedValueFieldInterface;
@@ -228,7 +228,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 }
                 else
                 {
-                    Logger.Error(() => "Could not find Templates slot in EnsurePrimitiveValueTemplate!");
+                    Logger.Error(() => "Could not find Templates slot in EnsureDataFeedValueFieldTemplate!");
                 }
             }
             else
