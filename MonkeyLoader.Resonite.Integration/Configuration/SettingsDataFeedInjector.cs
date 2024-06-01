@@ -41,8 +41,9 @@ namespace MonkeyLoader.Resonite.Configuration
         private static RootCategoryView? _cachedRootCategoryView = null;
         private static Slider<float>? _cachedScrollSlider = null;
 
-        private static bool _colorXTemplateCleanupDone = false;
-        private const string InjectedColorXTemplateName = "Injected DataFeedValueField<colorX>";
+        private static bool _legacyColorXTemplateCleanupDone = false;
+        private const string LegacyInjectedColorXTemplateName = "Injected DataFeedValueField<colorX>";
+        private static DataFeedItemMapper? _cachedDataFeedItemMapper = null;
 
         public override int Priority => HarmonyLib.Priority.Normal;
 
@@ -109,64 +110,113 @@ namespace MonkeyLoader.Resonite.Configuration
             return base.OnEngineReady();
         }
 
-        private static void EnsureColorXTemplate(DataFeedItemMapper mapper)
+        private static void EnsureDataFeedValueFieldTemplate(DataFeedItemMapper mapper, Type typeToInject)
         {
-            if (!_colorXTemplateCleanupDone)
+            // Cleanup previously injected colorX templates that were accidentally made persistent and may have been saved with the dash
+            if (typeToInject == typeof(colorX) && !_legacyColorXTemplateCleanupDone)
             {
                 Logger.Info(() => "Looking for previously injected colorX templates.");
-                foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target?.Slot.Name == InjectedColorXTemplateName).ToArray())
+                foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target?.Slot.Name == LegacyInjectedColorXTemplateName).ToArray())
                 {
                     mapping.Template.Target.Slot.Destroy();
                     mapper.Mappings.Remove(mapping);
                     Logger.Info(() => "Cleaned up a previously injected colorX template.");
                 }
-                _colorXTemplateCleanupDone = true;
+                _legacyColorXTemplateCleanupDone = true;
             }
-            if (!mapper.Mappings.Any(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target != null))
+
+            Type dataFeedValueFieldType = typeof(DataFeedValueField<>).MakeGenericType(typeToInject);
+            if (!mapper.Mappings.Any(mapping => mapping.MatchingType == dataFeedValueFieldType && mapping.Template.Target != null))
             {
                 var templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
                 if (templatesRoot != null)
                 {
                     bool changeIndex = false;
-                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target == null);
+                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault(mapping => mapping.MatchingType == dataFeedValueFieldType && mapping.Template.Target == null);
                     if (mapping == null)
                     {
                         mapping = mapper.Mappings.Add();
-                        mapping.MatchingType.Value = typeof(DataFeedValueField<colorX>);
+                        mapping.MatchingType.Value = dataFeedValueFieldType;
                         changeIndex = true;
                     }
 
-                    var template = templatesRoot.AddSlot(InjectedColorXTemplateName);
+                    var template = templatesRoot.AddSlot($"Injected DataFeedValueField<{typeToInject.Name}>");
                     template.ActiveSelf = false;
                     template.PersistentSelf = false;
                     template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
                     var ui = new UIBuilder(template);
-                    RadiantUI_Constants.SetupBaseStyle(ui);
+                    RadiantUI_Constants.SetupEditorStyle(ui);
                     ui.ForceNext = template.AttachComponent<RectTransform>();
                     ui.HorizontalLayout(11.78908f, 11.78908f);
                     var text = ui.Text("Label");
                     text.Size.Value = 24f;
                     text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
                     ui.Style.MinHeight = 32f;
-                    var field = template.AttachComponent<ValueField<colorX>>();
-                    var editor = ui.ColorXMemberEditor(field.Value);
-                    editor.Slot.GetComponentInChildren<VerticalLayout>().PaddingLeft.Value = 64f;
-                    var feedValueFieldInterface = template.AttachComponent<FeedValueFieldInterface<colorX>>();
-                    feedValueFieldInterface.ItemName.Target = text.Content;
-                    feedValueFieldInterface.Value.Target = field.Value;
+
+                    ui.Spacer(128f);
+
+                    FrooxEngine.Component component = null;
+                    ISyncMember member = null;
+                    FieldInfo fieldInfo = null;
+                    if (typeToInject == typeof(Type))
+                    {
+                        component = template.AttachComponent(typeof(TypeField));
+                        member = component.GetSyncMember("Type");
+                        if (member == null)
+                        {
+                            Logger.Error(() => "Could not get Type sync member from attached TypeField component!");
+                            return;
+                        }
+                        fieldInfo = component.GetSyncMemberFieldInfo("Type");
+                    }
+                    else
+                    {
+                        component = template.AttachComponent(typeof(ValueField<>).MakeGenericType(typeToInject));
+                        member = component.GetSyncMember("Value");
+                        if (member == null)
+                        {
+                            Logger.Error(() => $"Could not get Value sync member from attached ValueField<{typeToInject.Name}> component!");
+                            return;
+                        }
+                        fieldInfo = component.GetSyncMemberFieldInfo("Value");
+                    }
+
+                    ui.Style.FlexibleWidth = 1f;
+                    SyncMemberEditorBuilder.Build(member, null, fieldInfo, ui, 0f);
+                    ui.Style.FlexibleWidth = -1f;
+
+                    var memberActions = ui.Root?.GetComponentInChildren<InspectorMemberActions>()?.Slot;
+                    if (memberActions != null)
+                    {
+                        memberActions.ActiveSelf = false;
+                    }
+
+                    var feedValueFieldInterface = template.AttachComponent(typeof(FeedValueFieldInterface<>).MakeGenericType(typeToInject));
+
+                    ((FeedItemInterface)feedValueFieldInterface).ItemName.Target = text.Content;
+
+                    if (feedValueFieldInterface.GetSyncMember("Value") is ISyncRef valueField)
+                    {
+                        valueField.Target = member;
+                    }
+                    else
+                    {
+                        Logger.Error(() => "Could not get Value sync member from attached FeedValueFieldInterface component!");
+                    }
 
                     var innerInterfaceSlot = templatesRoot.FindChild("InnerContainerItem");
                     if (innerInterfaceSlot != null)
                     {
                         var innerInterface = innerInterfaceSlot.GetComponent<FeedItemInterface>();
-                        feedValueFieldInterface.ParentContainer.Target = innerInterface;
+
+                        ((FeedItemInterface)feedValueFieldInterface).ParentContainer.Target = innerInterface;
                     }
                     else
                     {
-                        Logger.Error(() => "InnerContainerItem slot is null in EnsureColorXTemplate!");
+                        Logger.Error(() => "InnerContainerItem slot is null in EnsurePrimitiveValueTemplate!");
                     }
 
-                    mapping.Template.Target = feedValueFieldInterface;
+                    mapping.Template.Target = (FeedItemInterface)feedValueFieldInterface;
 
                     if (changeIndex)
                     {
@@ -174,17 +224,17 @@ namespace MonkeyLoader.Resonite.Configuration
                         mapper.Mappings.MoveToIndex(mapper.Mappings.Count() - 1, mapper.Mappings.Count() - 2);
                     }
 
-                    Logger.Info(() => $"Injected DataFeedValueField<colorX> template");
+                    Logger.Info(() => $"Injected DataFeedValueField<{typeToInject.Name}> template");
                 }
                 else
                 {
-                    Logger.Error(() => "Could not find Templates slot in EnsureColorXTemplate!");
+                    Logger.Error(() => "Could not find Templates slot in EnsurePrimitiveValueTemplate!");
                 }
             }
             else
             {
                 // This could cause some log spam
-                Logger.Trace(() => "Existing DataFeedValueField<colorX> template found.");
+                //Logger.Trace(() => $"Existing DataFeedValueField<{typeToInject.Name}> template found.");
             }
         }
 
@@ -535,8 +585,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     break;
             }
 
-            var mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
-            mapper?.RunSynchronously(() => EnsureColorXTemplate(mapper));
+            _cachedDataFeedItemMapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
 
             __result = path.Count switch
             {
@@ -622,6 +671,11 @@ namespace MonkeyLoader.Resonite.Configuration
             InitBase(valueField, path, configKey);
             valueField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
 
+            if (GenericTypesAttribute.GetTypes(GenericTypesAttribute.Group.EnginePrimitives).Contains(typeof(T)) || typeof(T) == typeof(Type))
+            {
+                _cachedDataFeedItemMapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(_cachedDataFeedItemMapper, typeof(T)));
+            }
+
             return valueField;
         }
 
@@ -635,7 +689,10 @@ namespace MonkeyLoader.Resonite.Configuration
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
             if (rootCategoryView.FilterWorldElement() != null && rootCategoryView.Path.Last() == category)
+            {
+                Logger.Debug(() => $"Moving up from category: {category}");
                 rootCategoryView.MoveUpInCategory();
+            }
         }
 
         private static void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
