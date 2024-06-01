@@ -671,9 +671,10 @@ namespace MonkeyLoader.Resonite.Configuration
             InitBase(valueField, path, configKey);
             valueField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
 
-            if (GenericTypesAttribute.GetTypes(GenericTypesAttribute.Group.EnginePrimitives).Contains(typeof(T)) || typeof(T) == typeof(Type))
+            var valueType = typeof(T);
+            if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
             {
-                _cachedDataFeedItemMapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(_cachedDataFeedItemMapper, typeof(T)));
+                _cachedDataFeedItemMapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(_cachedDataFeedItemMapper, valueType));
             }
 
             return valueField;
