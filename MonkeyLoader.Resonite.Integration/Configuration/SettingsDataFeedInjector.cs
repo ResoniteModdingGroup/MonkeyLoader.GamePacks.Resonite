@@ -6,6 +6,7 @@ using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Locale;
@@ -18,6 +19,138 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
+    internal sealed class ModSettingStandaloneFacet : ResoniteMonkey<ModSettingStandaloneFacet>
+    {
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
+        private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
+        private const char SepChar = ':';
+
+        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
+        {
+            ((IField<T>)field).SyncWithConfigKey((IDefiningConfigKey<T>)key, eventLabel);
+        }
+
+        [HarmonyPatch(typeof(UIGrabInstancer), nameof(UIGrabInstancer.TryGrab))]
+        [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
+        class UIGrabInstancerPatch
+        {
+            [HarmonyPostfix]
+            private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable __result)
+            {
+                if (__result == null || __result is not Grabbable) return;
+                if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
+                if (__result.Slot.GetComponent<DynamicVariableSpace>(space => space.SpaceName == "SettingStandaloneFacet") != null)
+                {
+                    Logger.Info(() => "Instantiated settings standalone facet!");
+
+                    var feedItemInterface = __result.Slot.GetComponentInChildren<FeedItemInterface>();
+                    var localeStringDriver = __result.Slot.GetComponentInChildren<LocaleStringDriver>();
+                    if (feedItemInterface != null && localeStringDriver != null)
+                    {
+                        Logger.Info(() => __result.Name);
+                        Logger.Info(() => feedItemInterface.ItemName.Target?.Value ?? "NULL");
+                        Logger.Info(() => localeStringDriver.Key.Value ?? "NULL");
+
+                        foreach (var mod in Mod.Loader.Mods)
+                        {
+                            if (localeStringDriver.Key.Value.StartsWith(mod.Title))
+                            {
+                                Logger.Info(() => mod.Title ?? "NULL");
+
+                                foreach (var configSection in mod.Config.Sections)
+                                {
+                                    foreach (var configKey in configSection.Keys)
+                                    {
+                                        if (localeStringDriver.Key == configKey.GetLocaleKey("Name"))
+                                        {
+                                            Logger.Info(() => "Found config key!");
+                                            Logger.Info(() => configKey.Id);
+                                            Logger.Info(() => configKey.GetValue() ?? "NULL");
+                                            __result.Slot.Tag = "MonkeyLoaderStandaloneFacet";
+                                            __result.Slot.AttachComponent<Comment>().Text.Value = string.Join(SepChar.ToString(), new string[] { mod.Title, configSection.Name, configKey.Id }); ;
+                                            if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
+                                            {
+                                                var field = (IField)valueField.Target;
+                                                var genericMethod =_syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
+                                                genericMethod.Invoke(null, new object[] { field, configKey, SettingsDataFeedInjector.ConfigKeyChangeLabel });
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+
+                                //foreach (var monkey in mod.Monkeys)
+                                //{
+                                //    eventData.AddMessage(monkey.GetLocaleKey("Name"), monkey.Name);
+                                //    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
+                                //}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Facet), nameof(Facet.OnLoading))]
+        [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
+        class FacetPatch
+        {
+            [HarmonyPostfix]
+            private static void OnLoadingPostfix(Facet __instance)
+            {
+                //if (!Engine.Current.IsReady) return;
+
+                //if (!__instance.World.IsUserspace()) return;
+
+                //Logger.Info(() => "Facet OnAwake!");
+
+                __instance.RunSynchronously(() =>
+                {
+                    if (__instance.Slot.Tag != "MonkeyLoaderStandaloneFacet") return;
+
+                    Logger.Info(() => "Loaded a mod setting standalone facet!");
+
+                    var comment = __instance.Slot.GetComponent<Comment>();
+                    var feedItemInterface = __instance.Slot.GetComponentInChildren<FeedItemInterface>();
+
+                    if (comment?.Text != null && feedItemInterface != null)
+                    {
+                        var parts = comment.Text.Value.Split(SepChar);
+                        if (parts.Length != 3)
+                        {
+                            Logger.Error(() => "Malformed comment text in mod setting standalone facet: " + comment.Text);
+                        }
+
+                        var modTitle = parts[0];
+                        var configSectionName = parts[1];
+                        var configKeyId = parts[2];
+
+                        var mod = Mod.Loader.Mods.FirstOrDefault(mod => mod.Title == modTitle);
+                        if (mod != null)
+                        {
+                            var configSection = mod.Config.Sections.FirstOrDefault(section => section.Name == configSectionName);
+                            if (configSection != null)
+                            {
+                                var configKey = configSection.Keys.FirstOrDefault(key => key.Id == configKeyId);
+                                if (configKey != null)
+                                {
+                                    Logger.Info(() => "Found mod config key for standalone facet!");
+                                    if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
+                                    {
+                                        var field = (IField)valueField.Target;
+                                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
+                                        genericMethod.Invoke(null, new object[] { field, configKey, SettingsDataFeedInjector.ConfigKeyChangeLabel });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
     internal sealed class SettingsDataFeedInjector : ResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, FallbackLocaleGenerationEvent>
