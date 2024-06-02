@@ -39,6 +39,7 @@ namespace MonkeyLoader.Resonite.Configuration
             private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable __result)
             {
                 if (__result == null || __result is not Grabbable) return;
+                if (!__instance.World.IsUserspace()) return;
                 if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
                 if (__result.Slot.GetComponent<DynamicVariableSpace>(space => space.SpaceName == "SettingStandaloneFacet") != null)
                 {
@@ -48,15 +49,15 @@ namespace MonkeyLoader.Resonite.Configuration
                     var localeStringDriver = __result.Slot.GetComponentInChildren<LocaleStringDriver>();
                     if (feedItemInterface != null && localeStringDriver != null)
                     {
-                        Logger.Info(() => __result.Name);
-                        Logger.Info(() => feedItemInterface.ItemName.Target?.Value ?? "NULL");
-                        Logger.Info(() => localeStringDriver.Key.Value ?? "NULL");
+                        Logger.Debug(() => __result.Name);
+                        Logger.Debug(() => feedItemInterface.ItemName.Target?.Value ?? "NULL");
+                        Logger.Debug(() => localeStringDriver.Key.Value ?? "NULL");
 
                         foreach (var mod in Mod.Loader.Mods)
                         {
                             if (localeStringDriver.Key.Value.StartsWith(mod.Title))
                             {
-                                Logger.Info(() => mod.Title ?? "NULL");
+                                Logger.Debug(() => mod.Title ?? "NULL");
 
                                 foreach (var configSection in mod.Config.Sections)
                                 {
@@ -64,9 +65,8 @@ namespace MonkeyLoader.Resonite.Configuration
                                     {
                                         if (localeStringDriver.Key == configKey.GetLocaleKey("Name"))
                                         {
-                                            Logger.Info(() => "Found config key!");
-                                            Logger.Info(() => configKey.Id);
-                                            Logger.Info(() => configKey.GetValue() ?? "NULL");
+                                            Logger.Debug(() => "Found config key!");
+                                            Logger.Debug(() => configKey.Id);
                                             __result.Slot.Tag = "MonkeyLoaderStandaloneFacet";
                                             __result.Slot.AttachComponent<Comment>().Text.Value = string.Join(SepChar.ToString(), new string[] { mod.Title, configSection.Name, configKey.Id }); ;
                                             if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
@@ -74,6 +74,7 @@ namespace MonkeyLoader.Resonite.Configuration
                                                 var field = (IField)valueField.Target;
                                                 var genericMethod =_syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
                                                 genericMethod.Invoke(null, new object[] { field, configKey, SettingsDataFeedInjector.ConfigKeyChangeLabel });
+                                                feedItemInterface.Slot.PersistentSelf = true;
                                             }
                                             return;
                                         }
@@ -99,14 +100,15 @@ namespace MonkeyLoader.Resonite.Configuration
             [HarmonyPostfix]
             private static void OnLoadingPostfix(Facet __instance)
             {
+                // Not sure if this is needed
                 //if (!Engine.Current.IsReady) return;
 
-                //if (!__instance.World.IsUserspace()) return;
-
-                //Logger.Info(() => "Facet OnAwake!");
+                if (!__instance.World.IsUserspace()) return;
 
                 __instance.RunSynchronously(() =>
                 {
+                    if (__instance.FilterWorldElement() == null) return;
+
                     if (__instance.Slot.Tag != "MonkeyLoaderStandaloneFacet") return;
 
                     Logger.Info(() => "Loaded a mod setting standalone facet!");
@@ -116,10 +118,12 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     if (comment?.Text != null && feedItemInterface != null)
                     {
+                        Logger.Debug(() => comment.Text);
                         var parts = comment.Text.Value.Split(SepChar);
                         if (parts.Length != 3)
                         {
                             Logger.Error(() => "Malformed comment text in mod setting standalone facet: " + comment.Text);
+                            return;
                         }
 
                         var modTitle = parts[0];
@@ -135,16 +139,18 @@ namespace MonkeyLoader.Resonite.Configuration
                                 var configKey = configSection.Keys.FirstOrDefault(key => key.Id == configKeyId);
                                 if (configKey != null)
                                 {
-                                    Logger.Info(() => "Found mod config key for standalone facet!");
+                                    Logger.Info(() => $"Found mod config key for standalone facet: {configKey.Id}");
                                     if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
                                     {
                                         var field = (IField)valueField.Target;
                                         var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
                                         genericMethod.Invoke(null, new object[] { field, configKey, SettingsDataFeedInjector.ConfigKeyChangeLabel });
+                                        return;
                                     }
                                 }
                             }
                         }
+                        Logger.Error(() => "Could not find config key for facet.");
                     }
                 });
             }
