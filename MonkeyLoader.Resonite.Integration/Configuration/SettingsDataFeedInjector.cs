@@ -82,7 +82,7 @@ namespace MonkeyLoader.Resonite.Configuration
             private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable __result)
             {
                 if (__result == null || __result is not Grabbable) return;
-                //if (!__instance.World.IsUserspace()) return;
+                if (!__instance.World.IsUserspace()) return;
                 if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
                 if (__result.Slot.GetComponent<DynamicVariableSpace>(space => space.SpaceName == "SettingStandaloneFacet") != null)
                 {
@@ -162,7 +162,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 // Not sure if this is needed
                 //if (!Engine.Current.IsReady) return;
 
-                //if (!__instance.World.IsUserspace()) return;
+                if (!__instance.World.IsUserspace()) return;
 
                 __instance.RunSynchronously(() =>
                 {
@@ -737,7 +737,7 @@ namespace MonkeyLoader.Resonite.Configuration
             if (path.Count == 0 || path[0] != "MonkeyLoader")
                 return true;
 
-            if (false && !__instance.World.IsUserspace())
+            if (!__instance.World.IsUserspace())
             {
                 __result = WorldNotUserspaceWarning(path);
                 return false;
