@@ -16,16 +16,29 @@ namespace MonkeyLoader.Resonite
             field.Value = configKey.GetValue()!;
             eventLabel ??= $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
 
-            void Handler(IChangeable _)
+            void FieldChangedHandler(IChangeable _)
             {
+                if (field.Value.Equals(configKey.GetValue())) return;
                 if (allowWriteBack)
                     configKey.SetValue(field.Value, eventLabel);
                 else
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
             }
+            void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T> args)
+            {
+                if (field.FilterWorldElement() == null)
+                {
+                    configKey.Changed -= ConfigKeyChangedHandler;
+                    return;
+                }
+                if (field.Value.Equals(configKey.GetValue())) return;
+                field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+            }
 
-            field.Changed += Handler;
-            return Handler;
+            field.Changed += FieldChangedHandler;
+            configKey.Changed += ConfigKeyChangedHandler;
+
+            return FieldChangedHandler;
         }
     }
 }
