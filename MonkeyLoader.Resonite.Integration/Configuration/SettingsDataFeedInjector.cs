@@ -83,71 +83,57 @@ namespace MonkeyLoader.Resonite.Configuration
             {
                 if (__result == null || __result is not Grabbable) return;
                 if (!__instance.World.IsUserspace()) return;
+                if (__result.Slot.GetComponent<Facet>() == null) return;
+                if (__instance.Slot.GetComponentInParents<FeedItemInterface>() == null) return;
                 if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
-                if (__result.Slot.GetComponent<DynamicVariableSpace>(space => space.SpaceName == "SettingStandaloneFacet") != null)
+                var feedItemInterface = __result.Slot.GetComponentInChildren<FeedItemInterface>();
+                var comment = feedItemInterface?.Slot.GetComponent<Comment>();
+                if (feedItemInterface != null && comment?.Text != null)
                 {
-                    var feedItemInterface = __result.Slot.GetComponentInChildren<FeedItemInterface>();
-                    var comment = feedItemInterface?.Slot.GetComponent<Comment>();
-                    if (feedItemInterface != null && comment?.Text != null)
+                    // Do these checks to make sure it's not a vanilla settings facet
+                    // This might not actually be needed, since vanilla facets probably don't have the comment component
+                    if (feedItemInterface.Slot.GetComponentInChildren<FrooxEngine.Component>(component => component.GetType().IsGenericType && component.GetType().GetGenericTypeDefinition() == typeof(SettingValueSync<,>)) != null) return;
+
+                    Logger.Info(() => "Instantiated mod setting standalone facet!");
+
+                    Logger.Debug(() => "ItemName: " + feedItemInterface.ItemName.Target?.Value ?? "NULL");
+                    Logger.Debug(() => "Config Key FullId: " + comment.Text);
+
+                    var foundKey = GetConfigKeyByFullId(comment.Text);
+                    if (foundKey != null)
                     {
-                        // Do these checks to make sure it's not a vanilla settings facet
-                        // This might not actually be needed
-                        if (feedItemInterface.Slot.GetComponentInChildren<FrooxEngine.Component>(component => component.GetType().IsGenericType && component.GetType().GetGenericTypeDefinition() == typeof(SettingValueSync<,>)) != null) return;
-
-                        Logger.Info(() => "Instantiated mod setting standalone facet!");
-
-                        Logger.Debug(() => "ItemName: " + feedItemInterface.ItemName.Target?.Value ?? "NULL");
-                        Logger.Debug(() => "Config Key FullId: " + comment.Text);
-
-                        var foundKey = GetConfigKeyByFullId(comment.Text);
-                        if (foundKey != null)
+                        Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
+                        __result.Slot.Tag = ModSettingStandaloneFacetTag;
+                        if (foundKey.Section is MonkeyTogglesConfigSection)
                         {
-                            Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
-                            __result.Slot.Tag = ModSettingStandaloneFacetTag;
-                            if (foundKey.Section is MonkeyTogglesConfigSection)
+                            var field = feedItemInterface.ItemName.Target;
+                            if (field != null)
                             {
-                                var field = feedItemInterface.ItemName.Target;
-                                if (field != null)
+                                if (field.IsDriven)
                                 {
-                                    var fieldSlot = field.FindNearestParent<Slot>();
-                                    var newLocaleStringDriver = fieldSlot.AttachComponent<LocaleStringDriver>();
-                                    newLocaleStringDriver.Key.Value = foundKey.GetLocaleKey("Name");
-                                    var concatDriver = fieldSlot.AttachComponent<StringConcatenationDriver>();
-                                    concatDriver.Separator.Value = " ";
-                                    var targetField = concatDriver.Strings.Add();
-                                    newLocaleStringDriver.Target.Target = targetField;
-                                    newLocaleStringDriver.Locale.Target = targetField.GetCoreLocale();
-                                    if (field.IsDriven)
+                                    if (field.ActiveLink.Parent is LocaleStringDriver localeStringDriver)
                                     {
-                                        if (field.ActiveLink.Parent is LocaleStringDriver localeStringDriver)
-                                        {
-                                            //localeStringDriver.Format.Value = ((IResoniteMonkey)foundKey.Config.Owner).GetLocaleKey("Name") + " {0}";
-                                            field.ReleaseLink(field.ActiveLink);
-                                            localeStringDriver.Target.Target = concatDriver.Strings.Add();
-                                            concatDriver.TargetString.Target = field;
-                                            
-                                        }
-                                    }
-                                    else
-                                    {
-                                        //field.Value = $"{foundKey.Id} {field.Value}";
-                                        concatDriver.Strings.Add().Value = field.Value;
-                                        concatDriver.TargetString.Target = field;
+                                        localeStringDriver.Key.Value = foundKey.GetLocaleKey("Name");
                                     }
                                 }
-                            }
-                            if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
-                            {
-                                var field = (IField)valueField.Target;
-                                var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
-                                genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
-                                feedItemInterface.Slot.PersistentSelf = true;
-                                return;
+                                else
+                                {
+                                    // Drive the field with the localized value
+                                    field.DriveLocalized(foundKey.GetLocaleKey("Name"));
+                                }
                             }
                         }
-
-                        Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
+                        if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
+                        {
+                            var field = (IField)valueField.Target;
+                            var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
+                            genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
+                            feedItemInterface.Slot.PersistentSelf = true;
+                            return;
+                        }
                     }
+
+                    Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
                 }
             }
         }
@@ -253,6 +239,28 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 eventData.AddMessage(mod.GetLocaleKey("Description"), mod.Description);
 
+                foreach (var monkey in mod.Monkeys)
+                {
+                    var monkeyNameKey = monkey.GetLocaleKey("Name");
+                    
+                    eventData.AddMessage(monkeyNameKey, monkey.Name);
+                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
+
+                    if (monkey.CanBeDisabled)
+                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(monkey).GetLocaleKey("Name"), $"{eventData.GetMessage(monkeyNameKey)} Enabled");
+                }
+
+                foreach (var earlyMonkey in mod.EarlyMonkeys)
+                {
+                    var earlyMonkeyNameKey = earlyMonkey.GetLocaleKey("Name");
+                    
+                    eventData.AddMessage(earlyMonkeyNameKey, earlyMonkey.Name);
+                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Description"), "No Description");
+
+                    if (earlyMonkey.CanBeDisabled)
+                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(earlyMonkey).GetLocaleKey("Name"), $"{eventData.GetMessage(earlyMonkeyNameKey)} Enabled");
+                }
+
                 foreach (var configSection in mod.Config.Sections)
                 {
                     eventData.AddMessage(configSection.GetLocaleKey("Name"), configSection.Name);
@@ -262,18 +270,6 @@ namespace MonkeyLoader.Resonite.Configuration
                         eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
                         eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
                     }
-                }
-
-                foreach (var monkey in mod.Monkeys)
-                {
-                    eventData.AddMessage(monkey.GetLocaleKey("Name"), monkey.Name);
-                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
-                }
-
-                foreach (var earlyMonkey in mod.EarlyMonkeys)
-                {
-                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Name"), earlyMonkey.Name);
-                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Description"), "No Description");
                 }
             }
 
@@ -739,7 +735,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             if (!__instance.World.IsUserspace())
             {
-                __result = WorldNotUserspaceWarning(path);
+                __result = WorldNotUserspaceWarningAsync(path);
                 return false;
             }
 
@@ -866,6 +862,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var slot = field.FindNearestParent<Slot>();
             if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
             {
+                // Adding the config key's full id to make it easier to create standalone facets
                 feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
             }
             field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
@@ -992,7 +989,7 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarning(IReadOnlyList<string> path)
+        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarningAsync(IReadOnlyList<string> path)
         {
             var warning = new DataFeedIndicator<string>();
             warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
