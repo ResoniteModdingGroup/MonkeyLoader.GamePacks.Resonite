@@ -6,6 +6,7 @@ using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Locale;
@@ -18,6 +19,171 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
+    internal sealed class ModSettingStandaloneFacet : ResoniteMonkey<ModSettingStandaloneFacet>
+    {
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+
+        private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
+        private const string ModSettingStandaloneFacetTag = "MonkeyLoaderStandaloneFacet";
+        public const string ConfigKeyChangeLabel = "StandaloneFacet";
+
+        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
+        {
+            ((IField<T>)field).SyncWithConfigKey((IDefiningConfigKey<T>)key, eventLabel);
+        }
+
+        private static IDefiningConfigKey? GetConfigKeyByFullId(string fullId)
+        {
+            if (fullId.StartsWith(Mod.Loader.Id))
+            {
+                var partialId = fullId.Remove(0, Mod.Loader.Id.Length + 1);
+                Logger.Debug(() => "Partial Id: " + partialId);
+                var loaderSection = Mod.Loader.Config.Sections.FirstOrDefault(section => partialId.StartsWith(section.Id));
+                if (loaderSection != null)
+                {
+                    var keyId = partialId.Remove(0, loaderSection.Id.Length + 1);
+                    if (loaderSection.TryGet<IDefiningConfigKey>().ById(keyId, out var loaderConfigKey))
+                    {
+                        return loaderConfigKey;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var mod in Mod.Loader.Mods)
+                {
+                    if (fullId.StartsWith(mod.Id))
+                    {
+                        var partialId = fullId.Remove(0, mod.Id.Length + 1);
+                        Logger.Debug(() => "Partial Id: " + partialId);
+                        if (mod.TryGet<IDefiningConfigKey>().ByPartialId(partialId, out var modConfigKey))
+                        {
+                            return modConfigKey;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Worst case scenario check everything
+            //if (Mod.Loader.TryGet<IDefiningConfigKey>().ByFullId(fullId, out var key))
+            //{
+            //    return key;
+            //}
+
+            return null;
+        }
+
+        [HarmonyPatch(typeof(UIGrabInstancer), nameof(UIGrabInstancer.TryGrab))]
+        [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
+        class UIGrabInstancerPatch
+        {
+            [HarmonyPostfix]
+            private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable __result)
+            {
+                if (__result == null || __result is not Grabbable) return;
+                if (!__instance.World.IsUserspace()) return;
+                if (__result.Slot.GetComponent<Facet>() == null) return;
+                if (__instance.Slot.GetComponentInParents<FeedItemInterface>() == null) return;
+                if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
+                var feedItemInterface = __result.Slot.GetComponentInChildren<FeedItemInterface>();
+                var comment = feedItemInterface?.Slot.GetComponent<Comment>();
+                if (feedItemInterface != null && comment?.Text != null)
+                {
+                    // Do these checks to make sure it's not a vanilla settings facet
+                    // This might not actually be needed, since vanilla facets probably don't have the comment component
+                    if (feedItemInterface.Slot.GetComponentInChildren<FrooxEngine.Component>(component => component.GetType().IsGenericType && component.GetType().GetGenericTypeDefinition() == typeof(SettingValueSync<,>)) != null) return;
+
+                    Logger.Info(() => "Instantiated mod setting standalone facet!");
+
+                    Logger.Debug(() => "ItemName: " + feedItemInterface.ItemName.Target?.Value ?? "NULL");
+                    Logger.Debug(() => "Config Key FullId: " + comment.Text);
+
+                    var foundKey = GetConfigKeyByFullId(comment.Text);
+                    if (foundKey != null)
+                    {
+                        Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
+                        __result.Slot.Tag = ModSettingStandaloneFacetTag;
+                        if (foundKey.Section is MonkeyTogglesConfigSection)
+                        {
+                            var field = feedItemInterface.ItemName.Target;
+                            if (field != null)
+                            {
+                                if (field.IsDriven)
+                                {
+                                    if (field.ActiveLink.Parent is LocaleStringDriver localeStringDriver)
+                                    {
+                                        localeStringDriver.Key.Value = foundKey.GetLocaleKey("Name");
+                                    }
+                                }
+                                else
+                                {
+                                    // Drive the field with the localized value
+                                    field.DriveLocalized(foundKey.GetLocaleKey("Name"));
+                                }
+                            }
+                        }
+                        if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
+                        {
+                            var field = (IField)valueField.Target;
+                            var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
+                            genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
+                            feedItemInterface.Slot.PersistentSelf = true;
+                            return;
+                        }
+                    }
+
+                    Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Facet), nameof(Facet.OnLoading))]
+        [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
+        class FacetPatch
+        {
+            [HarmonyPostfix]
+            private static void OnLoadingPostfix(Facet __instance)
+            {
+                // Not sure if this is needed
+                //if (!Engine.Current.IsReady) return;
+
+                if (!__instance.World.IsUserspace()) return;
+
+                __instance.RunSynchronously(() =>
+                {
+                    if (__instance.FilterWorldElement() == null) return;
+
+                    if (__instance.Slot.Tag != ModSettingStandaloneFacetTag) return;
+
+                    var feedItemInterface = __instance.Slot.GetComponentInChildren<FeedItemInterface>();
+                    var comment = feedItemInterface?.Slot.GetComponent<Comment>();
+
+                    if (comment?.Text != null && feedItemInterface != null)
+                    {
+                        Logger.Info(() => "Loaded a mod setting standalone facet!");
+                        Logger.Debug(() => "Config Key FullId: " + comment.Text);
+
+                        var foundKey = GetConfigKeyByFullId(comment.Text);
+                        if (foundKey != null)
+                        {
+                            Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
+                            if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
+                            {
+                                var field = (IField)valueField.Target;
+                                var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
+                                genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
+                                return;
+                            }
+                        }
+
+                        Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
+                    }
+                });
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
     internal sealed class SettingsDataFeedInjector : ResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, FallbackLocaleGenerationEvent>
@@ -73,6 +239,28 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 eventData.AddMessage(mod.GetLocaleKey("Description"), mod.Description);
 
+                foreach (var monkey in mod.Monkeys)
+                {
+                    var monkeyNameKey = monkey.GetLocaleKey("Name");
+                    
+                    eventData.AddMessage(monkeyNameKey, monkey.Name);
+                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
+
+                    if (monkey.CanBeDisabled)
+                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(monkey).GetLocaleKey("Name"), $"{eventData.GetMessage(monkeyNameKey)} Enabled");
+                }
+
+                foreach (var earlyMonkey in mod.EarlyMonkeys)
+                {
+                    var earlyMonkeyNameKey = earlyMonkey.GetLocaleKey("Name");
+                    
+                    eventData.AddMessage(earlyMonkeyNameKey, earlyMonkey.Name);
+                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Description"), "No Description");
+
+                    if (earlyMonkey.CanBeDisabled)
+                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(earlyMonkey).GetLocaleKey("Name"), $"{eventData.GetMessage(earlyMonkeyNameKey)} Enabled");
+                }
+
                 foreach (var configSection in mod.Config.Sections)
                 {
                     eventData.AddMessage(configSection.GetLocaleKey("Name"), configSection.Name);
@@ -82,18 +270,6 @@ namespace MonkeyLoader.Resonite.Configuration
                         eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
                         eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
                     }
-                }
-
-                foreach (var monkey in mod.Monkeys)
-                {
-                    eventData.AddMessage(monkey.GetLocaleKey("Name"), monkey.Name);
-                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
-                }
-
-                foreach (var earlyMonkey in mod.EarlyMonkeys)
-                {
-                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Name"), earlyMonkey.Name);
-                    eventData.AddMessage(earlyMonkey.GetLocaleKey("Description"), "No Description");
                 }
             }
 
@@ -498,7 +674,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 {
                     var toggle = new DataFeedToggle();
                     toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    toggle.InitSetupValue(field => field.SyncWithConfigKey(mod.MonkeyToggles.GetToggle(monkey)));
+                    toggle.InitSetupValue(field => SetupConfigKeyField(field, mod.MonkeyToggles.GetToggle(monkey)));
                     yield return toggle;
                 }
                 else
@@ -559,7 +735,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             if (!__instance.World.IsUserspace())
             {
-                __result = WorldNotUserspaceWarning(path);
+                __result = WorldNotUserspaceWarningAsync(path);
                 return false;
             }
 
@@ -602,7 +778,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
-            enumField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
+            enumField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return enumField;
         }
@@ -611,7 +787,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var indicator = new DataFeedIndicator<T>();
             InitBase(indicator, path, configKey);
-            indicator.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
+            indicator.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return indicator;
         }
@@ -639,7 +815,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             InitBase(quantityField, path, configKey);
             quantityField.InitUnitConfiguration(quantity.DefaultConfiguration, quantity.ImperialConfiguration);
-            quantityField.InitSetup(quantityField => quantityField.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), quantity.Min, quantity.Max);
+            quantityField.InitSetup(quantityField => SetupConfigKeyField(quantityField, configKey), quantity.Min, quantity.Max);
 
             return quantityField;
         }
@@ -648,7 +824,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var slider = new DataFeedSlider<T>();
             InitBase(slider, path, configKey);
-            slider.InitSetup(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel), range.Min, range.Max);
+            slider.InitSetup(field => SetupConfigKeyField(field, configKey), range.Min, range.Max);
 
             //if (!string.IsNullOrWhiteSpace(configKey.TextFormat))
             //    slider.InitFormatting(configKey.TextFormat);
@@ -660,7 +836,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var toggle = new DataFeedToggle();
             InitBase(toggle, path, configKey);
-            toggle.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
+            toggle.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return toggle;
         }
@@ -669,7 +845,8 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             var valueField = new DataFeedValueField<T>();
             InitBase(valueField, path, configKey);
-            valueField.InitSetupValue(field => field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel));
+            valueField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
+            
 
             var valueType = typeof(T);
             if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
@@ -678,6 +855,17 @@ namespace MonkeyLoader.Resonite.Configuration
             }
 
             return valueField;
+        }
+
+        private static void SetupConfigKeyField<T>(IField<T> field, IDefiningConfigKey<T> configKey)
+        {
+            var slot = field.FindNearestParent<Slot>();
+            if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+            {
+                // Adding the config key's full id to make it easier to create standalone facets
+                feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
+            }
+            field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
         }
 
         private static string GetLocalizedModName(Mod mod)
@@ -801,7 +989,7 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarning(IReadOnlyList<string> path)
+        private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarningAsync(IReadOnlyList<string> path)
         {
             var warning = new DataFeedIndicator<string>();
             warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
