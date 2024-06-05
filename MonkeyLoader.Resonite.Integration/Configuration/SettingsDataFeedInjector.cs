@@ -115,23 +115,26 @@ namespace MonkeyLoader.Resonite.Configuration
             if (typeToInject == typeof(colorX) && !_legacyColorXTemplateCleanupDone)
             {
                 Logger.Info(() => "Looking for previously injected colorX templates.");
+
                 foreach (var mapping in mapper.Mappings.Where(mapping => mapping.MatchingType == typeof(DataFeedValueField<colorX>) && mapping.Template.Target?.Slot.Name == LegacyInjectedColorXTemplateName).ToArray())
                 {
                     mapping.Template.Target.Slot.Destroy();
                     mapper.Mappings.Remove(mapping);
                     Logger.Info(() => "Cleaned up a previously injected colorX template.");
                 }
+
                 _legacyColorXTemplateCleanupDone = true;
             }
 
-            Type dataFeedValueFieldType = typeof(DataFeedValueField<>).MakeGenericType(typeToInject);
+            var dataFeedValueFieldType = typeof(DataFeedValueField<>).MakeGenericType(typeToInject);
             if (!mapper.Mappings.Any(mapping => mapping.MatchingType == dataFeedValueFieldType && mapping.Template.Target != null))
             {
                 var templatesRoot = mapper.Slot.Parent?.FindChild("Templates");
                 if (templatesRoot != null)
                 {
-                    bool changeIndex = false;
-                    DataFeedItemMapper.ItemMapping mapping = mapper.Mappings.FirstOrDefault(mapping => mapping.MatchingType == dataFeedValueFieldType && mapping.Template.Target == null);
+                    var changeIndex = false;
+                    var mapping = mapper.Mappings.FirstOrDefault(mapping => mapping.MatchingType == dataFeedValueFieldType && mapping.Template.Target == null);
+
                     if (mapping == null)
                     {
                         mapping = mapper.Mappings.Add();
@@ -143,10 +146,13 @@ namespace MonkeyLoader.Resonite.Configuration
                     template.ActiveSelf = false;
                     template.PersistentSelf = false;
                     template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
+
                     var ui = new UIBuilder(template);
                     RadiantUI_Constants.SetupEditorStyle(ui);
+
                     ui.ForceNext = template.AttachComponent<RectTransform>();
                     ui.HorizontalLayout(11.78908f, 11.78908f);
+
                     var text = ui.Text("Label");
                     text.Size.Value = 24f;
                     text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
@@ -154,29 +160,34 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     ui.Spacer(128f);
 
-                    FrooxEngine.Component component = null;
-                    ISyncMember member = null;
-                    FieldInfo fieldInfo = null;
+                    FrooxEngine.Component? component = null;
+                    ISyncMember? member = null;
+                    FieldInfo? fieldInfo = null;
+
                     if (typeToInject == typeof(Type))
                     {
                         component = template.AttachComponent(typeof(TypeField));
                         member = component.GetSyncMember("Type");
+
                         if (member == null)
                         {
                             Logger.Error(() => "Could not get Type sync member from attached TypeField component!");
                             return;
                         }
+
                         fieldInfo = component.GetSyncMemberFieldInfo("Type");
                     }
                     else
                     {
                         component = template.AttachComponent(typeof(ValueField<>).MakeGenericType(typeToInject));
                         member = component.GetSyncMember("Value");
+
                         if (member == null)
                         {
                             Logger.Error(() => $"Could not get Value sync member from attached ValueField<{typeToInject.Name}> component!");
                             return;
                         }
+
                         fieldInfo = component.GetSyncMemberFieldInfo("Value");
                     }
 
@@ -186,22 +197,16 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     var memberActions = ui.Root?.GetComponentInChildren<InspectorMemberActions>()?.Slot;
                     if (memberActions != null)
-                    {
                         memberActions.ActiveSelf = false;
-                    }
 
                     var feedValueFieldInterface = template.AttachComponent(typeof(FeedValueFieldInterface<>).MakeGenericType(typeToInject));
 
                     ((FeedItemInterface)feedValueFieldInterface).ItemName.Target = text.Content;
 
-                    if (feedValueFieldInterface.GetSyncMember("Value") is ISyncRef valueField)
-                    {
-                        valueField.Target = member;
-                    }
-                    else
-                    {
+                    if (feedValueFieldInterface.GetSyncMember("Value") is not ISyncRef valueField)
                         Logger.Error(() => "Could not get Value sync member from attached FeedValueFieldInterface component!");
-                    }
+                    else
+                        valueField.Target = member;
 
                     var innerInterfaceSlot = templatesRoot.FindChild("InnerContainerItem");
                     if (innerInterfaceSlot != null)
@@ -268,6 +273,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
         {
+            await Task.CompletedTask;
+
             foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly && key.ValueType != typeof(dummy)))
             {
                 //if (setting is SettingIndicatorProperty)
@@ -299,6 +306,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModMetadataAsync(IReadOnlyList<string> path, Mod mod)
         {
+            await Task.CompletedTask;
+
             var modGroup = new DataFeedGroup();
             modGroup.InitBase("Metadata", path, null, Mod.GetLocaleString("Mod.Metadata"));
             yield return modGroup;
@@ -357,6 +366,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModsAsync(IReadOnlyList<string> path)
         {
+            await Task.CompletedTask;
+
             var modsGroup = new DataFeedGroup();
             modsGroup.InitBase("Mods.Group", path, null, Mod.GetLocaleString("Mods"));
             yield return modsGroup;
@@ -467,6 +478,8 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(IReadOnlyList<string> path, Mod mod, string monkeyType)
         {
+            await Task.CompletedTask;
+
             var monkeys = monkeyType switch
             {
                 Monkeys => mod.Monkeys.ToArray(),
@@ -759,25 +772,28 @@ namespace MonkeyLoader.Resonite.Configuration
             if (modOrLoaderId == Mod.Loader.Id)
             {
                 Logger.Info(() => $"Resetting config to default for loader: {modOrLoaderId}");
+
                 foreach (var key in Mod.Loader.Config.ConfigurationItemDefinitions)
                 {
                     key.TryComputeDefault(out var defaultValue);
                     key.SetValue(defaultValue, "Default");
                 }
+
+                return;
             }
-            else
+
+            if (!Mod.Loader.TryGet<Mod>().ById(modOrLoaderId, out var mod))
             {
-                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
-                {
-                    Logger.Error(() => $"Tried to reset config to default for non-existent mod: {modOrLoaderId}");
-                    return;
-                }
-                Logger.Info(() => $"Resetting config to default for mod: {modOrLoaderId}");
-                foreach (var key in mod.Config.ConfigurationItemDefinitions)
-                {
-                    key.TryComputeDefault(out var defaultValue);
-                    key.SetValue(defaultValue, "Default");
-                }
+                Logger.Error(() => $"Tried to reset config to default for non-existent mod: {modOrLoaderId}");
+                return;
+            }
+
+            Logger.Info(() => $"Resetting config to default for mod: {modOrLoaderId}");
+
+            foreach (var key in mod.Config.ConfigurationItemDefinitions)
+            {
+                key.TryComputeDefault(out var defaultValue);
+                key.SetValue(defaultValue, "Default");
             }
         }
 
@@ -786,33 +802,38 @@ namespace MonkeyLoader.Resonite.Configuration
             if (modOrLoaderId == Mod.Loader.Id)
             {
                 Logger.Info(() => $"Saving config for loader: {modOrLoaderId}");
+
                 Mod.Loader.Config.Save();
+                return;
             }
-            else
+
+            if (!Mod.Loader.TryGet<Mod>().ById(modOrLoaderId, out var mod))
             {
-                if (!Mod.Loader.TryFindModById(modOrLoaderId, out var mod))
-                {
-                    Logger.Error(() => $"Tried to save config for non-existent mod: {modOrLoaderId}");
-                    return;
-                }
-                Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
-                mod.Config.Save();
+                Logger.Error(() => $"Tried to save config for non-existent mod: {modOrLoaderId}");
+                return;
             }
+
+            Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
+            mod.Config.Save();
         }
 
         private static void SetupConfigKeyField<T>(IField<T> field, IDefiningConfigKey<T> configKey)
         {
             var slot = field.FindNearestParent<Slot>();
+
             if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
             {
                 // Adding the config key's full id to make it easier to create standalone facets
                 feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
             }
+
             field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
         }
 
         private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarningAsync(IReadOnlyList<string> path)
         {
+            await Task.CompletedTask;
+
             var warning = new DataFeedIndicator<string>();
             warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
             warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleKey("WorldNotUserspace").AsLocaleKey()));
@@ -821,6 +842,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static async IAsyncEnumerable<DataFeedItem> YieldBreakAsync()
         {
+            await Task.CompletedTask;
             yield break;
         }
     }

@@ -28,7 +28,9 @@ namespace MonkeyLoader.Resonite.Configuration
             {
                 var partialId = fullId.Remove(0, Mod.Loader.Id.Length + 1);
                 Logger.Debug(() => "Partial Id: " + partialId);
+
                 var loaderSection = Mod.Loader.Config.Sections.FirstOrDefault(section => partialId.StartsWith(section.Id));
+
                 if (loaderSection != null)
                 {
                     var keyId = partialId.Remove(0, loaderSection.Id.Length + 1);
@@ -47,9 +49,8 @@ namespace MonkeyLoader.Resonite.Configuration
                         var partialId = fullId.Remove(0, mod.Id.Length + 1);
                         Logger.Debug(() => "Partial Id: " + partialId);
                         if (mod.TryGet<IDefiningConfigKey>().ByPartialId(partialId, out var modConfigKey))
-                        {
                             return modConfigKey;
-                        }
+
                         break;
                     }
                 }
@@ -65,9 +66,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
-        {
-            ((IField<T>)field).SyncWithConfigKey((IDefiningConfigKey<T>)key, eventLabel);
-        }
+            => ((IField<T>)field).SyncWithConfigKey((IDefiningConfigKey<T>)key, eventLabel);
 
         [HarmonyPatch(typeof(Facet), nameof(Facet.OnLoading))]
         [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
@@ -76,39 +75,39 @@ namespace MonkeyLoader.Resonite.Configuration
             [HarmonyPostfix]
             private static void OnLoadingPostfix(Facet __instance)
             {
-                // Not sure if this is needed
-                //if (!Engine.Current.IsReady) return;
-
-                if (!__instance.World.IsUserspace()) return;
+                if (!__instance.World.IsUserspace())
+                    return;
 
                 __instance.RunSynchronously(() =>
                 {
-                    if (__instance.FilterWorldElement() == null) return;
+                    if (__instance.FilterWorldElement() is null
+                        || __instance.Slot.Tag != ModSettingStandaloneFacetTag)
+                        return;
 
-                    if (__instance.Slot.Tag != ModSettingStandaloneFacetTag) return;
-
-                    var feedItemInterface = __instance.Slot.GetComponentInChildren<FeedItemInterface>();
-                    var comment = feedItemInterface?.Slot.GetComponent<Comment>();
-
-                    if (comment?.Text != null && feedItemInterface != null)
+                    if (__instance.Slot.GetComponentInChildren<FeedItemInterface>() is not FeedItemInterface feedItemInterface
+                        || feedItemInterface?.Slot.GetComponent<Comment>()?.Text.Value is not string commentText)
                     {
-                        Logger.Info(() => "Loaded a mod setting standalone facet!");
-                        Logger.Debug(() => "Config Key FullId: " + comment.Text);
+                        Logger.Warn(() => "Attempted to load a Facet with the standalone ModSetting tag that was missing its FeedItemInterface and/or config key id.");
+                        Logger.Warn(() => __instance.Slot);
+                        return;
+                    }
 
-                        var foundKey = GetConfigKeyByFullId(comment.Text);
-                        if (foundKey != null)
-                        {
-                            Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
-                            if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
-                            {
-                                var field = (IField)valueField.Target;
-                                var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
-                                genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
-                                return;
-                            }
-                        }
+                    Logger.Info(() => "Loaded a mod setting standalone facet!");
+                    Logger.Debug(() => "Config Key FullId: " + commentText);
 
-                        Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
+                    if (GetConfigKeyByFullId(commentText) is not IDefiningConfigKey foundKey)
+                    {
+                        Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {commentText}");
+                        return;
+                    }
+
+                    Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
+
+                    if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
+                    {
+                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { valueField.ValueType });
+                        genericMethod.Invoke(null, new object[] { valueField, foundKey, ConfigKeyChangeLabel });
+                        return;
                     }
                 });
             }
@@ -119,61 +118,56 @@ namespace MonkeyLoader.Resonite.Configuration
         private class UIGrabInstancerPatch
         {
             [HarmonyPostfix]
-            private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable __result)
+            private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable? __result)
             {
-                if (__result == null || __result is not Grabbable) return;
-                if (!__instance.World.IsUserspace()) return;
-                if (__result.Slot.GetComponent<Facet>() == null) return;
-                if (__instance.Slot.GetComponentInParents<FeedItemInterface>() == null) return;
-                if (__instance.Slot.GetComponentInParents<SettingsDataFeed>() == null) return;
-                var feedItemInterface = __result.Slot.GetComponentInChildren<FeedItemInterface>();
-                var comment = feedItemInterface?.Slot.GetComponent<Comment>();
-                if (feedItemInterface != null && comment?.Text != null)
+                if (!__instance.World.IsUserspace() || __result?.Slot.GetComponent<Facet>() is null
+                    || __instance.Slot.GetComponentInParents<SettingsDataFeed>() is null
+                    || __instance.Slot.GetComponentInParents<FeedItemInterface>() is not FeedItemInterface feedItemInterface
+                    || feedItemInterface?.Slot.GetComponent<Comment>()?.Text.Value is not string commentText)
+                    return;
+
+                // Do these checks to make sure it's not a vanilla settings facet
+                // This might not actually be needed, since vanilla facets probably don't have the comment component
+                if (feedItemInterface.Slot.GetComponentInChildren<Component>(component => component.GetType().IsGenericType && component.GetType().GetGenericTypeDefinition() == typeof(SettingValueSync<,>)) != null)
+                    return;
+
+                Logger.Info(() => "Instantiated mod setting standalone facet!");
+
+                Logger.Debug(() => "ItemName: " + feedItemInterface.ItemName.Target?.Value ?? "NULL");
+                Logger.Debug(() => "Config Key FullId: " + commentText);
+
+                var foundKey = GetConfigKeyByFullId(commentText);
+                if (foundKey is null)
                 {
-                    // Do these checks to make sure it's not a vanilla settings facet
-                    // This might not actually be needed, since vanilla facets probably don't have the comment component
-                    if (feedItemInterface.Slot.GetComponentInChildren<FrooxEngine.Component>(component => component.GetType().IsGenericType && component.GetType().GetGenericTypeDefinition() == typeof(SettingValueSync<,>)) != null) return;
+                    Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {commentText}");
+                    return;
+                }
 
-                    Logger.Info(() => "Instantiated mod setting standalone facet!");
+                Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
+                __result.Slot.Tag = ModSettingStandaloneFacetTag;
 
-                    Logger.Debug(() => "ItemName: " + feedItemInterface.ItemName.Target?.Value ?? "NULL");
-                    Logger.Debug(() => "Config Key FullId: " + comment.Text);
-
-                    var foundKey = GetConfigKeyByFullId(comment.Text);
-                    if (foundKey != null)
+                if (foundKey.Section is MonkeyTogglesConfigSection
+                    && feedItemInterface.ItemName.Target is IField<string> field)
+                {
+                    if (field.IsDriven && field.GetLocalizedDriver() is LocaleStringDriver localeStringDriver)
                     {
-                        Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
-                        __result.Slot.Tag = ModSettingStandaloneFacetTag;
-                        if (foundKey.Section is MonkeyTogglesConfigSection)
-                        {
-                            var field = feedItemInterface.ItemName.Target;
-                            if (field != null)
-                            {
-                                if (field.IsDriven)
-                                {
-                                    if (field.ActiveLink.Parent is LocaleStringDriver localeStringDriver)
-                                    {
-                                        localeStringDriver.Key.Value = foundKey.GetLocaleKey("Name");
-                                    }
-                                }
-                                else
-                                {
-                                    // Drive the field with the localized value
-                                    field.DriveLocalized(foundKey.GetLocaleKey("Name"));
-                                }
-                            }
-                        }
-                        if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueField && valueField.Target != null)
-                        {
-                            var field = (IField)valueField.Target;
-                            var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { field.ValueType });
-                            genericMethod.Invoke(null, new object[] { field, foundKey, ConfigKeyChangeLabel });
-                            feedItemInterface.Slot.PersistentSelf = true;
-                            return;
-                        }
+                        localeStringDriver.Key.Value = foundKey.GetLocaleKey("Name");
                     }
+                    else
+                    {
+                        // Drive the field with the localized value
+                        field.ActiveLink.ReleaseLink();
+                        field.DriveLocalized(foundKey.GetLocaleKey("Name"));
+                    }
+                }
 
-                    Logger.Error(() => $"Could not sync a config key with a standalone facet! Comment text: {comment.Text}");
+                if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
+                {
+                    var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { valueField.ValueType });
+                    genericMethod.Invoke(null, new object[] { valueField, foundKey, ConfigKeyChangeLabel });
+
+                    feedItemInterface.Slot.PersistentSelf = true;
+                    return;
                 }
             }
         }
