@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.17.0-beta-identifiables" />
+    <PackageReference Include="MonkeyLoader" Version="0.17.1-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -63,12 +63,12 @@
     <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Quantity" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.5.29.130" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.5.31.202" />
     <PackageReference Include="Resonite.FrooxEngine.Store" Version="1.0.2" />
     <PackageReference Include="Resonite.LiteDB" Version="5.0.19" />
     <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.9" />
     <PackageReference Include="System.Text.Json" Version="8.0.2" />
-    <PackageReference Include="Zio" Version="0.17.0" />
+    <PackageReference Include="Zio" Version="0.18.0" />
   </ItemGroup>
 
   <ItemGroup>
