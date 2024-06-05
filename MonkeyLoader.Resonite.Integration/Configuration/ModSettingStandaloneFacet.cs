@@ -120,9 +120,11 @@ namespace MonkeyLoader.Resonite.Configuration
             [HarmonyPostfix]
             private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable? __result)
             {
-                if (!__instance.World.IsUserspace() || __result?.Slot.GetComponent<Facet>() is null
+                if (!__instance.World.IsUserspace() || __result is not Grabbable 
+                    || __result?.Slot.GetComponent<Facet>() is null
+                    || __instance.Slot.GetComponentInParents<FeedItemInterface>() is null
                     || __instance.Slot.GetComponentInParents<SettingsDataFeed>() is null
-                    || __instance.Slot.GetComponentInParents<FeedItemInterface>() is not FeedItemInterface feedItemInterface
+                    || __result.Slot.GetComponentInChildren<FeedItemInterface>() is not FeedItemInterface feedItemInterface
                     || feedItemInterface?.Slot.GetComponent<Comment>()?.Text.Value is not string commentText)
                     return;
 
