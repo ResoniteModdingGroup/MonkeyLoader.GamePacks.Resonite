@@ -62,16 +62,16 @@ namespace MonkeyLoader.Resonite
             => $"{configSection.FullId}.{key}";
 
         /// <summary>
-        /// Creates a locale key prefixed with the <see cref="IDefiningConfigKey.FullId"/> in the format:
-        /// <c>$"{<paramref name="configKey"/>.<see cref="IDefiningConfigKey.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
+        /// Creates a locale key prefixed with the <see cref="INestedIdentifiable.FullId">FullId</see> in the format:
+        /// <c>$"{<paramref name="configKey"/>.<see cref="INestedIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
         /// </summary>
         /// <returns>The prefixed locale key.</returns>
         public static string GetLocaleKey(this IDefiningConfigKey configKey, string key)
             => $"{configKey.FullId}.{key}";
 
         /// <summary>
-        /// Creates a locale key prefixed with the <see cref="IMonkey.FullId"/> in the format:
-        /// <c>$"{<paramref name="monkey"/>.<see cref="IMonkey.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
+        /// Creates a locale key prefixed with the monkey's <see cref="INestedIdentifiable.FullId">FullId</see> in the format:
+        /// <c>$"{<paramref name="monkey"/>.<see cref="INestedIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
         /// </summary>
         /// <returns>The prefixed locale key.</returns>
         public static string GetLocaleKey(this IMonkey monkey, string key)
