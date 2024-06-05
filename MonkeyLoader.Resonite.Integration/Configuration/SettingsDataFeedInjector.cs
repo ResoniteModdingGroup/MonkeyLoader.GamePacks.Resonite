@@ -276,7 +276,7 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             await Task.CompletedTask;
 
-            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly && !(key.ValueType == _dummyType && !key.HasDescription)))
+            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
             {
                 //if (setting is SettingIndicatorProperty)
                 //{
@@ -285,7 +285,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (configKey.ValueType == _dummyType)
                 {
                     var dummyField = new DataFeedValueField<dummy>();
-                    dummyField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, $"{configKey.FullId}.Description".AsLocaleKey());
+                    dummyField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, configKey.HasDescription ? $"{configKey.FullId}.Description".AsLocaleKey() : " ");
                     yield return dummyField;
 
                     continue;
