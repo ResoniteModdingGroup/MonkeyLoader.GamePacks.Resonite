@@ -35,6 +35,7 @@ namespace MonkeyLoader.Resonite.Configuration
         private const string ResetConfig = "ResetConfig";
         private const string SaveConfig = "SaveConfig";
 
+        private static readonly Type _dummyType = typeof(dummy);
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
@@ -275,12 +276,20 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             await Task.CompletedTask;
 
-            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly && key.ValueType != typeof(dummy)))
+            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly && !(key.ValueType == _dummyType && !key.HasDescription)))
             {
                 //if (setting is SettingIndicatorProperty)
                 //{
                 //    return (DataFeedItem)_generateIndicator.MakeGenericMethod(type).Invoke(null, new object[4] { identity, setting, path, grouping });
                 //}
+                if (configKey.ValueType == _dummyType)
+                {
+                    var dummyField = new DataFeedValueField<dummy>();
+                    dummyField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, $"{configKey.FullId}.Description".AsLocaleKey());
+                    yield return dummyField;
+
+                    continue;
+                }
 
                 if (configKey.ValueType == typeof(bool))
                 {
