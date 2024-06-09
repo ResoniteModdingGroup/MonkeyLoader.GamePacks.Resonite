@@ -23,7 +23,7 @@ namespace MonkeyLoader.Resonite
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
-        protected static TConfigSection ConfigSection { get; private set; } = null!;
+        public static TConfigSection ConfigSection { get; private set; } = null!;
 
         /// <summary>
         /// Allows creating only a single <typeparamref name="TMonkey"/> instance.
