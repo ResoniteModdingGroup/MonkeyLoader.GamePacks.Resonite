@@ -2,6 +2,7 @@
 using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Events;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace MonkeyLoader.Resonite.UI
     /// for <see cref="Worker"/>s of a(n open) generic base type.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent> : ResoniteInspectorMonkey<TMonkey, TEvent>
+    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent> : ResoniteInspectorMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : BuildInspectorEvent
@@ -28,6 +29,9 @@ namespace MonkeyLoader.Resonite.UI
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteInspectorMonkey(Type baseType) : base(baseType)
@@ -60,7 +64,7 @@ namespace MonkeyLoader.Resonite.UI
     /// for <see cref="Worker"/>s of a specific (base) type.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker> : ResoniteInspectorMonkey<TMonkey, TEvent, TWorker>
+    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker> : ResoniteInspectorMonkey<TMonkey, TEvent, TWorker>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : BuildInspectorEvent
@@ -69,7 +73,10 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
-        protected static TConfigSection ConfigSection { get; private set; } = null!;
+        public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteInspectorMonkey()

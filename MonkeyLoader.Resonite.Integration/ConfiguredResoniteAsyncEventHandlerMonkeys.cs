@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Events;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace MonkeyLoader.Resonite
     /// Specifically, to act as an <see cref="IAsyncEventHandler{TEvent}">async event handler</see> for <typeparamref name="TEvent"/>s.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>
+    public abstract class ConfiguredResoniteAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : AsyncEvent
@@ -21,6 +22,9 @@ namespace MonkeyLoader.Resonite
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteAsyncEventHandlerMonkey()
@@ -52,7 +56,7 @@ namespace MonkeyLoader.Resonite
     /// Specifically, to act as an <see cref="ICancelableAsyncEventHandler{TEvent}">async event handler</see> for cancelable <typeparamref name="TEvent"/>s.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>
+    public abstract class ConfiguredResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : CancelableAsyncEvent
@@ -61,6 +65,9 @@ namespace MonkeyLoader.Resonite
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteCancelableAsyncEventHandlerMonkey()

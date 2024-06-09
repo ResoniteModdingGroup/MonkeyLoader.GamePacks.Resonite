@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace MonkeyLoader.Resonite
     /// <inheritdoc/>
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
     /// <typeparam name="TConfigSection">The type of the config section to load.</typeparam>
-    public abstract class ConfiguredResoniteMonkey<TMonkey, TConfigSection> : ResoniteMonkey<TMonkey>
+    public abstract class ConfiguredResoniteMonkey<TMonkey, TConfigSection> : ResoniteMonkey<TMonkey>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteMonkey<TMonkey, TConfigSection>, new()
         where TConfigSection : ConfigSection, new()
     {
@@ -24,6 +25,9 @@ namespace MonkeyLoader.Resonite
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <summary>
         /// Allows creating only a single <typeparamref name="TMonkey"/> instance.

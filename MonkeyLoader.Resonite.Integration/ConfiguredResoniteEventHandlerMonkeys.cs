@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Events;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace MonkeyLoader.Resonite
     /// Specifically, to act as an <see cref="ICancelableEventHandler{TEvent}">event handler</see> for cancelable <typeparamref name="TEvent"/>s.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteCancelableEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent>
+    public abstract class ConfiguredResoniteCancelableEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteCancelableEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : CancelableSyncEvent
@@ -25,6 +26,9 @@ namespace MonkeyLoader.Resonite
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteCancelableEventHandlerMonkey()
@@ -56,7 +60,7 @@ namespace MonkeyLoader.Resonite
     /// Specifically, to act as an <see cref="IEventHandler{TEvent}">event handler</see> for <typeparamref name="TEvent"/>s.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteEventHandlerMonkey<TMonkey, TEvent>
+    public abstract class ConfiguredResoniteEventHandlerMonkey<TMonkey, TConfigSection, TEvent> : ResoniteEventHandlerMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteEventHandlerMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : SyncEvent
@@ -65,6 +69,9 @@ namespace MonkeyLoader.Resonite
         /// Gets the loaded config section for this patcher after it has been <see cref="MonkeyBase.Run">run</see>.
         /// </summary>
         public static TConfigSection ConfigSection { get; private set; } = null!;
+
+        TConfigSection IConfiguredMonkey<TConfigSection>.ConfigSection => ConfigSection;
+        ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
         protected ConfiguredResoniteEventHandlerMonkey()
