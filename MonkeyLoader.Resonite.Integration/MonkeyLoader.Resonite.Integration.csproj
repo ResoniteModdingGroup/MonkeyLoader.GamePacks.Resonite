@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.17.2-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.17.4-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -63,7 +63,7 @@
     <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
     <PackageReference Include="Resonite.Elements.Quantity" Version="1.0.2" />
-    <PackageReference Include="Resonite.FrooxEngine" Version="2024.6.5.198" />
+    <PackageReference Include="Resonite.FrooxEngine" Version="2024.6.11.74" />
     <PackageReference Include="Resonite.FrooxEngine.Store" Version="1.0.2" />
     <PackageReference Include="Resonite.LiteDB" Version="5.0.19" />
     <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.9" />
