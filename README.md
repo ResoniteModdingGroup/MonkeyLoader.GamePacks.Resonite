@@ -41,3 +41,12 @@ to make the development of MonkeyLoader mods for Resonite a smooth experience.
     * (Configured)ResoniteEventHandlerMonkey
     * (Configured)ResoniteAsyncEventHandlerMonkey
     * ResoniteInspectorMonkey for custom worker inspector elements
+
+Additional built-in features for users:
+
+* OpenLinkedDynamicVariableSpace
+    * Extra buttons on the headers of dynamic variable components to open the linked dynamic variable space
+* SyncArrayEditor
+    * Arrays in inspectors will be editable using a proxy list
+* ModSettingStandaloneFacet
+    * Individual mod settings can be pulled out of the dash settings as standalone facets and placed anywhere in userspace. They will keep working even after restarts.
