@@ -19,10 +19,10 @@ namespace MonkeyLoader.Resonite
             void FieldChangedHandler(IChangeable _)
             {
                 if (field.Value.Equals(configKey.GetValue())) return;
-                if (allowWriteBack)
-                    configKey.SetValue(field.Value, eventLabel);
-                else
+                if (!(allowWriteBack && configKey.TrySetValue(field.Value, eventLabel)))
+                {
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+                }
             }
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T> args)
             {
