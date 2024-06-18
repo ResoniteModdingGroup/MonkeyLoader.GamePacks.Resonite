@@ -7,6 +7,13 @@ provides basic hooks for modding the game [Resonite](https://resonite.com/) by [
 It provides additional hooks for the beginning of initialization, when initialization is done,
 and when the game shuts down.
 
+## Installation
+
+1. Go to the [latest release](https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/releases/latest) and get the `MonkeyLoader-vX.X.X+Resonite-vX.X.X+RML-vX.X.X.zip` file from the Assets section
+
+2. Extract it into the Resonite install folder
+
+3. If you have previously used another mod loader, remove any relevant `-LoadAssembly "..."` launch arguments from Resonite via Steam
 
 ## Feature Overview
 
