@@ -156,10 +156,10 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private void SharedValueChanged(SyncField<T> field)
         {
-            if (AllowWriteBack)
-                _configKey.SetValue(field.Value, $"{SharedConfig.WriteBackPrefix}.{field.World.GetIdentifier()}");
-            else
+            if (!AllowWriteBack || !_configKey.TrySetValue(field.Value, $"{SharedConfig.WriteBackPrefix}.{field.World.GetIdentifier()}"))
+            {
                 field.World.RunSynchronously(() => field.Value = _configKey.GetValue()!);
+            }
         }
 
         private void ValueChanged(object sender, ConfigKeyChangedEventArgs<T> configKeyChangedEventArgs)
