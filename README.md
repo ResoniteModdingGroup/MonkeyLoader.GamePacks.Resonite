@@ -9,11 +9,13 @@ and when the game shuts down.
 
 ## Quick Installation
 
-1. Go to the [latest release](https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/releases/latest) and get the `MonkeyLoader-vX.X.X+Resonite-vX.X.X+RML-vX.X.X.zip` file from the Assets section
+1. Go to the [latest release](https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/releases/latest) and get the `MonkeyLoader-vX.X.X+Resonite-vX.X.X+RML-vX.X.X.zip` file from the Assets section.
 
-2. Extract it into the Resonite install folder
+2. Extract it into the Resonite install folder.
 
-3. If you have previously used another mod loader, remove any relevant `-LoadAssembly "..."` launch arguments from Resonite via Steam
+3. If you have previously used another mod loader, remove any relevant `-LoadAssembly "..."` launch arguments from Resonite.
+
+4. If running on Linux, add `./run_monkeyloader.sh %command%` to the launch options.
 
 ## Feature Overview
 
