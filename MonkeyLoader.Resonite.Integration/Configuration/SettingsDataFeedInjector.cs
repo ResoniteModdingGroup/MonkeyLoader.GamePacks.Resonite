@@ -51,13 +51,9 @@ namespace MonkeyLoader.Resonite.Configuration
             public readonly Stack<float> ScrollAmounts = new();
             public bool LegacyColorXTemplateCleanupDone = false;
             public SettingsDataFeed? SettingsDataFeed = null;
-            public SyncFieldList<string>? PathList = null;
         }
 
         private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = new();
-
-        // Use a separate dictionary to get the facet data from methods where the SettingsDataFeed is not easily accessible
-        private static readonly Dictionary<SyncFieldList<string>, SettingsFacetData> _pathListToFacetDataMap = new();
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
@@ -587,16 +583,6 @@ namespace MonkeyLoader.Resonite.Configuration
                 settingsData.RootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
                 if (settingsData.RootCategoryView != null)
                 {
-                    settingsData.PathList = settingsData.RootCategoryView.Path;
-                    _pathListToFacetDataMap.Add(settingsData.PathList, settingsData);
-                    settingsData.RootCategoryView.Destroyed += (IDestroyable destroyable) => 
-                    {
-                        if (destroyable is RootCategoryView rootCategoryView)
-                        {
-                            Logger.Debug(() => "Removed PathList to SettingsFacetData");
-                            _pathListToFacetDataMap.Remove(rootCategoryView.Path);
-                        }
-                    };
                     settingsData.RootCategoryView.Path.ElementsAdded += OnElementsAdded;
                     settingsData.RootCategoryView.Path.ElementsRemoved += OnElementsRemoved;
                     Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
@@ -770,7 +756,10 @@ namespace MonkeyLoader.Resonite.Configuration
             // we don't need to store the value if we are at the root
             if (start == 0 && count == 1) return;
 
-            if (_pathListToFacetDataMap.TryGetValue((SyncFieldList<string>)list, out var settingsData))
+            var slot = list.FindNearestParent<Slot>();
+            var settingsDataFeed = slot?.GetComponent<SettingsDataFeed>();
+            if (settingsDataFeed == null) return;
+            if (_settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
             {
                 if (settingsData.ScrollSlider.FilterWorldElement() != null)
                 {
@@ -784,7 +773,10 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
 
-            if (_pathListToFacetDataMap.TryGetValue((SyncFieldList<string>)list, out var settingsData))
+            var slot = list.FindNearestParent<Slot>();
+            var settingsDataFeed = slot?.GetComponent<SettingsDataFeed>();
+            if (settingsDataFeed == null) return;
+            if (_settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
             {
                 if (start == 0)
                 {
