@@ -45,12 +45,12 @@ namespace MonkeyLoader.Resonite.Configuration
         // Stores data about a settings facet in Userspace, there can be any number of these
         class SettingsFacetData
         {
-            public DataFeedItemMapper? Mapper = null;
+            public DataFeedItemMapper? Mapper => RootCategoryView?.ItemsManager.TemplateMapper.Target;
             public RootCategoryView? RootCategoryView = null;
             public Slider<float>? ScrollSlider = null;
             public readonly Stack<float> ScrollAmounts = new();
             public bool LegacyColorXTemplateCleanupDone = false;
-            public SettingsDataFeed? SettingsDataFeed = null;
+            public SettingsDataFeed? SettingsDataFeed => RootCategoryView?.Feed.Target as SettingsDataFeed;
         }
 
         private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = new();
@@ -565,7 +565,6 @@ namespace MonkeyLoader.Resonite.Configuration
             if (__instance.World.IsUserspace() && !_settingsFacetDataMap.TryGetValue(__instance, out settingsData))
             {
                 settingsData = new SettingsFacetData();
-                settingsData.SettingsDataFeed = __instance;
                 _settingsFacetDataMap.Add(__instance, settingsData);
                 __instance.Destroyed += (IDestroyable destroyable) => 
                 { 
@@ -638,13 +637,11 @@ namespace MonkeyLoader.Resonite.Configuration
                     break;
             }
 
-            settingsData!.Mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
-
             __result = path.Count switch
             {
                 1 => EnumerateModsAsync(path),
-                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(settingsData, path) : EnumerateModSettingsAsync(settingsData, path),
-                _ => EnumerateModSettingsAsync(settingsData, path),
+                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(settingsData!, path) : EnumerateModSettingsAsync(settingsData!, path),
+                _ => EnumerateModSettingsAsync(settingsData!, path),
             };
 
             return false;
@@ -756,10 +753,8 @@ namespace MonkeyLoader.Resonite.Configuration
             // we don't need to store the value if we are at the root
             if (start == 0 && count == 1) return;
 
-            var slot = list.FindNearestParent<Slot>();
-            var settingsDataFeed = slot?.GetComponent<SettingsDataFeed>();
-            if (settingsDataFeed == null) return;
-            if (_settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
+            var rootCategoryView = list.FindNearestParent<RootCategoryView>();
+            if (rootCategoryView?.Feed.Target is SettingsDataFeed settingsDataFeed && _settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
             {
                 if (settingsData.ScrollSlider.FilterWorldElement() != null)
                 {
@@ -773,10 +768,8 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
 
-            var slot = list.FindNearestParent<Slot>();
-            var settingsDataFeed = slot?.GetComponent<SettingsDataFeed>();
-            if (settingsDataFeed == null) return;
-            if (_settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
+            var rootCategoryView = list.FindNearestParent<RootCategoryView>();
+            if (rootCategoryView?.Feed.Target is SettingsDataFeed settingsDataFeed && _settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
             {
                 if (start == 0)
                 {
