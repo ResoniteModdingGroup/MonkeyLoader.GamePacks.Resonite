@@ -575,11 +575,11 @@ namespace MonkeyLoader.Resonite.Configuration
                 { 
                     if (destroyable is SettingsDataFeed settingsDataFeed)
                     {
-                        Logger.Info(() => "Removed SettingsDataFeed to SettingsFacetData");
                         _settingsFacetDataMap.Remove(settingsDataFeed);
+                        Logger.Debug(() => "Removed SettingsDataFeed to SettingsFacetData");
                     }
                 };
-                Logger.Info(() => "Added new SettingsFacetData");
+                Logger.Debug(() => "Added new SettingsFacetData");
             }
 
             if (__instance.World.IsUserspace() && settingsData!.RootCategoryView.FilterWorldElement() == null)
@@ -593,7 +593,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         if (destroyable is RootCategoryView rootCategoryView)
                         {
-                            Logger.Info(() => "Removed PathList to SettingsFacetData");
+                            Logger.Debug(() => "Removed PathList to SettingsFacetData");
                             _pathListToFacetDataMap.Remove(rootCategoryView.Path);
                         }
                     };
