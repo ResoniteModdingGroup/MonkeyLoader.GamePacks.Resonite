@@ -40,13 +40,24 @@ namespace MonkeyLoader.Resonite.Configuration
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
 
-        private static readonly Stack<float> _scrollAmounts = new();
-        private static DataFeedItemMapper? _cachedDataFeedItemMapper = null;
-        private static RootCategoryView? _cachedRootCategoryView = null;
-        private static Slider<float>? _cachedScrollSlider = null;
-
-        private static bool _legacyColorXTemplateCleanupDone = false;
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        // Stores data about a settings facet in Userspace, there can be any number of these
+        class SettingsFacetData
+        {
+            public DataFeedItemMapper? Mapper = null;
+            public RootCategoryView? RootCategoryView = null;
+            public Slider<float>? ScrollSlider = null;
+            public readonly Stack<float> ScrollAmounts = new();
+            public bool LegacyColorXTemplateCleanupDone = false;
+            public SettingsDataFeed? SettingsDataFeed = null;
+            public SyncFieldList<string>? PathList = null;
+        }
+
+        private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = new();
+
+        // Use a separate dictionary to get the facet data from methods where the SettingsDataFeed is not easily accessible
+        private static readonly Dictionary<SyncFieldList<string>, SettingsFacetData> _pathListToFacetDataMap = new();
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
@@ -110,10 +121,18 @@ namespace MonkeyLoader.Resonite.Configuration
             return base.OnEngineReady();
         }
 
-        private static void EnsureDataFeedValueFieldTemplate(DataFeedItemMapper mapper, Type typeToInject)
+        private static void EnsureDataFeedValueFieldTemplate(SettingsFacetData settingsData, Type typeToInject)
         {
+            if (settingsData.Mapper.FilterWorldElement() == null) 
+            {
+                Logger.Error(() => "DataFeedItemMapper is null in EnsureDataFeedValueFieldTemplate!");
+                return;
+            }
+
+            DataFeedItemMapper mapper = settingsData.Mapper!;
+
             // Cleanup previously injected colorX templates that were accidentally made persistent and may have been saved with the dash
-            if (typeToInject == typeof(colorX) && !_legacyColorXTemplateCleanupDone)
+            if (typeToInject == typeof(colorX) && !settingsData.LegacyColorXTemplateCleanupDone)
             {
                 Logger.Info(() => "Looking for previously injected colorX templates.");
 
@@ -124,7 +143,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     Logger.Info(() => "Cleaned up a previously injected colorX template.");
                 }
 
-                _legacyColorXTemplateCleanupDone = true;
+                settingsData.LegacyColorXTemplateCleanupDone = true;
             }
 
             var dataFeedValueFieldType = typeof(DataFeedValueField<>).MakeGenericType(typeToInject);
@@ -243,7 +262,7 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(IReadOnlyList<string> path, Config config)
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(SettingsFacetData settingsData, IReadOnlyList<string> path, Config config)
         {
             var generateConfigButtons = false;
 
@@ -253,7 +272,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 sectionGroup.InitBase(configSection.Id, path, null, $"{configSection.FullId}.Name".AsLocaleKey());
                 yield return sectionGroup;
 
-                await foreach (var sectionItem in EnumerateConfigSectionAsync(path, configSection))
+                await foreach (var sectionItem in EnumerateConfigSectionAsync(settingsData, path, configSection))
                 {
                     generateConfigButtons = true;
                     yield return sectionItem;
@@ -272,7 +291,7 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, ConfigSection configSection)
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(SettingsFacetData settingsData, IReadOnlyList<string> path, ConfigSection configSection)
         {
             await Task.CompletedTask;
 
@@ -309,7 +328,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 yield return (DataFeedItem)_generateItemForConfigKeyMethod
                     .MakeGenericMethod(configKey.ValueType)
-                    .Invoke(null, new object[] { path, configKey });
+                    .Invoke(null, new object[] { settingsData, path, configKey });
             }
         }
 
@@ -435,7 +454,7 @@ namespace MonkeyLoader.Resonite.Configuration
             yield return earlyMonkeyCountIndicator;
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateModSettingsAsync(IReadOnlyList<string> path)
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateModSettingsAsync(SettingsFacetData settingsData, IReadOnlyList<string> path)
         {
             // path.Count >= 2 because otherwise other methods are called
             // Format: MonkeyLoader / modId / [page]
@@ -447,7 +466,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             if (path.Count == 2)
             {
-                await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
+                await foreach (var feedItem in EnumerateConfigAsync(settingsData, path, mod.Config))
                     yield return feedItem;
 
                 await foreach (var feedItem in EnumerateModMetadataAsync(path, mod))
@@ -462,7 +481,7 @@ namespace MonkeyLoader.Resonite.Configuration
             switch (path[2])
             {
                 case ConfigSections:
-                    await foreach (var feedItem in EnumerateConfigAsync(path, mod.Config))
+                    await foreach (var feedItem in EnumerateConfigAsync(settingsData, path, mod.Config))
                         yield return feedItem;
 
                     break;
@@ -479,9 +498,9 @@ namespace MonkeyLoader.Resonite.Configuration
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeyLoaderSettingsAsync(IReadOnlyList<string> path)
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeyLoaderSettingsAsync(SettingsFacetData settingsData, IReadOnlyList<string> path)
         {
-            await foreach (var feedItem in EnumerateConfigAsync(path, Mod.Loader.Config))
+            await foreach (var feedItem in EnumerateConfigAsync(settingsData, path, Mod.Loader.Config))
                 yield return feedItem;
         }
 
@@ -546,18 +565,45 @@ namespace MonkeyLoader.Resonite.Configuration
         [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
         private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
         {
-            if (__instance.World.IsUserspace() && _cachedRootCategoryView.FilterWorldElement() == null)
+            SettingsFacetData? settingsData = null;
+            if (__instance.World.IsUserspace() && !_settingsFacetDataMap.TryGetValue(__instance, out settingsData))
             {
-                _cachedRootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
-                if (_cachedRootCategoryView != null)
+                settingsData = new SettingsFacetData();
+                settingsData.SettingsDataFeed = __instance;
+                _settingsFacetDataMap.Add(__instance, settingsData);
+                __instance.Destroyed += (IDestroyable destroyable) => 
+                { 
+                    if (destroyable is SettingsDataFeed settingsDataFeed)
+                    {
+                        Logger.Info(() => "Removed SettingsDataFeed to SettingsFacetData");
+                        _settingsFacetDataMap.Remove(settingsDataFeed);
+                    }
+                };
+                Logger.Info(() => "Added new SettingsFacetData");
+            }
+
+            if (__instance.World.IsUserspace() && settingsData!.RootCategoryView.FilterWorldElement() == null)
+            {
+                settingsData.RootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
+                if (settingsData.RootCategoryView != null)
                 {
-                    _cachedRootCategoryView.Path.ElementsAdded += OnElementsAdded;
-                    _cachedRootCategoryView.Path.ElementsRemoved += OnElementsRemoved;
+                    settingsData.PathList = settingsData.RootCategoryView.Path;
+                    _pathListToFacetDataMap.Add(settingsData.PathList, settingsData);
+                    settingsData.RootCategoryView.Destroyed += (IDestroyable destroyable) => 
+                    {
+                        if (destroyable is RootCategoryView rootCategoryView)
+                        {
+                            Logger.Info(() => "Removed PathList to SettingsFacetData");
+                            _pathListToFacetDataMap.Remove(rootCategoryView.Path);
+                        }
+                    };
+                    settingsData.RootCategoryView.Path.ElementsAdded += OnElementsAdded;
+                    settingsData.RootCategoryView.Path.ElementsRemoved += OnElementsRemoved;
                     Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
                 }
             }
 
-            if (__instance.World.IsUserspace() && _cachedScrollSlider.FilterWorldElement() == null)
+            if (__instance.World.IsUserspace() && settingsData!.ScrollSlider.FilterWorldElement() == null)
             {
                 Slot settingsListSlot = __instance.Slot.FindChild(s => s.Name == "Settings List", maxDepth: 2);
                 if (settingsListSlot != null)
@@ -568,7 +614,7 @@ namespace MonkeyLoader.Resonite.Configuration
                         var slider = scrollBarSlot.GetComponentInChildren<Slider<float>>();
                         if (slider != null)
                         {
-                            _cachedScrollSlider = slider;
+                            settingsData.ScrollSlider = slider;
                             Logger.Debug(() => "Cached settings scroll slider.");
                         }
                     }
@@ -589,7 +635,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 case SaveConfig:
                     SaveModOrLoaderConfig(path[1]);
 
-                    _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, SaveConfig));
+                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, SaveConfig));
 
                     __result = YieldBreakAsync();
                     return false;
@@ -597,7 +643,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 case ResetConfig:
                     ResetModOrLoaderConfig(path[1]);
 
-                    _cachedRootCategoryView?.RunSynchronously(() => MoveUpFromCategory(_cachedRootCategoryView, ResetConfig));
+                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, ResetConfig));
 
                     __result = YieldBreakAsync();
                     return false;
@@ -606,13 +652,13 @@ namespace MonkeyLoader.Resonite.Configuration
                     break;
             }
 
-            _cachedDataFeedItemMapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
+            settingsData!.Mapper = __instance.Slot.GetComponent((DataFeedItemMapper m) => m.Mappings.Count > 1);
 
             __result = path.Count switch
             {
                 1 => EnumerateModsAsync(path),
-                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(path) : EnumerateModSettingsAsync(path),
-                _ => EnumerateModSettingsAsync(path),
+                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(settingsData, path) : EnumerateModSettingsAsync(settingsData, path),
+                _ => EnumerateModSettingsAsync(settingsData, path),
             };
 
             return false;
@@ -637,7 +683,7 @@ namespace MonkeyLoader.Resonite.Configuration
             return indicator;
         }
 
-        private static DataFeedItem GenerateItemForConfigKey<T>(IReadOnlyList<string> path, IEntity<IDefiningConfigKey<T>> configKey)
+        private static DataFeedItem GenerateItemForConfigKey<T>(SettingsFacetData settingsData, IReadOnlyList<string> path, IEntity<IDefiningConfigKey<T>> configKey)
         {
             if (configKey.Components.TryGet<IConfigKeyRange<T>>(out var range))
             {
@@ -651,7 +697,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 return GenerateSlider(path, configKey.Self, range);
             }
 
-            return GenerateValueField(path, configKey.Self);
+            return GenerateValueField(settingsData, path, configKey.Self);
         }
 
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
@@ -686,7 +732,7 @@ namespace MonkeyLoader.Resonite.Configuration
             return toggle;
         }
 
-        private static DataFeedValueField<T> GenerateValueField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
+        private static DataFeedValueField<T> GenerateValueField<T>(SettingsFacetData settingsData, IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
         {
             var valueField = new DataFeedValueField<T>();
             InitBase(valueField, path, configKey);
@@ -695,7 +741,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var valueType = typeof(T);
             if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
             {
-                _cachedDataFeedItemMapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(_cachedDataFeedItemMapper, valueType));
+                settingsData.Mapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(settingsData, valueType));
             }
 
             return valueField;
@@ -721,10 +767,16 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             Logger.Trace(() => $"OnElementsAdded. start: {start} count: {count}");
 
-            if (_cachedScrollSlider.FilterWorldElement() != null)
+            // we don't need to store the value if we are at the root
+            if (start == 0 && count == 1) return;
+
+            if (_pathListToFacetDataMap.TryGetValue((SyncFieldList<string>)list, out var settingsData))
             {
-                _scrollAmounts.Push(_cachedScrollSlider!.Value.Value);
-                Logger.Trace(() => $"Pushed value {_cachedScrollSlider!.Value.Value}. _scrollAmounts count: {_scrollAmounts.Count}");
+                if (settingsData.ScrollSlider.FilterWorldElement() != null)
+                {
+                    settingsData.ScrollAmounts.Push(settingsData.ScrollSlider!.Value.Value);
+                    Logger.Trace(() => $"Pushed value {settingsData.ScrollSlider!.Value.Value}. _scrollAmounts count: {settingsData.ScrollAmounts.Count}");
+                }
             }
         }
 
@@ -732,34 +784,37 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             Logger.Trace(() => $"OnElementsRemoved. start: {start} count: {count}");
 
-            if (start == 0)
+            if (_pathListToFacetDataMap.TryGetValue((SyncFieldList<string>)list, out var settingsData))
             {
-                _scrollAmounts.Clear();
-                Logger.Trace(() => $"Cleared _scrollAmounts.");
-                return;
-            }
-
-            var poppedValue = 0f;
-
-            for (var i = 0; i < count; i++)
-            {
-                if (_scrollAmounts.Count > 0)
+                if (start == 0)
                 {
-                    poppedValue = _scrollAmounts.Pop();
-                    Logger.Trace(() => $"Popped value {poppedValue}. _scrollAmounts count: {_scrollAmounts.Count}");
+                    settingsData.ScrollAmounts.Clear();
+                    Logger.Trace(() => $"Cleared _scrollAmounts.");
+                    return;
                 }
-            }
 
-            if (_cachedScrollSlider.FilterWorldElement() != null)
-            {
-                _cachedScrollSlider!.RunInUpdates(3, () =>
+                var poppedValue = 0f;
+
+                for (var i = 0; i < count; i++)
                 {
-                    if (_cachedScrollSlider.FilterWorldElement() != null)
+                    if (settingsData.ScrollAmounts.Count > 0)
                     {
-                        _cachedScrollSlider.Value.Value = poppedValue;
-                        Logger.Debug(() => $"Set scroll slider to value {poppedValue}");
+                        poppedValue = settingsData.ScrollAmounts.Pop();
+                        Logger.Trace(() => $"Popped value {poppedValue}. _scrollAmounts count: {settingsData.ScrollAmounts.Count}");
                     }
-                });
+                }
+
+                if (settingsData.ScrollSlider.FilterWorldElement() != null)
+                {
+                    settingsData.ScrollSlider!.RunInUpdates(3, () =>
+                    {
+                        if (settingsData.ScrollSlider.FilterWorldElement() != null)
+                        {
+                            settingsData.ScrollSlider.Value.Value = poppedValue;
+                            Logger.Debug(() => $"Set scroll slider to value {poppedValue}");
+                        }
+                    });
+                }
             }
         }
 
