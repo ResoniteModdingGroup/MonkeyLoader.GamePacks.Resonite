@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
     <AssemblyTitle>MonkeyLoader.Resonite.Integration</AssemblyTitle>
-    <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
   </PropertyGroup>
   
@@ -11,29 +10,29 @@
     <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
     <Title>Resonite Game Pack</Title>
     <Authors>Banane9, Nytra</Authors>
-    <Version>0.16.1-beta</Version>
+    <Version>0.16.2-beta</Version>
     <Description>
       This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite,
       which uses FrooxEngine. It provides hooks for the beginning of initialization,
       when initialization is done, and when the game shuts down.
     </Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite.git</RepositoryUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/master/Icon.png</PackageIconUrl>
-    <PackageIconUrl>/Icon.png</PackageIconUrl>
-    <RepositoryType>git</RepositoryType>
+    <PackageIcon>Icon.png</PackageIcon>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
-    <IncludeSymbols>False</IncludeSymbols>
-    <EmbedAllSources>True</EmbedAllSources>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+
+    <!-- Optional: Detect breaking changes from a previous stable version
+    <PackageValidationBaselineVersion>0.1.0-beta</PackageValidationBaselineVersion> -->
   </PropertyGroup>
 
   <Target Name="AddExtraFilesToPackage">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutDir)$(AssemblyName).pdb" PackagePath="lib/$(TargetFramework)/" />
       <TfmSpecificPackageFile Include="$(ProjectDir)..\MonkeyLoader.Resonite.Data\bin\$(Configuration)\$(TargetFramework)\MonkeyLoader.Resonite.Data.*" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
     </ItemGroup>
   </Target>

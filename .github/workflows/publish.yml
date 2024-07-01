@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - v**          # Only when a v... tag is pushed
+
+# Sets permissions of the GITHUB_TOKEN to allow writing packages and push releases
+permissions:
+  packages: write
+  contents: write
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NuGetDirectory: ${{ github.workspace}}/nuget
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  Build:
+    uses: ./.github/workflows/build.yml
+    
+  Release:
+    #if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Download NuGet Packages Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NuGet Packages
+          path: ${{ env.NuGetDirectory }}
+        
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+
+      - name: Create Release
+        uses: mikepenz/action-gh-release@v1 #softprops/action-gh-release
+        with:
+          body: ${{steps.build_changelog.outputs.changelog}}
+          files: ${{ env.NuGetDirectory }}/*.nupkg
+          fail_on_unmatched_files: true
+          fail_on_asset_upload_issue: true
+          prerelease: ${{ contains(github.ref, '-') }} # simple check for vX.Y.Z-something
+
+  Publish-GitHub:
+    #if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Download NuGet Packages Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NuGet Packages
+          path: ${{ env.NuGetDirectory }}
+
+      - name: Setup Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+          source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
+
+      - name: Add MonkeyLoader NuGet Source
+        run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
+      
+      # Publish all NuGet packages to the GitHub feed
+      # Use --skip-duplicate to prevent errors if a package with the same version already exists.
+      # If you retry a failed workflow, already published packages will be skipped without error.
+      - name: Publish NuGet Packages
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+              dotnet nuget push $file --api-key "${{ secrets.GITHUB_TOKEN }}" --source https://nuget.pkg.github.com/ResoniteModdingGroup/index.json --skip-duplicate
+          }
