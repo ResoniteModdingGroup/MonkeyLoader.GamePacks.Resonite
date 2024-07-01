@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MonkeyLoader.Events;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace MonkeyLoader.Resonite.Events
     /// Abstract base class for all sorts of cancelable events that focus on adding a (sorted) list of unique items.
     /// </summary>
     /// <typeparam name="T">The type of the items.</typeparam>
-    public abstract class CancelableSortedItemsEvent<T>
+    public abstract class CancelableSortedItemsEvent<T> : CancelableSyncEvent
     {
         /// <summary>
         /// The items that have been added to the event.
