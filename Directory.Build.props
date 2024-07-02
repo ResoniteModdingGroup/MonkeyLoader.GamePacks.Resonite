@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net462</TargetFramework>
+    <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <LangVersion>11.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
@@ -12,8 +13,25 @@
     <CopyToLibraries Condition="'$(CopyToLibraries)'==''">true</CopyToLibraries>
         
     <RestoreAdditionalProjectSources>
-      https://pkg.munally.com/MonkeyModdingTroop/index.json
+      https://pkg.munally.com/MonkeyModdingTroop/index.json;
+      https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
     </RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>False</IncludeSymbols>
+    <EmbedAllSources>True</EmbedAllSources>
+    <EmbedUntrackedSources>True</EmbedUntrackedSources>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <CopyToLibraries>false</CopyToLibraries>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ResonitePath)'==''">

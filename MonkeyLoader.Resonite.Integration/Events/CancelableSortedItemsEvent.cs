@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite.Events
 {
     /// <summary>
-    /// Abstract base class for all sorts of events that focus on adding a (sorted) list of unique items.
+    /// Abstract base class for all sorts of cancelable events that focus on adding a (sorted) list of unique items.
     /// </summary>
     /// <typeparam name="T">The type of the items.</typeparam>
-    public abstract class SortedItemsEvent<T> : SyncEvent
+    public abstract class CancelableSortedItemsEvent<T> : CancelableSyncEvent
     {
         /// <summary>
         /// The items that have been added to the event.
@@ -27,7 +27,7 @@ namespace MonkeyLoader.Resonite.Events
         /// <summary>
         /// Creates a new instance with no items.
         /// </summary>
-        protected SortedItemsEvent()
+        protected CancelableSortedItemsEvent()
         {
             sortableItems = new();
         }
@@ -37,7 +37,7 @@ namespace MonkeyLoader.Resonite.Events
         /// setting their sort order values to <c>0</c>.
         /// </summary>
         /// <param name="items">The items to start with.</param>
-        protected SortedItemsEvent(IEnumerable<T> items) : this(items, item => 0)
+        protected CancelableSortedItemsEvent(IEnumerable<T> items) : this(items, item => 0)
         { }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace MonkeyLoader.Resonite.Events
         /// </summary>
         /// <param name="items">The items to start with.</param>
         /// <param name="getSortOrder">The function to map items to a sort order value.</param>
-        protected SortedItemsEvent(IEnumerable<T> items, Func<T, int> getSortOrder)
+        protected CancelableSortedItemsEvent(IEnumerable<T> items, Func<T, int> getSortOrder)
         {
             sortableItems = items.ToDictionary(item => item, getSortOrder);
         }

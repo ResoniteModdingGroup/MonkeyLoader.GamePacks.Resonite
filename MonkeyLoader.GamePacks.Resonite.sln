@@ -9,11 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Integ
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2B75D50A-95BF-42EF-94FA-99464A307B9B}"
 	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
 		docfx.json = docfx.json
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonkeyLoader.Resonite.Unity", "MonkeyLoader.Resonite.Unity\MonkeyLoader.Resonite.Unity.csproj", "{7A72F0CC-3A23-4484-BEDA-C2D74FD0CD96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Unity", "MonkeyLoader.Resonite.Unity\MonkeyLoader.Resonite.Unity.csproj", "{7A72F0CC-3A23-4484-BEDA-C2D74FD0CD96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
