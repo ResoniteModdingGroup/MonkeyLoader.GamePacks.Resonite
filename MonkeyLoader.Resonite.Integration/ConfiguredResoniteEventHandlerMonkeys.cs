@@ -52,14 +52,6 @@ namespace MonkeyLoader.Resonite
 
             return base.OnLoaded();
         }
-
-        protected override bool OnShutdown(bool applicationExiting)
-        {
-            if (!applicationExiting)
-                Mod.UnregisterEventHandler<TEvent>(this);
-
-            return base.OnShutdown(applicationExiting);
-        }
     }
 
     /// <summary>
