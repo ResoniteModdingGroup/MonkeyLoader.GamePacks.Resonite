@@ -57,6 +57,13 @@ namespace MonkeyLoader.Resonite
             return base.OnEngineReady();
         }
 
+        /// <remarks>
+        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(IAsyncEventHandler{TEvent})">Unregisters</see> this monkey as an event handler for <typeparamref name="TEvent"/>s
+        /// and removes all <see cref="HarmonyLib.Harmony"/> patches done
+        /// using this Monkey's <see cref="Harmony">Harmony</see> instance,
+        /// if not exiting, and returns <c>true</c>.
+        /// </remarks>
+        /// <inheritdoc/>
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
@@ -121,6 +128,13 @@ namespace MonkeyLoader.Resonite
             return base.OnEngineReady();
         }
 
+        /// <remarks>
+        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(ICancelableAsyncEventHandler{TEvent})">Unregisters</see> this monkey as an event handler for <typeparamref name="TEvent"/>s
+        /// and removes all <see cref="HarmonyLib.Harmony"/> patches done
+        /// using this Monkey's <see cref="Harmony">Harmony</see> instance,
+        /// if not exiting, and returns <c>true</c>.
+        /// </remarks>
+        /// <inheritdoc/>
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
