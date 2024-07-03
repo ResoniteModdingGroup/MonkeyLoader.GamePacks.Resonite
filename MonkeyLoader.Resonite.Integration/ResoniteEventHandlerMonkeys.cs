@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
+using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,16 +68,17 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <remarks>
-        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(ICancelableEventHandler{TEvent})">Unregisters</see> this monkey as an event handler for <typeparamref name="TEvent"/>s
-        /// and removes all <see cref="HarmonyLib.Harmony"/> patches done
-        /// using this Monkey's <see cref="Harmony">Harmony</see> instance,
+        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(ICancelableEventHandler{TEvent})">Unregisters</see>
+        /// this monkey as an event handler for <typeparamref name="TEvent"/>s
+        /// and removes all <see cref="Harmony"/> patches done
+        /// using this Monkey's <see cref="MonkeyBase.Harmony">Harmony</see> instance,
         /// if not exiting, and returns <c>true</c>.
         /// </remarks>
         /// <inheritdoc/>
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
-                Mod.UnregisterEventHandler<TEvent>(this);
+                Mod.UnregisterEventHandler(this);
 
             return base.OnShutdown(applicationExiting);
         }
@@ -137,16 +139,17 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <remarks>
-        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(IEventHandler{TEvent})">Unregisters</see> this monkey as an event handler for <typeparamref name="TEvent"/>s
-        /// and removes all <see cref="HarmonyLib.Harmony"/> patches done
-        /// using this Monkey's <see cref="Harmony">Harmony</see> instance,
+        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(IEventHandler{TEvent})">Unregisters</see>
+        /// this monkey as an event handler for <typeparamref name="TEvent"/>s
+        /// and removes all <see cref="Harmony"/> patches done
+        /// using this Monkey's <see cref="MonkeyBase.Harmony">Harmony</see> instance,
         /// if not exiting, and returns <c>true</c>.
         /// </remarks>
         /// <inheritdoc/>
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
-                Mod.UnregisterEventHandler<TEvent>(this);
+                Mod.UnregisterEventHandler(this);
 
             return base.OnShutdown(applicationExiting);
         }
