@@ -56,6 +56,14 @@ namespace MonkeyLoader.Resonite
 
             return base.OnEngineReady();
         }
+
+        protected override bool OnShutdown(bool applicationExiting)
+        {
+            if (!applicationExiting)
+                Mod.UnregisterEventHandler<TEvent>(this);
+
+            return base.OnShutdown(applicationExiting);
+        }
     }
 
     /// <summary>
@@ -111,6 +119,14 @@ namespace MonkeyLoader.Resonite
             Mod.RegisterEventHandler(this);
 
             return base.OnEngineReady();
+        }
+
+        protected override bool OnShutdown(bool applicationExiting)
+        {
+            if (!applicationExiting)
+                Mod.UnregisterEventHandler<TEvent>(this);
+
+            return base.OnShutdown(applicationExiting);
         }
     }
 }
