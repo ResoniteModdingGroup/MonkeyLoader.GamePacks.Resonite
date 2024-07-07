@@ -37,7 +37,7 @@ namespace MonkeyLoader.Resonite.Locale
                 {
                     try
                     {
-                        using var localeFileStream = mod.FileSystem.OpenFile(localeFilePath, FileMode.Open, FileAccess.Read);
+                        using var localeFileStream = mod.FileSystem.OpenFile(localeFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
                         var localeData = await JsonSerializer.DeserializeAsync<LocaleData>(localeFileStream);
 
@@ -51,7 +51,7 @@ namespace MonkeyLoader.Resonite.Locale
                     }
                     catch (Exception ex)
                     {
-                        Logger.Warn(() => ex.Format($"Failed to deserialize file as LocaleData: {mod.Id}:/{localeFilePath}"));
+                        Logger.Error(() => ex.Format($"Failed to deserialize file as LocaleData: {mod.Id}:/{localeFilePath}"));
                     }
                 }
             }
