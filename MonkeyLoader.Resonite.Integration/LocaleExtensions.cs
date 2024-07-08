@@ -24,6 +24,11 @@ namespace MonkeyLoader.Resonite
         public const string FallbackLocaleCode = "en";
 
         /// <summary>
+        /// The name of the argument added to Mod's locale strings to indicate that they belong to a mod.
+        /// </summary>
+        public const string ModLocaleStringIndicatorArgumentName = "MonkeyLoader.Mod.LocaleString";
+
+        /// <summary>
         /// Gets the latest loaded <see cref="Elements.Assets.LocaleResource"/> data for the current locale.
         /// </summary>
         public static LocaleResourceData CurrentLocale => Userspace.Current.GetCoreLocale().Asset.Data;
@@ -120,7 +125,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, string argName, object argField)
-            => mod.GetLocaleKey(key).AsLocaleKey(argName, argField);
+            => mod.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
@@ -128,7 +133,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, string format, string argName, object argField)
-            => mod.GetLocaleKey(key).AsLocaleKey(format, argName, argField);
+            => mod.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
@@ -136,7 +141,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, params (string, object)[] arguments)
-            => mod.GetLocaleKey(key).AsLocaleKey(arguments);
+            => mod.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator());
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
@@ -144,7 +149,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, string format, params (string, object)[] arguments)
-            => mod.GetLocaleKey(key).AsLocaleKey(format, arguments);
+            => mod.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator());
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
@@ -152,7 +157,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, bool continuous, Dictionary<string, object>? arguments = null)
-            => mod.GetLocaleKey(key).AsLocaleKey(continuous, arguments!);
+            => mod.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator());
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
@@ -160,7 +165,15 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
-            => mod.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments!);
+            => mod.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
+
+        /// <summary>
+        /// Determines whether this <see cref="LocaleString"/> belongs to a mod.
+        /// </summary>
+        /// <param name="localeString">The <see cref="LocaleString"/> to check.</param>
+        /// <returns><c>true</c> if the given <see cref="LocaleString"/> belongs to a mod; otherwise, <c>false</c>.</returns>
+        public static bool IsModLocaleString(this LocaleString localeString)
+            => localeString.arguments.ContainsKey(ModLocaleStringIndicatorArgumentName);
 
         internal static async Task LoadFallbackLocaleAsync()
         {
@@ -188,9 +201,20 @@ namespace MonkeyLoader.Resonite
                 UniLog.Error($"Error trying to load vanilla locale: {locale}\n{arg}", stackTrace: false);
             }
 
-            await LocaleDataInjector.LoadLocalesAsync(locale, new[] { FallbackLocaleCode });
+            await LocaleDataInjector.LoadLocalesAsync(locale, [FallbackLocaleCode]);
 
             FallbackLocale = locale;
+        }
+
+        private static (string, object)[] AddModIndicator(this (string, object)[]? arguments)
+            => [.. (arguments ?? []), (ModLocaleStringIndicatorArgumentName, string.Empty)];
+
+        private static Dictionary<string, object> AddModIndicator(this Dictionary<string, object>? arguments)
+        {
+            arguments ??= [];
+            arguments[ModLocaleStringIndicatorArgumentName] = string.Empty;
+
+            return arguments;
         }
     }
 }

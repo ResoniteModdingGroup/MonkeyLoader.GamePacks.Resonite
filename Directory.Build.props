@@ -3,7 +3,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net462</TargetFramework>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
-    <LangVersion>11.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
