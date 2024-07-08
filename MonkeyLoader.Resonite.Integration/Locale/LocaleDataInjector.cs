@@ -21,6 +21,16 @@ namespace MonkeyLoader.Resonite.Locale
     {
         private static AsyncEventDispatching<LocaleLoadingEvent>? _localeLoading;
 
+        internal static async Task LoadLocalesAsync(Elements.Assets.LocaleResource localeResource, IEnumerable<string> localeCodes)
+        {
+            foreach (var localeCode in localeCodes)
+            {
+                var eventData = new LocaleLoadingEvent(localeResource, localeCode, localeCode == LocaleExtensions.FallbackLocaleCode);
+
+                await (_localeLoading?.Invoke(eventData) ?? Task.CompletedTask);
+            }
+        }
+
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
@@ -30,6 +40,15 @@ namespace MonkeyLoader.Resonite.Locale
             Mod.RegisterEventSource(this);
 
             return base.OnEngineReady();
+        }
+
+        /// <inheritdoc/>
+        protected override bool OnShutdown(bool applicationExiting)
+        {
+            if (!applicationExiting)
+                Mod.UnregisterEventSource(this);
+
+            return base.OnShutdown(applicationExiting);
         }
 
         [HarmonyTranspiler]
@@ -55,14 +74,9 @@ namespace MonkeyLoader.Resonite.Locale
             var localeCodes = new List<string>();
             localeCodes.AddUnique(variant.LocaleCode);
             localeCodes.AddUnique(Elements.Assets.LocaleResource.GetMainLanguage(variant.LocaleCode));
-            localeCodes.AddUnique("en");
+            localeCodes.AddUnique(LocaleExtensions.FallbackLocaleCode);
 
-            for (var i = 0; i < localeCodes.Count; ++i)
-            {
-                var eventData = new LocaleLoadingEvent(__instance.Data, localeCodes[i], i == localeCodes.Count - 1);
-
-                await (_localeLoading?.Invoke(eventData) ?? Task.CompletedTask);
-            }
+            await LoadLocalesAsync(__instance.Data, localeCodes);
 
             if (__state)
                 __instance.OnLoadStateChanged();

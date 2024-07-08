@@ -1,14 +1,15 @@
 ﻿using Elements.Core;
 using FrooxEngine;
-using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
+using MonkeyLoader.Resonite.Locale;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LocaleResourceData = Elements.Assets.LocaleResource;
 
 namespace MonkeyLoader.Resonite
 {
@@ -18,9 +19,19 @@ namespace MonkeyLoader.Resonite
     public static class LocaleExtensions
     {
         /// <summary>
-        /// Gets the latest loaded <see cref="Elements.Assets.LocaleResource"/> data.
+        /// Gets the locale code for the fallback locale.
         /// </summary>
-        public static LocaleResource CurrentLocale => Userspace.Current.GetCoreLocale().Asset;
+        public const string FallbackLocaleCode = "en";
+
+        /// <summary>
+        /// Gets the latest loaded <see cref="Elements.Assets.LocaleResource"/> data for the current locale.
+        /// </summary>
+        public static LocaleResourceData CurrentLocale => Userspace.Current.GetCoreLocale().Asset.Data;
+
+        /// <summary>
+        /// Gets the latest loaded <see cref="Elements.Assets.LocaleResource"/> data for the fallback locale.
+        /// </summary>
+        public static LocaleResourceData FallbackLocale { get; private set; } = new();
 
         /// <summary>
         /// Gets the formatted, localized message of this <see cref="LocaleString"/>
@@ -32,18 +43,68 @@ namespace MonkeyLoader.Resonite
         /// <see cref="LocaleString.content"/> if it's not a locale key; otherwise, the formatted, localized message,
         /// or <c>null</c> if <paramref name="returnNullIfNotFound"/> is <c>true</c> and the key does not have a message.
         /// </returns>
-        public static string? Format(this LocaleString localeString, bool returnNullIfNotFound = false)
+        public static string? FormatWithCurrent(this LocaleString localeString, bool returnNullIfNotFound = false)
+            => localeString.FormatWithLocale(CurrentLocale, returnNullIfNotFound);
+
+        /// <summary>
+        /// Gets the formatted, localized message of this <see cref="LocaleString"/>
+        /// according to the <see cref="FallbackLocale">fallback locale</see>.
+        /// </summary>
+        /// <param name="localeString">The locale string to get the localized message of.</param>
+        /// <param name="returnNullIfNotFound">Whether to return <c>null</c> if the current locale does not have a message for the locale key.</param>
+        /// <returns>
+        /// <see cref="LocaleString.content"/> if it's not a locale key; otherwise, the formatted, localized message,
+        /// or <c>null</c> if <paramref name="returnNullIfNotFound"/> is <c>true</c> and the key does not have a message.
+        /// </returns>
+        public static string? FormatWithFallback(this LocaleString localeString, bool returnNullIfNotFound = false)
+            => localeString.FormatWithLocale(FallbackLocale, returnNullIfNotFound);
+
+        /// <summary>
+        /// Gets the formatted, localized message of this <see cref="LocaleString"/>
+        /// according to the given <paramref name="locale"/>.
+        /// </summary>
+        /// <param name="localeString">The locale string to get the localized message of.</param>
+        /// <param name="locale">The locale to localize the message in.</param>
+        /// <param name="returnNullIfNotFound">Whether to return <c>null</c> if the current locale does not have a message for the locale key.</param>
+        /// <returns>
+        /// <see cref="LocaleString.content"/> if it's not a locale key; otherwise, the formatted, localized message,
+        /// or <c>null</c> if <paramref name="returnNullIfNotFound"/> is <c>true</c> and the key does not have a message.
+        /// </returns>
+        public static string? FormatWithLocale(this LocaleString localeString, LocaleResourceData locale, bool returnNullIfNotFound = false)
         {
             if (!localeString.isLocaleKey)
                 return localeString.content;
 
-            if (CurrentLocale.Format(localeString.content, localeString.EvaluateArguments(), returnNullIfNotFound) is not string localized)
-                return null;
+            try
+            {
+                var localized = locale?.Format(localeString.content, localeString.EvaluateArguments());
+                if (localized is null && returnNullIfNotFound)
+                    return null;
 
-            var format = string.IsNullOrEmpty(localeString.format) ? "{0}" : localeString.format;
+                var format = string.IsNullOrEmpty(localeString.format) ? "{0}" : localeString.format;
 
-            return string.Format(format, localized);
+                return string.Format(format, localized ?? localeString.content);
+            }
+            catch (Exception ex)
+            {
+                UniLog.Error(ex.Format("Exception formatting message " + localeString.content + ", Locale Code: " + locale?.GetKeyLocaleCode(localeString.content)));
+                return "ERROR!!!";
+            }
         }
+
+        /// <summary>
+        /// Gets the formatted, localized message of this <see cref="LocaleString"/>
+        /// according to the given <paramref name="locale"/>.
+        /// </summary>
+        /// <param name="localeString">The locale string to get the localized message of.</param>
+        /// <param name="locale">The locale to localize the message in.</param>
+        /// <param name="returnNullIfNotFound">Whether to return <c>null</c> if the current locale does not have a message for the locale key.</param>
+        /// <returns>
+        /// <see cref="LocaleString.content"/> if it's not a locale key; otherwise, the formatted, localized message,
+        /// or <c>null</c> if <paramref name="returnNullIfNotFound"/> is <c>true</c> and the key does not have a message.
+        /// </returns>
+        public static string? FormatWithLocale(this LocaleString localeString, LocaleResource locale, bool returnNullIfNotFound = false)
+            => localeString.FormatWithLocale(locale.Data, returnNullIfNotFound);
 
         /// <summary>
         /// Creates a locale key prefixed with <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>, in the format:
@@ -100,5 +161,36 @@ namespace MonkeyLoader.Resonite
         /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this Mod mod, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
             => mod.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments!);
+
+        internal static async Task LoadFallbackLocaleAsync()
+        {
+            var locale = new LocaleResourceData();
+
+            try
+            {
+                if (Engine.Current.Platform == Platform.Android)
+                {
+                    var localeContent = await Engine.Current.InternalResources.ReadTextResource($"Locale/{FallbackLocaleCode}");
+
+                    if (localeContent != null)
+                        locale.LoadDataAdditively(localeContent);
+                }
+                else
+                {
+                    var localePath = Path.Combine(Engine.Current.LocalePath, $"{FallbackLocaleCode}.json");
+
+                    if (File.Exists(localePath))
+                        await locale.LoadAdditively(localePath);
+                }
+            }
+            catch (Exception arg)
+            {
+                UniLog.Error($"Error trying to load vanilla locale: {locale}\n{arg}", stackTrace: false);
+            }
+
+            await LocaleDataInjector.LoadLocalesAsync(locale, new[] { FallbackLocaleCode });
+
+            FallbackLocale = locale;
+        }
     }
 }

@@ -58,9 +58,9 @@ namespace MonkeyLoader.Resonite
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
 
-            // Have to add 3 phases because the indicator
+            // Have to add 4 phases because the indicator
             // will immediately disappear upon entering the last one
-            LoadProgressReporter.AddFixedPhases(3);
+            LoadProgressReporter.AddFixedPhases(4);
         }
 
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)
@@ -90,6 +90,9 @@ namespace MonkeyLoader.Resonite
                 resoniteMonkey.EngineReady();
 
             Logger.Info(() => $"Done late-executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+            Logger.Info(() => "Triggering reloading of fallback locale data for mods!");
+
+            Task.Run(LocaleExtensions.LoadFallbackLocaleAsync);
         }
 
         private static void OnEngineShutdown()
@@ -154,6 +157,13 @@ namespace MonkeyLoader.Resonite
             }
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
+
+            LoadProgressReporter.AdvanceFixedPhase("Loading Fallback Locale Data for Mods...");
+            sw.Restart();
+
+            await LocaleExtensions.LoadFallbackLocaleAsync();
+            Logger.Info(() => $"Done loading fallback locale data for mods in {sw.ElapsedMilliseconds}ms!");
+
             LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
         }
     }
