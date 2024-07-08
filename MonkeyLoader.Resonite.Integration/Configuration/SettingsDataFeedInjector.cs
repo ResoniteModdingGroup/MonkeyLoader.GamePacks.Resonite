@@ -719,11 +719,11 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static string GetLocalizedModName(Mod mod)
-                    => mod.GetLocaleString("Name").Format()!;
+            => mod.GetLocaleString("Name").FormatWithCurrent()!;
 
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
-                    => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
-                        $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
+            => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
+                    $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
 
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
