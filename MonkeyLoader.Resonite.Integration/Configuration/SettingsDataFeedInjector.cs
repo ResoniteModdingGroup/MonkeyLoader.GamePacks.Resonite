@@ -40,20 +40,8 @@ namespace MonkeyLoader.Resonite.Configuration
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
 
-        public override int Priority => HarmonyLib.Priority.Normal;
-
-        // Stores data about a settings facet in Userspace, there can be any number of these
-        class SettingsFacetData
-        {
-            public DataFeedItemMapper? Mapper => RootCategoryView?.ItemsManager.TemplateMapper.Target;
-            public RootCategoryView? RootCategoryView = null;
-            public Slider<float>? ScrollSlider = null;
-            public readonly Stack<float> ScrollAmounts = new();
-            public bool LegacyColorXTemplateCleanupDone = false;
-            public SettingsDataFeed? SettingsDataFeed => RootCategoryView?.Feed.Target as SettingsDataFeed;
-        }
-
         private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = new();
+        public override int Priority => HarmonyLib.Priority.Normal;
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
@@ -119,7 +107,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static void EnsureDataFeedValueFieldTemplate(SettingsFacetData settingsData, Type typeToInject)
         {
-            if (settingsData.Mapper.FilterWorldElement() == null) 
+            if (settingsData.Mapper.FilterWorldElement() == null)
             {
                 Logger.Error(() => "DataFeedItemMapper is null in EnsureDataFeedValueFieldTemplate!");
                 return;
@@ -566,8 +554,8 @@ namespace MonkeyLoader.Resonite.Configuration
             {
                 settingsData = new SettingsFacetData();
                 _settingsFacetDataMap.Add(__instance, settingsData);
-                __instance.Destroyed += (IDestroyable destroyable) => 
-                { 
+                __instance.Destroyed += (IDestroyable destroyable) =>
+                {
                     if (destroyable is SettingsDataFeed settingsDataFeed)
                     {
                         _settingsFacetDataMap.Remove(settingsDataFeed);
@@ -648,7 +636,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
-            where T : Enum
+                    where T : Enum
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
@@ -684,7 +672,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
-            where TQuantity : unmanaged, IQuantity<TQuantity>
+                    where TQuantity : unmanaged, IQuantity<TQuantity>
         {
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             InitBase(quantityField, path, configKey);
@@ -731,11 +719,11 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static string GetLocalizedModName(Mod mod)
-            => mod.GetLocaleString("Name").Format()!;
+                    => mod.GetLocaleString("Name").Format()!;
 
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
-            => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
-                $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
+                    => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
+                        $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
 
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
@@ -893,6 +881,17 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             await Task.CompletedTask;
             yield break;
+        }
+
+        // Stores data about a settings facet in Userspace, there can be any number of these
+        private class SettingsFacetData
+        {
+            public readonly Stack<float> ScrollAmounts = new();
+            public bool LegacyColorXTemplateCleanupDone = false;
+            public RootCategoryView? RootCategoryView = null;
+            public Slider<float>? ScrollSlider = null;
+            public DataFeedItemMapper? Mapper => RootCategoryView?.ItemsManager.TemplateMapper.Target;
+            public SettingsDataFeed? SettingsDataFeed => RootCategoryView?.Feed.Target as SettingsDataFeed;
         }
     }
 }

@@ -46,36 +46,12 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <summary>
-        /// Creates a locale key prefixed with the <see cref="Mod.Id"/> in the format:
-        /// <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>.
+        /// Creates a locale key prefixed with <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>, in the format:
+        /// <c>$"{<paramref name="identifiable"/>.<see cref="IIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
         /// </summary>
         /// <returns>The prefixed locale key.</returns>
-        public static string GetLocaleKey(this Mod mod, string key)
-            => $"{mod.Id}.{key}";
-
-        /// <summary>
-        /// Creates a locale key prefixed with the <see cref="ConfigSection.FullId"/> in the format:
-        /// <c>$"{<paramref name="configSection"/>.<see cref="ConfigSection.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
-        /// </summary>
-        /// <returns>The prefixed locale key.</returns>
-        public static string GetLocaleKey(this ConfigSection configSection, string key)
-            => $"{configSection.FullId}.{key}";
-
-        /// <summary>
-        /// Creates a locale key prefixed with the <see cref="INestedIdentifiable.FullId">FullId</see> in the format:
-        /// <c>$"{<paramref name="configKey"/>.<see cref="INestedIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
-        /// </summary>
-        /// <returns>The prefixed locale key.</returns>
-        public static string GetLocaleKey(this IDefiningConfigKey configKey, string key)
-            => $"{configKey.FullId}.{key}";
-
-        /// <summary>
-        /// Creates a locale key prefixed with the monkey's <see cref="INestedIdentifiable.FullId">FullId</see> in the format:
-        /// <c>$"{<paramref name="monkey"/>.<see cref="INestedIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
-        /// </summary>
-        /// <returns>The prefixed locale key.</returns>
-        public static string GetLocaleKey(this IMonkey monkey, string key)
-            => $"{monkey.FullId}.{key}";
+        public static string GetLocaleKey(this IIdentifiable identifiable, string key)
+            => $"{identifiable.FullId}.{key}";
 
         /// <summary>
         /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
