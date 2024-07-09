@@ -1,0 +1,45 @@
+{
+  "localeCode": "de",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "Settings.MonkeyLoader.Breadcrumb": "Einstellungen",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Value": "{available, plural, =0{Keine Monkeys} other{<b>{active}</b> {active, plural, one{aktiver Monkey} other{aktive Monkeys}} von <b>{available}</b> verfügbaren}}.",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{Keine Early Monkeys} other{<b>{active}</b> {active, plural, one{aktiver Early Monkey} other{aktive Early Monkeys}} von <b>{available}</b> verfügbaren}}.",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "MonkeyLoader Einstellungen Öffnen",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Öffnet die Einstellungen für den Modloader selbst.",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "Metadaten",
+    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Zeigt eine Übersicht über den Mod.",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenSettings": "Mod Einstellungen Öffnen",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Beschreibung",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "{count, plural, one{Author} other{Authoren}}",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Projekt",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>Kein Projekt</i>",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Einstellungen Speichern",
+    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Standardeinstellungen Wiederherstellen",
+    "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "Diese Kategorie ist nur im Userspace verfügbar.",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Verfügbare Einstellungen Öffnen",
+    "Settings.ConfigSections.Breadcrumb": "Einstellungen",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "Verfügbare Monkeys Öffnen",
+
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Listet die Details aller verfügbaren Monkeys dieses Mods auf und erlaubt es sie zu (de)aktivieren.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Anzahl",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "Anzahl der Monkeys in diesem Mod.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Aktiviert",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Schaltet um, ob dieser Monkey aktiv ist.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "Beschreibung",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "Die Beschreibung dieses Monkeys.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "Typ",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "Zeigt den Basistypen dieses Monkeys.",
+
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Listet die Details aller verfügbaren Early Monkeys (Pre-Patcher) dieses Mods auf und erlaubt es sie zu (de)aktivieren.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Anzahl",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "Die Anzahl der Early Monkeys in diesem Mod.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Aktiviert",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.\n\nAchtung: Änderungen werden eventuell erst nach einem Neustart aktiv."
+  }
+}
