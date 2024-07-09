@@ -17,18 +17,18 @@
     "MonkeyLoader.GamePacks.Resonite.GamePacks": "Game Packs",
     "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "Metadata",
     "MonkeyLoader.GamePacks.Resonite.Mod.Id": "Id",
-    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Shows an overview of the mod.",
+    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Shows an overview of the Mod.",
     "MonkeyLoader.GamePacks.Resonite.Mod.OpenSettings": "Open Mod Settings",
     "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Description",
     "MonkeyLoader.GamePacks.Resonite.Mod.Version": "Version",
     "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "{count, plural, one{Author} other{Authors}}",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Project",
-    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>None</i>",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>No Project</i>",
 
-    "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Save configuration to disk",
-    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Reset configuration to default",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Save Configuration",
+    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Reset Configuration to Default",
     "MonkeyLoader.GamePacks.Resonite.Information": "Information",
-    "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "This category is only accessible in userspace.",
+    "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "This category is only accessible in Userspace.",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Open available Settings",
     "Settings.ConfigSections.Breadcrumb": "Settings",
@@ -37,7 +37,7 @@
     "Settings.MonkeyToggles.Breadcrumb": "Monkeys",
 
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Name": "Monkeys",
-    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Lists details about all available Monkeys of this Mod and allows toggling them.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Lists the details of all available Monkeys of this Mod and allows toggling them.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Count",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "The number of Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Enabled",
@@ -48,10 +48,10 @@
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "Shows this Monkey's base Type.",
 
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Name": "Early Monkeys",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Lists details about all available Early Monkeys (pre-patchers) of this Mod and allows toggling them.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Lists the details of all available Early Monkeys (pre-patchers) of this Mod and allows (de)activating them.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Count",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware, that changes will only take effect on restart."
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware: Changes may only take effect after a restart."
   }
 }
