@@ -13,8 +13,8 @@ using EngineLocaleHelper = FrooxEngine.LocaleHelper;
 namespace MonkeyLoader.Resonite.Locale
 {
     [HarmonyPatch(typeof(EngineLocaleHelper))]
-    [HarmonyPatchCategory(nameof(ModLocaleDriverFix))]
-    internal sealed class ModLocaleDriverFix : ResoniteMonkey<ModLocaleDriverFix>
+    [HarmonyPatchCategory(nameof(ModLocaleFallbackDriver))]
+    internal sealed class ModLocaleFallbackDriver : ResoniteMonkey<ModLocaleFallbackDriver>
     {
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
