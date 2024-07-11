@@ -37,6 +37,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private static readonly Type _dummyType = typeof(dummy);
         private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateEnumField));
+        private static readonly MethodInfo _generateFlagsEnumFields = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateFlagsEnumFields));
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
 
@@ -279,6 +280,8 @@ namespace MonkeyLoader.Resonite.Configuration
         {
             await Task.CompletedTask;
 
+            var grouping = new[] { configSection.Id };
+
             foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
             {
                 //if (setting is SettingIndicatorProperty)
@@ -288,7 +291,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (configKey.ValueType == _dummyType)
                 {
                     var dummyField = new DataFeedValueField<dummy>();
-                    dummyField.InitBase(configKey.FullId, path, new[] { configKey.Section.Id }, configKey.HasDescription ? $"{configKey.FullId}.Description".AsLocaleKey() : " ");
+                    dummyField.InitBase(configKey.FullId, path, grouping, configKey.HasDescription ? configKey.GetLocaleKey("Description") : " ");
                     yield return dummyField;
 
                     continue;
@@ -303,16 +306,28 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 if (configKey.ValueType.IsEnum)
                 {
-                    yield return (DataFeedItem)_generateEnumField
-                        .MakeGenericMethod(configKey.ValueType)
-                        .Invoke(null, new object[] { path, configKey });
+                    if (configKey.ValueType.GetCustomAttribute<FlagsAttribute>() is null)
+                    {
+                        yield return (DataFeedItem)_generateEnumField
+                            .MakeGenericMethod(configKey.ValueType)
+                            .Invoke(null, [path, configKey]);
+                    }
+                    else
+                    {
+                        var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
+                            .MakeGenericMethod(configKey.ValueType)
+                            .Invoke(null, [path, configKey]);
+
+                        foreach (var item in items)
+                            yield return item;
+                    }
 
                     continue;
                 }
 
                 yield return (DataFeedItem)_generateItemForConfigKeyMethod
                     .MakeGenericMethod(configKey.ValueType)
-                    .Invoke(null, new object[] { settingsData, path, configKey });
+                    .Invoke(null, [settingsData, path, configKey]);
             }
         }
 
@@ -644,13 +659,42 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
-                    where T : Enum
+            where T : Enum
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
             enumField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return enumField;
+        }
+
+        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
+            where T : Enum
+        {
+            var flagsEnumGroup = new DataFeedGroup();
+            flagsEnumGroup.InitBase(configKey.FullId, path, [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
+            flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
+            yield return flagsEnumGroup;
+
+            var flagsGrouping = new[] { configKey.Section.Id, configKey.FullId };
+
+            foreach (var value in Enum.GetValues(configKey.ValueType).Cast<T>())
+            {
+                var name = value.ToString();
+                var longValue = Convert.ToInt64(value);
+
+                var flagToggle = new DataFeedToggle();
+                flagToggle.InitBase($"{configKey.FullId}.{name}", path, flagsGrouping, name);
+                flagToggle.InitSetupValue(field =>
+                {
+                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+
+                    field.Changed += _ => configKey.TrySetValue(Enum.ToObject(configKey.ValueType, field.Value ? Convert.ToInt64(configKey.GetValue()) | longValue : Convert.ToInt64(configKey.GetValue()) & ~longValue));
+                    configKey.Changed += (sender, changedEvent) => field.World.RunSynchronously(() => field.Value = (Convert.ToInt64(changedEvent.NewValue) & longValue) == longValue);
+                });
+
+                yield return flagToggle;
+            }
         }
 
         private static DataFeedIndicator<T> GenerateIndicator<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
@@ -670,7 +714,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 {
                     return (DataFeedItem)_generateQuantityField
                         .MakeGenericMethod(configKey.Self.ValueType, quantity.QuantityType)
-                        .Invoke(null, new object[] { path, configKey.Self, quantity });
+                        .Invoke(null, [path, configKey.Self, quantity]);
                 }
 
                 return GenerateSlider(path, configKey.Self, range);
@@ -896,7 +940,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         // Stores data about a settings facet in Userspace, there can be any number of these
-        private class SettingsFacetData
+        private sealed class SettingsFacetData
         {
             public readonly Stack<float> ScrollAmounts = new();
             public bool LegacyColorXTemplateCleanupDone = false;
