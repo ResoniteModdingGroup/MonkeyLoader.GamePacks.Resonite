@@ -60,7 +60,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Resonite.Elements.Assets" Version="1.0.2" />
-    <PackageReference Include="Resonite.Elements.Core" Version="1.0.2" />
+    <PackageReference Include="Resonite.Elements.Core" Version="1.1.0" />
     <PackageReference Include="Resonite.Elements.Quantity" Version="1.0.2" />
     <PackageReference Include="Resonite.FrooxEngine" Version="2024.7.11.1293" />
     <PackageReference Include="Resonite.FrooxEngine.Store" Version="1.0.2" />
