@@ -32,9 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.17.5-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.19.1-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
-    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.16.4-beta" GeneratePathProperty="true" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.16.6-beta" GeneratePathProperty="true" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -42,7 +42,6 @@
     <PackageReference Include="Resonite.Assembly-CSharp" Version="1.0.2" />
     <PackageReference Include="Resonite.UnityEngine.CoreModule" Version="1.0.3" />
     <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.3" />
-    <PackageReference Include="System.Text.Json" Version="8.0.2" />
   </ItemGroup>
   
   <ItemGroup>
