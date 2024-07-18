@@ -496,7 +496,7 @@ namespace MonkeyLoader.Resonite.Configuration
             {
                 Monkeys => mod.Monkeys.ToArray(),
                 EarlyMonkeys => mod.EarlyMonkeys.ToArray(),
-                _ => Array.Empty<IMonkey>()
+                _ => []
             };
 
             var group = new DataFeedGroup();
@@ -529,7 +529,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 {
                     var enabledIndicator = new DataFeedIndicator<string>();
                     enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    enabledIndicator.InitSetupValue(field => field.Value = "Always Enabled");
+                    enabledIndicator.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleString($"{monkeyType}.AlwaysEnabled")));
                     yield return enabledIndicator;
                 }
 

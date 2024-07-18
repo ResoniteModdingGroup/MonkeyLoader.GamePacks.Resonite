@@ -29,8 +29,9 @@
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Listet die Details aller verfügbaren Monkeys dieses Mods auf und erlaubt es sie zu (de)aktivieren.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Anzahl",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "Anzahl der Monkeys in dieser Mod.",
-    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Aktiviert",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Aktiv",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Schaltet um, ob dieser Monkey aktiv ist.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.AlwaysEnabled": "Immer Aktiv",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "Beschreibung",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "Die Beschreibung dieses Monkeys.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "Typ",
@@ -39,7 +40,8 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Listet die Details aller verfügbaren Early Monkeys (Pre-Patcher) dieses Mods auf und erlaubt es sie zu (de)aktivieren.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Anzahl",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "Die Anzahl der Early Monkeys in dieser Mod.",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Aktiviert",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.\n\nAchtung: Änderungen werden eventuell erst nach einem Neustart aktiv."
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Aktiv",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.\n\nAchtung: Änderungen werden eventuell erst nach einem Neustart aktiv.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv"
   }
 }

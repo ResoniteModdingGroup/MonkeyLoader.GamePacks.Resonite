@@ -42,6 +42,7 @@
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "The number of Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Enabled",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Toggles whether this Monkey is active.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.AlwaysEnabled": "Always Enabled",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "Description",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "The description of this monkey.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "Type",
@@ -52,6 +53,7 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Count",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware: Changes may only take effect after a restart."
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware: Changes may only take effect after a restart.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Always Enabled"
   }
 }
