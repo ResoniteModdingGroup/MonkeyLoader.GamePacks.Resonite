@@ -4,10 +4,12 @@ using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Events;
 using MonkeyLoader.Patching;
+using MonoMod.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace MonkeyLoader.Resonite.UI
 {
@@ -18,6 +20,8 @@ namespace MonkeyLoader.Resonite.UI
     {
         private static EventDispatching<BuildInspectorBodyEvent>? _buildInspectorBody;
         private static EventDispatching<BuildInspectorHeaderEvent>? _buildInspectorHeader;
+
+        private static readonly MethodInfo _openContainerMethod = AccessTools.Method(typeof(WorkerInspector), "OnOpenContainerPressed");
 
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
@@ -31,7 +35,7 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         [HarmonyPrefix]
-        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker, bool allowRemove, bool allowDuplicate, Predicate<ISyncMember> memberFilter)
+        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker, bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
             var ui = new UIBuilder(__instance.Slot);
             RadiantUI_Constants.SetupEditorStyle(ui);
@@ -54,10 +58,19 @@ namespace MonkeyLoader.Resonite.UI
 
                 OnBuildInspectorHeader(InspectorHeaderPosition.AfterName, ui, worker, allowDuplicate, allowRemove, memberFilter);
 
-                if (allowDuplicate || allowRemove)
+                if (allowDuplicate || allowRemove || allowContainer)
                 {
                     ui.Style.FlexibleWidth = 0f;
                     ui.Style.MinWidth = 40f;
+
+                    if (allowContainer && worker.FindNearestParent<Slot>() != null)
+                    {
+                        var rootUp = OfficialAssets.Graphics.Icons.Inspector.RootUp;
+                        tint = RadiantUI_Constants.Sub.PURPLE;
+                        ButtonRefRelay<Worker> openContainerRelay = ui.Button(rootUp, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
+                        openContainerRelay.Argument.Target = worker;
+                        openContainerRelay.ButtonPressed.Target = _openContainerMethod.CreateDelegate<ButtonEventHandler<Worker>>(__instance);
+                    }
 
                     if (allowDuplicate)
                     {
