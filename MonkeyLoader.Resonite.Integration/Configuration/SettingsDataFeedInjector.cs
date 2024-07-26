@@ -499,6 +499,14 @@ namespace MonkeyLoader.Resonite.Configuration
                 _ => []
             };
 
+            Array.Sort(monkeys, (left, right) =>
+            {
+                if (left.CanBeDisabled != right.CanBeDisabled)
+                    return left.CanBeDisabled ? -1 : 1;
+
+                return left.Name.CompareTo(right.Name);
+            });
+
             var group = new DataFeedGroup();
             group.InitBase(monkeyType, path, null, Mod.GetLocaleString($"{monkeyType}.Name"), Mod.GetLocaleString($"{monkeyType}.Description"));
             yield return group;
