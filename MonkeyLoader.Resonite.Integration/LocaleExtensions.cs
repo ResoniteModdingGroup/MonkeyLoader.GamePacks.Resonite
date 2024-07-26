@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite
         public const string FallbackLocaleCode = "en";
 
         /// <summary>
-        /// The name of the argument added to Mod's locale strings to indicate that they belong to a mod.
+        /// The name of the argument added to Mod's locale strings to indicate that they belong to a identifiable.
         /// </summary>
         public const string ModLocaleStringIndicatorArgumentName = "MonkeyLoader.Mod.LocaleString";
 
@@ -120,58 +120,58 @@ namespace MonkeyLoader.Resonite
             => $"{identifiable.FullId}.{key}";
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, string argName, object argField)
-            => mod.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string argName, object argField)
+            => identifiable.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, string format, string argName, object argField)
-            => mod.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, string argName, object argField)
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, params (string, object)[] arguments)
-            => mod.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator());
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, params (string, object)[] arguments)
+            => identifiable.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator());
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, string format, params (string, object)[] arguments)
-            => mod.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator());
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, params (string, object)[] arguments)
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator());
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, bool continuous, Dictionary<string, object>? arguments = null)
-            => mod.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator());
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, bool continuous, Dictionary<string, object>? arguments = null)
+            => identifiable.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator());
 
         /// <summary>
-        /// Uses <c>$"{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}.{<paramref name="key"/>}"</c>
+        /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
-        /// <returns>The <see cref="LocaleString"/> created from the key with the arguments.</returns>
-        public static LocaleString GetLocaleString(this Mod mod, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
-            => mod.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
+        /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
+        public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
 
         /// <summary>
-        /// Determines whether this <see cref="LocaleString"/> belongs to a mod.
+        /// Determines whether this <see cref="LocaleString"/> belongs to an identifiable.
         /// </summary>
         /// <param name="localeString">The <see cref="LocaleString"/> to check.</param>
-        /// <returns><c>true</c> if the given <see cref="LocaleString"/> belongs to a mod; otherwise, <c>false</c>.</returns>
+        /// <returns><c>true</c> if the given <see cref="LocaleString"/> belongs to an identifiable; otherwise, <c>false</c>.</returns>
         public static bool IsModLocaleString(this LocaleString localeString)
             => localeString.arguments.ContainsKey(ModLocaleStringIndicatorArgumentName);
 

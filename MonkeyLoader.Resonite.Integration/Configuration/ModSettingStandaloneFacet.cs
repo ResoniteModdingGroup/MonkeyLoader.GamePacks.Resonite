@@ -120,7 +120,7 @@ namespace MonkeyLoader.Resonite.Configuration
             [HarmonyPostfix]
             private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable? __result)
             {
-                if (!__instance.World.IsUserspace() || __result is not Grabbable 
+                if (!__instance.World.IsUserspace() || __result is not Grabbable
                     || __result?.Slot.GetComponent<Facet>() is null
                     || __instance.Slot.GetComponentInParents<FeedItemInterface>() is null
                     || __instance.Slot.GetComponentInParents<SettingsDataFeed>() is null
@@ -159,14 +159,14 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         // Drive the field with the localized value
                         field.ActiveLink.ReleaseLink();
-                        field.DriveLocalized(foundKey.GetLocaleKey("Name"));
+                        field.SetLocalized(foundKey.GetLocaleString("Name"));
                     }
                 }
 
                 if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
                 {
-                    var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { valueField.ValueType });
-                    genericMethod.Invoke(null, new object[] { valueField, foundKey, ConfigKeyChangeLabel });
+                    var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod([valueField.ValueType]);
+                    genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
 
                     feedItemInterface.Slot.PersistentSelf = true;
                     return;
