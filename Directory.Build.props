@@ -20,7 +20,6 @@
 
   <PropertyGroup>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <IncludeSymbols>False</IncludeSymbols>
     <EmbedAllSources>True</EmbedAllSources>

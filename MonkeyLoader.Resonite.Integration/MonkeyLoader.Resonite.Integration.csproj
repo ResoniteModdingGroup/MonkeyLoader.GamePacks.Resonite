@@ -21,6 +21,7 @@
     <PackageIcon>Icon.png</PackageIcon>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
   </PropertyGroup>
   
   <PropertyGroup>
