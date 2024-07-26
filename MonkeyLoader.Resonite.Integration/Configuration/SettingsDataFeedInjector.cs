@@ -504,7 +504,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (left.CanBeDisabled != right.CanBeDisabled)
                     return left.CanBeDisabled ? -1 : 1;
 
-                return left.Name.CompareTo(right.Name);
+                return GetLocalizedMonkeyName(left).CompareTo(GetLocalizedMonkeyName(right));
             });
 
             var group = new DataFeedGroup();
@@ -521,7 +521,7 @@ namespace MonkeyLoader.Resonite.Configuration
             foreach (var monkey in monkeys)
             {
                 var monkeyGroup = new DataFeedGroup();
-                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleKey("Name").AsLocaleKey());
+                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleString("Name"));
                 yield return monkeyGroup;
 
                 var monkeyGrouping = new[] { monkeyType, monkey.Id };
@@ -543,7 +543,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 var descriptionIndicator = new DataFeedIndicator<string>();
                 descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeyGrouping, Mod.GetLocaleString("Monkeys.Description.Name"), Mod.GetLocaleString("Monkeys.Description.Description"));
-                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleKey("Description").AsLocaleKey()));
+                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
                 yield return descriptionIndicator;
 
                 var typeIndicator = new DataFeedIndicator<string>();
@@ -729,9 +729,12 @@ namespace MonkeyLoader.Resonite.Configuration
         private static string GetLocalizedModName(Mod mod)
             => mod.GetLocaleString("Name").FormatWithCurrent()!;
 
+        private static string GetLocalizedMonkeyName(IMonkey monkey)
+            => monkey.GetLocaleString("Name").FormatWithCurrent()!;
+
         private static void InitBase(DataFeedItem item, IReadOnlyList<string> path, IDefiningConfigKey configKey)
-            => item.InitBase(configKey.FullId, path, new[] { configKey.Section.Id },
-                    $"{configKey.FullId}.Name".AsLocaleKey(), $"{configKey.FullId}.Description".AsLocaleKey());
+            => item.InitBase(configKey.FullId, path, [configKey.Section.Id],
+                    configKey.GetLocaleString("Name"), configKey.GetLocaleString("Description"));
 
         private static void MoveUpFromCategory(RootCategoryView rootCategoryView, string category)
         {
@@ -747,7 +750,8 @@ namespace MonkeyLoader.Resonite.Configuration
             Logger.Trace(() => $"OnElementsAdded. start: {start} count: {count}");
 
             // we don't need to store the value if we are at the root
-            if (start == 0 && count == 1) return;
+            if (start == 0 && count == 1)
+                return;
 
             var rootCategoryView = list.FindNearestParent<RootCategoryView>();
             if (rootCategoryView?.Feed.Target is SettingsDataFeed settingsDataFeed && _settingsFacetDataMap.TryGetValue(settingsDataFeed, out var settingsData))
@@ -881,7 +885,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             var warning = new DataFeedIndicator<string>();
             warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
-            warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleKey("WorldNotUserspace").AsLocaleKey()));
+            warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleString("WorldNotUserspace")));
             yield return warning;
         }
 
