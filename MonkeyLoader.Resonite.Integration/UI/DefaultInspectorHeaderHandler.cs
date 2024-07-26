@@ -1,0 +1,69 @@
+﻿using Elements.Core;
+using FrooxEngine;
+using MonkeyLoader.Patching;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MonkeyLoader.Resonite.UI
+{
+    internal sealed class DefaultInspectorHeaderHandler
+        : ConfiguredResoniteEventHandlerMonkey<DefaultInspectorHeaderHandler, DefaultInspectorHeaderConfig, BuildInspectorHeaderEvent>
+    {
+        public override int Priority => HarmonyLib.Priority.Normal;
+
+        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => true;
+
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
+
+        protected override void Handle(BuildInspectorHeaderEvent eventData)
+        {
+            var ui = eventData.UI;
+            var worker = eventData.Worker;
+
+            if (eventData.CreateWorkerNameButton)
+            {
+                LocaleString text = $"<b>{worker.GetType().GetNiceName()}</b>";
+
+                var button = ui.ButtonRef(in text, eventData.Inspector.OnWorkerTypePressed, worker);
+                button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
+                button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
+
+                ConfigSection.WorkerNameOffset.Drive(button.Slot._orderOffset);
+            }
+
+            ui.PushStyle();
+            ui.Style.FlexibleWidth = 0;
+            ui.Style.MinWidth = 40;
+
+            if (eventData.CreateOpenContainerButton)
+            {
+                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
+                ConfigSection.OpenContainerOffset.Drive(button.Slot._orderOffset);
+
+                eventData.HasOpenContainerButton = true;
+            }
+
+            if (eventData.CreateDuplicateButton)
+            {
+                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
+                ConfigSection.DuplicateOffset.Drive(button.Slot._orderOffset);
+
+                eventData.HasDuplicateButton = true;
+            }
+
+            if (eventData.CreateDestroyButton)
+            {
+                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
+                ConfigSection.DestroyOffset.Drive(button.Slot._orderOffset);
+
+                eventData.HasDestroyButton = true;
+            }
+
+            ui.PopStyle();
+        }
+    }
+}
