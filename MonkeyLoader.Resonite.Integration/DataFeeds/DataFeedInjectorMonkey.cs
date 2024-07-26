@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds
 {
-    internal abstract class DataFeedInjectorMonkey<TMonkey, TDataFeed>
-            : ResoniteMonkey<TMonkey>, IAsyncEventSource<EnumerateDataFeedEvent<TDataFeed>>
+    internal abstract class DataFeedInjectorMonkey<TMonkey, TDataFeed> : ResoniteMonkey<TMonkey>,
+            IAsyncEventSource<EnumerateDataFeedEvent<TDataFeed>>
         where TMonkey : DataFeedInjectorMonkey<TMonkey, TDataFeed>, new()
         where TDataFeed : IDataFeed
     {
         private static AsyncEventDispatching<EnumerateDataFeedEvent<TDataFeed>>? _dispatching;
 
         [HarmonyPostfix]
-        [HarmonyPatch(nameof(IDataFeed.Enumerate), new[] { typeof(IReadOnlyList<string>), typeof(IReadOnlyList<string>), typeof(string) })]
+        [HarmonyPatch(nameof(IDataFeed.Enumerate), [typeof(IReadOnlyList<string>), typeof(IReadOnlyList<string>), typeof(string)])]
         private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string searchPhrase)
         {
             var eventData = new EnumerateDataFeedEvent<TDataFeed>(__instance, __result, path, groupKeys, searchPhrase);

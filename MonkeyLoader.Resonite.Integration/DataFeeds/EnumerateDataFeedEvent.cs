@@ -111,8 +111,8 @@ namespace MonkeyLoader.Resonite.DataFeeds
         {
             DataFeed = dataFeed;
             OriginalResult = result;
-            Path = path ?? Array.Empty<string>();
-            GroupKeys = groupKeys ?? Array.Empty<string>();
+            Path = path ?? [];
+            GroupKeys = groupKeys ?? [];
             SearchPhrase = searchPhrase;
         }
 
