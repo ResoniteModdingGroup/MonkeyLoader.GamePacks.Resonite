@@ -44,6 +44,11 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.\n\nAchtung: Änderungen werden eventuell erst nach einem Neustart aktiv.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv",
 
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeader.DestroyOffset.Description": "Das Order Offset des Löschen-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeader.DuplicateOffset.Description": "Das Order Offset des Duplizieren-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeader.OpenContainerOffset.Description": "Das Order Offset des Container-Öffnen-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeader.NameOffset.Description": "Das Order Offset des Worker-Name-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
+
     "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Ruft Unity Monkeys auf nachdem die erste Szene geladen wurde.",
 
     "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Sorgt dafür, dass der Mod-Ladefortschritt auf dem Ladebildschirm der Unity Version von Resonite erscheint.",

@@ -17,10 +17,9 @@ namespace MonkeyLoader.Resonite.UI
         public OpenLinkedDynamicVariableSpace() : base(typeof(DynamicVariableBase<>))
         { }
 
-        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData)
-            => base.AppliesTo(eventData) && eventData.HeaderPosition == InspectorHeaderPosition.Start;
+        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => true;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {

@@ -21,10 +21,10 @@ namespace MonkeyLoader.Resonite.UI
         private static EventDispatching<BuildInspectorBodyEvent>? _buildInspectorBody;
         private static EventDispatching<BuildInspectorHeaderEvent>? _buildInspectorHeader;
 
-        private static readonly MethodInfo _openContainerMethod = AccessTools.Method(typeof(WorkerInspector), "OnOpenContainerPressed");
+        public override bool CanBeDisabled => true;
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         protected override bool OnLoaded()
         {
@@ -35,11 +35,15 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         [HarmonyPrefix]
-        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker, bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
+        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
+            bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
+            if (!Enabled)
+                return true;
+
             var ui = new UIBuilder(__instance.Slot);
             RadiantUI_Constants.SetupEditorStyle(ui);
-            ui.VerticalLayout(6f);
+            var vertical = ui.VerticalLayout(6f);
 
             if (worker is not Slot)
             {
@@ -48,55 +52,9 @@ namespace MonkeyLoader.Resonite.UI
                 ui.Style.MinHeight = 24f;
                 ui.Style.FlexibleWidth = 1000f;
 
-                OnBuildInspectorHeader(InspectorHeaderPosition.Start, ui, worker, allowDuplicate, allowRemove, memberFilter);
+                OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
 
-                LocaleString text = $"<b>{worker.GetType().GetNiceName()}</b>";
-                colorX? tint = RadiantUI_Constants.BUTTON_COLOR;
-
-                var button = ui.ButtonRef(in text, in tint, __instance.OnWorkerTypePressed, worker);
-                button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
-
-                OnBuildInspectorHeader(InspectorHeaderPosition.AfterName, ui, worker, allowDuplicate, allowRemove, memberFilter);
-
-                if (allowDuplicate || allowRemove || allowContainer)
-                {
-                    ui.Style.FlexibleWidth = 0f;
-                    ui.Style.MinWidth = 40f;
-
-                    if (allowContainer && worker.FindNearestParent<Slot>() != null)
-                    {
-                        var rootUp = OfficialAssets.Graphics.Icons.Inspector.RootUp;
-                        tint = RadiantUI_Constants.Sub.PURPLE;
-                        ButtonRefRelay<Worker> openContainerRelay = ui.Button(rootUp, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
-                        openContainerRelay.Argument.Target = worker;
-                        openContainerRelay.ButtonPressed.Target = _openContainerMethod.CreateDelegate<ButtonEventHandler<Worker>>(__instance);
-                    }
-
-                    if (allowDuplicate)
-                    {
-                        var duplicateIcon = OfficialAssets.Graphics.Icons.Inspector.Duplicate;
-                        tint = RadiantUI_Constants.Sub.GREEN;
-
-                        ButtonRefRelay<Worker> duplicateRelay = ui.Button(duplicateIcon, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
-                        duplicateRelay.Argument.Target = worker;
-                        duplicateRelay.ButtonPressed.Target = __instance.OnDuplicateComponentPressed;
-                    }
-
-                    if (allowRemove)
-                    {
-                        var destroyIcon = OfficialAssets.Graphics.Icons.Inspector.Destroy;
-                        tint = RadiantUI_Constants.Sub.RED;
-
-                        ButtonRefRelay<Worker> destroyRelay = ui.Button(destroyIcon, in tint).Slot.AttachComponent<ButtonRefRelay<Worker>>();
-                        destroyRelay.Argument.Target = worker;
-                        destroyRelay.ButtonPressed.Target = __instance.OnRemoveComponentPressed;
-                    }
-                }
-
-                button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
-                OnBuildInspectorHeader(InspectorHeaderPosition.End, ui, worker, allowDuplicate, allowRemove, memberFilter);
-
-                ui.NestOut();
+                ui.NestInto(vertical.Slot);
             }
 
             if (worker is ICustomInspector customInspector)
@@ -109,7 +67,7 @@ namespace MonkeyLoader.Resonite.UI
                 WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
             }
 
-            OnBuildInspectorBody(ui, worker, allowDuplicate, allowRemove, memberFilter);
+            OnBuildInspectorBody(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
 
             ui.Style.MinHeight = 8f;
             ui.Panel();
@@ -118,20 +76,28 @@ namespace MonkeyLoader.Resonite.UI
             return false;
         }
 
-        private static void OnBuildInspectorBody(UIBuilder ui, Worker worker,
-            bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+        private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
+            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var eventData = new BuildInspectorBodyEvent(ui, worker, allowDuplicate, allowDestroy, memberFilter);
+            var root = ui.Root;
+
+            var eventData = new BuildInspectorBodyEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             _buildInspectorBody?.Invoke(eventData);
+
+            ui.NestInto(root);
         }
 
-        private static void OnBuildInspectorHeader(InspectorHeaderPosition headerPosition, UIBuilder ui,
-            Worker worker, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+        private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
+            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var eventData = new BuildInspectorHeaderEvent(headerPosition, ui, worker, allowDuplicate, allowDestroy, memberFilter);
+            var root = ui.Root;
+
+            var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             _buildInspectorHeader?.Invoke(eventData);
+
+            ui.NestInto(root);
         }
 
         event EventDispatching<BuildInspectorHeaderEvent>? IEventSource<BuildInspectorHeaderEvent>.Dispatching
