@@ -172,6 +172,17 @@ namespace MonkeyLoader.Resonite.UI
             }
         }
 
+        private static Component GetOrAttachComponent(Slot targetSlot, Type type, out bool attachedNew)
+        {
+            attachedNew = false;
+            if (targetSlot.GetComponent(type) is not Component comp)
+            {
+                comp = targetSlot.AttachComponent(type);
+                attachedNew = true;
+            }
+            return comp;
+        }
+
         private static bool Prefix(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui)
         {
             if (!TryGetGenericParameters(typeof(SyncArray<>), array.GetType(), out var genericParameters))
@@ -187,7 +198,13 @@ namespace MonkeyLoader.Resonite.UI
             if (isSyncLinear && isParticleBurst)
                 syncLinearType = typeof(int2);
 
-            var proxySlot = ui.Current.AddSlot($"{name}-Proxy");
+            var proxySlotName = $"{name}-{array.ReferenceID}-Proxy";
+            var proxiesSlot = ui.World.AssetsSlot;
+            if (proxiesSlot.FindChild(proxySlotName) is not Slot proxySlot)
+            {
+                proxySlot = proxiesSlot.AddSlot(proxySlotName);
+                array.FindNearestParent<IDestroyable>().Destroyed += (IDestroyable _) => proxySlot.Destroy();
+            }
             proxySlot.DestroyWhenLocalUserLeaves();
 
             ISyncList list;
@@ -195,32 +212,41 @@ namespace MonkeyLoader.Resonite.UI
 
             if (isSyncLinear && SupportsLerp(syncLinearType!))
             {
-                var gradient = proxySlot.AttachComponent(typeof(ValueGradientDriver<>).MakeGenericType(syncLinearType));
+                var gradientType = typeof(ValueGradientDriver<>).MakeGenericType(syncLinearType);
+                var gradient = GetOrAttachComponent(proxySlot, gradientType, out bool attachedNew);
+
                 list = (ISyncList)gradient.GetSyncMember(nameof(ValueGradientDriver<float>.Points));
                 listField = gradient.GetSyncMemberFieldInfo(nameof(ValueGradientDriver<float>.Points));
 
-                if (isParticleBurst)
-                    AddParticleBurstListProxying((SyncArray<LinearKey<ParticleBurst>>)array, (SyncElementList<ValueGradientDriver<int2>.Point>)list);
-                else
-                    _addLinearValueProxying.MakeGenericMethod(syncLinearType).Invoke(null, new object[] { array, list });
+                if (attachedNew)
+                {
+                    if (isParticleBurst)
+                        AddParticleBurstListProxying((SyncArray<LinearKey<ParticleBurst>>)array, (SyncElementList<ValueGradientDriver<int2>.Point>)list);
+                    else
+                        _addLinearValueProxying.MakeGenericMethod(syncLinearType).Invoke(null, new object[] { array, list });
+                }
             }
             else
             {
                 if (Coder.IsEnginePrimitive(arrayType))
                 {
-                    var multiplexer = proxySlot.AttachComponent(typeof(ValueMultiplexer<>).MakeGenericType(arrayType));
+                    var multiplexerType = typeof(ValueMultiplexer<>).MakeGenericType(arrayType);
+                    var multiplexer = GetOrAttachComponent(proxySlot, multiplexerType, out bool attachedNew);
                     list = (ISyncList)multiplexer.GetSyncMember(nameof(ValueMultiplexer<float>.Values));
                     listField = multiplexer.GetSyncMemberFieldInfo(nameof(ValueMultiplexer<float>.Values));
 
-                    _addListValueProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list });
+                    if (attachedNew)
+                        _addListValueProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list });
                 }
                 else if (_iWorldElementType.IsAssignableFrom(arrayType))
                 {
-                    var multiplexer = proxySlot.AttachComponent(typeof(ReferenceMultiplexer<>).MakeGenericType(arrayType));
+                    var multiplexerType = typeof(ReferenceMultiplexer<>).MakeGenericType(arrayType);
+                    var multiplexer = GetOrAttachComponent(proxySlot, multiplexerType, out bool attachedNew);
                     list = (ISyncList)multiplexer.GetSyncMember(nameof(ReferenceMultiplexer<Slot>.References));
                     listField = multiplexer.GetSyncMemberFieldInfo(nameof(ReferenceMultiplexer<Slot>.References));
 
-                    _addListReferenceProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list });
+                    if (attachedNew)
+                        _addListReferenceProxying.MakeGenericMethod(arrayType).Invoke(null, new object[] { array, list });
                 }
                 else
                 {
