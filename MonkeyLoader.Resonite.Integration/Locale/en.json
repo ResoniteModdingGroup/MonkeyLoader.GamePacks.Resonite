@@ -54,6 +54,21 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware: Changes may only take effect after a restart.",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Always Enabled"
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Always Enabled",
+
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Calls Unity Monkeys after the first scene has been loaded.",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Makes the mod loading process appear on the loading screen in the Unity build of Resonite.",
+
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Makes the Brotli library look for its native DLL in the right place.",
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Sends out the Build Inspector Body / Header events to make the Worker Inspector UI generation modular.",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Calls Resonite Monkeys after FrooxEngine is ready and when it gets shut down.",
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Sends out the Fallback Locale Generation event for monkeys to programmatically generate (English) locale messages for necessary keys that weren't covered already.",
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Automatically loads locale files from the mods' file systems.",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Sends out the Locale Generation event for Monkeys to load locale messages.",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Allows selecting locales that don't directly map to a known culture code, as long as they're still based on a known code.",
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Ensures that mods' locale messages show up as the (English) fallback value for users without the mod adding them.",
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Allows creating working standalone facets from MonkeyLoader Mod Settings items.",
+    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings."
   }
 }
