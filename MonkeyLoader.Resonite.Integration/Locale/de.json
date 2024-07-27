@@ -42,6 +42,21 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "Die Anzahl der Early Monkeys in dieser Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Aktiv",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.\n\nAchtung: Änderungen werden eventuell erst nach einem Neustart aktiv.",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv"
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv",
+
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Ruft Unity Monkeys auf nachdem die erste Szene geladen wurde.",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Sorgt dafür, dass der Mod-Ladefortschritt auf dem Ladebildschirm der Unity Version von Resonite erscheint.",
+
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Sorgt dafür, dass die Brotli Bibliothek ihre native DLL am richtigen Ort sucht.",
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Versendet die Build Inspector Body / Header Events, um die Worker Inspector UI-Generierung modular zu machen.",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Ruft die Resonite Monkeys auf nachdem FrooxEngine bereit ist und wenn es beendet wird.",
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Versendet die Fallback Locale Generation Events, damit Monkeys programmatisch (englische) Übersetzungsnachrichten für notwendige Schlüssel generieren können, die noch nicht abgedeckt waren.",
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Läd automatisch die Übersetzungsdateien aus den Dateisystemen der Mods.",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Versendet das Locale Generation Event, damit Monkeys Übersetzungsnachrichten laden können.",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Erlaubt es auch Sprachen auszuwählen, die nicht direkt einen bekannten Kulturcode angeben, solange sie trotzdem auf einem bekannten Code basieren.",
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Sorgt dafür, dass die Übersetzungsnachrichten von Mods für Benutzer ohne die Mod auf Englisch angezeigt werden.",
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Erlaubt es funktionierende alleinstehende Facets der MonkeyLoader Mod Optionen zu erstellen.",
+    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Fügt die MonkeyLoader Kategorie zu den Optionen hinzu."
   }
 }
