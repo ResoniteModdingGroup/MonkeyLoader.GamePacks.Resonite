@@ -23,6 +23,8 @@ namespace MonkeyLoader.Resonite.UI
         private static readonly Type _iWorldElementType = typeof(IWorldElement);
         private static readonly Type _particleBurstType = typeof(ParticleBurst);
 
+        public override bool CanBeDisabled => true;
+
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         private static void AddLinearValueProxying<T>(SyncArray<LinearKey<T>> array, SyncElementList<ValueGradientDriver<T>.Point> list)
@@ -185,6 +187,8 @@ namespace MonkeyLoader.Resonite.UI
 
         private static bool Prefix(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui)
         {
+            if (!Enabled) return true;
+
             if (!TryGetGenericParameters(typeof(SyncArray<>), array.GetType(), out var genericParameters))
                 return true;
 
