@@ -55,6 +55,7 @@
 
     "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Sorgt dafür, dass die Brotli Bibliothek ihre native DLL am richtigen Ort sucht.",
     "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Versendet die Build Inspector Body / Header Events, um die Worker Inspector UI-Generierung modular zu machen.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Description": "Sorgt für die Erstellung der standard UI-Elemente des Worker Inspector Headers.",
     "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Ruft die Resonite Monkeys auf nachdem FrooxEngine bereit ist und wenn es beendet wird.",
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Versendet die Fallback Locale Generation Events, damit Monkeys programmatisch (englische) Übersetzungsnachrichten für notwendige Schlüssel generieren können, die noch nicht abgedeckt waren.",
     "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Läd automatisch die Übersetzungsdateien aus den Dateisystemen der Mods.",
