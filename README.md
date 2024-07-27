@@ -1,4 +1,4 @@
-# MonkeyLoader Resonite Game Pack
+# MonkeyLoader Resonite GamePack
 
 <img align="right" width="128" height="128" src="./Icon.png"/>
 
@@ -7,15 +7,17 @@ provides basic hooks for modding the game [Resonite](https://resonite.com/) by [
 It provides additional hooks for the beginning of initialization, when initialization is done,
 and when the game shuts down.
 
-## Quick Installation
+## Installation
 
-1. Go to the [latest release](https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/releases/latest) and get the `MonkeyLoader-vX.X.X+Resonite-vX.X.X+RML-vX.X.X.zip` file from the Assets section.
+1. Download `MonkeyLoader-v...+Resonite-v....zip` from the [latest Resonite GamePack release](https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/releases/latest)
+2. Extract the zip into Resonite's install folder (`C:\Program Files (x86)\Steam\steamapps\common\Resonite`)
+3. Remove RML's `-LoadAssembly "..."` launch arguments from Steam if you had set it up previously
 
-2. Extract it into the Resonite install folder (For a default install: `C:\Program Files (x86)\Steam\steamapps\common\Resonite`).
+### Linux
 
-3. If you have previously used another mod loader, remove any relevant `-LoadAssembly "..."` launch arguments from Resonite.
+- Native: Change the steam launch options to `./run_monkeyloader.sh %command%`
+- Wine / Proton: Using winetricks / protontricks, add `winhttp` to the native libraries
 
-4. If running on Linux, add `./run_monkeyloader.sh %command%` to the launch options.
 
 ## Feature Overview
 
@@ -59,3 +61,21 @@ Additional built-in features for users:
     * Arrays in inspectors will be editable using a proxy list
 * ModSettingStandaloneFacet
     * Individual mod settings can be pulled out of the dash settings as standalone facets and placed anywhere in userspace. They will keep working even after restarts.
+
+
+## Contributing
+
+Issues can and should be opened here instead of the mods' issue trackers if they're designed for RML, and work with it, but not with this gamepack.
+The GitHub issues can also be used for feature requests.
+
+For code contributions, getting started is a bit involved due to [Resonite-Issues#456](https://github.com/Yellow-Dog-Man/Resonite-Issues/issues/456).
+The short summary of it is:
+
+1. [Setup a private nuget feed](https://github.com/MonkeyModdingTroop/ReferencePackageGenerator).
+2. [Generate the game's reference assemblies](https://github.com/MonkeyModdingTroop/ReferencePackageGenerator).
+3. Add the nuget feeds (`nuget sources Add -Name ... -Source ...`, local and either <https://pkg.munally.com/MonkeyModdingTroop/index.json> & <https://pkg.munally.com/ResoniteModdingGroup/index.json>)
+4. Run `dotnet build`, or build with your IDE of preference.
+
+The long version is that you'll probably want to set it up privately on GitHub NuGet packages.
+Though this isn't legal advice and you should check that [Resonite's TOS](https://resonite.com/policies/TermsOfService.html) allows it.
+The feeds can also be directly used from GitHub, though that requires authentication using a PAT.
