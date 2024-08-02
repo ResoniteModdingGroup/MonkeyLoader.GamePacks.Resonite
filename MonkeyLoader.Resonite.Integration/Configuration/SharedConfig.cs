@@ -32,7 +32,7 @@ namespace MonkeyLoader.Resonite.Configuration
         /// </remarks>
         public const string WriteBackPrefix = "SharedConfig.WriteBack";
 
-        private static readonly HashSet<IConfigKeySessionShare> _sharedConfigKeys = new();
+        private static readonly HashSet<IConfigKeySessionShare> _sharedConfigKeys = [];
 
         /// <summary>
         /// Gets the <see cref="World.SessionId"/> or the <see cref="World.Name"/>
@@ -60,6 +60,33 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <returns>The config owner's SharedConfig slot for the given world.</returns>
         public static Slot GetSharedConfigSlot(this World world, IConfigOwner configOwner)
             => world.GetSharedConfigSlot().FindChildOrAdd(configOwner.Id);
+
+        /// <summary>
+        /// Wraps the given <see cref="IDefiningConfigKey{T}"/> in a <see cref="ConfigKeySessionShare{T}"/>,
+        /// to make its local value available as a shared resource in Resonite sessions,
+        /// and optionally allow writing back changes from the session to the config item.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the config item's value.</typeparam>
+        /// <typeparam name="TShared">
+        /// The type of the resource shared in Resonite <see cref="World"/>s.
+        /// Must be a valid generic parameter for <see cref="ValueField{T}"/> components.
+        /// </typeparam>
+        /// <param name="convertToShared">Converts the config item's value to the shared resource's.</param>
+        /// <param name="convertToKey">Converts the shared resource's value to the config item's.</param>
+        /// <param name="definingKey">The defining key to wrap.</param>
+        /// <param name="defaultValue">The default value for the shared config item for users that don't have it themselves.</param>
+        /// <param name="allowWriteBack">Whether to allow writing back changes from the session to the config item.</param>
+        /// <returns>The wrapped defining key.</returns>
+        public static IDefiningConfigKey<TKey> MakeShared<TKey, TShared>(this IEntity<IDefiningConfigKey<TKey>> definingKey,
+            Converter<TKey?, TShared?> convertToShared, Converter<TShared?, TKey?> convertToKey, TKey? defaultValue = default, bool allowWriteBack = false)
+        {
+            if (definingKey.Components.TryGet<IConfigKeySessionShare<TKey, TShared>>(out _))
+                return definingKey.Self;
+
+            definingKey.Add(new ConfigKeySessionShare<TKey, TShared>(convertToShared, convertToKey, defaultValue, allowWriteBack));
+
+            return definingKey.Self;
+        }
 
         /// <summary>
         /// Wraps the given <see cref="IDefiningConfigKey{T}"/> in a <see cref="ConfigKeySessionShare{T}"/>,
