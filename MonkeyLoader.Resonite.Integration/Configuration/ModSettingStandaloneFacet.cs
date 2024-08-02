@@ -27,6 +27,10 @@ namespace MonkeyLoader.Resonite.Configuration
             if (fullId.StartsWith(Mod.Loader.Id))
             {
                 var partialId = fullId.Remove(0, Mod.Loader.Id.Length + 1);
+
+                if (!partialId.StartsWith("Config."))
+                    partialId = "Config." + partialId;
+
                 Logger.Debug(() => "Partial Id: " + partialId);
 
                 var loaderSection = Mod.Loader.Config.Sections.FirstOrDefault(section => partialId.StartsWith(section.Id));
@@ -47,6 +51,10 @@ namespace MonkeyLoader.Resonite.Configuration
                     if (fullId.StartsWith(mod.Id))
                     {
                         var partialId = fullId.Remove(0, mod.Id.Length + 1);
+
+                        if (!partialId.StartsWith("Config."))
+                            partialId = "Config." + partialId;
+
                         Logger.Debug(() => "Partial Id: " + partialId);
                         if (mod.TryGet<IDefiningConfigKey>().ByPartialId(partialId, out var modConfigKey))
                             return modConfigKey;
@@ -93,7 +101,7 @@ namespace MonkeyLoader.Resonite.Configuration
                     }
 
                     Logger.Info(() => "Loaded a mod setting standalone facet!");
-                    Logger.Debug(() => "Config Key FullId: " + commentText);
+                    Logger.Debug(() => "Stored Config Key FullId: " + commentText);
 
                     if (GetConfigKeyByFullId(commentText) is not IDefiningConfigKey foundKey)
                     {
