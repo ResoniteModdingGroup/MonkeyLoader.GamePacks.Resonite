@@ -111,10 +111,13 @@ namespace MonkeyLoader.Resonite.Configuration
 
                     Logger.Info(() => $"Got config key! OwnerID: {foundKey.Config.Owner.Id} SectionID: {foundKey.Section.Id} KeyID: {foundKey.Id}");
 
+                    // Todo: Remove this a few version later - this is just to upgrade any existing facets.
+                    feedItemInterface.Slot.GetComponent<Comment>().Text.Value = foundKey.FullId;
+
                     if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
                     {
-                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(new Type[] { valueField.ValueType });
-                        genericMethod.Invoke(null, new object[] { valueField, foundKey, ConfigKeyChangeLabel });
+                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
+                        genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
                         return;
                     }
                 });
