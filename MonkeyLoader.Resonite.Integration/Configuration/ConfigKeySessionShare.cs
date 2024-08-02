@@ -18,7 +18,6 @@ namespace MonkeyLoader.Resonite.Configuration
     /// <typeparam name="T">The type of the config item's value.</typeparam>
     public sealed class ConfigKeySessionShare<T> : IConfigKeySessionShare<T>
     {
-        private readonly ConditionalWeakTable<World, object?> _didWorldSetup = new();
         private readonly Lazy<string> _sharedId;
         private readonly Lazy<string> _variableName;
         private IDefiningConfigKey<T> _configKey = null!;
@@ -134,13 +133,10 @@ namespace MonkeyLoader.Resonite.Configuration
             => GetSharedValue(world).Value.GetUserOverride();
 
         private ValueField<T> GetSharedValue(World world)
-            => world.GetSharedComponentOrCreate<ValueField<T>>(SharedId, SetupSharedField, 0, true, true, () => GetSharedConfigSlot(world));
+            => world.GetSharedComponentOrCreate<ValueField<T>>(SharedId, SetupSharedField, 0, true, false, () => GetSharedConfigSlot(world));
 
         private void SetupSharedField(ValueField<T> field)
         {
-            if (_didWorldSetup.TryGetValue(field.World, out _))
-                return;
-
             if (!field.IsDriven && EqualityComparer<T>.Default.Equals(field.Value, default!))
                 field.Value.Value = DefaultValue!;
 
@@ -150,8 +146,6 @@ namespace MonkeyLoader.Resonite.Configuration
             vuo.CreateOverrideOnWrite.Value = true;
 
             field.Value.OnValueChange += SharedValueChanged;
-
-            _didWorldSetup.TryAdd(field.World, null);
         }
 
         private void SharedValueChanged(SyncField<T> field)
