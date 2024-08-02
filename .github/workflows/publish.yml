@@ -28,7 +28,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     
   Release:
-    #if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ !contains(github.ref, '-') }} # simple check for vX.Y.Z-something
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
@@ -52,7 +52,6 @@ jobs:
           files: ${{ env.NuGetDirectory }}/*.nupkg
           fail_on_unmatched_files: true
           fail_on_asset_upload_issue: true
-          prerelease: ${{ contains(github.ref, '-') }} # simple check for vX.Y.Z-something
 
   Publish-GitHub:
     #if: startsWith(github.ref, 'refs/tags/')
