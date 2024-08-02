@@ -32,7 +32,7 @@ namespace MonkeyLoader.Resonite.UI
                 button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
                 button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
 
-                ConfigSection.WorkerNameOffset.Drive(button.Slot._orderOffset);
+                ConfigSection.WorkerNameOffset.DriveFromVariable(button.Slot._orderOffset);
             }
 
             ui.PushStyle();
@@ -42,7 +42,7 @@ namespace MonkeyLoader.Resonite.UI
             if (eventData.CreateOpenContainerButton)
             {
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
-                ConfigSection.OpenContainerOffset.Drive(button.Slot._orderOffset);
+                ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot._orderOffset);
 
                 eventData.HasOpenContainerButton = true;
             }
@@ -50,7 +50,7 @@ namespace MonkeyLoader.Resonite.UI
             if (eventData.CreateDuplicateButton)
             {
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
-                ConfigSection.DuplicateOffset.Drive(button.Slot._orderOffset);
+                ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot._orderOffset);
 
                 eventData.HasDuplicateButton = true;
             }
@@ -58,7 +58,7 @@ namespace MonkeyLoader.Resonite.UI
             if (eventData.CreateDestroyButton)
             {
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
-                ConfigSection.DestroyOffset.Drive(button.Slot._orderOffset);
+                ConfigSection.DestroyOffset.DriveFromVariable(button.Slot._orderOffset);
 
                 eventData.HasDestroyButton = true;
             }
