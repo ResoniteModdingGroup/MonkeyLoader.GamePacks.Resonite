@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
     /// Represents the event data for the Enumerate Data Feed Event.
     /// </summary>
     /// <remarks>
-    /// This event is used by concrete <see cref="DataFeedInjectorMonkey{TMonkey, TDataFeed}"/>
+    /// This event is used by concrete <see cref="DataFeedInjectorMonkey{TDataFeed}"/>
     /// implementations to signal that the <see cref="IDataFeed"/> they're patching is being enumerated.
     /// </remarks>
     /// <typeparam name="TDataFeed">The type of the data feed.</typeparam>
@@ -106,14 +106,20 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// </summary>
         public string? SearchPhrase { get; }
 
+        /// <summary>
+        /// Gets the view data for this enumeration request.
+        /// </summary>
+        public object ViewData { get; }
+
         internal EnumerateDataFeedEvent(TDataFeed dataFeed, IAsyncEnumerable<DataFeedItem> result,
-            IReadOnlyList<string>? path, IReadOnlyList<string>? groupKeys, string? searchPhrase)
+            IReadOnlyList<string>? path, IReadOnlyList<string>? groupKeys, string? searchPhrase, object viewData)
         {
             DataFeed = dataFeed;
             OriginalResult = result;
             Path = path ?? [];
             GroupKeys = groupKeys ?? [];
             SearchPhrase = searchPhrase;
+            ViewData = viewData;
         }
 
         /// <summary>
