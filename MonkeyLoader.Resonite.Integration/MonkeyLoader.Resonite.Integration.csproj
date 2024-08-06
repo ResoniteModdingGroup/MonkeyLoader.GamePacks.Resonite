@@ -22,6 +22,7 @@
     <PackageIcon>Icon.png</PackageIcon>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -67,6 +68,7 @@
     <PackageReference Include="Resonite.LiteDB" Version="5.0.19" />
     <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.9" />
     <PackageReference Include="Zio" Version="0.19.0" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
