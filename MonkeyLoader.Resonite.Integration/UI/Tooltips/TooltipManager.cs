@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     public sealed class TooltipManager : ConfiguredResoniteMonkey<TooltipManager, TooltipConfig>, ICancelableEventSource<ResolveTooltipLabelEvent>
     {

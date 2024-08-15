@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     public sealed class Tooltip
     {
@@ -36,19 +36,19 @@ namespace MonkeyLoader.Resonite.UI
             TextRenderer.Color.Value = TooltipConfig.Instance.TextColor;
 
             // back panel slot
-            Slot backPanelOffset = Root.AddLocalSlot("bgOffset");
+            var backPanelOffset = Root.AddLocalSlot("bgOffset");
             backPanelOffset.LocalPosition = new float3(0, 0, 1);
-            Slot backPanel = backPanelOffset.AddLocalSlot("Background");
-            QuadMesh quad = backPanel.AttachComponent<QuadMesh>();
-            MeshRenderer meshRenderer = backPanel.AttachComponent<MeshRenderer>();
+            var backPanel = backPanelOffset.AddLocalSlot("Background");
+            var quad = backPanel.AttachComponent<QuadMesh>();
+            var meshRenderer = backPanel.AttachComponent<MeshRenderer>();
             meshRenderer.Mesh.Target = quad;
-            BoundingBoxDriver sizeDriver = Root.AttachComponent<BoundingBoxDriver>();
+            var sizeDriver = Root.AttachComponent<BoundingBoxDriver>();
             sizeDriver.BoundedSource.Target = TextRenderer;
             sizeDriver.Size.Target = backPanel.Scale_Field;
             sizeDriver.Center.Target = backPanel.Position_Field;
             sizeDriver.Padding.Value = new float3(8 * Scale, 8 * Scale, 0);
 
-            UI_UnlitMaterial mat = backPanel.AttachComponent<UI_UnlitMaterial>();
+            var mat = backPanel.AttachComponent<UI_UnlitMaterial>();
             mat.Tint.Value = TooltipConfig.Instance.BackgroundColor;
             meshRenderer.Material.Target = mat;
 
