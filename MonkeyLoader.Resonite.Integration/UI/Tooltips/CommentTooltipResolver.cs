@@ -25,6 +25,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public const string CommentTextPrefix = "TooltipperyLabel:";
 
         /// <inheritdoc/>
+        public override bool CanBeDisabled => true;
+
+        /// <inheritdoc/>
         public override int Priority => HarmonyLib.Priority.High;
 
         /// <inheritdoc/>
@@ -48,7 +51,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         }
 
         /// <inheritdoc/>
-        protected override bool AppliesTo(ResolveTooltipLabelEvent eventData) => !eventData.HasLabel;
+        protected override bool AppliesTo(ResolveTooltipLabelEvent eventData) => Enabled;
 
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
