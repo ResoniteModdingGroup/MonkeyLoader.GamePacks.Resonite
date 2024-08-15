@@ -3,7 +3,7 @@ using FrooxEngine;
 using MonkeyLoader.Events;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     /// <summary>
     /// Represents the event fired to determine a tooltip label
