@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     /// <summary>
     /// Adds tooltips to <see cref="Button"/>s,

@@ -2,7 +2,7 @@
 using MonkeyLoader.Configuration;
 using System;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     public sealed class TooltipConfig : SingletonConfigSection<TooltipConfig>
     {
