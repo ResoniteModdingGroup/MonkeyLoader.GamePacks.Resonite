@@ -15,9 +15,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     public sealed class Tooltip
     {
         /// <summary>
+        /// Gets whether this tooltip only exists for the local user.
+        /// </summary>
+        public bool IsLocal => Root.IsLocalElement;
+
+        /// <summary>
         /// Gets whether the tooltip is shown on the <see cref="UserspaceRadiantDash">dash</see>.
         /// </summary>
-        public bool IsDash { get; }
+        public bool IsOnDash { get; }
 
         /// <summary>
         /// Gets the label of the tooltip.
@@ -32,7 +37,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <summary>
         /// Gets the scale multiplier for this tooltip.
         /// </summary>
-        public float Scale => (IsDash ? 2.5f : 1) * TooltipConfig.Instance.TextScale;
+        public float Scale => (IsOnDash ? 2.5f : 1) * TooltipConfig.Instance.TextScale;
 
         /// <summary>
         /// Gets the text renderer that's displaying
@@ -43,10 +48,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         internal Tooltip(Slot parent, in float3 localPosition, in LocaleString label)
         {
             // text slot for the tooltip
-            Root = parent.AddLocalSlot("Local Tooltip");
+            Root = TooltipConfig.Instance.EnableNonLocalTooltips ? parent.AddSlot("Tooltip") : parent.AddLocalSlot("Local Tooltip");
             Root.LocalPosition = localPosition;
 
-            IsDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
+            IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
 
             TextRenderer = Root.AttachComponent<TextRenderer>();
             TextRenderer.Text.SetLocalized(label);
