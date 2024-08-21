@@ -42,7 +42,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (_openTooltips.TryGetValue(button, out tooltip))
                 return true;
 
-            if (!TryResolveTooltipLabel(button, buttonEventData, out var label))
+            if (!TryResolveTooltipLabel(button, buttonEventData, out var label)
+             || (label.Value.isLocaleKey && !label.Value.HasMessageInCurrent()))
                 return false;
 
             tooltip = MakeTooltip(button, tooltipParent,
@@ -60,8 +61,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             var eventData = new ResolveTooltipLabelEvent(button, buttonEventData);
 
             _resolveTooltipLabel?.TryInvokeAll(eventData);
-
-            eventData.Label ??= "Test Locale Label";
 
             label = eventData.Label;
             return eventData.HasLabel;

@@ -36,7 +36,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
              && relay.GetSyncMember(nameof(ButtonRelay<dummy>.Argument)) is IField relayArgument)
             {
                 pressed = relayPressed;
-                arguments = new() { ["RelayArgument"] = relayArgument.BoxedValue };
+
+                arguments = new() { ["RelayArgument"] = relayArgument is ISyncRef syncRef ? syncRef.Target.GetReferenceLabel() : relayArgument.BoxedValue };
             }
             else
             {
@@ -44,6 +45,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             }
 
             var targetType = pressed.Method.GetMethodInfo().DeclaringType;
+            var localeKey = $"Tooltip.{targetType.Name}.{pressed.MethodName}";
+
+            if (!localeKey.HasMessageInCurrent())
+                return;
+
             arguments.Add("TargetType", targetType.Name);
 
             // Should always be an instance method for SyncDelegates, but who knows
@@ -55,12 +61,18 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 {
                     var member = target.GetSyncMember(syncMemberName);
 
+                    if (member is ISyncRef syncRef)
+                    {
+                        arguments.Add(syncMemberName, syncRef.Target.GetReferenceLabel());
+                        continue;
+                    }
+
                     if (member is IField field)
                         arguments.Add(syncMemberName, field.BoxedValue);
                 }
             }
 
-            eventData.Label = $"Tooltip.{targetType.Name}.{pressed.MethodName}".AsLocaleKey(arguments: arguments);
+            eventData.Label = localeKey.AsLocaleKey(arguments: arguments);
             Logger.Debug(eventData.Label.Value.content.Yield().Concat(eventData.Label.Value.arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));
         }
     }

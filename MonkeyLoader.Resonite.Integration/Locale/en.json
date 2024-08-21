@@ -70,6 +70,10 @@
     "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Allows selecting locales that don't directly map to a known culture code, as long as they're still based on a known code.",
     "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Ensures that mods' locale messages show up as the (English) fallback value for users without the mod adding them.",
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Allows creating working standalone facets from MonkeyLoader Mod Settings items.",
-    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings."
+    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings.",
+
+    "Tooltip.Slot.ResetPosition": "Resets the relative Position of Slot [{Name}] to [0; 0; 0].",
+    "Tooltip.Slot.ParentUnderWorldRoot": "Reparents the Slot [{Name}] from [{Parent}] to the world root while keeping its global transform.",
+    "Tooltip.Slot.ParentUnderLocalUserSpace": "Reparents the Slot [{Name}] from [{Parent}] to your local user space while keeping its global transform."
   }
 }
