@@ -47,7 +47,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             var targetType = pressed.Method.GetMethodInfo().DeclaringType;
             var localeKey = $"Tooltip.{targetType.Name}.{pressed.MethodName}";
 
-            if (!localeKey.HasMessageInCurrent())
+            if (!TooltipConfig.Instance.EnableDebugButtonData && !localeKey.HasMessageInCurrent())
                 return;
 
             arguments.Add("TargetType", targetType.Name);
@@ -73,7 +73,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             }
 
             eventData.Label = localeKey.AsLocaleKey(arguments: arguments);
-            Logger.Debug(eventData.Label.Value.content.Yield().Concat(eventData.Label.Value.arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));
+
+            if (TooltipConfig.Instance.EnableDebugButtonData)
+                Logger.Debug($"LocaleKey: {eventData.Label.Value.content}".Yield().Concat(eventData.Label.Value.arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));
         }
     }
 }
