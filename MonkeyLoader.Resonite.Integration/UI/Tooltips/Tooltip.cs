@@ -9,15 +9,38 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {
+    /// <summary>
+    /// Contains data for the tooltip shown on an <see cref="IButton"/>.
+    /// </summary>
     public sealed class Tooltip
     {
+        /// <summary>
+        /// Gets whether the tooltip is shown on the <see cref="UserspaceRadiantDash">dash</see>.
+        /// </summary>
         public bool IsDash { get; }
+
+        /// <summary>
+        /// Gets the label of the tooltip.
+        /// </summary>
         public LocaleString Label { get; }
+
+        /// <summary>
+        /// Gets the root slot of the tooltip.
+        /// </summary>
         public Slot Root { get; }
+
+        /// <summary>
+        /// Gets the scale multiplier for this tooltip.
+        /// </summary>
         public float Scale => (IsDash ? 2.5f : 1) * TooltipConfig.Instance.TextScale;
+
+        /// <summary>
+        /// Gets the text renderer that's displaying
+        /// the <see cref="Label">label</see> of this tooltip.
+        /// </summary>
         public TextRenderer TextRenderer { get; }
 
-        public Tooltip(Slot parent, in float3 localPosition, in LocaleString label)
+        internal Tooltip(Slot parent, in float3 localPosition, in LocaleString label)
         {
             // text slot for the tooltip
             Root = parent.AddLocalSlot("Local Tooltip");
@@ -55,14 +78,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             Root.GlobalScale = Root.World.LocalUserViewScale * new float3(.001f, .001f, .001f);
         }
 
-        public void Close()
-        {
-            Root.Destroy();
-        }
-
-        public void setText(string newLabel)
-        {
-            TextRenderer.Text.Value = newLabel;
-        }
+        internal void Close() => Root.Destroy();
     }
 }
