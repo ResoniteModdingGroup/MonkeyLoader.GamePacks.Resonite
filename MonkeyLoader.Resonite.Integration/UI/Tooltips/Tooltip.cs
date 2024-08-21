@@ -64,9 +64,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             TextRenderer.Color.Value = TooltipConfig.Instance.TextColor;
 
             // back panel slot
-            var backPanelOffset = Root.AddLocalSlot("bgOffset");
+            var backPanelOffset = TooltipConfig.Instance.EnableNonLocalTooltips ? Root.AddSlot("bgOffset") : Root.AddLocalSlot("bgOffset");
             backPanelOffset.LocalPosition = new float3(0, 0, 1);
-            var backPanel = backPanelOffset.AddLocalSlot("Background");
+            var backPanel = TooltipConfig.Instance.EnableNonLocalTooltips ? backPanelOffset.AddSlot("Background") : backPanelOffset.AddLocalSlot("Background");
             var quad = backPanel.AttachComponent<QuadMesh>();
             var meshRenderer = backPanel.AttachComponent<MeshRenderer>();
             meshRenderer.Mesh.Target = quad;
