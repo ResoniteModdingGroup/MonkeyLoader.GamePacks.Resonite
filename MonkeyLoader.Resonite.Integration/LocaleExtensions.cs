@@ -168,6 +168,56 @@ namespace MonkeyLoader.Resonite
             => identifiable.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
 
         /// <summary>
+        /// Checks whether this <see cref="LocaleString"/> has a message in the <see cref="CurrentLocale">current locale</see>.
+        /// </summary>
+        /// <param name="localeString">The locale string to check for a message for.</param>
+        /// <returns><c>true</c> if a message was found in the current locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInCurrent(this LocaleString localeString)
+            => localeString.HasMessageInLocale(CurrentLocale);
+
+        /// <summary>
+        /// Checks whether this locale key has a message in the <see cref="CurrentLocale">current locale</see>.
+        /// </summary>
+        /// <param name="localeKey">The locale key to check for a message for.</param>
+        /// <returns><c>true</c> if a message was found in the current locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInCurrent(this string? localeKey)
+            => localeKey.HasMessageInLocale(CurrentLocale);
+
+        /// <summary>
+        /// Checks whether this <see cref="LocaleString"/> has a message in the <see cref="FallbackLocale">fallback locale</see>.
+        /// </summary>
+        /// <param name="localeString">The locale string to check for a message for.</param>
+        /// <returns><c>true</c> if a message was found in the fallback locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInFallback(this LocaleString localeString)
+            => localeString.HasMessageInLocale(FallbackLocale);
+
+        /// <summary>
+        /// Checks whether this locale key has a message in the <see cref="FallbackLocale">fallback locale</see>.
+        /// </summary>
+        /// <param name="localeKey">The locale key to check for a message for.</param>
+        /// <returns><c>true</c> if a message was found in the fallback locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInFallback(this string? localeKey)
+            => localeKey.HasMessageInLocale(FallbackLocale);
+
+        /// <summary>
+        /// Checks whether this <see cref="LocaleString"/> has a message in the given <paramref name="locale"/>.
+        /// </summary>
+        /// <param name="localeString">The locale string to check for a message for.</param>
+        /// <param name="locale">The locale to check for a message in.</param>
+        /// <returns><c>true</c> if a message was found in the locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInLocale(this LocaleString localeString, LocaleResourceData locale)
+            => localeString.content.HasMessageInLocale(locale);
+
+        /// <summary>
+        /// Checks whether this locale key has a message in the given <paramref name="locale"/>.
+        /// </summary>
+        /// <param name="localeKey">The locale key to check for a message for.</param>
+        /// <param name="locale">The locale to check for a message in.</param>
+        /// <returns><c>true</c> if a message was found in the locale; otherwise, <c>false</c>.</returns>
+        public static bool HasMessageInLocale(this string? localeKey, LocaleResourceData locale)
+            => localeKey is not null && locale is not null && locale._formatMessages.ContainsKey(localeKey);
+
+        /// <summary>
         /// Determines whether this <see cref="LocaleString"/> belongs to an identifiable.
         /// </summary>
         /// <param name="localeString">The <see cref="LocaleString"/> to check.</param>
