@@ -27,7 +27,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// <inheritdoc/>
         public override int Priority => HarmonyLib.Priority.Normal;
 
-        protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => !Failed && Enabled;
+        protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
@@ -53,7 +53,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
             return base.OnEngineReady();
         }
 
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string searchPhrase, object viewData)
         {
             var eventData = new EnumerateDataFeedEvent<TDataFeed>(__instance, __result, path, groupKeys, searchPhrase, viewData);
