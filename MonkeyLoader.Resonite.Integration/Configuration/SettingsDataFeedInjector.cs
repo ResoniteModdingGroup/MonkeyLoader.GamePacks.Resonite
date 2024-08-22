@@ -685,12 +685,33 @@ namespace MonkeyLoader.Resonite.Configuration
 
                 var flagToggle = new DataFeedToggle();
                 flagToggle.InitBase($"{configKey.FullId}.{name}", path, flagsGrouping, name);
+                flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", configKey.ValueType.Name), ("FlagName", name)));
                 flagToggle.InitSetupValue(field =>
                 {
                     field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
 
-                    field.Changed += _ => configKey.TrySetValue(Enum.ToObject(configKey.ValueType, field.Value ? Convert.ToInt64(configKey.GetValue()) | longValue : Convert.ToInt64(configKey.GetValue()) & ~longValue));
-                    configKey.Changed += (sender, changedEvent) => field.World.RunSynchronously(() => field.Value = (Convert.ToInt64(changedEvent.NewValue) & longValue) == longValue);
+                    void FieldChanged(IChangeable changeable)
+                        => configKey.TrySetValue(Enum.ToObject(configKey.ValueType, field.Value ? Convert.ToInt64(configKey.GetValue()) | longValue : Convert.ToInt64(configKey.GetValue()) & ~longValue));
+
+                    void KeyChanged(object sender, ConfigKeyChangedEventArgs<T> changedEvent)
+                    {
+                        var newValue = Convert.ToInt64(changedEvent.NewValue);
+                        var isPartialCombinedValue = (newValue & longValue) != 0;
+
+                        field.World.RunSynchronously(() =>
+                        {
+                            if (isPartialCombinedValue)
+                                field.Changed -= FieldChanged;
+
+                            field.Value = (newValue & longValue) == longValue;
+
+                            if (isPartialCombinedValue)
+                                field.Changed += FieldChanged;
+                        });
+                    }
+
+                    field.Changed += FieldChanged;
+                    configKey.Changed += KeyChanged;
                 });
 
                 yield return flagToggle;
