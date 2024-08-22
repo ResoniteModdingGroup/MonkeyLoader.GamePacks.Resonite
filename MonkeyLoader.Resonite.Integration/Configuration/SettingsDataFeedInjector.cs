@@ -291,7 +291,7 @@ namespace MonkeyLoader.Resonite.Configuration
                 if (configKey.ValueType == _dummyType)
                 {
                     var dummyField = new DataFeedValueField<dummy>();
-                    dummyField.InitBase(configKey.FullId, path, grouping, configKey.HasDescription ? configKey.GetLocaleKey("Description") : " ");
+                    dummyField.InitBase(configKey.FullId, path, grouping, configKey.HasDescription ? configKey.GetLocaleString("Description") : " ");
                     yield return dummyField;
 
                     continue;
