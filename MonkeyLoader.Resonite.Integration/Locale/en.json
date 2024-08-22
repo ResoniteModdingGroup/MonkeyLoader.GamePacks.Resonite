@@ -27,6 +27,8 @@
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Save Configuration",
     "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Reset Configuration to Default",
+    "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Toggles the <i>{FlagName}</i>-flag of the <i>{EnumName}</i> enumeration.",
+
     "MonkeyLoader.GamePacks.Resonite.Information": "Information",
     "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "This category is only accessible in Userspace.",
 

@@ -19,6 +19,8 @@
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Einstellungen Speichern",
     "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Standardeinstellungen Wiederherstellen",
+    "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Schaltet das <i>{FlagName}</i>-Flag der <i>{EnumName}</i> Enumeration um.",
+
     "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "Diese Kategorie ist nur im Userspace verfügbar.",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Verfügbare Einstellungen Öffnen",
