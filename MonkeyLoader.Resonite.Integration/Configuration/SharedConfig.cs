@@ -32,7 +32,7 @@ namespace MonkeyLoader.Resonite.Configuration
         /// </remarks>
         public const string WriteBackPrefix = "SharedConfig.WriteBack";
 
-        private static readonly HashSet<IConfigKeySessionShare> _sharedConfigKeys = [];
+        private static readonly HashSet<IConfigKeySessionShare> _configKeySessionShares = [];
 
         /// <summary>
         /// Gets the <see cref="World.SessionId"/> or the <see cref="World.Name"/>
@@ -141,37 +141,42 @@ namespace MonkeyLoader.Resonite.Configuration
             return true;
         }
 
-        internal static void Register(IConfigKeySessionShare sharedKeyWrapper)
+        internal static void Register(IConfigKeySessionShare sessionShare)
         {
-            _sharedConfigKeys.Add(sharedKeyWrapper);
+            sessionShare.ConfigKey.Config.Logger.Debug(() => $"Registering {sessionShare.GetType().CompactDescription()} for key [{sessionShare.ConfigKey.Id}]!");
+
+            _configKeySessionShares.Add(sessionShare);
 
             if (Engine.Current?.WorldManager is null)
                 return;
 
             foreach (var world in Engine.Current.WorldManager.Worlds)
-                sharedKeyWrapper.SetupOverride(world);
+                sessionShare.SetupOverride(world);
         }
 
-        internal static void Unregister(IConfigKeySessionShare sharedConfigKey)
+        internal static void Unregister(IConfigKeySessionShare sessionShare)
         {
-            _sharedConfigKeys.Remove(sharedConfigKey);
+            sessionShare.ConfigKey.Config.Logger.Debug(() => $"Unregistering {sessionShare.GetType().CompactDescription()} for key [{sessionShare.ConfigKey.Id}]!");
+
+            _configKeySessionShares.Remove(sessionShare);
 
             foreach (var world in Engine.Current.WorldManager.Worlds)
-                sharedConfigKey.ShutdownOverride(world);
+                sessionShare.ShutdownOverride(world);
         }
 
         private static void InitializeSharedConfig(World world)
         {
-            foreach (var sharedConfigKey in _sharedConfigKeys)
+            foreach (var sharedConfigKey in _configKeySessionShares)
                 sharedConfigKey.SetupOverride(world);
         }
 
         private static void ShutdownSharedConfig(MonkeyLoader loader, IEnumerable<Mod> mods)
         {
-            foreach (var sharedConfigKey in mods.SelectMany(mod => mod.Config.ConfigurationItemDefinitions)
-                .SelectCastable<IDefiningConfigKey, IConfigKeySessionShare>())
+            foreach (var sessionShare in mods.SelectMany(mod => mod.Config.ConfigurationItemDefinitions)
+                .SelectMany(configKey => configKey.Components.GetAll<IComponent<IDefiningConfigKey>>())
+                .OfType<IConfigKeySessionShare>())
             {
-                Unregister(sharedConfigKey);
+                Unregister(sessionShare);
             }
         }
     }

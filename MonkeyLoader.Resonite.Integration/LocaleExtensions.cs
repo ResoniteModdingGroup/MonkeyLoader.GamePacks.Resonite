@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using MonkeyLoader;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Locale;
 using System;

@@ -25,7 +25,7 @@ namespace MonkeyLoader.Resonite
             {
                 var monkeys = Mod.Loader.Mods
                     .GetMonkeysAscending()
-                    .SelectCastable<IMonkey, IResoniteMonkeyInternal>()
+                    .OfType<IResoniteMonkeyInternal>()
                     .ToArray();
 
                 return monkeys;
@@ -66,7 +66,7 @@ namespace MonkeyLoader.Resonite
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)
         {
             var resoniteMonkeys = mods.GetMonkeysAscending()
-                .SelectCastable<IMonkey, IResoniteMonkeyInternal>()
+                .OfType<IResoniteMonkeyInternal>()
                 .ToArray();
 
             Logger.Trace(() => "Late-running EngineInit hooks in this order:");
