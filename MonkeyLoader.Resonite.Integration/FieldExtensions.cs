@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
 using System;
@@ -61,9 +62,9 @@ namespace MonkeyLoader.Resonite
         /// </param>
         /// <param name="allowWriteBack">Whether changes of the <paramref name="field"/> should be written back to the config key.</param>
         /// <returns>The delegate subscribed to the <paramref name="field"/>'s <see cref="IChangeable.Changed">Changed</see> event.</returns>
-        public static Action<IChangeable> SyncWithConfigKey<T>(this IField<T> field, IDefiningConfigKey<T> configKey, string? eventLabel = null, bool allowWriteBack = true)
+        public static Action<IChangeable> SyncWithConfigKey<T>(this IField<T> field, IDefiningConfigKey configKey, string? eventLabel = null, bool allowWriteBack = true)
         {
-            field.Value = configKey.GetValue()!;
+            field.Value = (T)(configKey.GetValue() ?? default(T));
             eventLabel ??= $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
 
             void FieldChangedHandler(IChangeable _)
@@ -71,11 +72,13 @@ namespace MonkeyLoader.Resonite
                 if (Equals(field.Value, configKey.GetValue()))
                     return;
 
+                if (configKey.ValueType.IsNullable() && configKey.ValueType.GetGenericArguments()[0].IsEnum && configKey.GetValue() is null && Equals(field.Value, default(T))) return;
+
                 if (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel))
-                    field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)));
             }
 
-            void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T> args)
+            void ConfigKeyChangedHandler(object sender, IConfigKeyChangedEventArgs args)
             {
                 if (field.FilterWorldElement() == null)
                 {
@@ -86,7 +89,7 @@ namespace MonkeyLoader.Resonite
                 if (Equals(field.Value, configKey.GetValue()))
                     return;
 
-                field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+                field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)));
             }
 
             field.Changed += FieldChangedHandler;
