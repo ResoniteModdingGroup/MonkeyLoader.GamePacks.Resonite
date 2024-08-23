@@ -310,19 +310,85 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         yield return (DataFeedItem)_generateEnumField
                             .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, configKey]);
+                            .Invoke(null, [path, configKey, null, null]);
                     }
                     else
                     {
                         var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
                             .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, configKey]);
+                            .Invoke(null, [path, configKey, null, null]);
 
                         foreach (var item in items)
                             yield return item;
                     }
 
                     continue;
+                }
+
+                if (configKey.ValueType.IsNullable())
+                {
+                    var nullableType = configKey.ValueType.GetGenericArguments()[0];
+                    if (nullableType.IsEnum)
+                    {
+                        var nullableEnumGroup = new DataFeedGroup();
+                        nullableEnumGroup.InitBase(configKey.FullId, path, [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
+                        nullableEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
+                        yield return nullableEnumGroup;
+
+                        var nullableToggle = new DataFeedToggle();
+                        nullableToggle.InitBase(configKey.FullId + ".HasValue", path, [configKey.Section.Id, configKey.FullId], configKey.GetLocaleKey("HasValue").AsLocaleKey());
+                        nullableToggle.InitDescription(configKey.GetLocaleKey("HasValue").AsLocaleKey());
+                        nullableToggle.InitSetupValue((IField<bool> field) => 
+                        {
+                            field.Value = configKey.GetValue() != null;
+                            void FieldChanged(IChangeable changeable)
+                            {
+                                var val = ((IField<bool>)changeable).Value;
+                                if (val == false)
+                                {
+                                    configKey.TrySetValue(null);
+                                }
+                                else
+                                {
+                                    //configKey.TryComputeDefault(out object? defaultVal);
+                                    configKey.TrySetValue(Activator.CreateInstance(nullableType));
+                                }
+                            }
+                            void KeyChanged(object sender, IConfigKeyChangedEventArgs args)
+                            {
+                                if (args.NewValue != null && args.OldValue == null)
+                                {
+                                    field.World.RunSynchronously(() =>
+                                    {
+                                        field.Changed -= FieldChanged;
+                                        field.Value = true;
+                                        field.Changed += FieldChanged;
+                                    });
+                                }
+                            }
+                            field.Changed += FieldChanged;
+                            configKey.Changed += KeyChanged;
+                        });
+                        yield return nullableToggle;
+
+                        if (nullableType.GetCustomAttribute<FlagsAttribute>() is null)
+                        {
+                            yield return (DataFeedItem)_generateEnumField
+                                .MakeGenericMethod(nullableType)
+                                .Invoke(null, [path, configKey, new string[] { configKey.Section.Id, configKey.FullId }, configKey.FullId + ".Value"]);
+                        }
+                        else
+                        {
+                            var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
+                                .MakeGenericMethod(nullableType)
+                                .Invoke(null, [path, configKey, new string[] { configKey.Section.Id, configKey.FullId }, configKey.FullId + ".Flags"]);
+
+                            foreach (var item in items)
+                                yield return item;
+                        }
+
+                        continue;
+                    }
                 }
 
                 yield return (DataFeedItem)_generateItemForConfigKeyMethod
@@ -658,45 +724,97 @@ namespace MonkeyLoader.Resonite.Configuration
             return false;
         }
 
-        private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
-            where T : Enum
+        private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey, IReadOnlyList<string>? groupingParameters = null, string? itemKey = null)
+            where T : struct, Enum
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
+
+            if (groupingParameters != null)
+            {
+                enumField.GroupingParameters = groupingParameters;
+            }
+            if (itemKey != null)
+            {
+                enumField.ItemKey = itemKey;
+            }
+
             enumField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return enumField;
         }
 
-        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
-            where T : Enum
+        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey, IReadOnlyList<string>? groupingParameters = null, string? itemKey = null)
+            where T : struct, Enum
         {
             var flagsEnumGroup = new DataFeedGroup();
-            flagsEnumGroup.InitBase(configKey.FullId, path, [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
+            flagsEnumGroup.InitBase(itemKey ?? configKey.FullId, path, groupingParameters ?? [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
             flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
             yield return flagsEnumGroup;
 
-            var flagsGrouping = new[] { configKey.Section.Id, configKey.FullId };
+            List<string> flagsGrouping;
+            if (groupingParameters != null)
+            {
+                flagsGrouping = groupingParameters.ToList();
+                flagsGrouping.Add(itemKey ?? configKey.FullId);
+            }
+            else
+            {
+                flagsGrouping = new() { configKey.Section.Id, configKey.FullId };
+            }
 
-            foreach (var value in Enum.GetValues(configKey.ValueType).Cast<T>())
+            Type enumType;
+            if (configKey.ValueType.IsNullable())
+            {
+                enumType = configKey.ValueType.GetGenericArguments()[0];
+            }
+            else
+            {
+                enumType = configKey.ValueType;
+            }
+
+            foreach (var value in Enum.GetValues(enumType).Cast<T>())
             {
                 var name = value.ToString();
                 var longValue = Convert.ToInt64(value);
 
                 var flagToggle = new DataFeedToggle();
                 flagToggle.InitBase($"{configKey.FullId}.{name}", path, flagsGrouping, name);
-                flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", configKey.ValueType.Name), ("FlagName", name)));
+                flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", enumType.Name), ("FlagName", name)));
                 flagToggle.InitSetupValue(field =>
                 {
-                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+                    if (configKey.GetValue() is null)
+                    {
+                        field.Value = false;
+                    }
+                    else
+                    {
+                        field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+                    }
 
                     void FieldChanged(IChangeable changeable)
-                        => configKey.TrySetValue(Enum.ToObject(configKey.ValueType, field.Value ? Convert.ToInt64(configKey.GetValue()) | longValue : Convert.ToInt64(configKey.GetValue()) & ~longValue));
-
-                    void KeyChanged(object sender, ConfigKeyChangedEventArgs<T> changedEvent)
                     {
+                        configKey.TrySetValue(Enum.ToObject(enumType, field.Value ? Convert.ToInt64(configKey.GetValue() ?? 0) | longValue : Convert.ToInt64(configKey.GetValue() ?? 0) & ~longValue));
+                    }
+
+                    void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
+                    {
+                        if (changedEvent.NewValue is null)
+                        {
+                            //bool val = longValue == Convert.ToInt64(default(T));
+                            field.World.RunSynchronously(() =>
+                            {
+                                field.Changed -= FieldChanged;
+                                field.Value = false;
+                                field.Changed += FieldChanged;
+                            });
+                            return;
+                        }
+
                         var newValue = Convert.ToInt64(changedEvent.NewValue);
                         var isPartialCombinedValue = (newValue & longValue) != 0;
+
+                        if (Equals(field.Value, (newValue & longValue) == longValue)) return;
 
                         field.World.RunSynchronously(() =>
                         {
@@ -931,7 +1049,7 @@ namespace MonkeyLoader.Resonite.Configuration
             mod.Config.Save();
         }
 
-        private static void SetupConfigKeyField<T>(IField<T> field, IDefiningConfigKey<T> configKey)
+        private static void SetupConfigKeyField<T>(IField<T> field, IDefiningConfigKey configKey)
         {
             var slot = field.FindNearestParent<Slot>();
 
