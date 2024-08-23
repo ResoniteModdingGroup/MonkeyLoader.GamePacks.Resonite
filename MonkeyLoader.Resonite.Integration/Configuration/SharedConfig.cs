@@ -143,7 +143,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         internal static void Register(IConfigKeySessionShare sessionShare)
         {
-            sessionShare.ConfigKey.Config.Logger.Debug(() => $"Registering {sessionShare.GetType().CompactDescription()} for key [{sessionShare.ConfigKey.Id}]!");
+            EngineInitHook.Logger.Debug(() => $"Registering {sessionShare.GetType().CompactDescription()} {(sessionShare.AllowWriteBack ? "with" : "without")} writeback for key [{sessionShare.ConfigKey.Id}]!");
 
             _configKeySessionShares.Add(sessionShare);
 
@@ -156,7 +156,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         internal static void Unregister(IConfigKeySessionShare sessionShare)
         {
-            sessionShare.ConfigKey.Config.Logger.Debug(() => $"Unregistering {sessionShare.GetType().CompactDescription()} for key [{sessionShare.ConfigKey.Id}]!");
+            EngineInitHook.Logger.Debug(() => $"Unregistering {sessionShare.GetType().CompactDescription()} {(sessionShare.AllowWriteBack ? "with" : "without")} writeback for key [{sessionShare.ConfigKey.Id}]!");
 
             _configKeySessionShares.Remove(sessionShare);
 
