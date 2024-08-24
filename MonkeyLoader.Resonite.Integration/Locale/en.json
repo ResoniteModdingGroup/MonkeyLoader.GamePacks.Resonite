@@ -4,6 +4,8 @@
   "messages": {
     "Settings.Category.MonkeyLoader": "MonkeyLoader",
     "Settings.MonkeyLoader.Breadcrumb": "Settings",
+    "Settings.SaveConfig.Breadcrumb": "Saving Config",
+    "Settings.ResetConfig.Breadcrumb": "Resetting Config",
 
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.Name": "MonkeyLoader",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Name": "Monkeys",
