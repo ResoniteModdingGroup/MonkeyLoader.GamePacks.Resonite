@@ -18,6 +18,6 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// <param name="searchPhrase">The search phrase for this enumeration request.</param>
         /// <param name="viewData">The custom view data for this enumeration request.</param>
         /// <returns>An async sequence of <see cref="DataFeedItem"/>s that represents this object.</returns>
-        public IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string searchPhrase, object viewData);
+        public IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData);
     }
 }

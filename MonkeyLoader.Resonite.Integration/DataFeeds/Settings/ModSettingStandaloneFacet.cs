@@ -20,7 +20,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         private static IDefiningConfigKey? GetConfigKeyByFullId(string fullId)
         {

@@ -27,11 +27,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         public const string ConfigKeyChangeLabel = "Settings";
         public const string ConfigSections = "ConfigSections";
 
-        public const string MonkeyToggles = "MonkeyToggles";
-
-        private const string EarlyMonkeys = "EarlyMonkeys";
         private const string LegacyInjectedColorXTemplateName = "Injected DataFeedValueField<colorX>";
-        private const string Monkeys = "Monkeys";
 
         private const string ResetConfig = "ResetConfig";
         private const string SaveConfig = "SaveConfig";
@@ -422,15 +418,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             yield return description;
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateModMonkeysAsync(IReadOnlyList<string> path, Mod mod)
-        {
-            await foreach (var feedItem in EnumerateMonkeysAsync(path, mod, Monkeys))
-                yield return feedItem;
-
-            await foreach (var feedItem in EnumerateMonkeysAsync(path, mod, EarlyMonkeys))
-                yield return feedItem;
-        }
-
         private static async IAsyncEnumerable<DataFeedItem> EnumerateModsAsync(IReadOnlyList<string> path)
         {
             await Task.CompletedTask;
@@ -511,9 +498,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 await foreach (var feedItem in EnumerateModMetadataAsync(path, mod))
                     yield return feedItem;
 
-                await foreach (var feedItem in EnumerateModMonkeysAsync(path, mod))
-                    yield return feedItem;
-
                 yield break;
             }
 
@@ -521,12 +505,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             {
                 case ConfigSections:
                     await foreach (var feedItem in EnumerateConfigAsync(settingsData, path, mod.Config))
-                        yield return feedItem;
-
-                    break;
-
-                case MonkeyToggles:
-                    await foreach (var feedItem in EnumerateModMonkeysAsync(path, mod))
                         yield return feedItem;
 
                     break;
@@ -543,77 +521,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield return feedItem;
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(IReadOnlyList<string> path, Mod mod, string monkeyType)
-        {
-            await Task.CompletedTask;
-
-            var monkeys = monkeyType switch
-            {
-                Monkeys => mod.Monkeys.ToArray(),
-                EarlyMonkeys => mod.EarlyMonkeys.ToArray(),
-                _ => []
-            };
-
-            Array.Sort(monkeys, (left, right) =>
-            {
-                if (left.CanBeDisabled != right.CanBeDisabled)
-                    return left.CanBeDisabled ? -1 : 1;
-
-                return GetLocalizedMonkeyName(left).CompareTo(GetLocalizedMonkeyName(right));
-            });
-
-            var group = new DataFeedGroup();
-            group.InitBase(monkeyType, path, null, Mod.GetLocaleString($"{monkeyType}.Name"), Mod.GetLocaleString($"{monkeyType}.Description"));
-            yield return group;
-
-            var monkeysGrouping = new[] { monkeyType };
-
-            var monkeyCount = new DataFeedIndicator<string>();
-            monkeyCount.InitBase($"{monkeyType}.Count", path, monkeysGrouping, Mod.GetLocaleString($"{monkeyType}.Count.Name"), Mod.GetLocaleString($"{monkeyType}.Count.Description"));
-            monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
-            yield return monkeyCount;
-
-            foreach (var monkey in monkeys)
-            {
-                var monkeyGroup = new DataFeedGroup();
-                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleString("Name"));
-                yield return monkeyGroup;
-
-                var monkeyGrouping = new[] { monkeyType, monkey.Id };
-
-                if (monkey.CanBeDisabled)
-                {
-                    var toggle = new DataFeedToggle();
-                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    toggle.InitSetupValue(field => SetupConfigKeyField(field, mod.MonkeyToggles.GetToggle(monkey)));
-                    yield return toggle;
-                }
-                else
-                {
-                    var enabledIndicator = new DataFeedIndicator<string>();
-                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    enabledIndicator.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleString($"{monkeyType}.AlwaysEnabled")));
-                    yield return enabledIndicator;
-                }
-
-                var descriptionIndicator = new DataFeedIndicator<string>();
-                descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeyGrouping, Mod.GetLocaleString("Monkeys.Description.Name"), Mod.GetLocaleString("Monkeys.Description.Description"));
-                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
-                yield return descriptionIndicator;
-
-                var typeIndicator = new DataFeedIndicator<string>();
-                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, Mod.GetLocaleString("Monkeys.Type.Name"), Mod.GetLocaleString($"{monkeyType}.Type.Description"));
-                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
-                yield return typeIndicator;
-            }
-        }
-
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
             where T : Enum
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
-            enumField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
+            enumField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
             return enumField;
         }
@@ -672,7 +585,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var indicator = new DataFeedIndicator<T>();
             InitBase(indicator, path, configKey);
-            indicator.InitSetupValue(field => SetupConfigKeyField(field, configKey));
+            indicator.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
             return indicator;
         }
@@ -700,7 +613,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             InitBase(quantityField, path, configKey);
             quantityField.InitUnitConfiguration(quantity.DefaultConfiguration, quantity.ImperialConfiguration);
-            quantityField.InitSetup(quantityField => SetupConfigKeyField(quantityField, configKey), quantity.Min, quantity.Max);
+            quantityField.InitSetup(quantityField => quantityField.SetupConfigKeyField(configKey), quantity.Min, quantity.Max);
 
             return quantityField;
         }
@@ -709,7 +622,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var slider = new DataFeedSlider<T>();
             InitBase(slider, path, configKey);
-            slider.InitSetup(field => SetupConfigKeyField(field, configKey), range.Min, range.Max);
+            slider.InitSetup(field => field.SetupConfigKeyField(configKey), range.Min, range.Max);
 
             //if (!string.IsNullOrWhiteSpace(configKey.TextFormat))
             //    slider.InitFormatting(configKey.TextFormat);
@@ -721,7 +634,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var toggle = new DataFeedToggle();
             InitBase(toggle, path, configKey);
-            toggle.InitSetupValue(field => SetupConfigKeyField(field, configKey));
+            toggle.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
             return toggle;
         }
@@ -730,7 +643,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var valueField = new DataFeedValueField<T>();
             InitBase(valueField, path, configKey);
-            valueField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
+            valueField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
             var valueType = typeof(T);
             if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
@@ -879,19 +792,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             Logger.Info(() => $"Saving config for mod: {modOrLoaderId}");
             mod.Config.Save();
-        }
-
-        private static void SetupConfigKeyField<T>(IField<T> field, IDefiningConfigKey<T> configKey)
-        {
-            var slot = field.FindNearestParent<Slot>();
-
-            if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
-            {
-                // Adding the config key's full id to make it easier to create standalone facets
-                feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
-            }
-
-            field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
         }
 
         private static async IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarningAsync(IReadOnlyList<string> path)
