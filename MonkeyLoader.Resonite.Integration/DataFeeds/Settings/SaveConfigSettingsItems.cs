@@ -1,4 +1,5 @@
 ﻿using FrooxEngine;
+using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using System;
@@ -21,17 +22,15 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             if (path.Count is < 2 or > 4 || path[0] is not SettingsHelpers.MonkeyLoader)
                 return current;
 
-            if (path.Count >= 3 && path[2] is not SettingsHelpers.ConfigSections)
+            if (path.Count == 4 && path[2] is not SettingsHelpers.ConfigSections)
                 return current;
 
             // Format: MonkeyLoader / modId / [page]
-            if (!Mod.Loader.TryGet<Mod>().ById(path[1], out var mod) && path[1] is not SettingsHelpers.MonkeyLoader)
+            if (!((INestedIdentifiableCollection<Config>)Mod.Loader).TryGet().ByFullId($"{path[1]}.Config", out var config))
             {
-                Logger.Error(() => $"Tried to access non-existant mod's settings: {path[1]}");
+                Logger.Error(() => $"Tried to access non-existant config: {path[1]}.Config");
                 return current;
             }
-
-            var config = mod?.Config ?? Mod.Loader.Config;
 
             if (path.Count >= 3)
             {

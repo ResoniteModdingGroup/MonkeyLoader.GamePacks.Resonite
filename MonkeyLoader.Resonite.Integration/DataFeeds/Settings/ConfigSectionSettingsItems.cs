@@ -40,14 +40,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 return current;
 
             // Format: MonkeyLoader / modId / [page]
-            if (!Mod.Loader.TryGet<Mod>().ById(path[1], out var mod) && path[1] is not SettingsHelpers.MonkeyLoader)
+            if (!((INestedIdentifiableCollection<Config>)Mod.Loader).TryGet().ByFullId($"{path[1]}.Config", out var config))
             {
-                Logger.Error(() => $"Tried to access non-existant mod's settings: {path[1]}");
+                Logger.Error(() => $"Tried to access non-existant config: {path[1]}.Config");
                 return current;
             }
 
             parameters.IncludeOriginalResult = false;
-            var config = mod?.Config ?? Mod.Loader.Config;
 
             return current.Concat(EnumerateConfigAsync(parameters, config));
         }

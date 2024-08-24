@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.22.7-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.22.8-beta" />
     <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.19.0-beta-enumerabletoolkit" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
