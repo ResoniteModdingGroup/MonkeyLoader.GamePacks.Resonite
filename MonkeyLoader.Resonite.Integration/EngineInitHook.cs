@@ -3,6 +3,7 @@ using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Configuration;
+using MonkeyLoader.Resonite.DataFeeds;
 using MonkeyLoader.Resonite.Features.FrooxEngine;
 using System;
 using System.Collections.Generic;
@@ -120,6 +121,13 @@ namespace MonkeyLoader.Resonite
 
         private static async Task RunEngineInitHooksAsync()
         {
+            // This won't work if injectors get added in hot-loaded mods
+            var dynamicModBuilder = new DynamicMod.Builder(Mod.GetLocaleKey("DataFeedInjectors"), new Version(1, 0, 0));
+            dynamicModBuilder.AddMonkeys(DataFeedInjectorManager.MonkeyTypes);
+            dynamicModBuilder.IsGamePack = true;
+
+            dynamicModBuilder.CreateAndRunFor(Mod.Loader);
+
             var resoniteMonkeys = ResoniteMonkeys;
             Logger.Trace(() => "Running EngineInit hooks in this order:");
             Logger.Trace(resoniteMonkeys);
