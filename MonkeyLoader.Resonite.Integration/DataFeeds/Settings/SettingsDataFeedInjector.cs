@@ -9,7 +9,7 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using MonkeyLoader.Resonite.DataFeeds;
+using MonkeyLoader.Resonite.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +18,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.Configuration
+namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
@@ -141,7 +141,7 @@ namespace MonkeyLoader.Resonite.Configuration
             var monkeyLoaderCategory = new SettingCategoryInfo(OfficialAssets.Graphics.Icons.Dash.Tools, 255);
             monkeyLoaderCategory.InitKey("MonkeyLoader");
 
-            Settings._categoryInfos.Add(monkeyLoaderCategory.Key, monkeyLoaderCategory);
+            FrooxEngine.Settings._categoryInfos.Add(monkeyLoaderCategory.Key, monkeyLoaderCategory);
 
             return base.OnEngineReady();
         }

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MonkeyLoader.Resonite.Configuration
+namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class ModSettingStandaloneFacet : ResoniteMonkey<ModSettingStandaloneFacet>
     {

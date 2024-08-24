@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.Configuration
+namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class SettingsFallbackLocaleGenerator : ResoniteAsyncEventHandlerMonkey<SettingsFallbackLocaleGenerator, FallbackLocaleGenerationEvent>
     {
