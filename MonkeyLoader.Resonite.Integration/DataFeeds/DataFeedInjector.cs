@@ -57,14 +57,17 @@ namespace MonkeyLoader.Resonite.DataFeeds
             return base.OnEngineReady();
         }
 
-        private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupingKeys, string searchPhrase, object viewData)
+        private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> __0, IReadOnlyList<string> __1, string __2, object __3)
         {
+            // I hate having to use the __n syntax for Arguments, but Froox can't decide whether to use groupKeys or groupingKeys
+            // The method signature is based on an interface anyways, so the argument names can be whatever - better be save than sorry
+
             if (!Enabled)
                 return __result;
 
             try
             {
-                var parameters = new EnumerateDataFeedParameters<TDataFeed>(__instance, __result, path, groupingKeys, searchPhrase, viewData);
+                var parameters = new EnumerateDataFeedParameters<TDataFeed>(__instance, __result, __0, __1, __2, __3);
 
                 return Builder.GetEnumerable(parameters);
             }
