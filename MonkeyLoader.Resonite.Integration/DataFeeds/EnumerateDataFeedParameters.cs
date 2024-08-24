@@ -71,7 +71,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         public string? SearchPhrase { get; }
 
         /// <summary>
-        /// Gets the view data for this enumeration request.
+        /// Gets the custom view data for this enumeration request.
         /// </summary>
         public object ViewData { get; }
 

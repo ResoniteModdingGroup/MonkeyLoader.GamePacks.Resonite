@@ -10,7 +10,6 @@ using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.DataFeeds;
-using MonkeyLoader.Resonite.Locale;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -352,16 +351,16 @@ namespace MonkeyLoader.Resonite.Configuration
                         yield return (DataFeedItem)_generateEnumField
                             .MakeGenericMethod(configKey.ValueType)
                             .Invoke(null, [path, configKey]);
-                    }
-                    else
-                    {
-                        var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
-                            .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, configKey]);
 
-                        foreach (var item in items)
-                            yield return item;
+                        continue;
                     }
+
+                    var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
+                        .MakeGenericMethod(configKey.ValueType)
+                        .Invoke(null, [path, configKey]);
+
+                    foreach (var item in items)
+                        yield return item;
 
                     continue;
                 }
@@ -441,7 +440,7 @@ namespace MonkeyLoader.Resonite.Configuration
             yield return modsGroup;
 
             var modsGrid = new DataFeedGrid();
-            modsGrid.InitBase("Mods.Grid", path, new[] { "Mods.Group" }, Mod.GetLocaleString("Mods"));
+            modsGrid.InitBase("Mods.Grid", path, ["Mods.Group"], Mod.GetLocaleString("Mods"));
             yield return modsGrid;
 
             var modsGrouping = new[] { "Mods.Group", "Mods.Grid" };
@@ -458,7 +457,7 @@ namespace MonkeyLoader.Resonite.Configuration
             yield return gamePacksGroup;
 
             var gamePacksGrid = new DataFeedGrid();
-            gamePacksGrid.InitBase("GamePacks.Grid", path, new[] { "GamePacks.Group" }, Mod.GetLocaleString("GamePacks"));
+            gamePacksGrid.InitBase("GamePacks.Grid", path, ["GamePacks.Group"], Mod.GetLocaleString("GamePacks"));
             yield return gamePacksGrid;
 
             var gamePacksGrouping = new[] { "GamePacks.Group", "GamePacks.Grid" };
@@ -911,7 +910,9 @@ namespace MonkeyLoader.Resonite.Configuration
             yield break;
         }
 
-        // Stores data about a settings facet in Userspace, there can be any number of these
+        /// <summary>
+        /// Stores data about a settings facet in Userspace, there can be any number of these
+        /// </summary>
         private sealed class SettingsFacetData
         {
             public readonly Stack<float> ScrollAmounts = new();

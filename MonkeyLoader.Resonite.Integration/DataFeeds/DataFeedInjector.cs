@@ -40,7 +40,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         protected override Task Handle(FallbackLocaleGenerationEvent eventData)
         {
             eventData.AddMessage(this.GetLocaleKey("Name"), $"{typeof(TDataFeed).CompactDescription()}-Injector");
-            eventData.AddMessage(this.GetLocaleKey("Description"), $"Handles injecting elements into the {typeof(TDataFeed).CompactDescription()}.");
+            eventData.AddMessage(this.GetLocaleKey("Description"), $"Handles injecting elements into the {typeof(TDataFeed).CompactDescription()}.<br/>Note that disabling this will block the effects of all other Monkeys that rely on this injector.");
 
             return Task.CompletedTask;
         }
@@ -59,6 +59,9 @@ namespace MonkeyLoader.Resonite.DataFeeds
 
         private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupingKeys, string searchPhrase, object viewData)
         {
+            if (!Enabled)
+                return __result;
+
             try
             {
                 var parameters = new EnumerateDataFeedParameters<TDataFeed>(__instance, __result, path, groupingKeys, searchPhrase, viewData);

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite.Configuration
 {
     /// <summary>
-    /// Represents a wrapper for an <see cref="IDefiningConfigKey{T}"/>,
+    /// Represents the functionality for an <see cref="IDefiningConfigKey{T}"/>,
     /// which makes its local value available as a (converted) shared resource in Resonite <see cref="World"/>s.<br/>
     /// Optionally allows writing back changes from the <see cref="World"/> to the config item.
     /// </summary>
@@ -220,7 +220,7 @@ namespace MonkeyLoader.Resonite.Configuration
     }
 
     /// <summary>
-    /// Represents a wrapper for an <see cref="IDefiningConfigKey{T}"/>,
+    /// Represents the functionality for an <see cref="IDefiningConfigKey{T}"/>,
     /// which makes its local value available as a shared resource in Resonite <see cref="World"/>s.<br/>
     /// Optionally allows writing back changes from the <see cref="World"/> to the config item.
     /// </summary>
