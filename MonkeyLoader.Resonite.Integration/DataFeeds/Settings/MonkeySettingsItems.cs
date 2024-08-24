@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class MonkeySettingsItems : DataFeedBuildingBlockMonkey<MonkeySettingsItems, SettingsDataFeed>
     {
-        public override int Priority => -100;
+        public override int Priority => 100;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
@@ -31,6 +31,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 Logger.Error(() => $"Tried to access non-existant mod's settings: {path[1]}");
                 return current;
             }
+
+            parameters.IncludeOriginalResult = false;
 
             return current.Concat(EnumerateMonkeysAsync(parameters, mod, SettingsHelpers.Monkeys))
                 .Concat(EnumerateMonkeysAsync(parameters, mod, SettingsHelpers.EarlyMonkeys));
