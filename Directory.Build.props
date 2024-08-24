@@ -20,7 +20,15 @@
 
   <PropertyGroup>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    
+    <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    
+    <PackageIconUrl>https://raw.githubusercontent.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/master/Icon.png</PackageIconUrl>
+    <PackageIcon>Icon.png</PackageIcon>
+    
     <IncludeSymbols>False</IncludeSymbols>
     <EmbedAllSources>True</EmbedAllSources>
     <EmbedUntrackedSources>True</EmbedUntrackedSources>

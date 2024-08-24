@@ -15,13 +15,8 @@
       which uses FrooxEngine. It provides hooks for the beginning of initialization,
       when initialization is done, and when the game shuts down.
     </Description>
-    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/master/Icon.png</PackageIconUrl>
-    <PackageIcon>Icon.png</PackageIcon>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
-    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
   </PropertyGroup>
   
   <PropertyGroup>
