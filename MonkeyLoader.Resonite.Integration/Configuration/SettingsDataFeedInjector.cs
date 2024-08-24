@@ -9,9 +9,11 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
+using MonkeyLoader.Resonite.DataFeeds;
 using MonkeyLoader.Resonite.Locale;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -21,7 +23,7 @@ namespace MonkeyLoader.Resonite.Configuration
 {
     [HarmonyPatch(typeof(SettingsDataFeed))]
     [HarmonyPatchCategory(nameof(SettingsDataFeedInjector))]
-    internal sealed class SettingsDataFeedInjector : ResoniteAsyncEventHandlerMonkey<SettingsDataFeedInjector, FallbackLocaleGenerationEvent>
+    internal sealed class SettingsDataFeedInjector : DataFeedBuildingBlockMonkey<SettingsDataFeedInjector, SettingsDataFeed>
     {
         public const string ConfigKeyChangeLabel = "Settings";
         public const string ConfigSections = "ConfigSections";
@@ -41,60 +43,99 @@ namespace MonkeyLoader.Resonite.Configuration
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(SettingsDataFeedInjector), nameof(GenerateQuantityField));
 
-        private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = new();
-        public override int Priority => HarmonyLib.Priority.Normal;
+        private static readonly Dictionary<SettingsDataFeed, SettingsFacetData> _settingsFacetDataMap = [];
 
-        protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
+        public override int Priority => 100;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
-
-        protected override Task Handle(FallbackLocaleGenerationEvent eventData)
+        public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
-            foreach (var configSection in Mod.Loader.Config.Sections)
-            {
-                eventData.AddMessage($"{configSection.FullId}.Name", configSection.Name);
+            var dataFeed = parameters.DataFeed;
+            var path = parameters.Path;
 
-                foreach (var configKey in configSection.Keys)
+            SettingsFacetData? settingsData = null;
+            if (dataFeed.World.IsUserspace() && !_settingsFacetDataMap.TryGetValue(dataFeed, out settingsData))
+            {
+                settingsData = new SettingsFacetData();
+                _settingsFacetDataMap.Add(dataFeed, settingsData);
+                dataFeed.Destroyed += (IDestroyable destroyable) =>
                 {
-                    eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
-                    eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
+                    if (destroyable is SettingsDataFeed settingsDataFeed)
+                    {
+                        _settingsFacetDataMap.Remove(settingsDataFeed);
+                        Logger.Debug(() => "Removed SettingsDataFeed to SettingsFacetData");
+                    }
+                };
+                Logger.Debug(() => "Added new SettingsFacetData");
+            }
+
+            if (dataFeed.World.IsUserspace() && settingsData!.RootCategoryView.FilterWorldElement() == null)
+            {
+                settingsData.RootCategoryView = dataFeed.Slot.GetComponent<RootCategoryView>();
+                if (settingsData.RootCategoryView != null)
+                {
+                    settingsData.RootCategoryView.Path.ElementsAdded += OnElementsAdded;
+                    settingsData.RootCategoryView.Path.ElementsRemoved += OnElementsRemoved;
+                    Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
                 }
             }
 
-            foreach (var mod in Mod.Loader.Mods)
+            if (dataFeed.World.IsUserspace() && settingsData!.ScrollSlider.FilterWorldElement() == null)
             {
-                var modNameKey = mod.GetLocaleKey("Name");
-
-                eventData.AddMessage(modNameKey, mod.Title);
-                eventData.AddMessage($"Settings.{mod.Id}.Breadcrumb", eventData.GetMessage(modNameKey));
-
-                eventData.AddMessage(mod.GetLocaleKey("Description"), mod.Description);
-
-                foreach (var monkey in mod.Monkeys.Concat(mod.EarlyMonkeys))
+                Slot settingsListSlot = dataFeed.Slot.FindChild(s => s.Name == "Settings List", maxDepth: 2);
+                if (settingsListSlot != null)
                 {
-                    var monkeyNameKey = monkey.GetLocaleKey("Name");
-
-                    eventData.AddMessage(monkeyNameKey, monkey.Name);
-                    eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
-
-                    if (monkey.CanBeDisabled)
-                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(monkey).GetLocaleKey("Name"), $"{eventData.GetMessage(monkeyNameKey)} Enabled");
-                }
-
-                foreach (var configSection in mod.Config.Sections)
-                {
-                    eventData.AddMessage(configSection.GetLocaleKey("Name"), configSection.Name);
-
-                    foreach (var configKey in configSection.Keys)
+                    Slot scrollBarSlot = settingsListSlot.FindChild(s => s.Name == "Scroll Bar", maxDepth: 2);
+                    if (scrollBarSlot != null)
                     {
-                        eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
-                        eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
+                        var slider = scrollBarSlot.GetComponentInChildren<Slider<float>>();
+                        if (slider != null)
+                        {
+                            settingsData.ScrollSlider = slider;
+                            Logger.Debug(() => "Cached settings scroll slider.");
+                        }
                     }
                 }
             }
 
-            return Task.CompletedTask;
+            if (path.Count == 0 || path[0] != "MonkeyLoader")
+                return current;
+
+            parameters.IncludeOriginalResult = false;
+
+            if (!dataFeed.World.IsUserspace())
+            {
+                return current.Concat(WorldNotUserspaceWarningAsync(path));
+            }
+
+            switch (path.Last())
+            {
+                case SaveConfig:
+                    SaveModOrLoaderConfig(path[1]);
+
+                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, SaveConfig));
+
+                    return current;
+
+                case ResetConfig:
+                    ResetModOrLoaderConfig(path[1]);
+
+                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, ResetConfig));
+
+                    return current;
+
+                default:
+                    break;
+            }
+
+            return current.Concat(path.Count switch
+            {
+                1 => EnumerateModsAsync(path),
+                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(settingsData!, path) : EnumerateModSettingsAsync(settingsData!, path),
+                _ => EnumerateModSettingsAsync(settingsData!, path),
+            });
         }
+
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         protected override bool OnEngineReady()
         {
@@ -566,96 +607,6 @@ namespace MonkeyLoader.Resonite.Configuration
                 typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
                 yield return typeIndicator;
             }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(nameof(SettingsDataFeed.Enumerate))]
-        private static bool EnumeratePrefix(SettingsDataFeed __instance, IReadOnlyList<string> path, ref IAsyncEnumerable<DataFeedItem> __result)
-        {
-            SettingsFacetData? settingsData = null;
-            if (__instance.World.IsUserspace() && !_settingsFacetDataMap.TryGetValue(__instance, out settingsData))
-            {
-                settingsData = new SettingsFacetData();
-                _settingsFacetDataMap.Add(__instance, settingsData);
-                __instance.Destroyed += (IDestroyable destroyable) =>
-                {
-                    if (destroyable is SettingsDataFeed settingsDataFeed)
-                    {
-                        _settingsFacetDataMap.Remove(settingsDataFeed);
-                        Logger.Debug(() => "Removed SettingsDataFeed to SettingsFacetData");
-                    }
-                };
-                Logger.Debug(() => "Added new SettingsFacetData");
-            }
-
-            if (__instance.World.IsUserspace() && settingsData!.RootCategoryView.FilterWorldElement() == null)
-            {
-                settingsData.RootCategoryView = __instance.Slot.GetComponent<RootCategoryView>();
-                if (settingsData.RootCategoryView != null)
-                {
-                    settingsData.RootCategoryView.Path.ElementsAdded += OnElementsAdded;
-                    settingsData.RootCategoryView.Path.ElementsRemoved += OnElementsRemoved;
-                    Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
-                }
-            }
-
-            if (__instance.World.IsUserspace() && settingsData!.ScrollSlider.FilterWorldElement() == null)
-            {
-                Slot settingsListSlot = __instance.Slot.FindChild(s => s.Name == "Settings List", maxDepth: 2);
-                if (settingsListSlot != null)
-                {
-                    Slot scrollBarSlot = settingsListSlot.FindChild(s => s.Name == "Scroll Bar", maxDepth: 2);
-                    if (scrollBarSlot != null)
-                    {
-                        var slider = scrollBarSlot.GetComponentInChildren<Slider<float>>();
-                        if (slider != null)
-                        {
-                            settingsData.ScrollSlider = slider;
-                            Logger.Debug(() => "Cached settings scroll slider.");
-                        }
-                    }
-                }
-            }
-
-            if (path.Count == 0 || path[0] != "MonkeyLoader")
-                return true;
-
-            if (!__instance.World.IsUserspace())
-            {
-                __result = WorldNotUserspaceWarningAsync(path);
-                return false;
-            }
-
-            switch (path.Last())
-            {
-                case SaveConfig:
-                    SaveModOrLoaderConfig(path[1]);
-
-                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, SaveConfig));
-
-                    __result = YieldBreakAsync();
-                    return false;
-
-                case ResetConfig:
-                    ResetModOrLoaderConfig(path[1]);
-
-                    settingsData!.RootCategoryView?.RunSynchronously(() => MoveUpFromCategory(settingsData.RootCategoryView, ResetConfig));
-
-                    __result = YieldBreakAsync();
-                    return false;
-
-                default:
-                    break;
-            }
-
-            __result = path.Count switch
-            {
-                1 => EnumerateModsAsync(path),
-                2 => path[1] == "MonkeyLoader" ? EnumerateMonkeyLoaderSettingsAsync(settingsData!, path) : EnumerateModSettingsAsync(settingsData!, path),
-                _ => EnumerateModSettingsAsync(settingsData!, path),
-            };
-
-            return false;
         }
 
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey<T> configKey)
