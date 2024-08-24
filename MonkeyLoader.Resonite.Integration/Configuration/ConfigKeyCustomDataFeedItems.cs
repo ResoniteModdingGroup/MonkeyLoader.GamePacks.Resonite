@@ -20,7 +20,7 @@ namespace MonkeyLoader.Resonite.Configuration
         public IDefiningConfigKey<T> ConfigKey { get; private set; } = null!;
 
         /// <inheritdoc/>
-        public abstract IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string searchPhrase, object viewData);
+        public abstract IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData);
 
         void IComponent<IDefiningConfigKey<T>>.Initialize(IDefiningConfigKey<T> entity)
         {

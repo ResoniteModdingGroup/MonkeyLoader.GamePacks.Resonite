@@ -116,6 +116,8 @@ namespace MonkeyLoader.Resonite
         /// Creates a locale key prefixed with <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>, in the format:
         /// <c>$"{<paramref name="identifiable"/>.<see cref="IIdentifiable.FullId">FullId</see>}.{<paramref name="key"/>}"</c>.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
         /// <returns>The prefixed locale key.</returns>
         public static string GetLocaleKey(this IIdentifiable identifiable, string key)
             => $"{identifiable.FullId}.{key}";
@@ -124,6 +126,10 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="argName">The name of the single argument used to format the locale message.</param>
+        /// <param name="argField">The value of the single argument used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string argName, object argField)
             => identifiable.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
@@ -132,6 +138,11 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="format">An additional format string to insert the locale message into.</param>
+        /// <param name="argName">The name of the single argument used to format the locale message.</param>
+        /// <param name="argField">The value of the single argument used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, string argName, object argField)
             => identifiable.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
@@ -140,6 +151,9 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, params (string, object)[] arguments)
             => identifiable.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator());
@@ -148,6 +162,10 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="format">An additional format string to insert the locale message into.</param>
+        /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, params (string, object)[] arguments)
             => identifiable.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator());
@@ -156,6 +174,10 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
+        /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, bool continuous, Dictionary<string, object>? arguments = null)
             => identifiable.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator());
@@ -164,9 +186,45 @@ namespace MonkeyLoader.Resonite
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
         /// as the key to create a <see cref="LocaleString"/> using the other arguments.
         /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="format">An additional format string to insert the locale message into.</param>
+        /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
+        /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
             => identifiable.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
+
+        /// <summary>
+        /// Gets the formatted, localized message of the given locale <paramref name="key"/>
+        /// prefixed with the <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>
+        /// according to the <see cref="CurrentLocale">current locale</see>.
+        /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        public static string GetMessageInCurrent(this IIdentifiable identifiable, string key)
+            => identifiable.GetMessageInLocale(key, CurrentLocale);
+
+        /// <summary>
+        /// Gets the formatted, localized message of the given locale <paramref name="key"/>
+        /// prefixed with the <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>
+        /// according to the <see cref="FallbackLocale">fallback locale</see>.
+        /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        public static string GetMessageInFallback(this IIdentifiable identifiable, string key)
+            => identifiable.GetMessageInLocale(key, FallbackLocale);
+
+        /// <summary>
+        /// Gets the formatted, localized message of the given locale <paramref name="key"/>
+        /// prefixed with the <paramref name="identifiable"/>'s <see cref="IIdentifiable.FullId">FullId</see>
+        /// according to the given <paramref name="locale"/>.
+        /// </summary>
+        /// <param name="identifiable">The <see cref="IIdentifiable"/> whose <see cref="IIdentifiable.FullId">FullId</see> to use as a prefix.</param>
+        /// <param name="key">The locale key to prefix.</param>
+        /// <param name="locale">The locale to localize the message in.</param>
+        public static string GetMessageInLocale(this IIdentifiable identifiable, string key, LocaleResourceData locale)
+            => identifiable.GetLocaleString(key).FormatWithLocale(locale)!;
 
         /// <summary>
         /// Checks whether this <see cref="LocaleString"/> has a message in the <see cref="CurrentLocale">current locale</see>.
