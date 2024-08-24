@@ -122,9 +122,17 @@ namespace MonkeyLoader.Resonite
         private static async Task RunEngineInitHooksAsync()
         {
             // This won't work if injectors get added in hot-loaded mods
-            var dynamicModBuilder = new DynamicMod.Builder(Mod.GetLocaleKey("DataFeedInjectors"), new Version(1, 0, 0));
+            var dynamicModBuilder = new DynamicMod.Builder(Mod.GetLocaleKey("DataFeedInjectors"), new Version(1, 0, 0))
+            {
+                Description = "Contains the dynamically collected Monkeys that handle injecting elements into their respective DataFeed.",
+                Title = "DataFeed Injectors",
+                ProjectUrl = Mod.ProjectUrl,
+                // IconPath = Mod.IconPath,
+                IconUrl = Mod.IconUrl,
+                Authors = ["Banane9"],
+                IsGamePack = true
+            };
             dynamicModBuilder.AddMonkeys(DataFeedInjectorManager.MonkeyTypes);
-            dynamicModBuilder.IsGamePack = true;
 
             dynamicModBuilder.CreateAndRunFor(Mod.Loader);
 

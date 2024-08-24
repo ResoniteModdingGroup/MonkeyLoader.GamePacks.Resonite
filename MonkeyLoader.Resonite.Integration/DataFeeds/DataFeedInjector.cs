@@ -22,12 +22,13 @@ namespace MonkeyLoader.Resonite.DataFeeds
         public override string Id { get; } = typeof(DataFeedInjector<TDataFeed>).CompactDescription();
 
         /// <inheritdoc/>
-        public override int Priority => HarmonyLib.Priority.Normal;
+        public override int Priority => HarmonyLib.Priority.High;
 
-        internal static AsyncParametrizedEnumerableBuilder<DataFeedItem, EnumerateDataFeedParameters<TDataFeed>> Builder { get; } = new();
+        internal static AsyncParametrizedEnumerableBuilder<DataFeedItem, EnumerateDataFeedParameters<TDataFeed>> Builder { get; }
 
         static DataFeedInjector()
         {
+            Builder = new();
             Builder.AddBuildingBlock(new OriginalDataFeedResultBuildingBlock<TDataFeed>());
             DataFeedInjectorManager.AddInjector<DataFeedInjector<TDataFeed>>();
         }
@@ -39,32 +40,38 @@ namespace MonkeyLoader.Resonite.DataFeeds
         protected override Task Handle(FallbackLocaleGenerationEvent eventData)
         {
             eventData.AddMessage(this.GetLocaleKey("Name"), $"{typeof(TDataFeed).CompactDescription()}-Injector");
-            eventData.AddMessage(this.GetLocaleKey("Description"), $"Sends out the {typeof(EnumerateDataFeedParameters<TDataFeed>).CompactDescription()} event for monkeys to manipulate the items returned.");
+            eventData.AddMessage(this.GetLocaleKey("Description"), $"Handles injecting elements into the {typeof(TDataFeed).CompactDescription()}.");
 
             return Task.CompletedTask;
         }
 
         protected override bool OnEngineReady()
         {
-            if (!Prepare())
-            {
-                Logger.Error(() => $"Failed to find Enumerate(IReadOnlyList<string>, IReadOnlyList<string>, string) method declared on type [{typeof(TDataFeed).CompactDescription()}]");
+            var enumerateMethod = TargetMethod();
 
-                return false;
-            }
+            if (enumerateMethod is null)
+                Logger.Error(() => $"Failed to find Enumerate(IReadOnlyList<string>, IReadOnlyList<string>, string) method declared on type [{typeof(TDataFeed).CompactDescription()}]");
+            else
+                Harmony.Patch(enumerateMethod, postfix: AccessTools.DeclaredMethod(GetType(), nameof(EnumeratePostfix)));
 
             return base.OnEngineReady();
         }
 
-        [HarmonyPostfix]
-        private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string searchPhrase, object viewData)
+        private static IAsyncEnumerable<DataFeedItem> EnumeratePostfix(IAsyncEnumerable<DataFeedItem> __result, TDataFeed __instance, IReadOnlyList<string> path, IReadOnlyList<string> groupingKeys, string searchPhrase, object viewData)
         {
-            var parameters = new EnumerateDataFeedParameters<TDataFeed>(__instance, __result, path, groupKeys, searchPhrase, viewData);
+            try
+            {
+                var parameters = new EnumerateDataFeedParameters<TDataFeed>(__instance, __result, path, groupingKeys, searchPhrase, viewData);
 
-            return Builder.GetEnumerable(parameters);
+                return Builder.GetEnumerable(parameters);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.LogFormat($"Failed to generate replacement for {typeof(TDataFeed).Name} Enumerate - using original result."));
+
+                return __result;
+            }
         }
-
-        private static bool Prepare() => TargetMethod() is not null;
 
         private static MethodBase TargetMethod()
             => AccessTools.DeclaredMethod(typeof(TDataFeed), nameof(IDataFeed.Enumerate), [typeof(IReadOnlyList<string>), typeof(IReadOnlyList<string>), typeof(string), typeof(object)]);

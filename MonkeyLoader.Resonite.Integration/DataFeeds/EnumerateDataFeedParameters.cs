@@ -50,7 +50,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// <summary>
         /// Gets or sets whether the original result should be inserted into the generated sequence.
         /// </summary>
-        public bool IncludeOriginalResult { get; set; }
+        public bool IncludeOriginalResult { get; set; } = true;
 
         /// <summary>
         /// Gets whether this enumeration request is for the root path.
