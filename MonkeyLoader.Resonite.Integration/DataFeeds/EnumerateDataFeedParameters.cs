@@ -48,6 +48,15 @@ namespace MonkeyLoader.Resonite.DataFeeds
         public bool HasSearchPhrase => !string.IsNullOrEmpty(SearchPhrase);
 
         /// <summary>
+        /// Gets whether this enumeration request has custom view data.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if <see cref="ViewData">ViewData</see> is not <c>null</c>; otherwise, <c>false</c>.
+        /// </value>
+        [MemberNotNullWhen(true, nameof(ViewData))]
+        public bool HasViewData => ViewData is not null;
+
+        /// <summary>
         /// Gets or sets whether the original result should be inserted into the generated sequence.
         /// </summary>
         public bool IncludeOriginalResult { get; set; } = true;
@@ -73,7 +82,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// <summary>
         /// Gets the custom view data for this enumeration request.
         /// </summary>
-        public object ViewData { get; }
+        public object? ViewData { get; }
 
         /// <summary>
         /// Gets the <see cref="IAsyncEnumerable{T}"/> that would have
@@ -82,7 +91,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         internal IAsyncEnumerable<DataFeedItem> OriginalResult { get; }
 
         internal EnumerateDataFeedParameters(TDataFeed dataFeed, IAsyncEnumerable<DataFeedItem> originalResult,
-            IReadOnlyList<string>? path, IReadOnlyList<string>? groupKeys, string? searchPhrase, object viewData)
+            IReadOnlyList<string>? path, IReadOnlyList<string>? groupKeys, string? searchPhrase, object? viewData)
         {
             DataFeed = dataFeed;
             OriginalResult = originalResult;
