@@ -27,10 +27,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static readonly MethodInfo _generateFlagsEnumFields = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFields));
         private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateQuantityField));
+        private static EnumerateDataFeedParameters<SettingsDataFeed>? _currentParameters;
         public override int Priority => 400;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
+            _currentParameters = parameters;
             var path = parameters.Path;
 
             if (path.Count is < 2 or > 3 || path[0] is not SettingsHelpers.MonkeyLoader)
@@ -255,11 +257,15 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             valueField.InitBase(path, groupKeys, configKey);
             valueField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
-            //var valueType = typeof(T);
-            //if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
-            //{
-            //    settingsData.Mapper?.RunSynchronously(() => EnsureDataFeedValueFieldTemplate(settingsData, valueType));
-            //}
+            var valueType = typeof(T);
+            if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
+            {
+                if (_currentParameters!.DataFeed is SettingsDataFeed settingsDataFeed)
+                {
+                    var settingsViewData = SettingsHelpers.GetViewData(_currentParameters!.DataFeed);
+                    settingsViewData.Mapper?.RunSynchronously(() => settingsViewData.EnsureDataFeedValueFieldTemplate(valueType));
+                }
+            }
 
             return valueField;
         }
