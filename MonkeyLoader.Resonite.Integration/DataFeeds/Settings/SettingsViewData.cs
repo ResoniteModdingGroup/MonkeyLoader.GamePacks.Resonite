@@ -153,7 +153,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     var template = templatesRoot.AddSlot($"Injected DataFeedValueField<{typeToInject.Name}>");
                     template.ActiveSelf = false;
                     template.PersistentSelf = false;
-                    template.AttachComponent<LayoutElement>().MinHeight.Value = 96f;
+                    template.AttachComponent<LayoutElement>();
 
                     var ui = new UIBuilder(template);
                     RadiantUI_Constants.SetupEditorStyle(ui);
@@ -162,7 +162,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     ui.HorizontalLayout(11.78908f, 11.78908f).ForceExpandWidth.Value = false;
 
                     ui.PushStyle();
-                    ui.Style.MinWidth = 288f;
+                    ui.Style.MinWidth = 576f;
                     var text = ui.Text("Label");
                     ui.PopStyle();
 
