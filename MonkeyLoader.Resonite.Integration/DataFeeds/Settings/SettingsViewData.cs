@@ -88,34 +88,21 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             Logger.Debug(() => "Cached settings scroll slider.");
         }
 
-        internal void MoveUpFromCategory(string category)
-        {
-            if (!HasRootCategoryView || RootCategoryView.Path[^1] != category)
-                return;
-
-            Logger.Debug(() => $"Moving up from category: {category}");
-            RootCategoryView.MoveUpInCategory();
-        }
-
-        private void CleanupView()
-        {
-            if (!HasRootCategoryView)
-                return;
-
-            RootCategoryView.Path.ElementsAdded -= OnElementsAdded;
-            RootCategoryView.Path.ElementsRemoved -= OnElementsRemoved;
-
-            Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
-        }
-
         /// <summary>
-        /// Ensures a <see cref="FrooxEngine.DataFeedValueField{T}"/> template exists for the given <see cref="System.Type"/> in this <see cref="SettingsViewData">SettingsViewData's</see> <see cref="FrooxEngine.DataFeedItemMapper"/>
+        /// Ensures a <see cref="DataFeedValueField{T}"/> template exists for the given <see cref="Type"/>
+        /// in this <see cref="SettingsViewData">SettingsViewData's</see> <see cref="DataFeedItemMapper"/>
         /// </summary>
         public void EnsureDataFeedValueFieldTemplate(Type typeToInject)
         {
             if (!HasMapper)
             {
                 Logger.Error(() => "DataFeedItemMapper is null in EnsureDataFeedValueFieldTemplate!");
+                return;
+            }
+
+            if (!typeToInject.IsInjectableEditorType())
+            {
+                Logger.Error(() => $"Attempted to inject unsupported editor type {typeToInject.CompactDescription()} in EnsureDataFeedValueFieldTemplate!");
                 return;
             }
 
@@ -243,6 +230,26 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 // This could cause some log spam
                 //Logger.Trace(() => $"Existing DataFeedValueField<{typeToInject.Name}> template found.");
             }
+        }
+
+        internal void MoveUpFromCategory(string category)
+        {
+            if (!HasRootCategoryView || RootCategoryView.Path[^1] != category)
+                return;
+
+            Logger.Debug(() => $"Moving up from category: {category}");
+            RootCategoryView.MoveUpInCategory();
+        }
+
+        private void CleanupView()
+        {
+            if (!HasRootCategoryView)
+                return;
+
+            RootCategoryView.Path.ElementsAdded -= OnElementsAdded;
+            RootCategoryView.Path.ElementsRemoved -= OnElementsRemoved;
+
+            Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
         }
 
         private void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
