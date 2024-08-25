@@ -277,7 +277,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             RootCategoryView.Path.ElementsAdded -= OnElementsAdded;
             RootCategoryView.Path.ElementsRemoved -= OnElementsRemoved;
 
-            Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
+            Logger.Debug(() => "Unsubscribed from RootCategoryView events.");
         }
 
         private void OnElementsAdded(SyncElementList<Sync<string>> list, int start, int count)
