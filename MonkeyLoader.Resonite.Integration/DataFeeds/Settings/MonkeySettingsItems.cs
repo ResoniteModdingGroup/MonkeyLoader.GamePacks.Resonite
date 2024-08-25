@@ -19,10 +19,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var path = parameters.Path;
 
-            if (path.Count is < 2 or > 3 || path[0] is not SettingsHelpers.MonkeyLoader)
+            if (path.Count is < 2 or > 4 || path[0] is not SettingsHelpers.MonkeyLoader)
                 return current;
 
-            if (path.Count == 3 && path[2] is not SettingsHelpers.MonkeyToggles)
+            if (path.Count >= 3 && path[2] is not SettingsHelpers.MonkeyToggles)
+                return current;
+
+            if (path.Count == 4 && path[2] is not SettingsHelpers.Monkeys or SettingsHelpers.EarlyMonkeys)
                 return current;
 
             // Format: MonkeyLoader / modId / [page]
@@ -33,6 +36,9 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
 
             parameters.IncludeOriginalResult = false;
+
+            if (path.Count == 4)
+                return current.Concat(EnumerateMonkeysAsync(parameters, mod, path[3]));
 
             return current.Concat(EnumerateMonkeysAsync(parameters, mod, SettingsHelpers.Monkeys))
                 .Concat(EnumerateMonkeysAsync(parameters, mod, SettingsHelpers.EarlyMonkeys));
