@@ -64,6 +64,7 @@ namespace MonkeyLoader.Resonite
         /// <returns>The delegate subscribed to the <paramref name="field"/>'s <see cref="IChangeable.Changed">Changed</see> event.</returns>
         public static Action<IChangeable> SyncWithConfigKey<T>(this IField<T> field, IDefiningConfigKey configKey, string? eventLabel = null, bool allowWriteBack = true)
         {
+            // support for nullable enums requires this to never be null
             field.Value = (T)(configKey.GetValue() ?? default(T));
             eventLabel ??= $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
 
@@ -72,6 +73,7 @@ namespace MonkeyLoader.Resonite
                 if (Equals(field.Value, configKey.GetValue()))
                     return;
 
+                // this avoids unexpected behavior with nullable flag enums
                 if (configKey.ValueType.IsNullable() && configKey.ValueType.GetGenericArguments()[0].IsEnum && configKey.GetValue() is null && Equals(field.Value, default(T))) return;
 
                 if (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel))
