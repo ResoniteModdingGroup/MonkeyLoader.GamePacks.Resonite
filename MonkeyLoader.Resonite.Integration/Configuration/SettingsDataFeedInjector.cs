@@ -310,13 +310,13 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         yield return (DataFeedItem)_generateEnumField
                             .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, configKey]);
+                            .Invoke(null, [path, configKey, null, null]);
                     }
                     else
                     {
                         var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
                             .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, configKey]);
+                            .Invoke(null, [path, configKey, null, null]);
 
                         foreach (var item in items)
                             yield return item;
@@ -373,17 +373,24 @@ namespace MonkeyLoader.Resonite.Configuration
 
                         if (nullableType.GetCustomAttribute<FlagsAttribute>() is null)
                         {
+<<<<<<< HEAD
                             var enumItem = (DataFeedItem)_generateEnumField
                                 .MakeGenericMethod(nullableType)
                                 .Invoke(null, [path, configKey]);
                             enumItem.ItemKey = configKey.FullId + ".Value";
                             enumItem.GroupingParameters = new string[] { configKey.Section.Id, configKey.FullId };
                             yield return enumItem;
+=======
+                            yield return (DataFeedItem)_generateEnumField
+                                .MakeGenericMethod(nullableType)
+                                .Invoke(null, [path, configKey, new string[] { configKey.Section.Id, configKey.FullId }, configKey.FullId + ".Value"]);
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
                         }
                         else
                         {
                             var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
                                 .MakeGenericMethod(nullableType)
+<<<<<<< HEAD
                                 .Invoke(null, [path, configKey]);
 
                             foreach (var item in items)
@@ -399,6 +406,12 @@ namespace MonkeyLoader.Resonite.Configuration
                                 }
                                 yield return item;
                             }
+=======
+                                .Invoke(null, [path, configKey, new string[] { configKey.Section.Id, configKey.FullId }, configKey.FullId + ".Flags"]);
+
+                            foreach (var item in items)
+                                yield return item;
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
                         }
 
                         continue;
@@ -738,27 +751,66 @@ namespace MonkeyLoader.Resonite.Configuration
             return false;
         }
 
+<<<<<<< HEAD
         private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey)
+=======
+        private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey, IReadOnlyList<string>? groupingParameters = null, string? itemKey = null)
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
             where T : struct, Enum
         {
             var enumField = new DataFeedEnum<T>();
             InitBase(enumField, path, configKey);
+
+            if (groupingParameters != null)
+            {
+                enumField.GroupingParameters = groupingParameters;
+            }
+            if (itemKey != null)
+            {
+                enumField.ItemKey = itemKey;
+            }
+
             enumField.InitSetupValue(field => SetupConfigKeyField(field, configKey));
 
             return enumField;
         }
 
+<<<<<<< HEAD
         private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey)
+=======
+        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey, IReadOnlyList<string>? groupingParameters = null, string? itemKey = null)
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
             where T : struct, Enum
         {
             var flagsEnumGroup = new DataFeedGroup();
-            flagsEnumGroup.InitBase(configKey.FullId, path, [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
+            flagsEnumGroup.InitBase(itemKey ?? configKey.FullId, path, groupingParameters ?? [configKey.Section.Id], configKey.GetLocaleKey("Name").AsLocaleKey());
             flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
             yield return flagsEnumGroup;
 
-            var flagsGrouping = new[] { configKey.Section.Id, configKey.FullId };
+            List<string> flagsGrouping;
+            if (groupingParameters != null)
+            {
+                flagsGrouping = groupingParameters.ToList();
+                flagsGrouping.Add(itemKey ?? configKey.FullId);
+            }
+            else
+            {
+                flagsGrouping = new() { configKey.Section.Id, configKey.FullId };
+            }
 
+<<<<<<< HEAD
             var enumType = typeof(T);
+=======
+            Type enumType;
+            if (configKey.ValueType.IsNullable())
+            {
+                enumType = configKey.ValueType.GetGenericArguments()[0];
+            }
+            else
+            {
+                enumType = configKey.ValueType;
+            }
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
 
             foreach (var value in Enum.GetValues(enumType).Cast<T>())
             {
@@ -788,6 +840,10 @@ namespace MonkeyLoader.Resonite.Configuration
                     {
                         if (changedEvent.NewValue is null)
                         {
+<<<<<<< HEAD
+=======
+                            //bool val = longValue == Convert.ToInt64(default(T));
+>>>>>>> 015505972a825318c1e58cc870e6fed1f0e903f1
                             field.World.RunSynchronously(() =>
                             {
                                 field.Changed -= FieldChanged;

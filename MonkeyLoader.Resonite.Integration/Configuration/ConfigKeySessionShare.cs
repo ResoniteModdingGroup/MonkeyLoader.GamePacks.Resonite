@@ -28,11 +28,15 @@ namespace MonkeyLoader.Resonite.Configuration
         private readonly Converter<TKey?, TShared?> _convertToShared;
         private readonly Lazy<string> _sharedId;
         private readonly Lazy<string> _variableName;
-        private IDefiningConfigKey<TKey> _configKey = null!;
         private TShared? _defaultValue;
 
         /// <inheritdoc/>
         public bool AllowWriteBack { get; set; }
+
+        /// <inheritdoc/>
+        public IDefiningConfigKey<TKey> ConfigKey { get; private set; } = null!;
+
+        IDefiningConfigKey IConfigKeySessionShare.ConfigKey => ConfigKey;
 
         /// <inheritdoc/>
         public TShared? DefaultValue
@@ -57,7 +61,13 @@ namespace MonkeyLoader.Resonite.Configuration
         }
 
         /// <inheritdoc/>
+        public Type KeyType => ConfigKey.ValueType;
+
+        /// <inheritdoc/>
         public string SharedId => _sharedId.Value;
+
+        /// <inheritdoc/>
+        public Type SharedType { get; } = typeof(TShared);
 
         /// <inheritdoc/>
         public string VariableName => _variableName.Value;
@@ -87,7 +97,7 @@ namespace MonkeyLoader.Resonite.Configuration
             _defaultValue = convertToShared(defaultValue);
             AllowWriteBack = allowWriteBack;
 
-            _sharedId = new(() => $"{SharedConfig.Identifier}.{_configKey!.FullId}");
+            _sharedId = new(() => $"{SharedConfig.Identifier}.{ConfigKey!.FullId}");
             _variableName = new(() => $"World/{SharedId}");
         }
 
@@ -146,7 +156,7 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <param name="world">The <see cref="World"/> to get the <see cref="Slot"/> for.</param>
         /// <returns>This shared config item's SharedConfig slot for the given world.</returns>
         public Slot GetSharedConfigSlot(World world)
-            => world.GetSharedConfigSlot(_configKey.Config.Owner);
+            => world.GetSharedConfigSlot(ConfigKey.Config.Owner);
 
         /// <inheritdoc/>
         public IEnumerable<User> GetSharingUsers(World world)
@@ -156,7 +166,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         void IComponent<IDefiningConfigKey<TKey>>.Initialize(IDefiningConfigKey<TKey> entity)
         {
-            _configKey = entity;
+            ConfigKey = entity;
             entity.Changed += ValueChanged;
 
             SharedConfig.Register(this);
@@ -183,7 +193,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
             field.Value.GetSyncWithVariable(VariableName);
 
-            var vuo = field.Value.OverrideForUser(field.World.LocalUser, ConvertToShared(_configKey.GetValue())!);
+            var vuo = field.Value.OverrideForUser(field.World.LocalUser, ConvertToShared(ConfigKey.GetValue())!);
             vuo.CreateOverrideOnWrite.Value = true;
 
             field.Value.OnValueChange += SharedValueChanged;
@@ -191,9 +201,9 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private void SharedValueChanged(SyncField<TShared> field)
         {
-            if (!AllowWriteBack || !_configKey.TrySetValue(ConvertToKey(field.Value)!, $"{SharedConfig.WriteBackPrefix}.{field.World.GetIdentifier()}"))
+            if (!AllowWriteBack || !ConfigKey.TrySetValue(ConvertToKey(field.Value)!, $"{SharedConfig.WriteBackPrefix}.{field.World.GetIdentifier()}"))
             {
-                field.World.RunSynchronously(() => field.Value = ConvertToShared(_configKey.GetValue())!);
+                field.World.RunSynchronously(() => field.Value = ConvertToShared(ConfigKey.GetValue())!);
             }
         }
 
@@ -245,15 +255,30 @@ namespace MonkeyLoader.Resonite.Configuration
         public bool AllowWriteBack { get; set; }
 
         /// <summary>
+        /// Gets the shared config item.
+        /// </summary>
+        public IDefiningConfigKey ConfigKey { get; }
+
+        /// <summary>
         /// Gets or sets the default value for the shared config item for users that don't have it themselves.
         /// </summary>
         public object? DefaultValue { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the shared config item's value.
+        /// </summary>
+        public Type KeyType { get; }
 
         /// <summary>
         /// Gets the <see cref="World.RequestKey">key</see> used in <see cref="World"/>s
         /// to identify the <see cref="ValueField{T}"/> that stores the shared value.
         /// </summary>
         public string SharedId { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the shared value.
+        /// </summary>
+        public Type SharedType { get; }
 
         /// <summary>
         /// Gets the full name of the dynamic variable that is linked to the shared value.
@@ -311,6 +336,11 @@ namespace MonkeyLoader.Resonite.Configuration
     /// <typeparam name="TShared">The type of the resource shared in Resonite <see cref="World"/>s.</typeparam>
     public interface IConfigKeySessionShare<TKey, TShared> : IConfigKeyComponent<IDefiningConfigKey<TKey>>, IConfigKeySessionShare
     {
+        /// <summary>
+        /// Gets the shared config item.
+        /// </summary>
+        public new IDefiningConfigKey<TKey> ConfigKey { get; }
+
         /// <summary>
         /// Gets or sets the default value for the shared config item for users that don't have it themselves.
         /// </summary>

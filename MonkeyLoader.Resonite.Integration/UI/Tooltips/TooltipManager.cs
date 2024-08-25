@@ -1,4 +1,5 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using MonkeyLoader.Events;
 using MonkeyLoader.Patching;
