@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
@@ -71,12 +72,17 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             RootCategoryView = dataFeed.Slot.GetComponent<RootCategoryView>();
 
-            dataFeed.RunSynchronouslyAsync(async () =>
+            dataFeed.StartTask(async () => 
             {
+                while (CoroutineManager.Manager.Value is null)
+                {
+                    await Task.Delay(1000);
+                }
                 foreach (var primitiveType in GetTemplateTypes())
                 {
                     await default(NextUpdate);
                     EnsureDataFeedValueFieldTemplate(primitiveType);
+                    
                 }
             });
 
@@ -109,13 +115,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var nullableType = typeof(Nullable<>);
 
-            foreach (var basePrimitive in Coder.BaseEnginePrimitives)
+            foreach (var basePrimitive in GenericTypesAttribute.GetTypes(GenericTypesAttribute.Group.EnginePrimitivesAndEnums))
             {
                 if (basePrimitive.Name == nameof(dummy))
                     continue;
 
                 if (basePrimitive.IsValueType)
-                    yield return nullableType.MakeGenericType(nullableType);
+                    yield return nullableType.MakeGenericType(basePrimitive);
 
                 yield return basePrimitive;
             }
