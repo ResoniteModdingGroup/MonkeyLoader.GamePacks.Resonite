@@ -3,7 +3,6 @@ using Elements.Core;
 using Elements.Quantity;
 using EnumerableToolkit;
 using FrooxEngine;
-using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
@@ -12,9 +11,9 @@ using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Configuration;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,16 +22,14 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     internal sealed class ConfigSectionSettingsItems : DataFeedBuildingBlockMonkey<ConfigSectionSettingsItems, SettingsDataFeed>
     {
         private static readonly Type _dummyType = typeof(dummy);
-        private static readonly MethodInfo _generateEnumField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateEnumField));
-        private static readonly MethodInfo _generateFlagsEnumFields = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFields));
-        private static readonly MethodInfo _generateItemForConfigKeyMethod = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemForConfigKey));
+        private static readonly MethodInfo _generateEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateEnumItemsAsync));
+        private static readonly MethodInfo _generateItemsForConfigKey = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemsForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateQuantityField));
-        private static EnumerateDataFeedParameters<SettingsDataFeed>? _currentParameters;
+
         public override int Priority => 400;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
-            _currentParameters = parameters;
             var path = parameters.Path;
 
             if (path.Count is < 2 or > 3 || path[0] is not SettingsHelpers.MonkeyLoader)
@@ -72,80 +69,34 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 }
                 else
                 {
-                    await foreach (var item in EnumerateConfigSectionAsync(parameters.Path, sectionGrouping, configSection))
-                        yield return item;
+                    foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
+                    {
+                        var configKeyItems = (IAsyncEnumerable<DataFeedItem>)_generateItemsForConfigKey
+                            .MakeGenericMethod(configKey.ValueType)
+                            .Invoke(null, [parameters, sectionGrouping, configKey]);
+
+                        await foreach (var item in configKeyItems)
+                            yield return item;
+                    }
                 }
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigSectionAsync(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, ConfigSection configSection)
+        private static async IAsyncEnumerable<DataFeedItem> GenerateEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
+            where T : Enum
         {
             await Task.CompletedTask;
 
-            foreach (var configKey in configSection.Keys.Where(key => !key.InternalAccessOnly))
+            if (configKey.ValueType.GetCustomAttribute<FlagsAttribute>() is null)
             {
-                // Add check for ConfigKeyCustomDataFeedItems
+                var enumField = new DataFeedEnum<T>();
+                enumField.InitBase(path, groupKeys, configKey);
+                enumField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
-                //if (setting is SettingIndicatorProperty)
-                //{
-                //    return (DataFeedItem)_generateIndicator.MakeGenericMethod(type).Invoke(null, new object[4] { identity, setting, path, grouping });
-                //}
-                if (configKey.ValueType == _dummyType)
-                {
-                    var dummyField = new DataFeedValueField<dummy>();
-                    dummyField.InitBase(configKey.FullId, path, groupKeys, configKey.HasDescription ? configKey.GetLocaleString("Description") : " ");
-                    yield return dummyField;
-
-                    continue;
-                }
-
-                if (configKey.ValueType == typeof(bool))
-                {
-                    yield return GenerateToggle(path, groupKeys, (IDefiningConfigKey<bool>)configKey);
-
-                    continue;
-                }
-
-                if (configKey.ValueType.IsEnum)
-                {
-                    if (configKey.ValueType.GetCustomAttribute<FlagsAttribute>() is null)
-                    {
-                        yield return (DataFeedItem)_generateEnumField
-                            .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [path, groupKeys, configKey]);
-
-                        continue;
-                    }
-
-                    var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumFields
-                        .MakeGenericMethod(configKey.ValueType)
-                        .Invoke(null, [path, groupKeys, configKey]);
-
-                    foreach (var item in items)
-                        yield return item;
-
-                    continue;
-                }
-
-                yield return (DataFeedItem)_generateItemForConfigKeyMethod
-                    .MakeGenericMethod(configKey.ValueType)
-                    .Invoke(null, [path, groupKeys, configKey]);
+                yield return enumField;
+                yield break;
             }
-        }
 
-        private static DataFeedEnum<T> GenerateEnumField<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
-            where T : Enum
-        {
-            var enumField = new DataFeedEnum<T>();
-            enumField.InitBase(path, groupKeys, configKey);
-            enumField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
-
-            return enumField;
-        }
-
-        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
-            where T : Enum
-        {
             var flagsEnumGroup = new DataFeedGroup();
             flagsEnumGroup.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleKey("Name").AsLocaleKey());
             flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
@@ -202,21 +153,55 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return indicator;
         }
 
-        private static DataFeedItem GenerateItemForConfigKey<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IEntity<IDefiningConfigKey<T>> configKey)
+        private static IAsyncEnumerable<DataFeedItem> GenerateItemsForConfigKey<T>(EnumerateDataFeedParameters<SettingsDataFeed> parameters, IReadOnlyList<string> groupKeys, IEntity<IDefiningConfigKey<T>> configKeyEntity)
         {
-            if (configKey.Components.TryGet<IConfigKeyRange<T>>(out var range))
-            {
-                if (configKey.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
-                {
-                    return (DataFeedItem)_generateQuantityField
-                        .MakeGenericMethod(configKey.Self.ValueType, quantity.QuantityType)
-                        .Invoke(null, [path, groupKeys, configKey, quantity]);
-                }
+            var configKey = configKeyEntity.Self;
+            var path = parameters.Path;
 
-                return GenerateSlider(path, groupKeys, configKey.Self, range);
+            if (configKeyEntity.Components.TryGet<IConfigKeyCustomDataFeedItems<T>>(out var customItems))
+                return customItems.Enumerate(path, groupKeys, parameters.SearchPhrase, parameters.ViewData);
+
+            //if (setting is SettingIndicatorProperty)
+            //{
+            //    return (DataFeedItem)_generateIndicator.MakeGenericMethod(type).Invoke(null, new object[4] { identity, setting, path, grouping });
+            //}
+
+            if (configKey.ValueType == _dummyType)
+            {
+                var dummyField = new DataFeedValueField<dummy>();
+                dummyField.InitBase(configKey.FullId, path, groupKeys, configKey.HasDescription ? configKey.GetLocaleString("Description") : " ");
+                return dummyField.YieldAsync();
             }
 
-            return GenerateValueField(path, groupKeys, configKey.Self);
+            if (configKey.ValueType == typeof(bool))
+                return GenerateToggle(path, groupKeys, (IDefiningConfigKey<bool>)configKey).YieldAsync();
+
+            if (configKey.ValueType.IsEnum)
+            {
+                var flagsEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
+                    .MakeGenericMethod(configKey.ValueType)
+                    .Invoke(null, [path, groupKeys, configKey]);
+
+                return flagsEnumItems;
+            }
+
+            if (configKeyEntity.Components.TryGet<IConfigKeyRange<T>>(out var range))
+            {
+                if (configKeyEntity.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
+                {
+                    var quantityField = (DataFeedItem)_generateQuantityField
+                        .MakeGenericMethod(configKey.ValueType, quantity.QuantityType)
+                        .Invoke(null, [parameters.Path, groupKeys, configKey, quantity]);
+
+                    return quantityField.YieldAsync();
+                }
+
+                var slider = GenerateSlider(parameters.Path, groupKeys, configKey, range);
+                return slider.YieldAsync();
+            }
+
+            var valueField = GenerateValueField(parameters, groupKeys, configKey);
+            return valueField.YieldAsync();
         }
 
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
@@ -251,21 +236,14 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return toggle;
         }
 
-        private static DataFeedValueField<T> GenerateValueField<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
+        private static DataFeedValueField<T> GenerateValueField<T>(EnumerateDataFeedParameters<SettingsDataFeed> parameters, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
         {
             var valueField = new DataFeedValueField<T>();
-            valueField.InitBase(path, groupKeys, configKey);
+            valueField.InitBase(parameters.Path, groupKeys, configKey);
             valueField.InitSetupValue(field => field.SetupConfigKeyField(configKey));
 
-            var valueType = typeof(T);
-            if (valueType != typeof(dummy) && (Coder<T>.IsEnginePrimitive || valueType == typeof(Type)))
-            {
-                if (_currentParameters!.DataFeed is SettingsDataFeed settingsDataFeed)
-                {
-                    var settingsViewData = SettingsHelpers.GetViewData(settingsDataFeed);
-                    settingsViewData.Mapper?.RunSynchronously(() => settingsViewData.EnsureDataFeedValueFieldTemplate(valueType));
-                }
-            }
+            if (configKey.ValueType.IsInjectableEditorType())
+                parameters.DataFeed.RunSynchronously(() => parameters.DataFeed.GetViewData().EnsureDataFeedValueFieldTemplate(configKey.ValueType));
 
             return valueField;
         }
