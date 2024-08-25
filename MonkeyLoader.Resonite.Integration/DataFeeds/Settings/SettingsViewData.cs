@@ -149,7 +149,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     ui.HorizontalLayout(11.78908f, 11.78908f).ForceExpandWidth.Value = false;
 
                     ui.PushStyle();
-                    ui.Style.MinWidth = 576f;
+                    ui.Style.FlexibleWidth = 1f;
                     var text = ui.Text("Label");
                     ui.PopStyle();
 
@@ -181,7 +181,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     }
 
                     ui.PushStyle();
-                    ui.Style.FlexibleWidth = 1f;
+                    ui.Style.MinWidth = 521.36f;
                     SyncMemberEditorBuilder.Build(member, null, fieldInfo, ui, 0f);
                     ui.PopStyle();
 
