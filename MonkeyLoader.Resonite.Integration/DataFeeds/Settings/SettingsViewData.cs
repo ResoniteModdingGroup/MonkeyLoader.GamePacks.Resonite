@@ -1,6 +1,5 @@
 ﻿using Elements.Assets;
 using Elements.Core;
-using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using MonkeyLoader.Logging;
@@ -25,17 +24,30 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private RootCategoryView? _rootCategoryView = null;
         private Slider<float>? _scrollSlider = null;
 
+        /// <summary>
+        /// Gets whether this settings view data has a <see cref="Mapper">Mapper</see>.
+        /// </summary>
+        /// <value><c>true</c> if <see cref="Mapper">Mapper</see> is not <c>null</c>; otherwise, <c>false</c>.</value>
         [MemberNotNullWhen(true, nameof(Mapper))]
         public bool HasMapper => Mapper is not null;
 
         /// <summary>
         /// Gets whether this settings view data has a <see cref="RootCategoryView">RootCategoryView</see>.
         /// </summary>
+        /// <value><c>true</c> if <see cref="RootCategoryView">RootCategoryView</see> is not <c>null</c>; otherwise, <c>false</c>.</value>
         [MemberNotNullWhen(true, nameof(RootCategoryView))]
         public bool HasRootCategoryView => RootCategoryView is not null;
 
+        /// <summary>
+        /// Gets the <see cref="DataFeedItemMapper"/> used by the <see cref="RootCategoryView">RootCategoryView</see>
+        /// that's displaying the <see cref="SettingsDataFeed">SettingsDataFeed</see> this view data belongs to.
+        /// </summary>
         public DataFeedItemMapper? Mapper => RootCategoryView?.ItemsManager.TemplateMapper.Target.FilterWorldElement();
 
+        /// <summary>
+        /// Gets the <see cref="RootCategoryView">RootCategoryView</see> that's displaying
+        /// the <see cref="SettingsDataFeed">SettingsDataFeed</see> this view data belongs to.
+        /// </summary>
         public RootCategoryView? RootCategoryView
         {
             get => _rootCategoryView = _rootCategoryView.FilterWorldElement();
@@ -50,13 +62,27 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
         }
 
-        public SettingsDataFeed? SettingsDataFeed => RootCategoryView?.Feed.Target as SettingsDataFeed;
+        /// <summary>
+        /// Gets the <see cref="FrooxEngine.SettingsDataFeed"/> that this view data belongs to.
+        /// </summary>
+        public SettingsDataFeed SettingsDataFeed { get; }
 
+        /// <summary>
+        /// Gets whether this view data has a cached <see cref="ScrollSlider">ScrollSlider</see>.
+        /// </summary>
+        /// <value><c>true</c> if <see cref="ScrollSlider">ScrollSlider</see> is not <c>null</c>; otherwise, <c>false</c>.</value>
         [MemberNotNullWhen(true, nameof(ScrollSlider))]
         internal bool HasScrollSlider => ScrollSlider is not null;
 
+        /// <summary>
+        /// Gets the tracked scroll amounts for the previously displayed pages.
+        /// </summary>
         internal Stack<float> ScrollAmounts { get; } = new();
 
+        /// <summary>
+        /// Gets the cached scroll slider used by the <see cref="RootCategoryView">RootCategoryView</see>
+        /// that's displaying the <see cref="SettingsDataFeed">SettingsDataFeed</see> this view data belongs to.
+        /// </summary>
         internal Slider<float>? ScrollSlider
         {
             get => _scrollSlider = _scrollSlider.FilterWorldElement();
@@ -67,6 +93,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         internal SettingsViewData(SettingsDataFeed dataFeed)
         {
+            SettingsDataFeed = dataFeed;
+
             if (!dataFeed.World.IsUserspace())
                 return;
 
