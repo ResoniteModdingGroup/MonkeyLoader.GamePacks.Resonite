@@ -1,4 +1,5 @@
-﻿using EnumerableToolkit;
+﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
@@ -28,6 +29,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         public static void InitBase(this DataFeedItem item, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
             => item.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleString("Name"), configKey.GetLocaleString("Description"));
+
+        public static bool IsInjectableEditorType(this Type type)
+            // Check with nameof for dummy, because there's also dummy<>
+            => type.Name != nameof(dummy) && (Coder.IsEnginePrimitive(type) || type == typeof(Type));
+
+        public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
 
         public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey<T> configKey)
         {
