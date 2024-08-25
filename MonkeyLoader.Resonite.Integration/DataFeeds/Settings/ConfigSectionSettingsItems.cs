@@ -262,7 +262,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             {
                 if (_currentParameters!.DataFeed is SettingsDataFeed settingsDataFeed)
                 {
-                    var settingsViewData = SettingsHelpers.GetViewData(_currentParameters!.DataFeed);
+                    var settingsViewData = SettingsHelpers.GetViewData(settingsDataFeed);
                     settingsViewData.Mapper?.RunSynchronously(() => settingsViewData.EnsureDataFeedValueFieldTemplate(valueType));
                 }
             }
