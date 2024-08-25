@@ -72,20 +72,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             RootCategoryView = dataFeed.Slot.GetComponent<RootCategoryView>();
 
-            dataFeed.StartTask(async () => 
-            {
-                while (CoroutineManager.Manager.Value is null)
-                {
-                    await Task.Delay(1000);
-                }
-                foreach (var primitiveType in GetTemplateTypes())
-                {
-                    await default(NextUpdate);
-                    EnsureDataFeedValueFieldTemplate(primitiveType);
-                    
-                }
-            });
-
             var settingsListSlot = dataFeed.Slot.FindChild(s => s.Name == "Settings List", maxDepth: 2);
             if (settingsListSlot is null)
                 return;
@@ -111,24 +97,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             RootCategoryView.MoveUpInCategory();
         }
 
-        private static IEnumerable<Type> GetTemplateTypes()
-        {
-            var nullableType = typeof(Nullable<>);
-
-            foreach (var basePrimitive in GenericTypesAttribute.GetTypes(GenericTypesAttribute.Group.EnginePrimitivesAndEnums))
-            {
-                if (basePrimitive.Name == nameof(dummy))
-                    continue;
-
-                if (basePrimitive.IsValueType)
-                    yield return nullableType.MakeGenericType(basePrimitive);
-
-                yield return basePrimitive;
-            }
-
-            yield return typeof(Type);
-        }
-
         private void CleanupView()
         {
             if (!HasRootCategoryView)
@@ -140,7 +108,10 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             Logger.Debug(() => "Cached RootCategoryView and subscribed to events.");
         }
 
-        private void EnsureDataFeedValueFieldTemplate(Type typeToInject)
+        /// <summary>
+        /// Ensures a <see cref="FrooxEngine.DataFeedValueField{T}"/> template exists for the given <see cref="System.Type"/> in this <see cref="SettingsViewData">SettingsViewData's</see> <see cref="FrooxEngine.DataFeedItemMapper"/>
+        /// </summary>
+        public void EnsureDataFeedValueFieldTemplate(Type typeToInject)
         {
             if (!HasMapper)
             {
@@ -188,30 +159,24 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     RadiantUI_Constants.SetupEditorStyle(ui);
 
                     ui.ForceNext = template.AttachComponent<RectTransform>();
-                    ui.HorizontalLayout(11.78908f, 11.78908f);
+                    ui.HorizontalLayout(11.78908f, 11.78908f).ForceExpandWidth.Value = false;
 
+                    ui.PushStyle();
+                    ui.Style.MinWidth = 288f;
                     var text = ui.Text("Label");
+                    ui.PopStyle();
+
                     text.Size.Value = 24f;
                     text.HorizontalAlign.Value = TextHorizontalAlignment.Left;
-                    ui.Style.MinHeight = 32f;
 
-                    ui.Spacer(128f);
-
-                    Component? component = null;
-                    ISyncMember? member = null;
-                    FieldInfo? fieldInfo = null;
+                    Component component;
+                    ISyncMember member;
+                    FieldInfo fieldInfo;
 
                     if (typeToInject == typeof(Type))
                     {
-                        component = template.AttachComponent(typeof(TypeField));
-                        member = component.GetSyncMember("Type");
-
-                        if (member == null)
-                        {
-                            Logger.Error(() => "Could not get Type sync member from attached TypeField component!");
-                            return;
-                        }
-
+                        component = template.AttachComponent<TypeField>();
+                        member = ((TypeField)component).Type;
                         fieldInfo = component.GetSyncMemberFieldInfo("Type");
                     }
                     else
@@ -228,9 +193,10 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         fieldInfo = component.GetSyncMemberFieldInfo("Value");
                     }
 
+                    ui.PushStyle();
                     ui.Style.FlexibleWidth = 1f;
                     SyncMemberEditorBuilder.Build(member, null, fieldInfo, ui, 0f);
-                    ui.Style.FlexibleWidth = -1f;
+                    ui.PopStyle();
 
                     var memberActions = ui.Root?.GetComponentInChildren<InspectorMemberActions>()?.Slot;
                     if (memberActions != null)
