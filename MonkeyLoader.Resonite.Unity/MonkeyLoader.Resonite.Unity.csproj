@@ -30,8 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.22.11-beta" />
-    <PackageReference Include="MonkeyLoader.GamePacks.Resonite" Version="0.19.0-beta-enumerabletoolkit" />
     <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
     <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
@@ -41,11 +39,11 @@
     <PackageReference Include="Resonite.UnityEngine.CoreModule" Version="1.0.3" />
     <PackageReference Include="Resonite.UnityEngine.TextRenderingModule" Version="1.0.3" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <!-- Reference the pre-patcher assembly from the Game Pack because PackageReference is stupid -->
-    <Reference Include="MonkeyLoader.Resonite.Data">
-      <HintPath>$(PkgMonkeyLoader_GamePacks_Resonite)\lib\net462\pre-patchers\MonkeyLoader.Resonite.Data.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj" />
   </ItemGroup>
 </Project>
