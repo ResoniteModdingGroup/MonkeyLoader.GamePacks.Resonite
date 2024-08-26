@@ -54,7 +54,7 @@ namespace MonkeyLoader.Resonite
         {
             Logger.Info(() => "Engine started initializing! Adding shutdown hooks and executing EngineInit hooks on ResoniteMonkeys!");
 
-            Mod.Loader.LoggingController.Handler += ResoniteLoggingHandler.Instance;
+            Mod.Loader.Logging.Controller.Handler += ResoniteLoggingHandler.Instance;
 
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;

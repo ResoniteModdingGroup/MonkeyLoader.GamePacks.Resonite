@@ -19,7 +19,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var path = parameters.Path;
 
-            if (path.Count is < 2 or > 4 || path[0] is not SettingsHelpers.MonkeyLoader)
+            if (path.Count is < 2 or > 4 || path[0] is not SettingsHelpers.MonkeyLoader || path[1] is SettingsHelpers.MonkeyLoader)
                 return current;
 
             if (path.Count >= 3 && path[2] is not SettingsHelpers.MonkeyToggles)

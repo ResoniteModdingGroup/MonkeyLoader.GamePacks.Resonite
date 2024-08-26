@@ -80,14 +80,11 @@ namespace MonkeyLoader.Resonite
 
             _loadProgress.SetSubphase(subphase);
 
-            Logger.Trace(() => $"Set EngineLoadProgress subphase to: {subphase}");
-
             return true;
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches()
-            => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         /// <inheritdoc/>
         protected override bool OnFirstSceneReady(Scene scene)
