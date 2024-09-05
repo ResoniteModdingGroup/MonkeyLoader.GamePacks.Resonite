@@ -245,7 +245,7 @@ namespace MonkeyLoader.Resonite.UI
                 point.Changed += syncObject =>
                 {
                     var index = list.IndexOfElement(point);
-                    array[index] = new CurveKey<T>(point.Position, point.Value);
+                    array[index] = new CurveKey<T>(point.Position, point.Value, array[index].leftTangent, array[index].rightTangent);
                 };
             }
         }
@@ -364,10 +364,18 @@ namespace MonkeyLoader.Resonite.UI
             }
 
             ui.Panel().Slot.GetComponent<LayoutElement>();
-            SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
+            var memberFieldSlot = SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
             ui.NestOut();
-            SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
-            ui.Current[ui.Current.ChildrenCount - 1].DestroyWhenLocalUserLeaves();
+            if (!array.IsDriven)
+            {
+                SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
+                ui.Current[ui.Current.ChildrenCount - 1].DestroyWhenLocalUserLeaves();
+            }
+            else
+            {
+                LocaleString text = "(array is driven)";
+                ui.Text(in text);
+            }
 
             return false;
         }
