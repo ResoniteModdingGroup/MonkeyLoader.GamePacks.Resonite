@@ -14,10 +14,12 @@ namespace MonkeyLoader.Resonite.UI
     {
         public override int Priority => HarmonyLib.Priority.First;
 
+        public override bool CanBeDisabled => true;
+
         public OpenLinkedDynamicVariableSpace() : base(typeof(DynamicVariableBase<>))
         { }
 
-        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => true;
+        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => Enabled;
 
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
