@@ -121,6 +121,29 @@ namespace MonkeyLoader.Resonite.UI
             list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
         }
 
+        private static void AddTubePointProxying(SyncArray<TubePoint> array, SyncElementList<ValueGradientDriver<float3>.Point> list)
+        {
+            foreach (var tubePoint in array)
+            {
+                var point = list.Add();
+                point.Position.Value = tubePoint.radius;
+                point.Value.Value = tubePoint.position;
+            }
+
+            AddUpdateProxies(array, list, list.Elements);
+
+            list.ElementsAdded += (list, startIndex, count) =>
+            {
+                var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
+                var buffer = addedElements.Select(point => new TubePoint(point.Value.Value, point.Position.Value)).ToArray();
+
+                array.Insert(buffer, startIndex);
+                AddUpdateProxies(array, list, addedElements);
+            };
+
+            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+        }
+
         private static void AddUpdateProxies<T>(SyncArray<LinearKey<T>> array,
             SyncElementList<ValueGradientDriver<T>.Point> list, IEnumerable<ValueGradientDriver<T>.Point> elements)
                     where T : IEquatable<T>
@@ -171,6 +194,19 @@ namespace MonkeyLoader.Resonite.UI
                 {
                     var index = list.IndexOfElement(sync);
                     array[index] = sync.Target;
+                };
+            }
+        }
+
+        private static void AddUpdateProxies(SyncArray<TubePoint> array, SyncElementList<ValueGradientDriver<float3>.Point> list, IEnumerable<ValueGradientDriver<float3>.Point> elements)
+        {
+            foreach (var point in elements)
+            {
+                point.Changed += field =>
+                {
+                    var index = list.IndexOfElement(point);
+                    var tubePoint = new TubePoint(point.Value.Value, point.Position.Value);
+                    array[index] = tubePoint;
                 };
             }
         }
@@ -233,7 +269,19 @@ namespace MonkeyLoader.Resonite.UI
             }
             else
             {
-                if (Coder.IsEnginePrimitive(arrayType))
+                if (arrayType == typeof(TubePoint))
+                {
+                    var gradient = GetOrAttachComponent(proxySlot, typeof(ValueGradientDriver<float3>), out bool attachedNew);
+
+                    list = (ISyncList)gradient.GetSyncMember(nameof(ValueGradientDriver<float3>.Points));
+                    listField = gradient.GetSyncMemberFieldInfo(nameof(ValueGradientDriver<float3>.Points));
+
+                    if (attachedNew)
+                    {
+                        AddTubePointProxying((SyncArray<TubePoint>)array, (SyncElementList<ValueGradientDriver<float3>.Point>)list);
+                    }
+                }
+                else if (Coder.IsEnginePrimitive(arrayType))
                 {
                     var multiplexerType = typeof(ValueMultiplexer<>).MakeGenericType(arrayType);
                     var multiplexer = GetOrAttachComponent(proxySlot, multiplexerType, out bool attachedNew);
