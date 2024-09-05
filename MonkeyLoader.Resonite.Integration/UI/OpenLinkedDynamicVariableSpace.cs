@@ -14,6 +14,8 @@ namespace MonkeyLoader.Resonite.UI
     {
         public override int Priority => HarmonyLib.Priority.First;
 
+        public override bool CanBeDisabled => true;
+
         public OpenLinkedDynamicVariableSpace() : base(typeof(DynamicVariableBase<>))
         { }
 
@@ -23,6 +25,8 @@ namespace MonkeyLoader.Resonite.UI
 
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {
+            if (!Enabled) return;
+
             if (Traverse.Create(eventData.Worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)
                 return;
 
