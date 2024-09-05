@@ -369,7 +369,23 @@ namespace MonkeyLoader.Resonite.UI
             if (!array.IsDriven)
             {
                 SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
-                ui.Current[ui.Current.ChildrenCount - 1].DestroyWhenLocalUserLeaves();
+                var listSlot = ui.Current;
+                listSlot.DestroyWhenLocalUserLeaves();
+                void ArrayChanged(IChangeable changeable)
+                {
+                    if (((ISyncArray)changeable).IsDriven)
+                    {
+                        listSlot.DestroyChildren();
+                        listSlot.Components.ToArray().Do((Component c) => c.Destroy());
+                        listSlot.AttachComponent<LayoutElement>().MinHeight.Value = 24f;
+                        var newUi = new UIBuilder(listSlot, listSlot);
+                        RadiantUI_Constants.SetupEditorStyle(newUi);
+                        newUi.Text("(array is driven)");
+                        proxySlot?.Destroy();
+                        array.Changed -= ArrayChanged;
+                    }
+                }
+                array.Changed += ArrayChanged;
             }
             else
             {
