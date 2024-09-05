@@ -21,6 +21,7 @@ namespace MonkeyLoader.Resonite.UI
         private static readonly MethodInfo _addLinearValueProxying = AccessTools.Method(typeof(SyncArrayEditor), nameof(AddLinearValueProxying));
         private static readonly MethodInfo _addListReferenceProxying = AccessTools.Method(typeof(SyncArrayEditor), nameof(AddListReferenceProxying));
         private static readonly MethodInfo _addListValueProxying = AccessTools.Method(typeof(SyncArrayEditor), nameof(AddListValueProxying));
+        private static readonly MethodInfo _addCurveValueProxying = AccessTools.Method(typeof(SyncArrayEditor), nameof(AddCurveValueProxying));
         private static readonly Type _iWorldElementType = typeof(IWorldElement);
         private static readonly Type _particleBurstType = typeof(ParticleBurst);
 
@@ -144,6 +145,30 @@ namespace MonkeyLoader.Resonite.UI
             list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
         }
 
+        private static void AddCurveValueProxying<T>(SyncArray<CurveKey<T>> array, SyncElementList<ValueGradientDriver<T>.Point> list)
+            where T : IEquatable<T>
+        {
+            foreach (var key in array)
+            {
+                var point = list.Add();
+                point.Position.Value = key.time;
+                point.Value.Value = key.value;
+            }
+
+            AddUpdateProxies(array, list, list.Elements);
+
+            list.ElementsAdded += (list, startIndex, count) =>
+            {
+                var addedElements = list.Elements.Skip(startIndex).Take(count).ToArray();
+                var buffer = addedElements.Select(point => new CurveKey<T>(point.Position, point.Value)).ToArray();
+
+                array.Insert(buffer, startIndex);
+                AddUpdateProxies(array, list, addedElements);
+            };
+
+            list.ElementsRemoved += (list, startIndex, count) => array.Remove(startIndex, count);
+        }
+
         private static void AddUpdateProxies<T>(SyncArray<LinearKey<T>> array,
             SyncElementList<ValueGradientDriver<T>.Point> list, IEnumerable<ValueGradientDriver<T>.Point> elements)
                     where T : IEquatable<T>
@@ -211,6 +236,20 @@ namespace MonkeyLoader.Resonite.UI
             }
         }
 
+        private static void AddUpdateProxies<T>(SyncArray<CurveKey<T>> array,
+            SyncElementList<ValueGradientDriver<T>.Point> list, IEnumerable<ValueGradientDriver<T>.Point> elements)
+                    where T : IEquatable<T>
+        {
+            foreach (var point in elements)
+            {
+                point.Changed += syncObject =>
+                {
+                    var index = list.IndexOfElement(point);
+                    array[index] = new CurveKey<T>(point.Position, point.Value);
+                };
+            }
+        }
+
         private static Component GetOrAttachComponent(Slot targetSlot, Type type, out bool attachedNew)
         {
             attachedNew = false;
@@ -222,7 +261,7 @@ namespace MonkeyLoader.Resonite.UI
             return comp;
         }
 
-        private static bool Prefix(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui)
+        private static bool Prefix(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui, float labelSize)
         {
             if (!Enabled) return true;
 
@@ -231,8 +270,11 @@ namespace MonkeyLoader.Resonite.UI
 
             var isSyncLinear = TryGetGenericParameters(typeof(SyncLinear<>), array.GetType(), out var syncLinearGenericParameters);
 
+            var isSyncCurve = TryGetGenericParameters(typeof(SyncCurve<>), array.GetType(), out var syncCurveGenericParameters);
+
             var arrayType = genericParameters!.Value.First();
             var syncLinearType = syncLinearGenericParameters?.First();
+            var syncCurveType = syncCurveGenericParameters?.First();
 
             var isParticleBurst = syncLinearType == _particleBurstType;
 
@@ -265,6 +307,19 @@ namespace MonkeyLoader.Resonite.UI
                         AddParticleBurstListProxying((SyncArray<LinearKey<ParticleBurst>>)array, (SyncElementList<ValueGradientDriver<int2>.Point>)list);
                     else
                         _addLinearValueProxying.MakeGenericMethod(syncLinearType).Invoke(null, new object[] { array, list });
+                }
+            }
+            else if (isSyncCurve && SupportsLerp(syncCurveType!))
+            {
+                var gradientType = typeof(ValueGradientDriver<>).MakeGenericType(syncCurveType);
+                var gradient = GetOrAttachComponent(proxySlot, gradientType, out bool attachedNew);
+
+                list = (ISyncList)gradient.GetSyncMember(nameof(ValueGradientDriver<float>.Points));
+                listField = gradient.GetSyncMemberFieldInfo(nameof(ValueGradientDriver<float>.Points));
+
+                if (attachedNew)
+                {
+                    _addCurveValueProxying.MakeGenericMethod(syncCurveType).Invoke(null, new object[] { array, list });
                 }
             }
             else
@@ -308,6 +363,9 @@ namespace MonkeyLoader.Resonite.UI
                 }
             }
 
+            ui.Panel().Slot.GetComponent<LayoutElement>();
+            SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
+            ui.NestOut();
             SyncMemberEditorBuilder.BuildList(list, name, listField, ui);
             ui.Current[ui.Current.ChildrenCount - 1].DestroyWhenLocalUserLeaves();
 
