@@ -117,7 +117,7 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         /// <summary>
-        /// Constructs a value editor field that shows the given <see cref="ISyncRef{T}"/>'s target.
+        /// Constructs a value editor field that shows the given <see cref="IField{T}"/>'s value.
         /// </summary>
         /// <typeparam name="TValue">The value target.</typeparam>
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
@@ -154,13 +154,13 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         /// <summary>
-        /// Constructs a value editor field that is linked with the given <see cref="ISyncRef{T}"/>.
+        /// Constructs a value editor field that is linked with the given <see cref="IField{T}"/>.
         /// </summary>
         /// <typeparam name="TValue">The value target.</typeparam>
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
         /// <param name="name">The name to label the field with.</param>
         /// <param name="field">The field to link with.</param>
-        public static void BuildTwoWayValue<TValue>(UIBuilder ui, string name, ISyncRef<TValue> field)
+        public static void BuildTwoWayValue<TValue>(UIBuilder ui, string name, IField<TValue> field)
             where TValue : class, IWorldElement
         {
             var worker = field.FindNearestParent<Worker>();
