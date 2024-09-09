@@ -18,10 +18,9 @@ namespace MonkeyLoader.Resonite.UI
     [HarmonyPatchCategory(nameof(SyncMemberEditorBuilderInjector))]
     [HarmonyPatch(typeof(SyncMemberEditorBuilder), nameof(SyncMemberEditorBuilder.BuildArray))]
     internal sealed class SyncMemberEditorBuilderInjector : ResoniteMonkey<SyncMemberEditorBuilderInjector>,
-        IEventSource<BuildSyncMemberEditorEvent>, IEventSource<BuildSyncArrayEditorEvent>
+        ICancelableEventSource<BuildSyncArrayEditorEvent>
     {
-        private static EventDispatching<BuildSyncMemberEditorEvent>? _buildMemberEditor;
-        private static EventDispatching<BuildSyncArrayEditorEvent>? _buildArrayEditor;
+        private static CancelableEventDispatching<BuildSyncArrayEditorEvent>? _buildArrayEditor;
 
         public override bool CanBeDisabled => true;
 
@@ -30,7 +29,6 @@ namespace MonkeyLoader.Resonite.UI
 
         protected override bool OnLoaded()
         {
-            Mod.RegisterEventSource<BuildSyncMemberEditorEvent>(this);
             Mod.RegisterEventSource<BuildSyncArrayEditorEvent>(this);
 
             return base.OnLoaded();
@@ -42,11 +40,10 @@ namespace MonkeyLoader.Resonite.UI
             if (!Enabled)
                 return true;
 
+            OnBuildArray(array, name, fieldInfo, ui, labelSize);
+
             ui.Panel().Slot.GetComponent<LayoutElement>();
             ui.Style.MinHeight = 24f;
-
-            OnBuildMemberEditor(array, name, fieldInfo, ui, labelSize);
-            OnBuildArray(array, name, fieldInfo, ui, labelSize);
 
             Slot slot = SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
             ui.ForceNext = slot.AttachComponent<RectTransform>();
@@ -68,24 +65,7 @@ namespace MonkeyLoader.Resonite.UI
             ui.NestInto(root);
         }
 
-        private static void OnBuildMemberEditor(ISyncMember member, string name, FieldInfo fieldInfo, UIBuilder ui, float labelSize)
-        {
-            var root = ui.Root;
-
-            var eventData = new BuildSyncMemberEditorEvent(member, name, fieldInfo, ui, labelSize);
-
-            _buildMemberEditor?.Invoke(eventData);
-
-            ui.NestInto(root);
-        }
-
-        event EventDispatching<BuildSyncMemberEditorEvent>? IEventSource<BuildSyncMemberEditorEvent>.Dispatching
-        {
-            add => _buildMemberEditor += value;
-            remove => _buildMemberEditor -= value;
-        }
-
-        event EventDispatching<BuildSyncArrayEditorEvent>? IEventSource<BuildSyncArrayEditorEvent>.Dispatching
+        event CancelableEventDispatching<BuildSyncArrayEditorEvent>? ICancelableEventSource<BuildSyncArrayEditorEvent>.Dispatching
         {
             add => _buildArrayEditor += value;
             remove => _buildArrayEditor -= value;

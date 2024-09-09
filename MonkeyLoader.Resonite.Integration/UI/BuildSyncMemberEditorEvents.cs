@@ -15,7 +15,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Represents the base class for the events fired during construction of a <see cref="MemberEditor"/>
     /// </summary>
     [DispatchableBaseEvent]
-    public class BuildSyncMemberEditorEvent : CancelableBuildUIEvent
+    public abstract class BuildSyncMemberEditorEvent : CancelableBuildUIEvent
     {
         public ISyncMember Member { get; }
 
@@ -25,7 +25,7 @@ namespace MonkeyLoader.Resonite.UI
 
         public float? LabelSize { get; }
 
-        internal BuildSyncMemberEditorEvent(ISyncMember member, string name, FieldInfo fieldInfo, UIBuilder ui, float? labelSize)
+        protected BuildSyncMemberEditorEvent(ISyncMember member, string name, FieldInfo fieldInfo, UIBuilder ui, float? labelSize)
             : base(ui)
         {
             Member = member;
