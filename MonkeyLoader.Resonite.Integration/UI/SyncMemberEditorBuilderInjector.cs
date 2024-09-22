@@ -42,27 +42,20 @@ namespace MonkeyLoader.Resonite.UI
 
             OnBuildArray(array, name, fieldInfo, ui, labelSize);
 
-            ui.Panel().Slot.GetComponent<LayoutElement>();
-            ui.Style.MinHeight = 24f;
-
-            Slot slot = SyncMemberEditorBuilder.GenerateMemberField(array, name, ui, labelSize);
-            ui.ForceNext = slot.AttachComponent<RectTransform>();
-            LocaleString text = "(arrays currently not supported)";
-            ui.Text(in text);
-            ui.NestOut();
+            
 
             return false;
         }
 
         private static void OnBuildArray(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui, float labelSize)
         {
-            var root = ui.Root;
+            //var root = ui.Root;
 
             var eventData = new BuildSyncArrayEditorEvent(array, name, fieldInfo, ui, labelSize);
 
             _buildArrayEditor?.Invoke(eventData);
 
-            ui.NestInto(root);
+            //ui.NestInto(root);
         }
 
         event CancelableEventDispatching<BuildSyncArrayEditorEvent>? ICancelableEventSource<BuildSyncArrayEditorEvent>.Dispatching
