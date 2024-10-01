@@ -14,13 +14,13 @@ namespace MonkeyLoader.Resonite
     {
         public override string Name { get; } = "Brotli Fix";
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         [HarmonyPrefix]
         [HarmonyPatch("Brotli.NativeLibraryLoader, Brotli.Core", "GetPossibleRuntimeDirectories")]
         private static bool GetPossibleRuntimeDirectoriesPrefix(ref string[] __result)
         {
-            __result = new[] { Mod.Loader.GameAssemblyPath };
+            __result = [MonkeyLoader.GameAssemblyPath];
             return false;
         }
     }
