@@ -75,6 +75,12 @@
     "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Ensures that mods' locale messages show up as the (English) fallback value for users without the mod adding them.",
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Allows creating working standalone facets from MonkeyLoader Mod Settings items.",
     "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings.",
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Sends out the various Build Member Editor events to allow monkeys to override the generation of them.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generates the default member editors for inspectors.",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Turns the SyncDelegate targeted by a Button into a locale key to display as a tooltip.",
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Adds tooltip resolve requests to UIX Buttons.",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Resolves the tooltip for a button based on a Comment component's text starting with 'TooltipperyLabel:'.",
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Sends out tooltip resolve requests from different sources. The tooltip system is based on the Tooltippery mod originally created by Psychpsyo.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sends the FrooxEngine UniLog messages to the MonkeyLoader Console when available.",
 
     "Tooltip.Slot.ResetPosition": "Resets the relative Position of Slot [{Name}] to [0; 0; 0].",
