@@ -26,12 +26,12 @@ namespace MonkeyLoader.Resonite.UI
         /// <inheritdoc/>
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
-        protected override bool OnLoaded()
+        protected override bool OnEngineReady()
         {
             Mod.RegisterEventSource<BuildInspectorHeaderEvent>(this);
             Mod.RegisterEventSource<BuildInspectorBodyEvent>(this);
 
-            return base.OnLoaded();
+            return base.OnEngineReady();
         }
 
         [HarmonyPrefix]
