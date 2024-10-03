@@ -24,7 +24,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
         public bool SkipCanceled => true;
 
-        void ICancelableEventHandler<BuildArrayEditorEvent>.Handle(BuildArrayEditorEvent eventData) => throw new NotImplementedException();
+        void ICancelableEventHandler<BuildArrayEditorEvent>.Handle(BuildArrayEditorEvent eventData)
+        {
+            BuildArray(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI, eventData.LabelSize!.Value);
+
+            eventData.Canceled = true;
+        }
 
         public void Handle(BuildBagEditorEvent eventData)
         {
@@ -75,6 +80,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             return base.OnEngineReady();
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
         [HarmonyReversePatch]
         [HarmonyPatch(nameof(SyncMemberEditorBuilder.BuildArray))]
         private static void BuildArray(ISyncArray array, string name, FieldInfo fieldInfo, UIBuilder ui, float labelSize)
@@ -104,6 +111,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         [HarmonyPatch(nameof(SyncMemberEditorBuilder.BuildSyncObject))]
         private static void BuildSyncObject(SyncObject syncObject, string name, FieldInfo fieldInfo, UIBuilder ui, float labelSize)
             => ThrowNotImplemented();
+
+#pragma warning restore IDE0060 // Remove unused parameter
 
         [DoesNotReturn]
         private static void ThrowNotImplemented()
