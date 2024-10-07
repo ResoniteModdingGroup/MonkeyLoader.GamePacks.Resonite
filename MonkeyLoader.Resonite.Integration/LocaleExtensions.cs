@@ -1,11 +1,9 @@
 ﻿using Elements.Core;
 using FrooxEngine;
-using MonkeyLoader;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Locale;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -132,7 +130,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="argField">The value of the single argument used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string argName, object argField)
-            => identifiable.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
+            => identifiable.GetLocaleKey(key).AsLocaleKey((argName, argField), (ModLocaleStringIndicatorArgumentName, identifiable.GetModId()));
 
         /// <summary>
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
@@ -145,7 +143,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="argField">The value of the single argument used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, string argName, object argField)
-            => identifiable.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, string.Empty));
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format, (argName, argField), (ModLocaleStringIndicatorArgumentName, identifiable.GetModId()));
 
         /// <summary>
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
@@ -156,7 +154,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, params (string, object)[] arguments)
-            => identifiable.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator());
+            => identifiable.GetLocaleKey(key).AsLocaleKey(arguments.AddModIndicator(identifiable));
 
         /// <summary>
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
@@ -168,7 +166,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string format, params (string, object)[] arguments)
-            => identifiable.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator());
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format, arguments.AddModIndicator(identifiable));
 
         /// <summary>
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
@@ -180,7 +178,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, bool continuous, Dictionary<string, object>? arguments = null)
-            => identifiable.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator());
+            => identifiable.GetLocaleKey(key).AsLocaleKey(continuous, arguments.AddModIndicator(identifiable));
 
         /// <summary>
         /// Uses <c><paramref name="identifiable"/>.<see cref="GetLocaleKey">GetLocaleKey</see>(<paramref name="key"/>)</c>
@@ -193,7 +191,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="arguments">The arguments used to format the locale message.</param>
         /// <returns>The <see cref="IsModLocaleString">Mod</see>-<see cref="LocaleString"/> created from the key with the arguments.</returns>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
-            => identifiable.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator());
+            => identifiable.GetLocaleKey(key).AsLocaleKey(format!, continuous, arguments.AddModIndicator(identifiable));
 
         /// <summary>
         /// Gets the formatted, localized message of the given locale <paramref name="key"/>
@@ -324,15 +322,23 @@ namespace MonkeyLoader.Resonite
         internal static void TriggerCurrentLocaleReload()
             => Userspace.Current.GetCoreLocale().Asset.ForceAssetUpdate();
 
-        private static (string, object)[] AddModIndicator(this (string, object)[]? arguments)
-            => [.. arguments ?? [], (ModLocaleStringIndicatorArgumentName, string.Empty)];
+        private static (string, object)[] AddModIndicator(this (string, object)[]? arguments, IIdentifiable identifiable)
+            => [.. (arguments ?? []), (ModLocaleStringIndicatorArgumentName, identifiable.GetModId())];
 
-        private static Dictionary<string, object> AddModIndicator(this Dictionary<string, object>? arguments)
+        private static Dictionary<string, object> AddModIndicator(this Dictionary<string, object>? arguments, IIdentifiable identifiable)
         {
             arguments ??= [];
-            arguments[ModLocaleStringIndicatorArgumentName] = string.Empty;
+            arguments[ModLocaleStringIndicatorArgumentName] = identifiable.GetModId();
 
             return arguments;
+        }
+
+        private static string GetModId(this IIdentifiable identifiable)
+        {
+            if (!identifiable.TryFindNearestParent<Mod>(out var mod))
+                return string.Empty;
+
+            return mod.Id;
         }
     }
 }
