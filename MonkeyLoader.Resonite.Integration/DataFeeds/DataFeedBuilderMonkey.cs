@@ -1,11 +1,14 @@
-﻿using EnumerableToolkit.Builder;
+﻿using EnumerableToolkit;
+using EnumerableToolkit.Builder;
 using EnumerableToolkit.Builder.AsyncBlocks;
 using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,6 +27,8 @@ namespace MonkeyLoader.Resonite.DataFeeds
         where TMonkey : DataFeedBuilderMonkey<TMonkey, TDataFeed>, new()
         where TDataFeed : IDataFeed
     {
+        private Prioritizable<IAsyncParametrizedBuildingBlock<DataFeedItem, EnumerateDataFeedParameters<TDataFeed>>>[] _addedBlocks = [];
+
         /// <summary>
         /// Called to add one or more <see cref="IAsyncParametrizedBuildingBlock{T, TParameters}">async
         /// parametrized building blocks</see> to the <see cref="IAsyncParametrizedEnumerableBuilder{T, TParameters}">async
@@ -31,7 +36,7 @@ namespace MonkeyLoader.Resonite.DataFeeds
         /// </summary>
         /// <remarks>
         /// The default items of the <see cref="IDataFeed"/>.<see cref="IDataFeed.Enumerate">Enumerate</see>() method
-        /// are inserted first at priority 0, unless disabled through the parameters.
+        /// are inserted at priority 0, unless disabled through the parameters.
         /// </remarks>
         /// <param name="builder">The enumerable builder to add one or more building blocks too.</param>
         protected abstract void AddBuildingBlocks(IAsyncParametrizedEnumerableBuilder<DataFeedItem, EnumerateDataFeedParameters<TDataFeed>> builder);
@@ -51,7 +56,19 @@ namespace MonkeyLoader.Resonite.DataFeeds
         {
             try
             {
+                var before = Traverse.Create(DataFeedInjector<TDataFeed>.Builder)
+                    .Field<PrioritySortedCollection<Prioritizable<IAsyncParametrizedBuildingBlock<DataFeedItem,
+                        EnumerateDataFeedParameters<TDataFeed>>>>>("_buildingBlocks")
+                    .Value.ToImmutableHashSet();
+
                 AddBuildingBlocks(DataFeedInjector<TDataFeed>.Builder);
+
+                var after = Traverse.Create(DataFeedInjector<TDataFeed>.Builder)
+                    .Field<PrioritySortedCollection<Prioritizable<IAsyncParametrizedBuildingBlock<DataFeedItem,
+                        EnumerateDataFeedParameters<TDataFeed>>>>>("_buildingBlocks")
+                    .Value.ToImmutableHashSet();
+
+                _addedBlocks = [.. after.Except(before)];
             }
             catch (Exception ex)
             {
@@ -61,6 +78,25 @@ namespace MonkeyLoader.Resonite.DataFeeds
             }
 
             return base.OnLoaded();
+        }
+
+        /// <remarks>
+        /// <i>By default:</i> Removes all building blocks
+        /// <see cref="AddBuildingBlocks">added</see> by this Monkey and
+        /// all <see cref="HarmonyLib.Harmony"/> patches done
+        /// using this Monkey's <see cref="Harmony">Harmony</see> instance,
+        /// if not exiting, and returns <c>true</c>.
+        /// </remarks>
+        /// <inheritdoc/>
+        protected override bool OnShutdown(bool applicationExiting)
+        {
+            if (!applicationExiting)
+            {
+                foreach (var buildingBlock in _addedBlocks)
+                    DataFeedInjector<TDataFeed>.Builder.RemoveBuildingBlock(buildingBlock);
+            }
+
+            return base.OnShutdown(applicationExiting);
         }
     }
 }
