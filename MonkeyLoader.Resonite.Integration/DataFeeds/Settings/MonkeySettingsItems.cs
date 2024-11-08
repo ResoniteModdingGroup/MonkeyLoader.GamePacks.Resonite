@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class MonkeySettingsItems : DataFeedBuildingBlockMonkey<MonkeySettingsItems, SettingsDataFeed>
     {
-        public override int Priority => 100;
+        public override int Priority => HarmonyLib.Priority.VeryLow;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {

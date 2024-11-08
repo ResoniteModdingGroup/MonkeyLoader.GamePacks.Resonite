@@ -112,6 +112,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
 
         /// <summary>
+        /// Move up one element from the current path of the <see cref="EnumerateDataFeedParameters{TDataFeed}.DataFeed">DataFeed</see>.
+        /// </summary>
+        /// <param name="parameters">The parameters referencing the <see cref="SettingsDataFeed"/> to move up a category on.</param>
+        public static void MoveUpFromCategory(this EnumerateDataFeedParameters<SettingsDataFeed> parameters)
+            => parameters.DataFeed.RunSynchronously(() => parameters.DataFeed.GetViewData().MoveUpFromCategory(parameters.Path[^1]));
+
+        /// <summary>
         /// Handles the standard case of setting up the field of a <see cref="DataFeedItem"/>
         /// to be synchronized with a <see cref="IDefiningConfigKey{T}">config key</see>.
         /// </summary>
