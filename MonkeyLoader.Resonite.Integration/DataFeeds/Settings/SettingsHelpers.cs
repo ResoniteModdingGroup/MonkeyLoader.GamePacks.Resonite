@@ -206,6 +206,37 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
 
         /// <summary>
+        /// Move up one element from the current path of the <see cref="EnumerateDataFeedParameters{TDataFeed}.DataFeed">DataFeed</see>.
+        /// </summary>
+        /// <param name="parameters">The parameters referencing the <see cref="SettingsDataFeed"/> to move up a category on.</param>
+        public static void MoveUpFromCategory(this EnumerateDataFeedParameters<SettingsDataFeed> parameters)
+            => parameters.DataFeed.RunSynchronously(() => parameters.DataFeed.GetViewData().MoveUpFromCategory(parameters.Path[^1]));
+
+        /// <summary>
+        /// Handles the standard case of setting up the field of a <see cref="DataFeedItem"/>
+        /// to be synchronized with a <see cref="IDefiningConfigKey{T}">config key</see>.
+        /// </summary>
+        /// <remarks>
+        /// Adds a <see cref="Comment"/> with the <paramref name="configKey"/>.<see cref="IIdentifiable.FullId">FullId</see>
+        /// to allow easily mapping it back to the config key in the standalone facet process.
+        /// </remarks>
+        /// <typeparam name="T">The type of the field and config item's value.</typeparam>
+        /// <param name="field">The field to synchronize with the <paramref name="configKey"/>.</param>
+        /// <param name="configKey">The config key to synchronize with the <paramref name="field"/>.</param>
+        public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey<T> configKey)
+        {
+            var slot = field.FindNearestParent<Slot>();
+
+            if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+            {
+                // Adding the config key's full id to make it easier to create standalone facets
+                feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
+            }
+
+            field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
+        }
+
+        /// <summary>
         /// Handles the standard case of setting up the field of a <see cref="DataFeedItem"/>
         /// to be synchronized with a <see cref="IDefiningConfigKey{T}">config key</see>.
         /// </summary>
