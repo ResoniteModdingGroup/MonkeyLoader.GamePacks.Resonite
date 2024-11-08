@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class SaveConfigSettingsItems : DataFeedBuildingBlockMonkey<SaveConfigSettingsItems, SettingsDataFeed>
     {
-        public override int Priority => 300;
+        public override int Priority => HarmonyLib.Priority.LowerThanNormal;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
@@ -40,7 +40,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         Logger.Info(() => $"Triggering saving of config: {config.FullId}");
 
                         config.Save();
-                        MoveUpFromCategory(parameters);
+                        parameters.MoveUpFromCategory();
 
                         return current;
 
@@ -48,7 +48,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         Logger.Info(() => $"Triggering reset of config: {config.FullId}");
 
                         config.Reset();
-                        MoveUpFromCategory(parameters);
+                        parameters.MoveUpFromCategory();
 
                         return current;
                 }
@@ -69,15 +69,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             await Task.CompletedTask;
 
             var saveConfigButton = new DataFeedCategory();
-            saveConfigButton.InitBase(SettingsHelpers.SaveConfig, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("SaveConfig"));
+            saveConfigButton.InitBase(SettingsHelpers.SaveConfig, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString(SettingsHelpers.SaveConfig));
             yield return saveConfigButton;
 
             var resetConfigButton = new DataFeedCategory();
-            resetConfigButton.InitBase(SettingsHelpers.ResetConfig, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("ResetConfig"));
+            resetConfigButton.InitBase(SettingsHelpers.ResetConfig, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString(SettingsHelpers.ResetConfig));
             yield return resetConfigButton;
         }
-
-        private static void MoveUpFromCategory(EnumerateDataFeedParameters<SettingsDataFeed> parameters)
-            => parameters.DataFeed.RunSynchronously(() => parameters.DataFeed.GetViewData().MoveUpFromCategory(parameters.Path[^1]));
     }
 }
