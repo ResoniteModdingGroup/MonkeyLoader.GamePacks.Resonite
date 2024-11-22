@@ -97,6 +97,8 @@ namespace MonkeyLoader.Resonite
                 Logger.Error(() => ex.Format("OnEngineInit threw an Exception:"));
             }
 
+            LogPatches();
+
             return !EngineInitFailed;
         }
 
@@ -127,6 +129,8 @@ namespace MonkeyLoader.Resonite
                 EngineReadyFailed = true;
                 Logger.Error(() => ex.Format("OnEngineReady threw an Exception:"));
             }
+
+            LogPatches();
 
             return !EngineReadyFailed;
         }

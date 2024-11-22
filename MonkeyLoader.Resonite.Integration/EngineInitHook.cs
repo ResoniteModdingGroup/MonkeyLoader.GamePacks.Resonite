@@ -59,9 +59,9 @@ namespace MonkeyLoader.Resonite
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
 
-            // Have to add 4 phases because the indicator
+            // Have to add 6 phases because the indicator
             // will immediately disappear upon entering the last one
-            LoadProgressReporter.AddFixedPhases(4);
+            LoadProgressReporter.AddFixedPhases(6);
         }
 
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)
@@ -94,6 +94,7 @@ namespace MonkeyLoader.Resonite
             Logger.Info(() => "Triggering reloading of fallback locale data for mods!");
 
             Task.Run(LocaleExtensions.LoadFallbackLocaleAsync);
+            Task.Run(Mod.Loader.LogPotentialConflicts);
         }
 
         private static void OnEngineShutdown()
@@ -171,6 +172,9 @@ namespace MonkeyLoader.Resonite
                 await Task.WhenAll(Task.Delay(50), Task.Run(resoniteMonkey.EngineReady));
                 LoadProgressReporter.ExitSubphase();
             }
+
+            LoadProgressReporter.AdvanceFixedPhase("Determining potential Mod conflicts...");
+            await Task.Run(Mod.Loader.LogPotentialConflicts);
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
 
