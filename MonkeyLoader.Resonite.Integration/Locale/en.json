@@ -82,6 +82,7 @@
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Resolves the tooltip for a button based on a Comment component's text starting with 'TooltipperyLabel:'.",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Sends out tooltip resolve requests from different sources. The tooltip system is based on the Tooltippery mod originally created by Psychpsyo.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sends the FrooxEngine UniLog messages to the MonkeyLoader Console when available.",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Handles injecting elements into the SettingsDataFeed.<br/>This injector can't be disabled to ensure that the MonkeyLoader settings remain available.",
 
     "Tooltip.Slot.ResetPosition": "Resets the relative Position of Slot [{Name}] to [0; 0; 0].",
     "Tooltip.Slot.ParentUnderWorldRoot": "Reparents the Slot [{Name}] from [{Parent}] to the world root while keeping its global transform.",

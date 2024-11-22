@@ -65,6 +65,14 @@
     "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Erlaubt es auch Sprachen auszuwählen, die nicht direkt einen bekannten Kulturcode angeben, solange sie trotzdem auf einem bekannten Code basieren.",
     "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Sorgt dafür, dass die Übersetzungsnachrichten von Mods für Benutzer ohne die Mod auf Englisch angezeigt werden.",
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Erlaubt es funktionierende alleinstehende Facets der MonkeyLoader Mod Optionen zu erstellen.",
-    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Fügt die MonkeyLoader Kategorie zu den Optionen hinzu."
+    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Fügt die MonkeyLoader Kategorie zu den Optionen hinzu.",
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Versendet die verschiedenen Build Member Editor Events, damit Monkeys die Generierung dieser überschreiben können.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generiert die standard Member Editoren für Inspektoren.",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Wandelt das SyncDelegate Ziel eines Buttons in den Schlüsser für eine Übersetzungsnachricht um, damit diese als Tooltip angezeigt werden kann.",
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Fügt Tooltip Auflösungsanfragen für UIX Buttons hinzu.",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons auf, indem es nach einer Comment Komponente sucht, deren Text mit 'TooltipperyLabel:' anfängt.",
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Versendet die Tooltip Auflösungsanfragen aus verschiedenen Quellen. Das Tooltipsystem basiert auf dem Tooltippery Mod, der ursprünglich von Psychpsyo erstellt wurde.",
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben."
   }
 }

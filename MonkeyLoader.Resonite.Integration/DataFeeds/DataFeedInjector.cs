@@ -16,10 +16,10 @@ namespace MonkeyLoader.Resonite.DataFeeds
         where TDataFeed : IDataFeed
     {
         /// <inheritdoc/>
-        public override bool CanBeDisabled => true;
+        public override bool CanBeDisabled { get; } = typeof(TDataFeed) != typeof(SettingsDataFeed);
 
         /// <inheritdoc/>
-        public override string Id { get; } = typeof(DataFeedInjector<TDataFeed>).CompactDescription();
+        public override string Id { get; } = typeof(TDataFeed).CompactDescription();
 
         /// <inheritdoc/>
         public override int Priority => HarmonyLib.Priority.High;
