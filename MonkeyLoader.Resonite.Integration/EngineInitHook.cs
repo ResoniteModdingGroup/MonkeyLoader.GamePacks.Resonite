@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -181,6 +182,40 @@ namespace MonkeyLoader.Resonite
             Logger.Info(() => $"Done loading fallback locale data for mods in {sw.ElapsedMilliseconds}ms!");
 
             LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
+
+            // Log potential conflicts
+            LoadProgressReporter.SetSubphase("Looking for conflicts");
+            IEnumerable<MethodBase> patchedMethods = Harmony.GetAllPatchedMethods();
+            foreach (MethodBase patchedMethod in patchedMethods)
+            {
+                Patches patches = Harmony.GetPatchInfo(patchedMethod);
+                HashSet<string> owners = new(patches.Owners);
+                if (owners.Count > 1)
+                {
+                    string warnString = "";
+                    warnString += $"Method \"{patchedMethod.FullDescription()}\" has been patched by the following:";
+                    foreach (string owner in owners)
+                    {
+                        warnString += $"\n    \"{owner}\" ({TypesForOwner(patches, owner)})";
+                    }
+                    Logger.Warn(() => warnString);
+                }
+                else
+                {
+                    string owner = owners.FirstOrDefault();
+                    Logger.Debug(() => $"Method \"{patchedMethod.FullDescription()}\" has been patched by \"{owner}\"");
+                }
+            }
+        }
+
+        private static string TypesForOwner(Patches patches, string owner)
+        {
+            bool OwnerEquals(Patch patch) => Equals(patch.owner, owner);
+            int prefixCount = patches.Prefixes.Where(OwnerEquals).Count();
+            int postfixCount = patches.Postfixes.Where(OwnerEquals).Count();
+            int transpilerCount = patches.Transpilers.Where(OwnerEquals).Count();
+            int finalizerCount = patches.Finalizers.Where(OwnerEquals).Count();
+            return $"prefix={prefixCount}; postfix={postfixCount}; transpiler={transpilerCount}; finalizer={finalizerCount}";
         }
     }
 }
