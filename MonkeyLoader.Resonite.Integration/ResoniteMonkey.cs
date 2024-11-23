@@ -71,9 +71,9 @@ namespace MonkeyLoader.Resonite
 
         bool IResoniteMonkeyInternal.EngineInit()
         {
-            if (Failed)
+            if (ShutdownRan)
             {
-                Logger.Warn(() => "Monkey already failed Run, skipping OnEngineInit!");
+                Logger.Warn(() => "Monkey shutdown already ran, skipping OnEngineInit!");
                 return false;
             }
 
@@ -89,7 +89,6 @@ namespace MonkeyLoader.Resonite
                 {
                     EngineInitFailed = true;
                     Logger.Warn(() => "OnEngineInit failed!");
-                    Shutdown(false);
                 }
             }
             catch (Exception ex)
@@ -105,9 +104,9 @@ namespace MonkeyLoader.Resonite
 
         bool IResoniteMonkeyInternal.EngineReady()
         {
-            if (EngineInitFailed)
+            if (ShutdownRan)
             {
-                Logger.Warn(() => "Monkey already failed OnEngineInit, skipping OnEngineReady!");
+                Logger.Warn(() => "Monkey shutdown already ran, skipping OnEngineReady!");
                 return false;
             }
 
@@ -123,7 +122,6 @@ namespace MonkeyLoader.Resonite
                 {
                     EngineReadyFailed = true;
                     Logger.Warn(() => "OnEngineReady failed!");
-                    Shutdown(false);
                 }
             }
             catch (Exception ex)
