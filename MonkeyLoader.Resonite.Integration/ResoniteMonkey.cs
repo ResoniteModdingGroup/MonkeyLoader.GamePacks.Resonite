@@ -89,6 +89,7 @@ namespace MonkeyLoader.Resonite
                 {
                     EngineInitFailed = true;
                     Logger.Warn(() => "OnEngineInit failed!");
+                    Shutdown(false);
                 }
             }
             catch (Exception ex)
@@ -122,6 +123,7 @@ namespace MonkeyLoader.Resonite
                 {
                     EngineReadyFailed = true;
                     Logger.Warn(() => "OnEngineReady failed!");
+                    Shutdown(false);
                 }
             }
             catch (Exception ex)
