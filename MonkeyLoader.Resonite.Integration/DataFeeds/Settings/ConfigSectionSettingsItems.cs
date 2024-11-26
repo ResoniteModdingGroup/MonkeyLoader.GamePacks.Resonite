@@ -54,7 +54,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static async IAsyncEnumerable<DataFeedItem> EnumerateConfigAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, Config config)
         {
-            foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly))
+            foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly && section.Keys.Any(key => !key.InternalAccessOnly)))
             {
                 var sectionGroup = new DataFeedGroup();
                 sectionGroup.InitBase(configSection.Id, parameters.Path, parameters.GroupKeys, configSection.GetLocaleString("Name"));
