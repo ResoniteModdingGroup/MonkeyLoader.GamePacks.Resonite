@@ -101,7 +101,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 {
                     var toggle = new DataFeedToggle();
                     toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, Mod.GetLocaleString($"{monkeyType}.Enabled.Name"), Mod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    toggle.InitSetupValue(field => field.SetupConfigKeyField(mod.MonkeyToggles.GetToggle(monkey)));
+                    toggle.InitSetupValue(field => field.SetupConfigKeyField(monkey.EnabledToggle));
                     yield return toggle;
                 }
                 else
