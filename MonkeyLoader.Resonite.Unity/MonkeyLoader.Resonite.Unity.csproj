@@ -10,7 +10,7 @@
     <PackageId>MonkeyLoader.GamePacks.Resonite.Unity</PackageId>
     <Title>Resonite (Unity) Game Pack</Title>
     <Authors>Banane9</Authors>
-    <Version>0.19.2-beta</Version>
+    <Version>0.21.0-beta</Version>
     <Description>
       This Game Pack for MonkeyLoader provides additional hooks for the
       Unity version of Resonite (as opposed to the Headless server).
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.6.0-beta" />
+    <PackageReference Include="MonkeyLoader.GamePacks.Unity" Version="0.7.0-beta" />
     <PackageReference Include="PolySharp" Version="1.15.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
