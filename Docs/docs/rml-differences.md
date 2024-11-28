@@ -108,7 +108,7 @@ Hot-reloading is not supported for pre-patchers by their nature.
 
 ## Feature and Update Mentality
 
-For MonkeyLoader and the Resonite Game Pack, the approach to including features is different than that of other mod loaders.
+For MonkeyLoader and the Resonite Game Pack, the approach to including features is more holistic than that of other mod loaders.
 If certain code is useful to many mods, or encourages good practice for
 elements added by mods, it is fine to include it in the base installation.
 The same thing applies to features that every user would want,
