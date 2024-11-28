@@ -108,15 +108,7 @@ Hot-reloading is not supported for pre-patchers by their nature.
 
 ## Feature and Update Mentality
 
-The current maintainers of RML are downright obsessed with backwards compatibility,
-even letting the opportunity for breaking changes during the move to Resonite pass unused,
-despite having had plans for changes that would require a break.
-Further, they're rather vehemently opposed to including anything in the mod loader,
-which they don't see as absolutely essential.
-This has led to some mods being practically required for every user,
-while at the same time leading to code repition or inferior implementations in other mods.
-
-For MonkeyLoader and the Resonite Game Pack, the approach is rather more holistic.
+For MonkeyLoader and the Resonite Game Pack, the approach to including features is different than that of other mod loaders.
 If certain code is useful to many mods, or encourages good practice for
 elements added by mods, it is fine to include it in the base installation.
 The same thing applies to features that every user would want,
