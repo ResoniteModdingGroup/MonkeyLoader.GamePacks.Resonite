@@ -20,7 +20,7 @@ In terms of compartmentalization, a Monkey is roughly equivalent to a ResoniteMo
 patching errors in one won't affect the others unless they specifically depend on each other.
 
 For the end user, this way of packaging mods can simplify things,
-as even mods with extra files can be shipped in a single file
+as even mods with additional assets can be shipped in a single file
 with no extra work, rather than having to unzip something manually.
 
 
@@ -106,30 +106,66 @@ almost exclusively development focused feature.
 Hot-reloading is not supported for pre-patchers by their nature.
 
 
-## Feature and Update Mentality
+## Feature and Update Approach
 
-The current maintainers of RML are downright obsessed with backwards compatibility,
-even letting the opportunity for breaking changes during the move to Resonite pass unused,
-despite having had plans for changes that would require a break.
-Further, they're rather vehemently opposed to including anything in the mod loader,
-which they don't see as absolutely essential.
-This has led to some mods being practically required for every user,
-while at the same time leading to code repition or inferior implementations in other mods.
+The current maintainers of RML follow a philosophy of simplicity.
+To this end, they define RML's purpose as serving as a simple
+entry point with some APIs to make mod creation easier.
+With just RML active, the experience during play is intended to be
+effectively no different than the vanilla client -
+opting for the mod loader to be just a tool for mods,
+but not one in and of itself.  
+Furthermore, they strive for backwards compatibility,
+avoiding the inclusion of any additional features that
+could introduce possible issues when the game is updated.
+To this end, they even let the prime opportunity for
+breaking changes during the move to Resonite pass unused,
+despite there having been long-term plans for changes
+that would require a break.
 
-For MonkeyLoader and the Resonite Game Pack, the approach is rather more holistic.
+However, this simplicity of course comes with downsides as well.
+For example, some mods are practically required for every user,
+as they offer basic functionality - such as [ResoniteModSettings](https://github.com/badhaloninja/ResoniteModSettings)
+which allows editing the loaded mods' settings ingame.
+While this shrinks the API surface of the mod loader itself,
+it also outsources features that new users expect from it.
+For example, it's a regular occurence to see new users wondering
+how to change their mods' settings, only to be told that
+they need to add another mod for that.  
+At the same time, the amount of tools RML offers for
+mod creators is very limited, essentially limited
+to metadata and reflection on the mod loader itself.
+This means mod creators looking to add more intricate features
+have to turn to code repetition or additional shared libraries -
+or settle on inferior implementations.
+
+For MonkeyLoader and the Resonite Game Pack,
+the approach is rather more holistic.
 If certain code is useful to many mods, or encourages good practice for
-elements added by mods, it is fine to include it in the base installation.
+elements added by mods, we consider it to be a good addition to the base installation.
 The same thing applies to features that every user would want,
-such as editing the loaded mods' configuration ingame - which is included in this Game Pack.
+such as editing the loaded mods' settings ingame - which is included in this Game Pack.
 
 To give some examples for features on the development side:
 * Hot-Reloading
 * Debugging Support
-* Event System
-  * Locale Loading
-  * Injecting custom Worker Inspector elements
-* Shared Configs in Sessions
+* Separate logging system with console output
+* Generic, mediated DataFeed-Injection support
 
+And many features that users directly benefit from as well:
+* Event System
+  * (Fallback) Locale Loading for mods
+  * Injecting custom Worker Inspector elements
+  * Triggering Tooltips and resolving their (localized) content
+* Various mod UI tools
+    * Localized content provided by mods showing in mod user's local locale if supported, or the fallback (English) for non-users
+    * Extension for local buttons, letting other users trigger mod actions
+    * Building custom Inspectors
+* Full Integration with the native Resonite Settings page
+    * Shared Configs in Sessions for local user styles on modded items
+    * Ability to create custom settings pages or items for mods
+    * Sliders and Quantity settings
+    
 Of course, backwards compatibility is still a concern,
 however MonkeyLoader has the benefit of being designed from scratch with
 the experience from RML, allowing for a (hopefully) more extensible approach.
