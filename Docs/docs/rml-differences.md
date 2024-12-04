@@ -56,8 +56,7 @@ MonkeyLoader uses [Doorstop](https://github.com/NeighTools/UnityDoorstop)
 to get loaded before even Unity does, rather than relying on Resonite's
 plugin system to be loaded.
 As such, it doesn't require a command line argument to be loaded,
-and also doesn't need to hack around the game's compatibility hashing
-to allow multiplayer compatibility.
+and can work outside of the game's compatibility system.
 
 The main benefit of this however, is that MonkeyLoader supports pre-patching.
 This means, the IL code of Assemblies can be modified using [Mono.Cecil](https://github.com/jbevain/cecil/)
