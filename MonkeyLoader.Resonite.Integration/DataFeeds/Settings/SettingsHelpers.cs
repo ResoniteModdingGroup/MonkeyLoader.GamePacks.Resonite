@@ -6,7 +6,11 @@ using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using MonkeyLoader.Patching;
+using Elements.Assets;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
@@ -149,6 +153,111 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             dataFeed.Destroyed += OnDestroyed;
 
             return viewData;
+        }
+
+        public static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, Mod mod, string monkeyType, Mod mod2, bool forceCheck = false, bool canBeDisabled = true)
+        {
+            await Task.CompletedTask;
+
+            var path = parameters.Path;
+
+            var monkeys = monkeyType switch
+            {
+                SettingsHelpers.Monkeys => mod.Monkeys.ToArray(),
+                SettingsHelpers.EarlyMonkeys => mod.EarlyMonkeys.ToArray(),
+                _ => []
+            };
+
+            if (forceCheck)
+            {
+                if (canBeDisabled)
+                {
+                    monkeys = monkeys.Where(monkey => monkey.CanBeDisabled).ToArray();
+                }
+                else
+                {
+                    monkeys = monkeys.Where(monkey => !monkey.CanBeDisabled).ToArray();
+                }
+            }
+
+            if (monkeys.Length == 0)
+                yield break;
+
+            Array.Sort(monkeys, (left, right) =>
+            {
+                if (left.CanBeDisabled != right.CanBeDisabled)
+                    return left.CanBeDisabled ? -1 : 1;
+
+                return left.GetMessageInCurrent("Name").CompareTo(right.GetMessageInCurrent("Name"));
+            });
+
+            string id = monkeyType;
+            if (forceCheck)
+            {
+                if (canBeDisabled)
+                {
+                    id += "Toggleable";
+                }
+                else
+                {
+                    id += "NonToggleable";
+                }
+            }
+
+            var group = new DataFeedGroup();
+            group.InitBase(id, path, parameters.GroupKeys, mod2.GetLocaleString($"{id}.Name"), mod2.GetLocaleString($"{id}.Description"));
+            yield return group;
+
+            var monkeysGrouping = parameters.GroupKeys.Concat(id).ToArray();
+
+            var monkeyCount = new DataFeedIndicator<string>();
+            monkeyCount.InitBase($"{id}.Count", path, monkeysGrouping, mod2.GetLocaleString($"{id}.Count.Name"), mod2.GetLocaleString($"{id}.Count.Description"));
+            monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
+            yield return monkeyCount;
+
+            foreach (var monkey in monkeys)
+            {
+                if (forceCheck && monkey.CanBeDisabled != canBeDisabled) continue;
+
+                var monkeyGroup = new DataFeedGroup();
+                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleString("Name"));
+                yield return monkeyGroup;
+
+                var monkeyGrouping = monkeysGrouping.Concat(monkey.Id).ToArray();
+
+                if (monkey is ICustomDataFeedItems customItems)
+                {
+                    await foreach (var item in customItems.Enumerate(parameters.Path, monkeyGrouping, parameters.SearchPhrase, parameters.ViewData))
+                        yield return item;
+
+                    continue;
+                }
+
+                if (monkey.CanBeDisabled)
+                {
+                    var toggle = new DataFeedToggle();
+                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, mod2.GetLocaleString($"{monkeyType}.Enabled.Name"), mod2.GetLocaleString($"{monkeyType}.Enabled.Description"));
+                    toggle.InitSetupValue(field => field.SetupConfigKeyField(monkey.EnabledToggle));
+                    yield return toggle;
+                }
+                else
+                {
+                    var enabledIndicator = new DataFeedIndicator<string>();
+                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, mod2.GetLocaleString($"{monkeyType}.Enabled.Name"), mod2.GetLocaleString($"{monkeyType}.Enabled.Description"));
+                    enabledIndicator.InitSetupValue(field => field.AssignLocaleString(mod2.GetLocaleString($"{monkeyType}.AlwaysEnabled")));
+                    yield return enabledIndicator;
+                }
+
+                var descriptionIndicator = new DataFeedIndicator<string>();
+                descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeyGrouping, mod2.GetLocaleString("Monkeys.Description.Name"), mod2.GetLocaleString("Monkeys.Description.Description"));
+                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
+                yield return descriptionIndicator;
+
+                var typeIndicator = new DataFeedIndicator<string>();
+                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, mod2.GetLocaleString("Monkeys.Type.Name"), mod2.GetLocaleString($"{monkeyType}.Type.Description"));
+                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
+                yield return typeIndicator;
+            }
         }
     }
 }
