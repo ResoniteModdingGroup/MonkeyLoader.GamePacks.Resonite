@@ -1,6 +1,7 @@
 ﻿using Elements.Assets;
 using Elements.Core;
 using FrooxEngine;
+using FrooxEngine.UIX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,38 +50,27 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         {
             // text slot for the tooltip
             Root = TooltipConfig.Instance.EnableNonLocalTooltips ? parent.AddSlot("Tooltip") : parent.AddLocalSlot("Local Tooltip");
-            Root.LocalPosition = localPosition;
+            Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.01f) + float3.Down * parent.GlobalScaleToLocal(0.025f);
 
-            IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
+            IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null; // does this work?
 
-            TextRenderer = Root.AttachComponent<TextRenderer>();
-            TextRenderer.Text.SetLocalized(label);
-            TextRenderer.VerticalAlign.Value = TextVerticalAlignment.Top;
-            TextRenderer.HorizontalAlign.Value = TextHorizontalAlignment.Left;
-            TextRenderer.Size.Value = 200 * Scale;
-            TextRenderer.Bounded.Value = true;
-            TextRenderer.BoundsSize.Value = new float2(700 * Scale, 1);
-            TextRenderer.BoundsAlignment.Value = Alignment.TopLeft;
-            TextRenderer.Color.Value = TooltipConfig.Instance.TextColor;
-
-            // back panel slot
-            var backPanelOffset = TooltipConfig.Instance.EnableNonLocalTooltips ? Root.AddSlot("bgOffset") : Root.AddLocalSlot("bgOffset");
-            backPanelOffset.LocalPosition = new float3(0, 0, 1);
-            var backPanel = TooltipConfig.Instance.EnableNonLocalTooltips ? backPanelOffset.AddSlot("Background") : backPanelOffset.AddLocalSlot("Background");
-            var quad = backPanel.AttachComponent<QuadMesh>();
-            var meshRenderer = backPanel.AttachComponent<MeshRenderer>();
-            meshRenderer.Mesh.Target = quad;
-            var sizeDriver = Root.AttachComponent<BoundingBoxDriver>();
-            sizeDriver.BoundedSource.Target = TextRenderer;
-            sizeDriver.Size.Target = backPanel.Scale_Field;
-            sizeDriver.Center.Target = backPanel.Position_Field;
-            sizeDriver.Padding.Value = new float3(8 * Scale, 8 * Scale, 0);
-
-            var mat = backPanel.AttachComponent<UI_UnlitMaterial>();
-            mat.Tint.Value = TooltipConfig.Instance.BackgroundColor;
-            meshRenderer.Material.Target = mat;
-
-            Root.GlobalScale = Root.World.LocalUserViewScale * new float3(.001f, .001f, .001f);
+            var ui = RadiantUI_Panel.SetupPanel(Root, label, new float2(Scale * 700, 100 * Scale), false, false);
+            if (ui.Canvas.Slot.GetComponent<BoxCollider>() is BoxCollider collider) collider.Enabled = false;
+            if (ui.Canvas.Slot.GetComponentInChildren<Image>() is Image image) image.Tint.Value = TooltipConfig.Instance.BackgroundColor;
+            foreach (var text in ui.Canvas.Slot.GetComponentsInChildren<Text>())
+            {
+                float textSize = 24f;
+                if (Scale < 1)
+                {
+                    textSize *= MathX.Pow(Scale, 1.5f);
+                }
+                else
+                {
+                    textSize *= MathX.Pow(Scale, 6);
+                }
+                text.Size.Value = textSize;
+                text.Color.Value = TooltipConfig.Instance.TextColor;
+            }
         }
 
         internal void Close() => Root.Destroy();
