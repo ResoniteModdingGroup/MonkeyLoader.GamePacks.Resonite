@@ -210,10 +210,10 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             var monkeysGrouping = parameters.GroupKeys.Concat(id).ToArray();
 
-            var monkeyCount = new DataFeedIndicator<string>();
-            monkeyCount.InitBase($"{id}.Count", path, monkeysGrouping, localeMod.GetLocaleString($"{id}.Count.Name"), localeMod.GetLocaleString($"{id}.Count.Description"));
-            monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
-            yield return monkeyCount;
+            //var monkeyCount = new DataFeedIndicator<string>();
+            //monkeyCount.InitBase($"{id}.Count", path, monkeysGrouping, localeMod.GetLocaleString($"{id}.Count.Name"), localeMod.GetLocaleString($"{id}.Count.Description"));
+            //monkeyCount.InitSetupValue(field => field.Value = monkeys.Length.ToString());
+            //yield return monkeyCount;
 
             foreach (var monkey in monkeys)
             {
