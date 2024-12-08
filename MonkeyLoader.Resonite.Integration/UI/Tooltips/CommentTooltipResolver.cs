@@ -38,9 +38,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// that starts with the right <see cref="CommentTextPrefix">prefix</see>
         /// and extracts the tooltip label from it.
         /// </summary>
-        /// <param name="button"></param>
-        /// <param name="label"></param>
-        /// <returns></returns>
+        /// <param name="button">The button component next to which a <see cref="Comment"/> will be searched.</param>
+        /// <param name="label">The found label if a suitable comment is found; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a suitable <see cref="Comment"/> was found; otherwise, <c>false</c>.</returns>
         public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out string? label)
         {
             var commentText = button.Slot.GetComponent<Comment>(IsTooltipComment)?.Text.Value;
