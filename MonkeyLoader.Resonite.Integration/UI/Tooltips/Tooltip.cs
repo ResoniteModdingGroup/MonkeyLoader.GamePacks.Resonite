@@ -38,7 +38,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <summary>
         /// Gets the scale multiplier for this tooltip.
         /// </summary>
-        public float Scale => (IsOnDash ? 2.5f : 1) * TooltipConfig.Instance.TextScale;
+        public float Scale => TooltipConfig.Instance.TextScale;
 
         /// <summary>
         /// Gets the text renderer that's displaying
@@ -52,7 +52,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             Root = TooltipConfig.Instance.EnableNonLocalTooltips ? parent.AddSlot("Tooltip") : parent.AddLocalSlot("Local Tooltip");
             Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.01f) + float3.Down * parent.GlobalScaleToLocal(0.025f);
 
-            IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null; // does this work?
+            IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
 
             var ui = RadiantUI_Panel.SetupPanel(Root, label, new float2(Scale * 700, 100 * Scale), false, false);
             if (ui.Canvas.Slot.GetComponent<BoxCollider>() is BoxCollider collider) collider.Enabled = false;
