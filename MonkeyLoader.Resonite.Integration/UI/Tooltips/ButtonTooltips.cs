@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Patching;
@@ -32,10 +33,19 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         [HarmonyPatch(nameof(Button.RunHoverEnter))]
         private static void RunHoverEnterPostfix(Button __instance, ButtonEventData eventData)
         {
-            if (!Enabled || __instance.Slot.GetComponentInParents<Canvas>()?.Slot is not Slot tooltipParent)
+            if (!Enabled
+             || TooltipManager.HasTooltip(__instance)
+             || __instance.RectTransform.FilterWorldElement() is not RectTransform buttonRect
+             || buttonRect?.Canvas.Slot is not Slot tooltipParent)
                 return;
 
-            TooltipManager.TryOpenTooltip(__instance, eventData, tooltipParent);
+            var canvasBounds = buttonRect.GetCanvasBounds();
+            var canvasHitPoint = tooltipParent.GlobalPointToLocal(eventData.globalPoint);
+
+            var localOffset = canvasBounds.Center.x_ + canvasBounds.Min._y - canvasHitPoint.xy;
+            var offset = tooltipParent.LocalVectorToGlobal(localOffset.xy_) + (0.01f * tooltipParent.Backward);
+
+            TooltipManager.TryOpenTooltip(__instance, eventData, tooltipParent, in offset);
         }
 
         [HarmonyPostfix]
