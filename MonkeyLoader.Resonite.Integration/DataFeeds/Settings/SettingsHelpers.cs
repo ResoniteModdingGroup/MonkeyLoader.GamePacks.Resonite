@@ -219,15 +219,9 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             {
                 if (forceCheck && monkey.CanBeDisabled != canBeDisabled) continue;
 
-                var monkeyGroup = new DataFeedGroup();
-                monkeyGroup.InitBase($"{monkey.Id}", path, monkeysGrouping, monkey.GetLocaleString("Name"));
-                yield return monkeyGroup;
-
-                var monkeyGrouping = monkeysGrouping.Concat(monkey.Id).ToArray();
-
                 if (monkey is ICustomDataFeedItems customItems)
                 {
-                    await foreach (var item in customItems.Enumerate(parameters.Path, monkeyGrouping, parameters.SearchPhrase, parameters.ViewData))
+                    await foreach (var item in customItems.Enumerate(parameters.Path, monkeysGrouping, parameters.SearchPhrase, parameters.ViewData))
                         yield return item;
 
                     continue;
@@ -236,27 +230,27 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 if (monkey.CanBeDisabled)
                 {
                     var toggle = new DataFeedToggle();
-                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, localeMod.GetLocaleString($"{monkeyType}.Enabled.Name"), localeMod.GetLocaleString($"{monkeyType}.Enabled.Description"));
+                    toggle.InitBase($"{monkey.Id}.Enabled", path, monkeysGrouping, monkey.GetLocaleString("Name"), monkey.GetLocaleString("Description"));
                     toggle.InitSetupValue(field => field.SetupConfigKeyField(monkey.EnabledToggle));
                     yield return toggle;
                 }
                 else
                 {
                     var enabledIndicator = new DataFeedIndicator<string>();
-                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeyGrouping, localeMod.GetLocaleString($"{monkeyType}.Enabled.Name"), localeMod.GetLocaleString($"{monkeyType}.Enabled.Description"));
-                    enabledIndicator.InitSetupValue(field => field.AssignLocaleString(localeMod.GetLocaleString($"{monkeyType}.AlwaysEnabled")));
+                    enabledIndicator.InitBase($"{monkey.Id}.Enabled", path, monkeysGrouping, monkey.GetLocaleString("Name"), monkey.GetLocaleString("Description"));
+                    enabledIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
                     yield return enabledIndicator;
+
+                    //var descriptionIndicator = new DataFeedIndicator<string>();
+                    //descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeysGrouping, localeMod.GetLocaleString("Monkeys.Description.Name"), localeMod.GetLocaleString("Monkeys.Description.Description"));
+                    //descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
+                    //yield return descriptionIndicator;
                 }
 
-                var descriptionIndicator = new DataFeedIndicator<string>();
-                descriptionIndicator.InitBase($"{monkey.Id}.Description", path, monkeyGrouping, localeMod.GetLocaleString("Monkeys.Description.Name"), localeMod.GetLocaleString("Monkeys.Description.Description"));
-                descriptionIndicator.InitSetupValue(field => field.AssignLocaleString(monkey.GetLocaleString("Description")));
-                yield return descriptionIndicator;
-
-                var typeIndicator = new DataFeedIndicator<string>();
-                typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeyGrouping, localeMod.GetLocaleString("Monkeys.Type.Name"), localeMod.GetLocaleString($"{monkeyType}.Type.Description"));
-                typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
-                yield return typeIndicator;
+                //var typeIndicator = new DataFeedIndicator<string>();
+                //typeIndicator.InitBase($"{monkey.Id}.Type", path, monkeysGrouping, localeMod.GetLocaleString("Monkeys.Type.Name"), localeMod.GetLocaleString($"{monkeyType}.Type.Description"));
+                //typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
+                //yield return typeIndicator;
             }
         }
     }
