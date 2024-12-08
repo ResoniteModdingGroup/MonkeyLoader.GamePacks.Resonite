@@ -80,6 +80,7 @@
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Allows creating working standalone facets from MonkeyLoader Mod Settings items.",
     "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings.",
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Sends out the various Build Member Editor events to allow monkeys to override the generation of them.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Name": "Default Member Editor Handlers",
     "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generates the default member editors for inspectors.",
     "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Turns the SyncDelegate targeted by a Button into a locale key to display as a tooltip.",
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Adds tooltip resolve requests to UIX Buttons.",
@@ -87,9 +88,34 @@
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Sends out tooltip resolve requests from different sources. The tooltip system is based on the Tooltippery mod originally created by Psychpsyo.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sends the FrooxEngine UniLog messages to the MonkeyLoader Console when available.",
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Handles injecting elements into the SettingsDataFeed.<br/>This injector can't be disabled to ensure that the MonkeyLoader settings remain available.",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "Root Category Settings Items",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "Non-Toggleable Settings Items",
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "Generates data feed items for the monkey config sections.",
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Description": "Generates data feed items for the mod metadata.",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "Generates data feed items for the non-toggleable monkeys.",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "Generates data feed items for the root MonkeyLoader category.",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Generates data feed items to save and reset the config sections.",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Generates fallback locale messages for the mod settings.",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generates data feed items for the toggleable monkeys.",
 
-    "Tooltip.Slot.ResetPosition": "Resets the relative Position of Slot [{Name}] to [0; 0; 0].",
-    "Tooltip.Slot.ParentUnderWorldRoot": "Reparents the Slot [{Name}] from [{Parent}] to the world root while keeping its global transform.",
-    "Tooltip.Slot.ParentUnderLocalUserSpace": "Reparents the Slot [{Name}] from [{Parent}] to your local user space while keeping its global transform."
+    "MonkeyLoader.GamePacks.Resonite.OpenLinkedDynamicVariableSpace.Description": "Adds buttons to dynamic variable components to open the linked space.",
+
+    "Tooltip.Slot.ResetPosition": "Resets the local position of the slot to [0; 0; 0].",
+    "Tooltip.Slot.ResetRotation": "Resets the local rotation of the slot to [0; 0; 0].",
+    "Tooltip.Slot.ResetScale": "Resets the local scale of the slot to [1; 1; 1].",
+    "Tooltip.Slot.ParentUnderWorldRoot": "Reparents the selected slot to the world root while keeping its global transform.",
+    "Tooltip.Slot.ParentUnderLocalUserSpace": "Reparents the selected slot to the parent of your user slot while keeping its global transform.",
+    "Tooltip.Slot.OnCreatePivotAtCenter": "Creates a new parent above the selected slot positioned at the center of the selected slot's bounding box.",
+    "Tooltip.Slot.JumpTo": "Teleports you to the global position of the selected slot.",
+    "Tooltip.Slot.BringTo": "Positions the selected slot in front of you. Undoable.",
+
+    "Tooltip.SceneInspector.OnDestroyPressed": "Undoable destroy without preserving assets.",
+    "Tooltip.SceneInspector.OnDestroyPreservingAssetsPressed": "Undoable destroy while preserving assets.",
+    "Tooltip.SceneInspector.OnAddChildPressed": "Creates a new child under the selected slot. Undoable.",
+    "Tooltip.SceneInspector.OnSetRootPressed": "Sets the root view of the inspector to the selected slot.",
+    "Tooltip.SceneInspector.OnInsertParentPressed": "Creates a new parent above the selected slot and copies the transform, and then resets the transform of the selected slot. Undoable.",
+    "Tooltip.SceneInspector.OnObjectRootPressed": "Sets the root view of the inspector to the object root of the selected slot.",
+    "Tooltip.SceneInspector.OnRootUpPressed": "Sets the root view of the inspector to the parent of the selected slot.",
+    "Tooltip.SceneInspector.OnDuplicatePressed": "Duplicates the selected slot. Undoable."
   }
 }
