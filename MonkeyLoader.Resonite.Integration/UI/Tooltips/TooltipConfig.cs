@@ -9,12 +9,12 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     /// </summary>
     public sealed class TooltipConfig : SingletonConfigSection<TooltipConfig>
     {
-        private static readonly DefiningConfigKey<colorX> _backgroundColorKey = new("BackgroundColor", "Sets the background color of a tooltip.", () => colorX.Black.SetA(.75f));
+        private static readonly DefiningConfigKey<colorX> _backgroundColorKey = new("BackgroundColor", "Sets the background color of a tooltip.", () => colorX.Black.SetA(1f));
         private static readonly DefiningConfigKey<bool> _enableDebugButtonData = new("EnableDebugButtonData", "Controls whether debug data for missing button tooltips is logged. Useful when wanting to add new labels.", () => false);
         private static readonly DefiningConfigKey<bool> _enableNonLocalTooltips = new("EnableNonLocalTooltips", "When enabled, tooltips are created as regular slots instead of local ones. Can be used to show them to others. Experimental.", () => false);
         private static readonly DefiningConfigKey<colorX> _textColorKey = new("TextColor", "Sets the text color of a tooltip.", () => colorX.White);
 
-        private static readonly DefiningConfigKey<float> _textScaleKey = new("TextSize", "Sets the size of the text on a tooltip.", () => 1)
+        private static readonly DefiningConfigKey<float> _textScaleKey = new("TextSize", "Sets the size of the text on a tooltip.", () => 0.75f)
         {
             new ConfigKeyRange<float>(.5f, 4)
         };
