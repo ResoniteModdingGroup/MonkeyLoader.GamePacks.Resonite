@@ -28,7 +28,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <returns><c>true</c> if the tooltip was closed; <c>false</c> if there was no tooltip.</returns>
         public static bool CloseTooltip(IButton button)
         {
-            if (!_openTooltips.TryGetValue(button, out var tooltip))
+            if (!TryGetTooltip(button, out var tooltip))
                 return false;
 
             tooltip.Close();
@@ -36,6 +36,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
             return true;
         }
+
+        /// <summary>
+        /// Checks if there is a <see cref="Tooltip"/> associated with this <see cref="IButton"/>.
+        /// </summary>
+        /// <param name="button">The button the tooltip is attached to.</param>
+        /// <returns><c>true</c> if a <see cref="Tooltip"/> for this <see cref="IButton"/> was found; otherwise, <c>false</c>.</returns>
+        public static bool HasTooltip(IButton button)
+            => _openTooltips.ContainsKey(button);
 
         /// <summary>
         /// Creates a tooltip according to the given parameters for the given button.<br/>
@@ -57,6 +65,15 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         }
 
         /// <summary>
+        /// Tries to get the <see cref="Tooltip"/> associated with this <see cref="IButton"/>.
+        /// </summary>
+        /// <param name="button">The button the tooltip is attached to.</param>
+        /// <param name="tooltip">The associated <see cref="Tooltip"/> if one is open; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a <see cref="Tooltip"/> for this <see cref="IButton"/> was found; otherwise, <c>false</c>.</returns>
+        public static bool TryGetTooltip(IButton button, [NotNullWhen(true)] out Tooltip? tooltip)
+            => _openTooltips.TryGetValue(button, out tooltip);
+
+        /// <summary>
         /// Tries to open a tooltip for the given button details,
         /// optionally returning the already open or newly created tooltip.
         /// </summary>
@@ -69,7 +86,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
         /// <param name="tooltip">The tooltip if one was already open or newly opened; otherwise, <c>null</c>.</param>
         /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, [NotNullWhen(true)] out Tooltip? tooltip)
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
         {
             if (_openTooltips.TryGetValue(button, out tooltip))
                 return true;
@@ -77,8 +94,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (!TryResolveTooltipLabel(button, buttonEventData, out var label))
                 return false;
 
+            var position = buttonEventData.globalPoint + globalOffset;
+
             tooltip = MakeTooltip(button, tooltipParent,
-                new float3(buttonEventData.localPoint.X, buttonEventData.localPoint.Y, -1 * button.World.LocalUserViewScale.Z * (.001f / tooltipParent.GlobalScale.Z)),
+                tooltipParent.GlobalPointToLocal(position),// new float3(buttonEventData.localPoint.X, buttonEventData.localPoint.Y, -1 * button.World.LocalUserViewScale.Z * (.001f / tooltipParent.GlobalScale.Z)),
                 label.Value);
 
             return true;
@@ -94,9 +113,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="button">The button the tooltip is attached to.</param>
         /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
         /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
+        /// <param name="globalOffset">The offset of the top-mi</param>
         /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent)
-            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _);
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, in float3 globalOffset = default)
+            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset);
 
         /// <summary>
         /// Tries to resolve the tooltip label for the given button details.
