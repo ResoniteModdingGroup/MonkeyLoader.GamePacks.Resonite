@@ -73,6 +73,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 }
             }
 
+            arguments.Add(LocaleExtensions.ModLocaleStringIndicatorArgumentName, string.Empty);
             eventData.Label = localeKey.AsLocaleKey(arguments: arguments);
 
             if (TooltipConfig.Instance.EnableDebugButtonData)
