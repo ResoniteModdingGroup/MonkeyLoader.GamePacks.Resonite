@@ -48,15 +48,26 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         internal Tooltip(Slot parent, in float3 localPosition, in LocaleString label)
         {
+            float xSize, ySize;
+            xSize = MathX.Min(700f * Scale, 700f);
+            ySize = (100f * Scale + label.content.Length);
             // text slot for the tooltip
             Root = TooltipConfig.Instance.EnableNonLocalTooltips ? parent.AddSlot("Tooltip") : parent.AddLocalSlot("Local Tooltip");
-            Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.01f) + float3.Down * parent.GlobalScaleToLocal(0.025f);
+            Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.01f) + float3.Down * (ySize * 0.5f);
 
             IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
 
-            var ui = RadiantUI_Panel.SetupPanel(Root, label, new float2(Scale * 700, 100 * Scale), false, false);
+            var ui = RadiantUI_Panel.SetupPanel(Root, label, new float2(xSize, ySize), false, false);
+
             if (ui.Canvas.Slot.GetComponent<BoxCollider>() is BoxCollider collider) collider.Enabled = false;
             if (ui.Canvas.Slot.GetComponentInChildren<Image>() is Image image) image.Tint.Value = TooltipConfig.Instance.BackgroundColor;
+            if (ui.Canvas.Slot.FindChild("Header", false, false) is Slot headerSlot && headerSlot.GetComponent<RectTransform>() is RectTransform rectTransform)
+            {
+                rectTransform.AnchorMin.Value = float2.Zero;
+                rectTransform.OffsetMin.Value = float2.Zero;
+            }
+            if (ui.Canvas.Slot.FindChild("Content", false, false) is Slot contentSlot) contentSlot.Destroy();
+
             foreach (var text in ui.Canvas.Slot.GetComponentsInChildren<Text>())
             {
                 float textSize = 24f;
