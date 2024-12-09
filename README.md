@@ -21,7 +21,7 @@ and when the game shuts down.
 ### How to disable
 
 - Use the Steam launch argument `--doorstop-enabled false`
-- Alternatively, delete `winhttp.dll` from the Resonite folder
+- Alternatively, rename or remove the `winhttp.dll` file in the Resonite folder
 
 ## Feature Overview
 
@@ -50,6 +50,7 @@ to make the development of MonkeyLoader mods for Resonite a smooth experience.
     * Setup a local action for buttons that is triggerable by anyone
     * Nine Slice defined by two float4
     * Shorthand to destroy a slot when the local user leaves
+    * Shorthand to setup tooltips
 * Various new Monkeys setup for Resonite...
     * (Configured)ResoniteMonkey
 * ... and the event system
@@ -59,10 +60,13 @@ to make the development of MonkeyLoader mods for Resonite a smooth experience.
 
 Additional built-in features for users:
 
-* OpenLinkedDynamicVariableSpace
-    * Extra buttons on the headers of dynamic variable components to open the linked dynamic variable space
+* Full Mod-provided Locale support
+* Mod Settings integrated into the native Resonite Settings tab
 * ModSettingStandaloneFacet
     * Individual mod settings can be pulled out of the dash settings as standalone facets and placed anywhere in userspace. They will keep working even after restarts.
+* OpenLinkedDynamicVariableSpace
+    * Extra buttons on the headers of dynamic variable components to open the linked dynamic variable space
+* Tooltips (backwards-compatible with [Tooltippery by Psychpsyo](https://github.com/Psychpsyo/Tooltippery))
 
 
 ## Contributing
