@@ -119,8 +119,8 @@
     "Tooltip.SceneInspector.OnDuplicatePressed": "Duplicates the selected slot. Undoable.",
 
     "Tooltip.FileBrowser.CreateNew": "Creates a new folder or exports the held item.",
-    "Tooltip.FileBrowser.RunImport": "Imports the selected file.",
+    "Tooltip.FileBrowser.RunImport": "Imports the selected file or folder.",
     "Tooltip.FileBrowser.RunRawImport": "Imports the selected file as a raw file.",
-    "Tooltip.FileBrowser.Reload": "Refresh the current directory view."
+    "Tooltip.FileBrowser.Reload": "Refreshes the current directory view."
   }
 }
