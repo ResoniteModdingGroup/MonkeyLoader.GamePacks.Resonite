@@ -116,6 +116,11 @@
     "Tooltip.SceneInspector.OnInsertParentPressed": "Creates a new parent above the selected slot and copies the transform, and then resets the transform of the selected slot. Undoable.",
     "Tooltip.SceneInspector.OnObjectRootPressed": "Sets the root view of the inspector to the object root of the selected slot.",
     "Tooltip.SceneInspector.OnRootUpPressed": "Sets the root view of the inspector to the parent of the selected slot.",
-    "Tooltip.SceneInspector.OnDuplicatePressed": "Duplicates the selected slot. Undoable."
+    "Tooltip.SceneInspector.OnDuplicatePressed": "Duplicates the selected slot. Undoable.",
+
+    "Tooltip.FileBrowser.CreateNew": "Creates a new folder or exports the held item.",
+    "Tooltip.FileBrowser.RunImport": "Imports the selected file.",
+    "Tooltip.FileBrowser.RunRawImport": "Imports the selected file as a raw file.",
+    "Tooltip.FileBrowser.Reload": "Refresh the current directory view."
   }
 }
