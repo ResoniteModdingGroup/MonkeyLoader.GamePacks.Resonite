@@ -33,12 +33,18 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 pressed = eventData.Button.Pressed;
             }
             else if (eventData.Button.Slot.GetComponent<ButtonRelayBase>() is ButtonRelayBase relay
-             && relay.GetSyncMember(nameof(ButtonRelay<dummy>.ButtonPressed)) is ISyncDelegate relayPressed
-             && relay.GetSyncMember(nameof(ButtonRelay<dummy>.Argument)) is IField relayArgument)
+             && relay.GetSyncMember(nameof(ButtonRelay<dummy>.ButtonPressed)) is ISyncDelegate relayPressed)
             {
                 pressed = relayPressed;
 
-                arguments = new() { ["RelayArgument"] = relayArgument is ISyncRef syncRef ? syncRef.Target.GetReferenceLabel() : relayArgument.BoxedValue };
+                if (relay.GetSyncMember(nameof(ButtonRelay<dummy>.Argument)) is IField relayArgument)
+                {
+                    arguments = new() { ["RelayArgument"] = relayArgument is ISyncRef syncRef ? syncRef.Target.GetReferenceLabel() : relayArgument.BoxedValue };
+                }
+                else
+                {
+                    arguments = [];
+                }
             }
             else
             {
