@@ -135,7 +135,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             _resolveTooltipLabel?.TryInvokeAll(eventData);
 
             label = eventData.Label!;
-            return eventData.HasLabel && (!label.Value.isLocaleKey || label.Value.HasMessageInCurrent());
+            return eventData.HasLabel && (!label.Value.isLocaleKey || label.Value.HasMessageInCurrent() || TooltipConfig.Instance.EnableDebugButtonData);
         }
 
         /// <inheritdoc/>
