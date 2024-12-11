@@ -20,6 +20,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             new ConfigKeyRange<float>(.5f, 4)
         };
 
+        private static readonly DefiningConfigKey<float> _hoverTime = new("Hover Time", "The amount of time required to hover on the button before the tooltip opens.", () => 0.5f)
+        {
+            new ConfigKeyRange<float>(0, 2)
+        };
+
         /// <summary>
         /// Gets the background color for tooltips.
         /// </summary>
@@ -50,6 +55,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// Gets the text scale for tooltips.
         /// </summary>
         public float TextScale => _textScaleKey;
+
+        public float HoverTime => _hoverTime;
 
         /// <inheritdoc/>
         public override Version Version { get; } = new Version(1, 0, 0);

@@ -45,7 +45,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             var localOffset = canvasBounds.Center.x_ + canvasBounds.Min._y - canvasHitPoint.xy;
             var offset = tooltipParent.LocalVectorToGlobal(localOffset.xy_) + (0.01f * tooltipParent.Backward);
 
-            __instance.World.RunInSeconds(0.5f, () => 
+            __instance.World.RunInSeconds(TooltipConfig.Instance.HoverTime, () => 
             { 
                 if (!TooltipManager.HasTooltip(__instance))
                 {
