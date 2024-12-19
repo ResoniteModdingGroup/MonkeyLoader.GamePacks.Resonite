@@ -1,5 +1,6 @@
 ﻿using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
+using MonkeyLoader.Resonite.UI.Inspectors;
 using System;
 
 namespace MonkeyLoader.Resonite.UI
@@ -9,25 +10,25 @@ namespace MonkeyLoader.Resonite.UI
     /// </summary>
     public sealed class DefaultInspectorHeaderConfig : SingletonConfigSection<DefaultInspectorHeaderConfig>
     {
-        private static readonly DefiningConfigKey<int> _destroyOffset = new("DestroyOffset", "The Order Offset of the Destroy button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 12, valueValidator: ValidateRange)
+        private static readonly DefiningConfigKey<int> _destroyOffset = new("DestroyOffset", "The Order Offset of the Destroy button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 12)
         {
             new ConfigKeyRange<int>(0, 16),
             new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 12)
         };
 
-        private static readonly DefiningConfigKey<int> _duplicateOffset = new("DuplicateOffset", "The Order Offset of the Duplicate button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 11, valueValidator: ValidateRange)
+        private static readonly DefiningConfigKey<int> _duplicateOffset = new("DuplicateOffset", "The Order Offset of the Duplicate button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 11)
         {
             new ConfigKeyRange<int>(0, 16),
             new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 11)
         };
 
-        private static readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 4, valueValidator: ValidateRange)
+        private static readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 4)
         {
             new ConfigKeyRange<int>(0, 16),
             new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 10)
         };
 
-        private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 6, valueValidator: ValidateRange)
+        private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 6)
         {
             new ConfigKeyRange<int>(0, 16),
             new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 6)
@@ -65,8 +66,5 @@ namespace MonkeyLoader.Resonite.UI
         private static long IntToLong(int value) => value;
 
         private static int LongToInt(long value) => (int)value;
-
-        private static bool ValidateRange(int value)
-            => value is >= 0 and <= 16;
     }
 }
