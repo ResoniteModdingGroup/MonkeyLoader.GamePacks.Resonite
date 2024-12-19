@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     internal sealed class DefaultInspectorHeaderHandler
         : ConfiguredResoniteEventHandlerMonkey<DefaultInspectorHeaderHandler, DefaultInspectorHeaderConfig, BuildInspectorHeaderEvent>

@@ -7,14 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     internal sealed class OpenLinkedDynamicVariableSpace
         : ResoniteInspectorMonkey<OpenLinkedDynamicVariableSpace, BuildInspectorHeaderEvent>
     {
-        public override int Priority => HarmonyLib.Priority.First;
-
         public override bool CanBeDisabled => true;
+        public override int Priority => HarmonyLib.Priority.First;
 
         public OpenLinkedDynamicVariableSpace() : base(typeof(DynamicVariableBase<>))
         { }
