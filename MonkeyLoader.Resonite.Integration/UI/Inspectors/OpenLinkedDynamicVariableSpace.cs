@@ -18,10 +18,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public OpenLinkedDynamicVariableSpace() : base(typeof(DynamicVariableBase<>))
         { }
 
-        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => Enabled;
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {
             if (Traverse.Create(eventData.Worker).Field("handler").Field("_currentSpace").GetValue() is not DynamicVariableSpace space)

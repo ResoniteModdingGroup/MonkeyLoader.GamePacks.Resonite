@@ -15,10 +15,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     {
         public override int Priority => HarmonyLib.Priority.Normal;
 
-        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => true;
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {
             var ui = eventData.UI;
