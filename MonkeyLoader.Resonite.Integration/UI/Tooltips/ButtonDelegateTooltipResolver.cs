@@ -18,10 +18,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public override int Priority => HarmonyLib.Priority.HigherThanNormal;
         public override bool SkipCanceled => true;
 
-        protected override bool AppliesTo(ResolveTooltipLabelEvent eventData) => Enabled;
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
             ISyncDelegate pressed;

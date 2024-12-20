@@ -8,16 +8,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     internal sealed class DefaultInspectorHeaderHandler
         : ConfiguredResoniteEventHandlerMonkey<DefaultInspectorHeaderHandler, DefaultInspectorHeaderConfig, BuildInspectorHeaderEvent>
     {
         public override int Priority => HarmonyLib.Priority.Normal;
-
-        protected override bool AppliesTo(BuildInspectorHeaderEvent eventData) => true;
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {

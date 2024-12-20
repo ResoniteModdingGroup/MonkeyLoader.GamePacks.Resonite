@@ -51,12 +51,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         }
 
         /// <inheritdoc/>
-        protected override bool AppliesTo(ResolveTooltipLabelEvent eventData) => Enabled;
-
-        /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        /// <inheritdoc/>
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
             if (TryGetTooltipLabel(eventData.Button, out var label))

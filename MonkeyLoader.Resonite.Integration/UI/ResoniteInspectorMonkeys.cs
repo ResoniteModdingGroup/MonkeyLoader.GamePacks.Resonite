@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Events;
+using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -19,7 +20,7 @@ namespace MonkeyLoader.Resonite.UI
         where TMonkey : ResoniteInspectorMonkey<TMonkey, TEvent>, new()
         where TEvent : BuildInspectorEvent
     {
-        private readonly Dictionary<Type, bool> _matchCache = new();
+        private readonly Dictionary<Type, bool> _matchCache = [];
 
         /// <summary>
         /// Gets the <see cref="Type.GetGenericTypeDefinition">generic type definition</see> of the base type.
@@ -41,11 +42,15 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         /// <remarks>
-        /// Ensures that the worker given in the event derives from the <see cref="BaseType">base type</see>.
+        /// Ensures that this monkey is <see cref="MonkeyBase{T}.Enabled">enabled</see>
+        /// and that the worker given in the event derives from the <see cref="BaseType">base type</see>.
         /// </remarks>
         /// <inheritdoc/>
         protected override bool AppliesTo(TEvent eventData)
         {
+            if (!base.AppliesTo(eventData))
+                return false;
+
             var type = eventData.Worker.GetType();
 
             if (!_matchCache.TryGetValue(type, out var matches))
@@ -91,9 +96,11 @@ namespace MonkeyLoader.Resonite.UI
         { }
 
         /// <remarks>
-        /// Ensures that the worker given in the event is a <typeparamref name="TWorker"/>.
+        /// Ensures that this monkey is <see cref="MonkeyBase{T}.Enabled">enabled</see>
+        /// and that the worker given in the event is a <typeparamref name="TWorker"/>.
         /// </remarks>
         /// <inheritdoc/>
-        protected override bool AppliesTo(TEvent eventData) => eventData.Worker is TWorker;
+        protected override bool AppliesTo(TEvent eventData)
+            => base.AppliesTo(eventData) && eventData.Worker is TWorker;
     }
 }
