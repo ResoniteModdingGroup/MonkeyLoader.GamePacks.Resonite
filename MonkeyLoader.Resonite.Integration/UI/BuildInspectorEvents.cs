@@ -2,6 +2,7 @@
 using FrooxEngine;
 using System;
 using MonkeyLoader.Resonite.Events;
+using MonkeyLoader.Events;
 
 namespace MonkeyLoader.Resonite.UI
 {
@@ -27,8 +28,12 @@ namespace MonkeyLoader.Resonite.UI
     }
 
     /// <summary>
-    /// Represents the base class for the events fired during construction of a <see cref="Inspector"/>
+    /// Represents the base class for the events fired during construction of a <see cref="WorkerInspector"/>.
     /// </summary>
+    /// <remarks>
+    /// This base class is dispatched as an event as well.
+    /// </remarks>
+    [DispatchableBaseEvent]
     public abstract class BuildInspectorEvent : BuildUIEvent
     {
         /// <summary>
