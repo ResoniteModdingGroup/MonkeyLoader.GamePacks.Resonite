@@ -9,6 +9,9 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// <summary>
     /// Represents the base class for the events fired during construction of a <see cref="MemberEditor"/>
     /// </summary>
+    /// <remarks>
+    /// This base class is dispatched as an event as well.
+    /// </remarks>
     [DispatchableBaseEvent]
     public abstract class BuildMemberEditorEvent : CancelableBuildUIEvent
     {
