@@ -166,6 +166,9 @@ namespace MonkeyLoader.Resonite.Configuration
 
         void IComponent<IDefiningConfigKey<TKey>>.Initialize(IDefiningConfigKey<TKey> entity)
         {
+            if (ConfigKey is not null)
+                throw new InvalidOperationException($"This shared config item can't be initialized with key [{entity.Id}], as it has already been initialized with key [{ConfigKey.Id}]");
+
             ConfigKey = entity;
             entity.Changed += ValueChanged;
 
@@ -174,7 +177,7 @@ namespace MonkeyLoader.Resonite.Configuration
 
         /// <inheritdoc/>
         public void SetupOverride(World world)
-            => world.RunSynchronously(() => GetSharedValue(world));
+            => world.RunSynchronously(() => GetSharedValue(world, true));
 
         /// <inheritdoc/>
         public void ShutdownOverride(World world)
@@ -183,8 +186,8 @@ namespace MonkeyLoader.Resonite.Configuration
         private ValueUserOverride<TShared> GetSharedOverride(World world)
             => GetSharedValue(world).Value.GetUserOverride();
 
-        private ValueField<TShared> GetSharedValue(World world)
-            => world.GetSharedComponentOrCreate<ValueField<TShared>>(SharedId, SetupSharedField, 0, true, false, () => GetSharedConfigSlot(world));
+        private ValueField<TShared> GetSharedValue(World world, bool initialLoad = false)
+            => world.GetSharedComponentOrCreate<ValueField<TShared>>(SharedId, SetupSharedField, 0, true, initialLoad, () => GetSharedConfigSlot(world));
 
         private void SetupSharedField(ValueField<TShared> field)
         {
