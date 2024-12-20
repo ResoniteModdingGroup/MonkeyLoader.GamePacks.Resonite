@@ -14,29 +14,29 @@ namespace MonkeyLoader.Resonite.UI
         private readonly DefiningConfigKey<int> _destroyOffset = new("DestroyOffset", "The Order Offset of the Destroy button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 12)
         {
             OffsetRange,
-            new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 12)
+            MakeOffsetRangeShare(12)
         };
 
         private readonly DefiningConfigKey<int> _duplicateOffset = new("DuplicateOffset", "The Order Offset of the Duplicate button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 11)
         {
             OffsetRange,
-            new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 11)
+            MakeOffsetRangeShare(11)
         };
 
         private readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 4)
         {
             OffsetRange,
-            new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 10)
+            MakeOffsetRangeShare(10)
         };
 
         private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 6)
         {
             OffsetRange,
-            new ConfigKeySessionShare<int, long>(IntToLong, LongToInt, 6)
+            MakeOffsetRangeShare(6)
         };
 
         /// <summary>
-        /// Gets the range component used for <see cref="WorkerInspector"/> header items.
+        /// Gets the range component used for the offset of <see cref="WorkerInspector"/> header items.
         /// </summary>
         public static ConfigKeyRange<int> OffsetRange { get; } = new ConfigKeyRange<int>(0, 16);
 
@@ -68,6 +68,15 @@ namespace MonkeyLoader.Resonite.UI
         /// Gets the Order Offset share for the Worker Name button on Inspector Headers.
         /// </summary>
         public ConfigKeySessionShare<int, long> WorkerNameOffset => _workerNameOffset.Components.Get<ConfigKeySessionShare<int, long>>();
+
+        /// <summary>
+        /// Makes a new session share component used for the offset of
+        /// <see cref="WorkerInspector"/> header items, optionally using the given default.
+        /// </summary>
+        /// <param name="defaultValue">The default value for the shared config item for users that don't have it themselves.</param>
+        /// <returns>The newly created share component with the optional default.</returns>
+        public static ConfigKeySessionShare<int, long> MakeOffsetRangeShare(int defaultValue = default)
+            => new(IntToLong, LongToInt, defaultValue);
 
         private static long IntToLong(int value) => value;
 
