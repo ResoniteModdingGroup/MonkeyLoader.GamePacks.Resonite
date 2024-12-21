@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
 using System;
@@ -87,6 +88,44 @@ namespace MonkeyLoader.Resonite
                     return;
 
                 field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+            }
+
+            field.Changed += FieldChangedHandler;
+            configKey.Changed += ConfigKeyChangedHandler;
+
+            return FieldChangedHandler;
+        }
+
+        public static Action<IChangeable> SyncWithNullableEnumConfigKey<T>(this IField<T> field, IDefiningConfigKey configKey, string? eventLabel = null, bool allowWriteBack = true)
+        {
+            // support for nullable enums requires this to never be null
+            field.Value = (T)(configKey.GetValue() ?? default(T));
+            eventLabel ??= $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
+
+            void FieldChangedHandler(IChangeable _)
+            {
+                if (Equals(field.Value, configKey.GetValue()))
+                    return;
+
+                // this avoids unexpected behavior with nullable flag enums
+                if (configKey.ValueType.IsNullable() && configKey.ValueType.GetGenericArguments()[0].IsEnum && configKey.GetValue() is null && Equals(field.Value, default(T))) return;
+
+                if (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel))
+                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)));
+            }
+
+            void ConfigKeyChangedHandler(object sender, IConfigKeyChangedEventArgs args)
+            {
+                if (field.FilterWorldElement() == null)
+                {
+                    configKey.Changed -= ConfigKeyChangedHandler;
+                    return;
+                }
+
+                if (Equals(field.Value, configKey.GetValue()))
+                    return;
+
+                field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)));
             }
 
             field.Changed += FieldChangedHandler;
