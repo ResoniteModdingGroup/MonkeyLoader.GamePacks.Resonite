@@ -15,11 +15,20 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     /// <summary>
     /// Handles resolving the labels as well as opening and closing the tooltips for <see cref="IButton"/>s.
     /// </summary>
-    public sealed class TooltipManager : ConfiguredResoniteMonkey<TooltipManager, TooltipConfig>, ICancelableEventSource<ResolveTooltipLabelEvent>
+    public sealed class TooltipManager
+        : ConfiguredResoniteCancelableEventHandlerMonkey<TooltipManager, TooltipConfig, ResolveTooltipLabelEvent>,
+          ICancelableEventSource<ResolveTooltipLabelEvent>
     {
+        private static readonly Dictionary<IButton, LocaleString> _labelsByButton = [];
         private static readonly Dictionary<IButton, Tooltip> _openTooltips = [];
 
         private static CancelableEventDispatching<ResolveTooltipLabelEvent>? _resolveTooltipLabel;
+
+        /// <inheritdoc/>
+        public override int Priority => HarmonyLib.Priority.First;
+
+        /// <inheritdoc/>
+        public override bool SkipCanceled => true;
 
         /// <summary>
         /// Closes the tooltip for the given button.
@@ -39,6 +48,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
             return true;
         }
+
+        /// <summary>
+        /// Checks whether the given button has a <see cref="RegisterLabelForButton">registered</see> <see cref="LocaleString">label</see>.
+        /// </summary>
+        /// <param name="button">The button to check for a registered label.</param>
+        /// <returns><c>true</c> if the button has a registered label; otherwise, <c>false</c>.</returns>
+        public static bool HasLabelForButton(IButton button)
+            => _labelsByButton.ContainsKey(button);
 
         /// <summary>
         /// Checks if there is a <see cref="Tooltip"/> associated with this <see cref="IButton"/>.
@@ -68,6 +85,42 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         }
 
         /// <summary>
+        /// Registers a <see cref="LocaleString">label</see> for the given undestroyed button,
+        /// if it doesn't already <see cref="HasLabelForButton">have</see> one.
+        /// </summary>
+        /// <param name="button">The undestroyed button to register a label for.</param>
+        /// <param name="label">The label to register for the button.</param>
+        /// <returns><c>true</c> if the label was registered for the button; otherwise, <c>false</c>.</returns>
+        public static bool RegisterLabelForButton(IButton button, in LocaleString label)
+        {
+            if (button.FilterWorldElement() is null || _labelsByButton.ContainsKey(button))
+                return false;
+
+            _labelsByButton.Add(button, label);
+            button.Destroyed += OnLabeledButtonDestroyed;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to get the <see cref="RegisterLabelForButton">registered</see>
+        /// <see cref="LocaleString">label</see> for the given button.
+        /// </summary>
+        /// <param name="button">The button to get the registered label for.</param>
+        /// <param name="label">The registered label for the button if it has one; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if the button has a registered label; otherwise, <c>false</c>.</returns>
+        public static bool TryGetLabelForButton(IButton button, [NotNullWhen(true)] out LocaleString? label)
+        {
+            label = null;
+
+            if (!_labelsByButton.TryGetValue(button, out var possibleLabel))
+                return false;
+
+            label = possibleLabel;
+            return true;
+        }
+
+        /// <summary>
         /// Tries to get the <see cref="Tooltip"/> associated with this <see cref="IButton"/>.
         /// </summary>
         /// <param name="button">The button the tooltip is attached to.</param>
@@ -88,8 +141,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
         /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
         /// <param name="tooltip">The tooltip if one was already open or newly opened; otherwise, <c>null</c>.</param>
+        /// <param name="globalOffset">The offset from the button hitpoint at which the tooltip should be opened in global space.</param>
         /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent,
+            [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
         {
             if (_openTooltips.TryGetValue(button, out tooltip))
                 return true;
@@ -138,16 +193,46 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             _resolveTooltipLabel?.TryInvokeAll(eventData);
 
             label = eventData.Label!;
-            return eventData.HasLabel && (!label.Value.isLocaleKey || label.Value.HasMessageInCurrent() || TooltipConfig.Instance.EnableDebugButtonData);
+            if (!eventData.HasLabel)
+                return false;
+
+            if (!label.Value.isLocaleKey || label.Value.HasMessageInCurrent())
+            {
+                RegisterLabelForButton(button, label.Value);
+                return true;
+            }
+
+            return ConfigSection.EnableDebugButtonData;
+        }
+
+        /// <summary>
+        /// Removes the <see cref="RegisterLabelForButton">registered</see>
+        /// <see cref="LocaleString">label</see> for the given button.
+        /// </summary>
+        /// <param name="button">The button to remove the registered label of.</param>
+        /// <returns><c>true</c> if there was a label to remove; otherwise, <c>false</c>.</returns>
+        public static bool UnregisterLabelForButton(IButton button)
+        {
+            if (!_labelsByButton.Remove(button))
+                return false;
+
+            button.Destroyed -= OnLabeledButtonDestroyed;
+
+            return true;
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
+        protected override void Handle(ResolveTooltipLabelEvent eventData)
+        {
+            if (TryGetLabelForButton(eventData.Button, out var label))
+                eventData.Label = label;
+        }
 
         /// <inheritdoc/>
         protected override bool OnEngineReady()
         {
             Mod.RegisterEventSource(this);
+            Mod.RegisterEventHandler(this);
 
             return base.OnEngineReady();
         }
@@ -156,10 +241,16 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
+            {
+                Mod.UnregisterEventHandler(this);
                 Mod.UnregisterEventSource(this);
+            }
 
             return base.OnShutdown(applicationExiting);
         }
+
+        private static void OnLabeledButtonDestroyed(IDestroyable destroyable)
+            => UnregisterLabelForButton((IButton)destroyable);
 
         event CancelableEventDispatching<ResolveTooltipLabelEvent>? ICancelableEventSource<ResolveTooltipLabelEvent>.Dispatching
         {
