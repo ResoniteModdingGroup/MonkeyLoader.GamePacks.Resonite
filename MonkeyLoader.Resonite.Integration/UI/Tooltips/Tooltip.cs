@@ -53,7 +53,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             ySize = (100f * Scale + label.content.Length) * 0.575f;
             // text slot for the tooltip
             Root = TooltipConfig.Instance.EnableNonLocalTooltips ? parent.AddSlot("Tooltip") : parent.AddLocalSlot("Local Tooltip");
-            Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.01f) + float3.Down * (ySize * 0.5f);
+            Root.LocalPosition = localPosition + float3.Backward * parent.GlobalScaleToLocal(0.015f) + float3.Down * (.1f + (ySize * 0.5f));
 
             IsOnDash = Root.GetComponentInParents<UserspaceRadiantDash>() is not null;
 

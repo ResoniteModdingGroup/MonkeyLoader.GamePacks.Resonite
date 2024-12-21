@@ -214,6 +214,29 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         /// <summary>
+        /// Sets up a local-only <see cref="IButton"/> with the given <see cref="LocaleString"/> as a tooltip
+        /// by <see cref="TooltipManager.RegisterLabelForButton">registering</see> it with the <see cref="TooltipManager"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is the preferred overload to support localization on local-only buttons.<br/>
+        /// If a non-locale-key <see cref="LocaleString"/> is passed in, the bare string is used as the label.
+        /// </remarks>
+        /// <typeparam name="TButton">The specific type of the button.</typeparam>
+        /// <param name="button">The local-only button to set up with a tooltip.</param>
+        /// <param name="label">The localized label to display as a tooltip.</param>
+        /// <returns>The unchanged button.</returns>
+        /// <exception cref="InvalidOperationException">When the button is not local to the user.</exception>
+        public static TButton WithLocalTooltip<TButton>(this TButton button, LocaleString label)
+            where TButton : IButton
+        {
+            if (!button.Slot.IsLocalElement && !button.World.IsUserspace())
+                throw new InvalidOperationException("The button to label must be on a local slot or in userspace!");
+
+            TooltipManager.RegisterLabelForButton(button, label);
+            return button;
+        }
+
+        /// <summary>
         /// Sets up an <see cref="IButton"/> with the given label as a tooltip.
         /// </summary>
         /// <remarks>
@@ -221,13 +244,15 @@ namespace MonkeyLoader.Resonite.UI
         /// </remarks>
         /// <typeparam name="TButton">The specific type of the button.</typeparam>
         /// <param name="button">The button to set up with a tooltip.</param>
-        /// <param name="tooltipLabel">The label to display as a tooltip.</param>
+        /// <param name="label">The label to display as a tooltip.</param>
         /// <returns>The unchanged button.</returns>
-        public static TButton WithTooltip<TButton>(this TButton button, string tooltipLabel)
+        public static TButton WithTooltip<TButton>(this TButton button, string label)
             where TButton : IButton
         {
             var comment = button.Slot.AttachComponent<Comment>();
-            comment.Text.Value = CommentTooltipResolver.CommentTextPrefix + tooltipLabel;
+            comment.Text.Value = CommentTooltipResolver.CommentTextPrefix + label;
+
+            TooltipManager.RegisterLabelForButton(button, label);
 
             return button;
         }
@@ -241,15 +266,17 @@ namespace MonkeyLoader.Resonite.UI
         /// </remarks>
         /// <typeparam name="TButton">The specific type of the button.</typeparam>
         /// <param name="button">The button to set up with a tooltip.</param>
-        /// <param name="tooltip">The localized label to display as a tooltip.</param>
+        /// <param name="label">The localized label to display as a tooltip.</param>
         /// <returns>The unchanged button.</returns>
-        public static TButton WithTooltip<TButton>(this TButton button, LocaleString tooltip)
+        public static TButton WithTooltip<TButton>(this TButton button, LocaleString label)
             where TButton : IButton
         {
-            if (!tooltip.isLocaleKey)
-                return button.WithTooltip(tooltip.content);
+            if (!label.isLocaleKey)
+                return button.WithTooltip(label.content);
 
-            return button.WithTooltip(field => field.AssignLocaleString(tooltip));
+            TooltipManager.RegisterLabelForButton(button, label);
+
+            return button.WithTooltip(field => field.AssignLocaleString(label));
         }
 
         /// <summary>

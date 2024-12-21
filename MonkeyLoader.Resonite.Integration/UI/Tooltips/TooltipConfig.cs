@@ -14,9 +14,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     {
         private static readonly DefiningConfigKey<colorX> _backgroundColorKey = new("BackgroundColor", "Sets the background color of a tooltip.", () => RadiantUI_Constants.BG_COLOR);
         private static readonly DefiningConfigKey<bool> _enableDebugButtonData = new("EnableDebugButtonData", "Controls whether debug data for missing button tooltips is logged. Useful when wanting to add new labels.", () => false);
+        private static readonly DefiningConfigKey<bool> _enableDebugTooltipStay = new("EnableDebugTooltipStay", "Controls whether tooltips stick around after hovering off the button they're attached to.\r\nHover again after disabling to remove them.", () => false);
         private static readonly DefiningConfigKey<bool> _enableNonLocalTooltips = new("EnableNonLocalTooltips", "When enabled, tooltips are created as regular slots instead of local ones. Can be used to show them to others. Experimental.", () => false);
 
-        private static readonly DefiningConfigKey<float> _hoverTime = new("Hover Time", "The amount of time required to hover on the button before the tooltip opens.", () => 0.5f)
+        private static readonly DefiningConfigKey<float> _hoverTime = new("HoverTime", "The time required hovering a button before a tooltip may be opened.", () => 0.5f)
         {
             new ConfigKeyQuantity<float, Time>(new UnitConfiguration("s", "0", " ", ["s", "ms"]), null, 0, 2)
         };
@@ -42,10 +43,19 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public bool EnableDebugButtonData => _enableDebugButtonData;
 
         /// <summary>
+        /// Gets whether tooltips stick around after hovering off the button they're attached to.
+        /// </summary>
+        public bool EnableDebugTooltipStay => _enableDebugTooltipStay;
+
+        /// <summary>
         /// Gets whether tooltips should use regular slots rather than local ones.
         /// </summary>
         public bool EnableNonLocalTooltips => _enableNonLocalTooltips;
 
+        /// <summary>
+        /// Gets the time required hovering a button before a tooltip may be opened.
+        /// </summary>
+        /// <value>The time in seconds.</value>
         public float HoverTime => _hoverTime;
 
         /// <inheritdoc/>
