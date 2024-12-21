@@ -31,6 +31,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (!TryGetTooltip(button, out var tooltip))
                 return false;
 
+            if (ConfigSection.EnableDebugTooltipStay)
+                return true;
+
             tooltip.Close();
             _openTooltips.Remove(button);
 
