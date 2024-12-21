@@ -14,8 +14,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     /// text that starts with the right <see cref="CommentTextPrefix">prefix</see>.
     /// </summary>
     /// <remarks>
-    /// This covers backwards-compatibility to Psychpsyo's old
-    /// <see href="https://github.com/Psychpsyo/Tooltippery">Tooltippery</see> mod.
+    /// This covers backwards-compatibility to Psychpsyo's old Neos mod
+    /// <see href="https://github.com/Psychpsyo/Tooltippery">Tooltippery</see>.
     /// </remarks>
     public sealed class CommentTooltipResolver : ResoniteCancelableEventHandlerMonkey<CommentTooltipResolver, ResolveTooltipLabelEvent>
     {
