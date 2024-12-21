@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static readonly Type _dummyType = typeof(dummy);
         private static readonly MethodInfo _generateEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateEnumItemsAsync));
         private static readonly MethodInfo _generateNullableEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateNullableEnumItemsAsync));
-        private static readonly MethodInfo _generateFlagsEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFields));
+        private static readonly MethodInfo _generateNullableFlagsEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateNullableFlagsEnumFields));
         private static readonly MethodInfo _generateItemsForConfigKey = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemsForConfigKey));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateQuantityField));
 
@@ -146,7 +146,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
         }
 
-        private static IEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey)
+        private static IEnumerable<DataFeedItem> GenerateNullableFlagsEnumFields<T>(IReadOnlyList<string> path, IDefiningConfigKey configKey)
             where T : struct, Enum
         {
             var flagsEnumGroup = new DataFeedGroup();
@@ -286,7 +286,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
             else
             {
-                var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumItemsAsync
+                var items = (IEnumerable<DataFeedItem>)_generateNullableFlagsEnumItemsAsync
                     .MakeGenericMethod(typeof(T))
                     .Invoke(null, [path, configKey]);
 
