@@ -11,25 +11,25 @@ namespace MonkeyLoader.Resonite.UI
     /// </summary>
     public sealed class DefaultInspectorHeaderConfig : SingletonConfigSection<DefaultInspectorHeaderConfig>
     {
-        private readonly DefiningConfigKey<int> _destroyOffset = new("DestroyOffset", "The Order Offset of the Destroy button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 12)
+        private readonly DefiningConfigKey<int> _destroyOffset = new("DestroyOffset", "The Order Offset of the Destroy button on Inspector Headers. Higher is further right.", () => 12)
         {
             OffsetRange,
             MakeOffsetRangeShare(12)
         };
 
-        private readonly DefiningConfigKey<int> _duplicateOffset = new("DuplicateOffset", "The Order Offset of the Duplicate button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 11)
+        private readonly DefiningConfigKey<int> _duplicateOffset = new("DuplicateOffset", "The Order Offset of the Duplicate button on Inspector Headers. Higher is further right.", () => 11)
         {
             OffsetRange,
             MakeOffsetRangeShare(11)
         };
 
-        private readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 4)
+        private readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Higher is further right.", () => 4)
         {
             OffsetRange,
             MakeOffsetRangeShare(10)
         };
 
-        private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Range: 0-16 - Higher is further right.", () => 6)
+        private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Higher is further right.", () => 6)
         {
             OffsetRange,
             MakeOffsetRangeShare(6)
