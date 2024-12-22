@@ -123,6 +123,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                     void KeyChanged(object sender, ConfigKeyChangedEventArgs<T> changedEvent)
                     {
+                        if (field.FilterWorldElement() is null)
+                        {
+                            configKey.Changed -= KeyChanged;
+                            return;
+                        }
+
                         var newValue = Convert.ToInt64(changedEvent.NewValue);
                         var isPartialCombinedValue = (newValue & longValue) != 0;
 
@@ -184,6 +190,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                     void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
                     {
+                        if (field.FilterWorldElement() is null) 
+                        {
+                            configKey.Changed -= KeyChanged;
+                            return;
+                        }
+
                         if (changedEvent.NewValue is null)
                         {
                             //bool val = longValue == Convert.ToInt64(default(T));
@@ -251,6 +263,11 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 }
                 void KeyChanged(object sender, IConfigKeyChangedEventArgs args)
                 {
+                    if (field.FilterWorldElement() is null)
+                    {
+                        configKey.Changed -= KeyChanged;
+                        return;
+                    }
                     if (args.NewValue != null && args.OldValue == null)
                     {
                         field.World.RunSynchronously(() =>
