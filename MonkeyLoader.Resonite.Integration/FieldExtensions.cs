@@ -159,54 +159,6 @@ namespace MonkeyLoader.Resonite
             return FieldChangedHandler;
         }
 
-        /// <summary>
-        /// Synchronizes the <paramref name="field"/>'s <see cref="IValue{T}.Value"/> with
-        /// the <see cref="Nullable{T}.Value"/> of the <paramref name="configKey"/>.<br/>
-        /// When the <see cref="Nullable{T}.HasValue"/> is <c>false</c>,
-        /// the <paramref name="field"/> is set to <c>default(<typeparamref name="T"/>)</c>.
-        /// </summary>
-        /// <inheritdoc cref="SyncWithConfigKey{T}(IField{T}, IDefiningConfigKey{T}, string?, bool)"/>
-        //public static Action<IChangeable> SyncWithNullableConfigKeyValue<T>(this IField<T> field,
-        //        IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
-        //    where T : unmanaged
-        //{
-        //    // support for nullables requires this to never be null
-        //    field.Value = configKey.GetValue() ?? default;
-        //    eventLabel ??= field.GetWriteBackEventLabel();
-
-        //    var parent = field.FindNearestParent<Component>();
-
-        //    void ParentDestroyedHandler(IDestroyable _)
-        //    {
-        //        parent.Destroyed -= ParentDestroyedHandler;
-
-        //        field.Changed -= FieldChangedHandler;
-        //        configKey.Changed -= ConfigKeyChangedHandler;
-        //    }
-
-        //    void FieldChangedHandler(IChangeable _)
-        //    {
-        //        var keyValue = configKey.GetValue() ?? default;
-
-        //        if (!Equals(field.Value, keyValue) && (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel)))
-        //            field.World.RunSynchronously(() => field.Value = keyValue);
-        //    }
-
-        //    void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
-        //    {
-        //        var keyValue = configKey.GetValue() ?? default;
-
-        //        if (!Equals(field.Value, keyValue))
-        //            field.World.RunSynchronously(() => field.Value = keyValue);
-        //    }
-
-        //    field.Changed += FieldChangedHandler;
-        //    configKey.Changed += ConfigKeyChangedHandler;
-        //    parent.Destroyed += ParentDestroyedHandler;
-
-        //    return FieldChangedHandler;
-        //}
-
         private static string GetWriteBackEventLabel(this IField field)
             => $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
     }
