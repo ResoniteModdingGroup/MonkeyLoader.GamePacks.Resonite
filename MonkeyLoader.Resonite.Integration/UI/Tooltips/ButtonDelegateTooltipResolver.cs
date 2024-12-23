@@ -47,6 +47,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 return;
             }
 
+            if (pressed.Method is null) return;
+
             var targetType = pressed.Method.GetMethodInfo().DeclaringType;
             var localeKey = $"Tooltip.{targetType.Name}.{pressed.MethodName}";
 
