@@ -104,18 +104,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     .Invoke(null, [path, groupKeys, configKey]);
 
             await foreach (var item in items)
-            {
-                if (item is DataFeedGroup)
-                {
-                    item.ItemKey = configKey.FullId + ".Flags";
-                    item.GroupingParameters = groupKeys;
-                }
-                else if (item is DataFeedToggle)
-                {
-                    item.GroupingParameters = groupKeys.Concat([configKey.FullId + ".Flags"]).ToArray();
-                }
                 yield return item;
-            }
         }
 
         private static DataFeedIndicator<T> GenerateIndicator<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
@@ -204,7 +193,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             var nullableGroupKeys = groupKeys.Concat([configKey.FullId + ".NullableGroup"]).ToArray();
 
             var nullableToggle = new DataFeedToggle();
-            nullableToggle.InitBase(configKey.FullId + ".HasValue", path, nullableGroupKeys, configKey.GetLocaleKey("HasValue").AsLocaleKey());
+            
+            nullableToggle.InitBase(configKey.FullId + ".HasValue", path, nullableGroupKeys, Mod.GetLocaleString("NullableEnumHasValue.Name"));
             nullableToggle.InitDescription(configKey.GetLocaleKey("HasValue").AsLocaleKey());
             nullableToggle.InitSetupValue(field => field.SyncWithNullableConfigKeyHasValue(configKey));
             yield return nullableToggle;
@@ -223,11 +213,11 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             await Task.CompletedTask;
 
             var flagsEnumGroup = new DataFeedGroup();
-            flagsEnumGroup.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleKey("Name").AsLocaleKey());
+            flagsEnumGroup.InitBase(configKey.FullId + ".Flags", path, groupKeys, Mod.GetLocaleString("EnumFlags.Name", ("KeyId", configKey.Id)));
             flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
             yield return flagsEnumGroup;
 
-            var flagsGrouping = groupKeys.Concat(configKey.FullId).ToArray();
+            var flagsGrouping = groupKeys.Concat([configKey.FullId + ".Flags"]).ToArray();
 
             var enumType = typeof(T);
 
