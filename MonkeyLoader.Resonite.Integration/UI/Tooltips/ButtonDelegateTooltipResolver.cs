@@ -29,7 +29,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 pressed = eventData.Button.Pressed;
             }
             else if (eventData.Button.Slot.GetComponent<ButtonRelayBase>() is ButtonRelayBase relay
-             && relay.GetSyncMember(nameof(ButtonRelay<dummy>.ButtonPressed)) is ISyncDelegate relayPressed)
+             && relay.GetSyncMember(nameof(ButtonRelay<dummy>.ButtonPressed)) is ISyncDelegate relayPressed
+             && relayPressed.Method is not null)
             {
                 pressed = relayPressed;
 
@@ -46,8 +47,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             {
                 return;
             }
-
-            if (pressed.Method is null) return;
 
             var targetType = pressed.Method.GetMethodInfo().DeclaringType;
             var localeKey = $"Tooltip.{targetType.Name}.{pressed.MethodName}";
