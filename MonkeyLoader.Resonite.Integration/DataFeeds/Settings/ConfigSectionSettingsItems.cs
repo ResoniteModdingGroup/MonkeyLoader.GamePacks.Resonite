@@ -84,12 +84,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> GenerateEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
+        private static async IAsyncEnumerable<DataFeedItem> GenerateEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
             where T : Enum
         {
             await Task.CompletedTask;
 
-            if (configKey.ValueType.GetCustomAttribute<FlagsAttribute>() is null)
+            if (typeof(T).GetCustomAttribute<FlagsAttribute>() is null)
             {
                 var enumField = new DataFeedEnum<T>();
                 enumField.InitBase(path, groupKeys, configKey);
@@ -99,11 +99,11 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield break;
             }
 
-            var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumItems
+            var items = (IAsyncEnumerable<DataFeedItem>)_generateFlagsEnumItems
                     .MakeGenericMethod(typeof(T))
                     .Invoke(null, [path, groupKeys, configKey]);
 
-            foreach (var item in items)
+            await foreach (var item in items)
             {
                 if (item is DataFeedGroup)
                 {
@@ -152,11 +152,11 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             if (configKey.ValueType.IsEnum)
             {
-                var flagsEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
+                var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
                     .MakeGenericMethod(configKey.ValueType)
                     .Invoke(null, [path, groupKeys, configKey]);
 
-                return flagsEnumItems;
+                return enumItems;
             }
 
             if (configKey.ValueType.IsNullable())
@@ -164,8 +164,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 var nullableType = configKey.ValueType.GetGenericArguments()[0];
                 if (nullableType.IsEnum)
                 {
-                    //return GenerateNullableEnumItemsAsync(path, groupKeys, configKey, nullableType);
-
                     var nullableEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateNullableEnumItemsAsync
                     .MakeGenericMethod(nullableType)
                     .Invoke(null, [path, groupKeys, configKey]);
@@ -211,44 +209,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             nullableToggle.InitSetupValue(field => field.SyncWithNullableConfigKeyHasValue(configKey));
             yield return nullableToggle;
 
-            if (typeof(T).GetCustomAttribute<FlagsAttribute>() is null)
-            {
-                var enumField = new DataFeedEnum<T>();
-                enumField.InitBase(configKey.FullId, path, nullableGroupKeys, configKey.GetLocaleString("Name"), configKey.GetLocaleString("Description"));
-                enumField.InitSetupValue(field =>
-                {
-                    var slot = field.FindNearestParent<Slot>();
-
-                    if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
-                    {
-                        // Adding the config key's full id to make it easier to create standalone facets
-                        feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
-                    }
-
-                    field.SyncWithNullableConfigKeyValue(configKey, SettingsHelpers.ConfigKeyChangeLabel);
-                });
-                yield return enumField;
-            }
-            else
-            {
-                var items = (IEnumerable<DataFeedItem>)_generateFlagsEnumItems
+            var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
                     .MakeGenericMethod(typeof(T))
-                    .Invoke(null, [path, groupKeys, configKey]);
+                    .Invoke(null, [path, nullableGroupKeys, configKey]);
 
-                foreach (var item in items)
-                {
-                    if (item is DataFeedGroup)
-                    {
-                        item.ItemKey = configKey.FullId + ".Flags";
-                        item.GroupingParameters = nullableGroupKeys;
-                    }
-                    else if (item is DataFeedToggle)
-                    {
-                        item.GroupingParameters = nullableGroupKeys.Concat([configKey.FullId + ".Flags"]).ToArray();
-                    }
-                    yield return item;
-                }
-            }
+            await foreach (var item in enumItems)
+                yield return item;
         }
 
         private static async IAsyncEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
@@ -261,7 +227,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
             yield return flagsEnumGroup;
 
-            //var flagsGrouping = new[] { configKey.Section.Id, configKey.FullId };
             var flagsGrouping = groupKeys.Concat(configKey.FullId).ToArray();
 
             var enumType = typeof(T);

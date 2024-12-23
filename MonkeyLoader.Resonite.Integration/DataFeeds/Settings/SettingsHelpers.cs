@@ -126,7 +126,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         /// <typeparam name="T">The type of the field and config item's value.</typeparam>
         /// <param name="field">The field to synchronize with the <paramref name="configKey"/>.</param>
         /// <param name="configKey">The config key to synchronize with the <paramref name="field"/>.</param>
-        public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey<T> configKey)
+        public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey configKey)
         {
             var slot = field.FindNearestParent<Slot>();
 
