@@ -38,8 +38,8 @@ namespace MonkeyLoader.Resonite.Configuration
         /// Gets the <see cref="World.SessionId"/> or the <see cref="World.Name"/>
         /// to use with the <see cref="WriteBackPrefix">WriteBackPrefix</see>.
         /// </summary>
-        /// <param name="world"></param>
-        /// <returns></returns>
+        /// <param name="world">The world to get the identifier for.</param>
+        /// <returns>A string identifying the world.</returns>
         public static string GetIdentifier(this World world)
             => world.SessionId ?? world.Name;
 
