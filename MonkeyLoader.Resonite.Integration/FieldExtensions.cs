@@ -123,7 +123,7 @@ namespace MonkeyLoader.Resonite
             IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
             where T : struct
         {
-            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with nullable config key: {configKey.Id}");
+            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with nullable config key HasValue: {configKey.Id}");
 
             field.Value = configKey.GetValue().HasValue;
             eventLabel ??= field.GetWriteBackEventLabel();
@@ -132,7 +132,7 @@ namespace MonkeyLoader.Resonite
 
             void ParentDestroyedHandler(IDestroyable _)
             {
-                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Parent destroyed: {configKey.Id}");
+                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Parent destroyed: {configKey.Id}");
 
                 parent.Destroyed -= ParentDestroyedHandler;
 
@@ -142,7 +142,7 @@ namespace MonkeyLoader.Resonite
 
             void FieldChangedHandler(IChangeable _)
             {
-                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
+                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
 
                 T? newValue = field.Value ? default(T) : null;
 
@@ -152,7 +152,7 @@ namespace MonkeyLoader.Resonite
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
-                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
+                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
 
                 if (field.Value != configKey.GetValue().HasValue)
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
@@ -163,6 +163,80 @@ namespace MonkeyLoader.Resonite
             parent.Destroyed += ParentDestroyedHandler;
 
             return FieldChangedHandler;
+        }
+
+        public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
+            IDefiningConfigKey configKey, long longValue, string? eventLabel = null, bool allowWriteBack = true)
+        {
+            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with enum flag: {configKey.Id} {longValue}");
+
+            Type enumType = typeof(T);
+            if (typeof(T).IsNullable())
+            {
+                enumType = typeof(T).GetGenericArguments()[0];
+            }
+
+            if (configKey.GetValue() is null)
+            {
+                field.Value = false;
+            }
+            else
+            {
+                field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+            }
+
+            void FieldChanged(IChangeable changeable)
+            {
+                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue() ?? default} {longValue}");
+
+                configKey.TrySetValue(Enum.ToObject(enumType, field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue));
+            }
+
+            void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
+            {
+                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue()} {longValue}");
+
+                if (field.FilterWorldElement() is null)
+                {
+                    //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field was destroyed: {configKey.Id} {longValue}");
+
+                    configKey.Changed -= KeyChanged;
+                    return;
+                }
+
+                if (changedEvent.NewValue is null)
+                {
+                    //bool val = longValue == Convert.ToInt64(default(T));
+                    field.World.RunSynchronously(() =>
+                    {
+                        field.Changed -= FieldChanged;
+                        field.Value = false;
+                        field.Changed += FieldChanged;
+                    });
+                    return;
+                }
+
+                var newValue = Convert.ToInt64(changedEvent.NewValue);
+                var isPartialCombinedValue = (newValue & longValue) != 0;
+
+                if (Equals(field.Value, (newValue & longValue) == longValue)) return;
+
+                field.World.RunSynchronously(() =>
+                {
+                    if (isPartialCombinedValue)
+                        field.Changed -= FieldChanged;
+
+                    field.Value = (newValue & longValue) == longValue;
+
+                    if (isPartialCombinedValue)
+                        field.Changed += FieldChanged;
+                });
+            }
+
+            field.Changed += FieldChanged;
+            configKey.Changed += KeyChanged;
+
+            return FieldChanged;
         }
 
         private static string GetWriteBackEventLabel(this IField field)
