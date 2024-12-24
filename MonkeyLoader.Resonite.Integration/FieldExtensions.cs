@@ -123,7 +123,7 @@ namespace MonkeyLoader.Resonite
             IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
             where T : struct
         {
-            configKey.FindNearestParent<Mod>().Logger.Info(() => $"Syncing with nullable config key: {configKey.Id}");
+            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with nullable config key: {configKey.Id}");
 
             field.Value = configKey.GetValue().HasValue;
             eventLabel ??= field.GetWriteBackEventLabel();
@@ -132,7 +132,7 @@ namespace MonkeyLoader.Resonite
 
             void ParentDestroyedHandler(IDestroyable _)
             {
-                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Parent destroyed: {configKey.Id}");
+                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Parent destroyed: {configKey.Id}");
 
                 parent.Destroyed -= ParentDestroyedHandler;
 
@@ -142,7 +142,7 @@ namespace MonkeyLoader.Resonite
 
             void FieldChangedHandler(IChangeable _)
             {
-                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
+                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
 
                 T? newValue = field.Value ? default(T) : null;
 
@@ -152,7 +152,7 @@ namespace MonkeyLoader.Resonite
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
-                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
+                configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
 
                 if (field.Value != configKey.GetValue().HasValue)
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
