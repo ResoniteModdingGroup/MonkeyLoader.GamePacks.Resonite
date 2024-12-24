@@ -1,5 +1,7 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Configuration;
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,16 @@ namespace MonkeyLoader.Resonite
     /// </summary>
     public static class FieldExtensions
     {
+        /// <summary>
+        /// The prefix for the <see cref="IDefiningConfigKey{T}.SetValue(T, string?)">SetValue</see>
+        /// <c>eventLabel</c> used when the cause is a change in the synchronized <see cref="IField{T}">field</see>'s shared value.
+        /// </summary>
+        /// <remarks>
+        /// The actually passed label has the following format:
+        /// <c>$"{<see cref="WriteBackPrefix"/>}.{<see cref="ValueField{T}">field</see>.<see cref="World"/>.<see cref="GetIdentifier">GetIdentifier</see>()}"</c>
+        /// </remarks>
+        public const string WriteBackPrefix = "SyncedField.WriteBack";
+
         /// <summary>
         /// Creates a label describing the <paramref name="target"/> reference as a <see cref="RefEditor"/> would.
         /// </summary>
@@ -36,7 +48,7 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <summary>
-        /// Synchronizes the <paramref name="field"/>'s label with that of the <paramref name="configKey"/>.
+        /// Synchronizes the <paramref name="field"/>'s <see cref="IValue{T}.Value"/> with that of the <paramref name="configKey"/>.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -61,38 +73,183 @@ namespace MonkeyLoader.Resonite
         /// </param>
         /// <param name="allowWriteBack">Whether changes of the <paramref name="field"/> should be written back to the config key.</param>
         /// <returns>The delegate subscribed to the <paramref name="field"/>'s <see cref="IChangeable.Changed">Changed</see> event.</returns>
-        public static Action<IChangeable> SyncWithConfigKey<T>(this IField<T> field, IDefiningConfigKey<T> configKey, string? eventLabel = null, bool allowWriteBack = true)
+        public static Action<IChangeable> SyncWithConfigKey<T>(this IField<T> field,
+            IDefiningConfigKey configKey, string? eventLabel = null, bool allowWriteBack = true)
         {
-            field.Value = configKey.GetValue()!;
-            eventLabel ??= $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
+            field.Value = (T)(configKey.GetValue() ?? default(T)!);
+            eventLabel ??= field.GetWriteBackEventLabel();
+
+            var parent = field.FindNearestParent<Component>();
+
+            void ParentDestroyedHandler(IDestroyable _)
+            {
+                parent.Destroyed -= ParentDestroyedHandler;
+
+                field.Changed -= FieldChangedHandler;
+                configKey.Changed -= ConfigKeyChangedHandler;
+            }
 
             void FieldChangedHandler(IChangeable _)
             {
-                if (Equals(field.Value, configKey.GetValue()))
-                    return;
-
-                if (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel))
-                    field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+                if (!Equals(field.Value, configKey.GetValue()) &&
+                    !(configKey.ValueType.IsNullable() && configKey.ValueType.GetGenericArguments()[0].IsEnum && configKey.GetValue() is null && Equals(field.Value, default(T))) &&
+                    (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel)))
+                {
+                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
+                }
             }
 
-            void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T> args)
+            void ConfigKeyChangedHandler(object sender, IConfigKeyChangedEventArgs args)
             {
-                if (field.FilterWorldElement() == null)
-                {
-                    configKey.Changed -= ConfigKeyChangedHandler;
-                    return;
-                }
-
-                if (Equals(field.Value, configKey.GetValue()))
-                    return;
-
-                field.World.RunSynchronously(() => field.Value = configKey.GetValue()!);
+                if (!Equals(field.Value, configKey.GetValue()))
+                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
             }
 
             field.Changed += FieldChangedHandler;
             configKey.Changed += ConfigKeyChangedHandler;
+            parent.Destroyed += ParentDestroyedHandler;
 
             return FieldChangedHandler;
         }
+
+        /// <summary>
+        /// Synchronizes the <paramref name="field"/>'s <see cref="IValue{T}.Value"/> with
+        /// the <see cref="Nullable{T}.HasValue"/> of the <paramref name="configKey"/>.<br/>
+        /// When the field is toggled to <c>true</c> or set to <c>false</c>,
+        /// the <see cref="Nullable{T}.Value"/> is set to <c>default(<typeparamref name="T"/>)</c>.
+        /// </summary>
+        /// <inheritdoc cref="SyncWithConfigKey{T}(IField{T}, IDefiningConfigKey{T}, string?, bool)"/>
+        public static Action<IChangeable> SyncWithNullableConfigKeyHasValue<T>(this IField<bool> field,
+            IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
+            where T : struct
+        {
+            field.Value = configKey.GetValue().HasValue;
+            eventLabel ??= field.GetWriteBackEventLabel();
+
+            var parent = field.FindNearestParent<Component>();
+
+            void ParentDestroyedHandler(IDestroyable _)
+            {
+                parent.Destroyed -= ParentDestroyedHandler;
+
+                field.Changed -= FieldChangedHandler;
+                configKey.Changed -= ConfigKeyChangedHandler;
+            }
+
+            void FieldChangedHandler(IChangeable _)
+            {
+                T? newValue = field.Value ? default(T) : null;
+
+                if (field.Value != configKey.GetValue().HasValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
+                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
+            }
+
+            void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
+            {
+                if (field.Value != configKey.GetValue().HasValue)
+                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
+            }
+
+            field.Changed += FieldChangedHandler;
+            configKey.Changed += ConfigKeyChangedHandler;
+            parent.Destroyed += ParentDestroyedHandler;
+
+            return FieldChangedHandler;
+        }
+
+        public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
+            IDefiningConfigKey configKey, long longValue, string? eventLabel = null, bool allowWriteBack = true)
+        {
+            Type enumType = typeof(T);
+            if (typeof(T).IsNullable())
+            {
+                enumType = typeof(T).GetGenericArguments()[0];
+            }
+
+            if (configKey.GetValue() is null)
+            {
+                field.Value = false;
+            }
+            else
+            {
+                if (longValue == 0)
+                {
+                    field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
+                }
+                else
+                {
+                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+                }
+            }
+
+            void FieldChanged(IChangeable changeable)
+            {
+                long val;
+                if (longValue == 0)
+                {
+                    val = 0;
+                    field.World.RunSynchronously(() =>
+                    {
+                        field.Changed -= FieldChanged;
+                        field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
+                        field.Changed += FieldChanged;
+                    });
+                }
+                else
+                {
+                    val = field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue;
+                }
+                configKey.TrySetValue(Enum.ToObject(enumType, val), eventLabel);
+            }
+
+            void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
+            {
+                if (field.FilterWorldElement() is null)
+                {
+                    configKey.Changed -= KeyChanged;
+                    return;
+                }
+
+                if (changedEvent.NewValue is null)
+                {
+                    field.World.RunSynchronously(() =>
+                    {
+                        field.Changed -= FieldChanged;
+                        field.Value = false;
+                        field.Changed += FieldChanged;
+                    });
+                    return;
+                }
+
+                var newValue = Convert.ToInt64(changedEvent.NewValue);
+                var isPartialCombinedValue = (newValue & longValue) != 0;
+
+                field.World.RunSynchronously(() =>
+                {
+                    if (isPartialCombinedValue || longValue == 0)
+                        field.Changed -= FieldChanged;
+
+                    if (longValue == 0)
+                    {
+                        field.Value = newValue == 0;
+                    }
+                    else
+                    {
+                        field.Value = (newValue & longValue) == longValue;
+                    }
+
+                    if (isPartialCombinedValue || longValue == 0)
+                        field.Changed += FieldChanged;
+                });
+            }
+
+            field.Changed += FieldChanged;
+            configKey.Changed += KeyChanged;
+
+            return FieldChanged;
+        }
+
+        private static string GetWriteBackEventLabel(this IField field)
+            => $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
     }
 }

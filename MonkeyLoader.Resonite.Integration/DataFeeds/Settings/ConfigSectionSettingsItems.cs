@@ -24,6 +24,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static readonly Type _dummyType = typeof(dummy);
         private static readonly MethodInfo _generateEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateEnumItemsAsync));
         private static readonly MethodInfo _generateItemsForConfigKey = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemsForConfigKey));
+        private static readonly MethodInfo _generateNullableEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateNullableEnumItemsAsync));
+        private static readonly MethodInfo _generateFlagsEnumItems = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFields));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateQuantityField));
 
         public override int Priority => 400;
@@ -82,12 +84,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> GenerateEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
+        private static async IAsyncEnumerable<DataFeedItem> GenerateEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
             where T : Enum
         {
             await Task.CompletedTask;
 
-            if (configKey.ValueType.GetCustomAttribute<FlagsAttribute>() is null)
+            if (typeof(T).GetCustomAttribute<FlagsAttribute>() is null)
             {
                 var enumField = new DataFeedEnum<T>();
                 enumField.InitBase(path, groupKeys, configKey);
@@ -97,51 +99,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield break;
             }
 
-            var flagsEnumGroup = new DataFeedGroup();
-            flagsEnumGroup.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleKey("Name").AsLocaleKey());
-            flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
-            yield return flagsEnumGroup;
+            var items = (IAsyncEnumerable<DataFeedItem>)_generateFlagsEnumItems
+                    .MakeGenericMethod(typeof(T))
+                    .Invoke(null, [path, groupKeys, configKey]);
 
-            var flagsGrouping = groupKeys.Concat(configKey.FullId).ToArray();
-
-            foreach (var value in Enum.GetValues(configKey.ValueType).Cast<T>())
-            {
-                var name = value.ToString();
-                var longValue = Convert.ToInt64(value);
-
-                var flagToggle = new DataFeedToggle();
-                flagToggle.InitBase($"{configKey.FullId}.{name}", path, flagsGrouping, name);
-                flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", configKey.ValueType.Name), ("FlagName", name)));
-                flagToggle.InitSetupValue(field =>
-                {
-                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
-
-                    void FieldChanged(IChangeable changeable)
-                        => configKey.TrySetValue(Enum.ToObject(configKey.ValueType, field.Value ? Convert.ToInt64(configKey.GetValue()) | longValue : Convert.ToInt64(configKey.GetValue()) & ~longValue));
-
-                    void KeyChanged(object sender, ConfigKeyChangedEventArgs<T> changedEvent)
-                    {
-                        var newValue = Convert.ToInt64(changedEvent.NewValue);
-                        var isPartialCombinedValue = (newValue & longValue) != 0;
-
-                        field.World.RunSynchronously(() =>
-                        {
-                            if (isPartialCombinedValue)
-                                field.Changed -= FieldChanged;
-
-                            field.Value = (newValue & longValue) == longValue;
-
-                            if (isPartialCombinedValue)
-                                field.Changed += FieldChanged;
-                        });
-                    }
-
-                    field.Changed += FieldChanged;
-                    configKey.Changed += KeyChanged;
-                });
-
-                yield return flagToggle;
-            }
+            await foreach (var item in items)
+                yield return item;
         }
 
         private static DataFeedIndicator<T> GenerateIndicator<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey)
@@ -178,11 +141,24 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             if (configKey.ValueType.IsEnum)
             {
-                var flagsEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
+                var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
                     .MakeGenericMethod(configKey.ValueType)
                     .Invoke(null, [path, groupKeys, configKey]);
 
-                return flagsEnumItems;
+                return enumItems;
+            }
+
+            if (configKey.ValueType.IsNullable())
+            {
+                var nullableType = configKey.ValueType.GetGenericArguments()[0];
+                if (nullableType.IsEnum)
+                {
+                    var nullableEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateNullableEnumItemsAsync
+                    .MakeGenericMethod(nullableType)
+                    .Invoke(null, [path, groupKeys, configKey]);
+
+                    return nullableEnumItems;
+                }
             }
 
             if (configKeyEntity.Components.TryGet<IConfigKeyRange<T>>(out var range))
@@ -204,8 +180,89 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return valueField.YieldAsync();
         }
 
+        private static async IAsyncEnumerable<DataFeedItem> GenerateNullableEnumItemsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T?> configKey)
+            where T : unmanaged, Enum
+        {
+            await Task.CompletedTask;
+
+            var nullableEnumGroup = new DataFeedGroup();
+            nullableEnumGroup.InitBase(configKey.FullId + ".NullableGroup", path, groupKeys, configKey.GetLocaleKey("Name").AsLocaleKey());
+            nullableEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
+            yield return nullableEnumGroup;
+
+            var nullableGroupKeys = groupKeys.Concat([configKey.FullId + ".NullableGroup"]).ToArray();
+
+            var nullableToggle = new DataFeedToggle();
+            
+            nullableToggle.InitBase(configKey.FullId + ".HasValue", path, nullableGroupKeys, Mod.GetLocaleString("NullableEnumHasValue.Name"));
+            nullableToggle.InitDescription(configKey.GetLocaleKey("HasValue").AsLocaleKey());
+            nullableToggle.InitSetupValue(field => 
+            {
+                var slot = field.FindNearestParent<Slot>();
+
+                if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+                {
+                    // Adding the config key's full id to make it easier to create standalone facets
+                    feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
+                }
+
+                field.SyncWithNullableConfigKeyHasValue(configKey);
+            });
+            yield return nullableToggle;
+
+            var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
+                    .MakeGenericMethod(typeof(T))
+                    .Invoke(null, [path, nullableGroupKeys, configKey]);
+
+            await foreach (var item in enumItems)
+                yield return item;
+        }
+
+        private static async IAsyncEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
+                                    where T : struct, Enum
+        {
+            await Task.CompletedTask;
+
+            var flagsEnumGroup = new DataFeedGroup();
+            flagsEnumGroup.InitBase(configKey.FullId + ".Flags", path, groupKeys, Mod.GetLocaleString("EnumFlags.Name", ("KeyId", configKey.Id)));
+            flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
+            yield return flagsEnumGroup;
+
+            var flagsGrouping = groupKeys.Concat([configKey.FullId + ".Flags"]).ToArray();
+
+            var enumType = typeof(T);
+
+            foreach (var value in Enum.GetValues(enumType).Cast<T>())
+            {
+                var name = value.ToString();
+                var longValue = Convert.ToInt64(value);
+
+                var flagToggle = new DataFeedToggle();
+                flagToggle.InitBase($"{configKey.FullId}.{name}", path, flagsGrouping, name);
+                flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", enumType.Name), ("FlagName", name)));
+                flagToggle.InitSetupValue(field =>
+                {
+                    var slot = field.FindNearestParent<Slot>();
+
+                    if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+                    {
+                        // Adding the config key's full id to make it easier to create standalone facets
+                        var comment = feedItemInterface.Slot.AttachComponent<Comment>();
+                        comment.Text.Value = configKey.FullId;
+
+                        var longField = feedItemInterface.Slot.AttachComponent<ValueField<long>>();
+                        longField.Value.Value = longValue;
+                    }
+
+                    field.SyncWithEnumFlag<T>(configKey, longValue);
+                });
+
+                yield return flagToggle;
+            }
+        }
+
         private static DataFeedQuantityField<TQuantity, T> GenerateQuantityField<T, TQuantity>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey<T> configKey, IConfigKeyQuantity<T> quantity)
-                    where TQuantity : unmanaged, IQuantity<TQuantity>
+            where TQuantity : unmanaged, IQuantity<TQuantity>
         {
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             quantityField.InitBase(path, groupKeys, configKey);
