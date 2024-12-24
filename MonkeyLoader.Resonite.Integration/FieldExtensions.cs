@@ -121,7 +121,7 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc cref="SyncWithConfigKey{T}(IField{T}, IDefiningConfigKey{T}, string?, bool)"/>
         public static Action<IChangeable> SyncWithNullableConfigKeyHasValue<T>(this IField<bool> field,
             IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
-            where T : unmanaged
+            where T : struct
         {
             configKey.FindNearestParent<Mod>().Logger.Info(() => $"Syncing with nullable config key: {configKey.Id}");
 
@@ -144,7 +144,7 @@ namespace MonkeyLoader.Resonite
             {
                 configKey.FindNearestParent<Mod>().Logger.Info(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
 
-                T? newValue = field.Value ? default : null;
+                T? newValue = field.Value ? default(T) : null;
 
                 if (field.Value != configKey.GetValue().HasValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
