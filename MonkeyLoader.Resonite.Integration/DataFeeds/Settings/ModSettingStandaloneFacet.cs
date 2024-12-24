@@ -21,6 +21,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
         private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), "SyncWithNullableConfigKeyHasValue");
+        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), "SyncWithEnumFlag");
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
 
@@ -98,7 +99,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             if (typeof(T) == typeof(bool) && key.ValueType.IsNullable() && key.ValueType.GetGenericArguments()[0].IsEnum)
             {
-                //((IField<bool>)field).SyncWithNullableConfigKeyHasValue((IDefiningConfigKey<T>)key, eventLabel);
                 var type = key.ValueType.GetGenericArguments()[0];
                 _syncWithNullableConfigKeyHasValueMethod.MakeGenericMethod(type).Invoke(null, [(IField<bool>)field, key, eventLabel, true]);
             }
@@ -148,9 +148,17 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                     if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
                     {
-                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
-                        genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
-                        return;
+                        if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
+                        {
+                            var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
+                            genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, longField.Value.Value, ConfigKeyChangeLabel, true]);
+                        }
+                        else
+                        {
+                            var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
+                            genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
+                            return;
+                        }
                     }
                 });
             }
@@ -209,8 +217,16 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                 if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
                 {
-                    var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod([valueField.ValueType]);
-                    genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
+                    if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
+                    {
+                        var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
+                        genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, longField.Value.Value, ConfigKeyChangeLabel, true]);
+                    }
+                    else
+                    {
+                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
+                        genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
+                    }
 
                     feedItemInterface.Slot.PersistentSelf = true;
                     return;

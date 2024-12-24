@@ -219,7 +219,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         }
 
         private static async IAsyncEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
-                                    where T : Enum
+                                    where T : struct, Enum
         {
             await Task.CompletedTask;
 
@@ -242,59 +242,19 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 flagToggle.InitDescription(Mod.GetLocaleString("EnumToggle.Description", ("EnumName", enumType.Name), ("FlagName", name)));
                 flagToggle.InitSetupValue(field =>
                 {
-                    if (configKey.GetValue() is null)
-                    {
-                        field.Value = false;
-                    }
-                    else
-                    {
-                        field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
-                    }
+                    var slot = field.FindNearestParent<Slot>();
 
-                    void FieldChanged(IChangeable changeable)
+                    if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
                     {
-                        configKey.TrySetValue(Enum.ToObject(enumType, field.Value ? Convert.ToInt64(configKey.GetValue() ?? 0) | longValue : Convert.ToInt64(configKey.GetValue() ?? 0) & ~longValue));
+                        // Adding the config key's full id to make it easier to create standalone facets
+                        var comment = feedItemInterface.Slot.AttachComponent<Comment>();
+                        comment.Text.Value = configKey.FullId;
+
+                        var longField = feedItemInterface.Slot.AttachComponent<ValueField<long>>();
+                        longField.Value.Value = longValue;
                     }
 
-                    void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
-                    {
-                        if (field.FilterWorldElement() is null)
-                        {
-                            configKey.Changed -= KeyChanged;
-                            return;
-                        }
-
-                        if (changedEvent.NewValue is null)
-                        {
-                            //bool val = longValue == Convert.ToInt64(default(T));
-                            field.World.RunSynchronously(() =>
-                            {
-                                field.Changed -= FieldChanged;
-                                field.Value = false;
-                                field.Changed += FieldChanged;
-                            });
-                            return;
-                        }
-
-                        var newValue = Convert.ToInt64(changedEvent.NewValue);
-                        var isPartialCombinedValue = (newValue & longValue) != 0;
-
-                        if (Equals(field.Value, (newValue & longValue) == longValue)) return;
-
-                        field.World.RunSynchronously(() =>
-                        {
-                            if (isPartialCombinedValue)
-                                field.Changed -= FieldChanged;
-
-                            field.Value = (newValue & longValue) == longValue;
-
-                            if (isPartialCombinedValue)
-                                field.Changed += FieldChanged;
-                        });
-                    }
-
-                    field.Changed += FieldChanged;
-                    configKey.Changed += KeyChanged;
+                    field.SyncWithEnumFlag<T>(configKey, longValue);
                 });
 
                 yield return flagToggle;
