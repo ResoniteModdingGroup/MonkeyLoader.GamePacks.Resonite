@@ -123,8 +123,6 @@ namespace MonkeyLoader.Resonite
             IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
             where T : struct
         {
-            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with nullable config key HasValue: {configKey.Id}");
-
             field.Value = configKey.GetValue().HasValue;
             eventLabel ??= field.GetWriteBackEventLabel();
 
@@ -132,8 +130,6 @@ namespace MonkeyLoader.Resonite
 
             void ParentDestroyedHandler(IDestroyable _)
             {
-                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Parent destroyed: {configKey.Id}");
-
                 parent.Destroyed -= ParentDestroyedHandler;
 
                 field.Changed -= FieldChangedHandler;
@@ -142,8 +138,6 @@ namespace MonkeyLoader.Resonite
 
             void FieldChangedHandler(IChangeable _)
             {
-                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
-
                 T? newValue = field.Value ? default(T) : null;
 
                 if (field.Value != configKey.GetValue().HasValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
@@ -152,8 +146,6 @@ namespace MonkeyLoader.Resonite
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
-                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
-
                 if (field.Value != configKey.GetValue().HasValue)
                     field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
             }
@@ -168,8 +160,6 @@ namespace MonkeyLoader.Resonite
         public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
             IDefiningConfigKey configKey, long longValue, string? eventLabel = null, bool allowWriteBack = true)
         {
-            configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Syncing with enum flag: {configKey.Id} {longValue}");
-
             Type enumType = typeof(T);
             if (typeof(T).IsNullable())
             {
@@ -187,19 +177,13 @@ namespace MonkeyLoader.Resonite
 
             void FieldChanged(IChangeable changeable)
             {
-                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue() ?? default} {longValue}");
-
                 configKey.TrySetValue(Enum.ToObject(enumType, field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue));
             }
 
             void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
             {
-                //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue()} {longValue}");
-
                 if (field.FilterWorldElement() is null)
                 {
-                    //configKey.FindNearestParent<Mod>().Logger.Trace(() => $"Field was destroyed: {configKey.Id} {longValue}");
-
                     configKey.Changed -= KeyChanged;
                     return;
                 }
