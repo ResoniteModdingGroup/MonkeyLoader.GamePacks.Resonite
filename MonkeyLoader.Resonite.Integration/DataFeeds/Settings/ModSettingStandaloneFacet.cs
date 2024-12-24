@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
@@ -19,6 +20,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private const string ModSettingStandaloneFacetTag = "MonkeyLoaderStandaloneFacet";
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
+        private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), "SyncWithNullableConfigKeyHasValue");
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
 
@@ -26,6 +28,23 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static IDefiningConfigKey? GetConfigKeyByFullId(string fullId)
         {
+            foreach (var gamePack in Mod.Loader.GamePacks)
+            {
+                if (fullId.StartsWith(gamePack.Id))
+                {
+                    var partialId = fullId.Remove(0, gamePack.Id.Length + 1);
+
+                    if (!partialId.StartsWith("Config."))
+                        partialId = "Config." + partialId;
+
+                    Logger.Debug(() => "Partial Id: " + partialId);
+                    if (gamePack.TryGet<IDefiningConfigKey>().ByPartialId(partialId, out var modConfigKey))
+                        return modConfigKey;
+
+                    break;
+                }
+            }
+
             if (fullId.StartsWith(Mod.Loader.Id))
             {
                 var partialId = fullId.Remove(0, Mod.Loader.Id.Length + 1);
@@ -75,8 +94,19 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return null;
         }
 
-        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
-            => ((IField<T>)field).SyncWithConfigKey((IDefiningConfigKey<T>)key, eventLabel);
+        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel) where T : unmanaged
+        {
+            if (typeof(T) == typeof(bool) && key.ValueType.IsNullable())
+            {
+                //((IField<bool>)field).SyncWithNullableConfigKeyHasValue((IDefiningConfigKey<T>)key, eventLabel);
+                var type = key.ValueType.GetGenericArguments()[0];
+                _syncWithNullableConfigKeyHasValueMethod.MakeGenericMethod(type).Invoke(null, [(IField<bool>)field, key, eventLabel, true]);
+            }
+            else
+            {
+                ((IField<T>)field).SyncWithConfigKey(key, eventLabel);
+            }
+        }
 
         [HarmonyPatch(typeof(Facet), nameof(Facet.OnLoading))]
         [HarmonyPatchCategory(nameof(ModSettingStandaloneFacet))]
@@ -133,7 +163,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             [HarmonyPostfix]
             private static void TryGrabPostfix(UIGrabInstancer __instance, IGrabbable? __result)
             {
-                if (!__instance.World.IsUserspace() || __result is not Grabbable
+                if (!__instance.World.IsUserspace() ||
+                    __result is not Grabbable
                     || __result?.Slot.GetComponent<Facet>() is null
                     || __instance.Slot.GetComponentInParents<FeedItemInterface>() is null
                     || __instance.Slot.GetComponentInParents<SettingsDataFeed>() is null
