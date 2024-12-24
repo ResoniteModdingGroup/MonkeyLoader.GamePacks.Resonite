@@ -94,9 +94,9 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return null;
         }
 
-        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel) where T : unmanaged
+        private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
         {
-            if (typeof(T) == typeof(bool) && key.ValueType.IsNullable())
+            if (typeof(T) == typeof(bool) && key.ValueType.IsNullable() && key.ValueType.GetGenericArguments()[0].IsEnum)
             {
                 //((IField<bool>)field).SyncWithNullableConfigKeyHasValue((IDefiningConfigKey<T>)key, eventLabel);
                 var type = key.ValueType.GetGenericArguments()[0];
