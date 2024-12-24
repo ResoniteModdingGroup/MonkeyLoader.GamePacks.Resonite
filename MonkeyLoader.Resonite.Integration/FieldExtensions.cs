@@ -172,12 +172,34 @@ namespace MonkeyLoader.Resonite
             }
             else
             {
-                field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+                if (longValue == 0)
+                {
+                    field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
+                }
+                else
+                {
+                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
+                }
             }
 
             void FieldChanged(IChangeable changeable)
             {
-                configKey.TrySetValue(Enum.ToObject(enumType, field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue));
+                long val;
+                if (longValue == 0)
+                {
+                    val = 0;
+                    field.World.RunSynchronously(() =>
+                    {
+                        field.Changed -= FieldChanged;
+                        field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
+                        field.Changed += FieldChanged;
+                    });
+                }
+                else
+                {
+                    val = field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue;
+                }
+                configKey.TrySetValue(Enum.ToObject(enumType, val), eventLabel);
             }
 
             void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
@@ -190,7 +212,6 @@ namespace MonkeyLoader.Resonite
 
                 if (changedEvent.NewValue is null)
                 {
-                    //bool val = longValue == Convert.ToInt64(default(T));
                     field.World.RunSynchronously(() =>
                     {
                         field.Changed -= FieldChanged;
@@ -203,16 +224,21 @@ namespace MonkeyLoader.Resonite
                 var newValue = Convert.ToInt64(changedEvent.NewValue);
                 var isPartialCombinedValue = (newValue & longValue) != 0;
 
-                if (Equals(field.Value, (newValue & longValue) == longValue)) return;
-
                 field.World.RunSynchronously(() =>
                 {
-                    if (isPartialCombinedValue)
+                    if (isPartialCombinedValue || longValue == 0)
                         field.Changed -= FieldChanged;
 
-                    field.Value = (newValue & longValue) == longValue;
+                    if (longValue == 0)
+                    {
+                        field.Value = newValue == 0;
+                    }
+                    else
+                    {
+                        field.Value = (newValue & longValue) == longValue;
+                    }
 
-                    if (isPartialCombinedValue)
+                    if (isPartialCombinedValue || longValue == 0)
                         field.Changed += FieldChanged;
                 });
             }
