@@ -196,7 +196,18 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             
             nullableToggle.InitBase(configKey.FullId + ".HasValue", path, nullableGroupKeys, Mod.GetLocaleString("NullableEnumHasValue.Name"));
             nullableToggle.InitDescription(configKey.GetLocaleKey("HasValue").AsLocaleKey());
-            nullableToggle.InitSetupValue(field => field.SyncWithNullableConfigKeyHasValue(configKey));
+            nullableToggle.InitSetupValue(field => 
+            {
+                var slot = field.FindNearestParent<Slot>();
+
+                if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+                {
+                    // Adding the config key's full id to make it easier to create standalone facets
+                    feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
+                }
+
+                field.SyncWithNullableConfigKeyHasValue(configKey);
+            });
             yield return nullableToggle;
 
             var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync

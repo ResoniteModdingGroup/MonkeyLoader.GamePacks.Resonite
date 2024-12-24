@@ -1,6 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Configuration;
 using System;
 using System.Collections.Generic;
@@ -122,6 +123,8 @@ namespace MonkeyLoader.Resonite
             IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
             where T : unmanaged
         {
+            configKey.FindNearestParent<Mod>().Logger.Info(() => $"Syncing with nullable config key: {configKey.Id}");
+
             field.Value = configKey.GetValue().HasValue;
             eventLabel ??= field.GetWriteBackEventLabel();
 
@@ -129,6 +132,8 @@ namespace MonkeyLoader.Resonite
 
             void ParentDestroyedHandler(IDestroyable _)
             {
+                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Parent destroyed: {configKey.Id}");
+
                 parent.Destroyed -= ParentDestroyedHandler;
 
                 field.Changed -= FieldChangedHandler;
@@ -137,19 +142,20 @@ namespace MonkeyLoader.Resonite
 
             void FieldChangedHandler(IChangeable _)
             {
-                T? newValue = field.Value ? default : null;
-                var keyValue = configKey.GetValue().HasValue;
+                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Field changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue} {allowWriteBack}");
 
-                if (field.Value != keyValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
-                    field.World.RunSynchronously(() => field.Value = keyValue);
+                T? newValue = field.Value ? default : null;
+
+                if (field.Value != configKey.GetValue().HasValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
+                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
             }
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
-                var keyValue = configKey.GetValue().HasValue;
+                configKey.FindNearestParent<Mod>().Logger.Info(() => $"Config key changed: {configKey.Id} {field.Value} {configKey.GetValue().HasValue}");
 
-                if (field.Value != keyValue)
-                    field.World.RunSynchronously(() => field.Value = keyValue);
+                if (field.Value != configKey.GetValue().HasValue)
+                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
             }
 
             field.Changed += FieldChangedHandler;
