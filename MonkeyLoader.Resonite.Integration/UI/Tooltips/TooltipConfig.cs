@@ -30,13 +30,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             new ConfigKeyRange<float>(.5f, 4)
         };
 
-        private static readonly DefiningConfigKey<ShadowType> _testKey0 = new("testKey0", "Test key0.", () => ShadowType.Hard);
-        private static readonly DefiningConfigKey<ShadowType?> _testKey = new("testKey", "Test key.", () => ShadowType.Soft);
-        private static readonly DefiningConfigKey<MappingTarget> _testKey3 = new("testKey3", "Test key3.", () => MappingTarget.NONE);
-        private static readonly DefiningConfigKey<MappingTarget?> _testKey2 = new("testKey2", "Test key2.", () => null);
-        private static readonly DefiningConfigKey<float?> _testKey4 = new("testKey4", "Test key4.", () => null);
-        private static readonly DefiningConfigKey<bool?> _testKey5 = new("testKey5", "Test key5.", () => null);
-
         /// <summary>
         /// Gets the background color for tooltips.
         /// </summary>
