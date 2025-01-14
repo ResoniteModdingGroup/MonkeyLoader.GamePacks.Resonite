@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using FrooxEngine.UIX;
+using MonkeyLoader;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,12 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
     /// Contains helper methods to generate common elements of <see cref="WorkerInspector"/>s.
     /// </summary>
-    public static class InspectorHelper
+    public static class InspectorUIHelper
     {
         /// <summary>
         /// Constructs a reference editor field's open target's parent <see cref="Slot"/> and
@@ -22,9 +23,13 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the buttons.</param>
         /// <param name="reference">The reference who's parents to open.</param>
         /// <returns>The modifiable <see cref="ReferenceField{T}"/> constructed to hold the <paramref name="reference"/>.</returns>
-        public static ReferenceField<TReference> BuildHeaderOpenParentButtons<TReference>(UIBuilder ui, TReference reference)
+        /// <exception cref="ArgumentNullException">When the <paramref name="reference"/> is <c>null</c>.</exception>
+        public static ReferenceField<TReference> BuildHeaderOpenParentButtons<TReference>(this UIBuilder ui, TReference reference)
             where TReference : class, IWorldElement
         {
+            if (reference is null)
+                throw new ArgumentNullException(nameof(reference));
+
             ui.PushStyle();
             ui.Style.FlexibleWidth = -1;
             ui.Style.MinWidth = 40;
@@ -53,13 +58,13 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="name">The name to label the field with.</param>
         /// <param name="reference">The reference to display.</param>
         /// <returns>The modifiable <see cref="ReferenceField{T}"/> constructed to hold the <paramref name="reference"/>.</returns>
-        public static ReferenceField<TReference> BuildOneWayReference<TReference>(UIBuilder ui, string name, TReference reference)
+        public static ReferenceField<TReference> BuildOneWayReference<TReference>(this UIBuilder ui, string name, TReference? reference = null)
             where TReference : class, IWorldElement
         {
             var refSlot = ui.Current.AddSlot($"{name}-Reference");
 
             var backingField = refSlot.AttachComponent<ReferenceField<TReference>>();
-            backingField.Reference.Target = reference;
+            backingField.Reference.Target = reference!;
 
             var displayField = refSlot.AttachComponent<ReferenceField<TReference>>();
             displayField.Reference.DriveFromRef(backingField.Reference);
@@ -77,7 +82,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
         /// <param name="name">The name to label the field with.</param>
         /// <param name="syncRef">The reference who's target to display.</param>
-        public static void BuildOneWayReference<TReference>(UIBuilder ui, string name, ISyncRef<TReference> syncRef)
+        public static void BuildOneWayReference<TReference>(this UIBuilder ui, string name, ISyncRef<TReference> syncRef)
             where TReference : class, IWorldElement
         {
             var worker = syncRef.FindNearestParent<Worker>();
@@ -99,13 +104,12 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="name">The name to label the field with.</param>
         /// <param name="value">The value to display.</param>
         /// <returns>The modifiable <see cref="ValueField{T}"/> constructed to hold the <paramref name="value"/>.</returns>
-        public static ValueField<TValue> BuildOneWayValue<TValue>(UIBuilder ui, string name, TValue value)
-            where TValue : class, IWorldElement
+        public static ValueField<TValue> BuildOneWayValue<TValue>(this UIBuilder ui, string name, TValue? value = default)
         {
             var refSlot = ui.Current.AddSlot($"{name}-Value");
 
             var backingField = refSlot.AttachComponent<ValueField<TValue>>();
-            backingField.Value.Value = value;
+            backingField.Value.Value = value!;
 
             var displayField = refSlot.AttachComponent<ValueField<TValue>>();
             displayField.Value.DriveFrom(backingField.Value);
@@ -123,8 +127,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
         /// <param name="name">The name to label the field with.</param>
         /// <param name="field">The field who's value to display.</param>
-        public static void BuildOneWayValue<TValue>(UIBuilder ui, string name, IField<TValue> field)
-            where TValue : class, IWorldElement
+        public static void BuildOneWayValue<TValue>(this UIBuilder ui, string name, IField<TValue> field)
         {
             var worker = field.FindNearestParent<Worker>();
             var fieldInfo = worker.GetSyncMemberFieldInfo(worker.IndexOfMember(field));
@@ -144,7 +147,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
         /// <param name="name">The name to label the field with.</param>
         /// <param name="syncRef">The reference to link with.</param>
-        public static void BuildTwoWayReference<TReference>(UIBuilder ui, string name, ISyncRef<TReference> syncRef)
+        public static void BuildTwoWayReference<TReference>(this UIBuilder ui, string name, ISyncRef<TReference> syncRef)
             where TReference : class, IWorldElement
         {
             var worker = syncRef.FindNearestParent<Worker>();
@@ -160,8 +163,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="ui">The <see cref="UIBuilder"/> used to construct the editor field.</param>
         /// <param name="name">The name to label the field with.</param>
         /// <param name="field">The field to link with.</param>
-        public static void BuildTwoWayValue<TValue>(UIBuilder ui, string name, IField<TValue> field)
-            where TValue : class, IWorldElement
+        public static void BuildTwoWayValue<TValue>(this UIBuilder ui, string name, IField<TValue> field)
         {
             var worker = field.FindNearestParent<Worker>();
             var fieldInfo = worker.GetSyncMemberFieldInfo(worker.IndexOfMember(field));
