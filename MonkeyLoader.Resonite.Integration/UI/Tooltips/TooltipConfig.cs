@@ -22,6 +22,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             new ConfigKeyQuantity<float, Time>(new UnitConfiguration("s", "0", " ", ["s", "ms"]), null, 0, 2)
         };
 
+        private static readonly DefiningConfigKey<bool> _showExtendedTooltipForHyperlinks = new("ShowExtendedTooltipForHyperlinks", "When enabled, a Hyperlink component's reason and URL are always shown in tooltips.", () => false);
         private static readonly DefiningConfigKey<colorX> _textColorKey = new("TextColor", "Sets the text color of a tooltip.", () => RadiantUI_Constants.TEXT_COLOR);
 
         private static readonly DefiningConfigKey<float> _textScaleKey = new("TextSize", "Sets the size of the text on a tooltip.", () => 1f)
@@ -60,6 +61,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         /// <inheritdoc/>
         public override string Id => "Tooltips";
+
+        /// <summary>
+        /// Gets whether a Hyperlink component's reason and URL are always shown in tooltips.
+        /// </summary>
+        public bool ShowExtendedTooltipForHyperlinks => _showExtendedTooltipForHyperlinks;
 
         /// <summary>
         /// Gets the text color for tooltips.

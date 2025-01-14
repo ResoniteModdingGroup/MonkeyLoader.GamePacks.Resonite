@@ -100,6 +100,7 @@
 
     "MonkeyLoader.GamePacks.Resonite.OpenLinkedDynamicVariableSpace.Description": "Adds buttons to dynamic variable components to open the linked space.",
 
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink": "Attempts to open a hyperlink.<br/><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Attempts to open a hyperlink.<size=50%><br/><br/></size><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
   }
 }
