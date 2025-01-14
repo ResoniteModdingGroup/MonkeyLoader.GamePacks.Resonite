@@ -75,6 +75,7 @@
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben.",
 
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink": "Versucht einen Hyperlink zu öffnen.<br/><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Versucht einen Hyperlink zu öffnen.<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
   }
 }
