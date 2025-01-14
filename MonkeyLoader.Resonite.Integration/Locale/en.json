@@ -98,6 +98,8 @@
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Generates fallback locale messages for the mod settings.",
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generates data feed items for the toggleable monkeys.",
 
-    "MonkeyLoader.GamePacks.Resonite.OpenLinkedDynamicVariableSpace.Description": "Adds buttons to dynamic variable components to open the linked space."
+    "MonkeyLoader.GamePacks.Resonite.OpenLinkedDynamicVariableSpace.Description": "Adds buttons to dynamic variable components to open the linked space.",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink": "Attempts to open a hyperlink.<br/><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
   }
 }

@@ -73,6 +73,8 @@
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons auf, indem es nach einer Comment Komponente sucht, deren Text mit 'TooltipperyLabel:' anfängt.",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Versendet die Tooltip Auflösungsanfragen aus verschiedenen Quellen. Das Tooltipsystem basiert auf dem Tooltippery Mod, der ursprünglich von Psychpsyo erstellt wurde.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
-    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben."
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben.",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink": "Versucht einen Hyperlink zu öffnen.<br/><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
   }
 }

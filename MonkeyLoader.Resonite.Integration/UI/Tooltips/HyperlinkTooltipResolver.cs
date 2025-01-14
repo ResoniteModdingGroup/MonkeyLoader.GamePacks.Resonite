@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,9 +30,16 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="button">The button component next to which a <see cref="Hyperlink"/> will be searched.</param>
         /// <param name="label">The found label if a suitable Hyperlink is found; otherwise, <c>null</c>.</param>
         /// <returns><c>true</c> if a suitable <see cref="Hyperlink"/> was found; otherwise, <c>false</c>.</returns>
-        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out string? label)
+        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out LocaleString? label)
         {
-            label = button.Slot.GetComponent<Hyperlink>()?.Reason.Value;
+            if (button.Slot.GetComponent<Hyperlink>() is not Hyperlink hyperlink)
+            {
+                label = default;
+                return false;
+            }
+
+            var reason = hyperlink.Reason ?? "None Given";
+            label = Mod.GetLocaleString("Tooltip.OpenHyperlink", ("reason", reason), ("url", hyperlink.URL.Value));
 
             return label is not null;
         }
