@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>

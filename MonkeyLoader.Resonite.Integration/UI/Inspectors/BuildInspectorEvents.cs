@@ -3,8 +3,9 @@ using FrooxEngine;
 using System;
 using MonkeyLoader.Resonite.Events;
 using MonkeyLoader.Events;
+using MonkeyLoader;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
     /// Represents the events fired during construction of a <see cref="WorkerInspector"/>'s body.
