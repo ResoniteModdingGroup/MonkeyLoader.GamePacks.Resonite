@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     internal sealed class CopySyncMemberToClipboardAction
-        : ResoniteAsyncEventHandlerMonkey<CopySyncMemberToClipboardAction, GenerateInspectorMemberActionsMenuItemsAsyncEvent>
+        : ResoniteAsyncEventHandlerMonkey<CopySyncMemberToClipboardAction, InspectorMemberActionsMenuItemsGenerationEvent>
     {
         public override int Priority => HarmonyLib.Priority.Normal;
 
-        protected override bool AppliesTo(GenerateInspectorMemberActionsMenuItemsAsyncEvent eventData)
+        protected override bool AppliesTo(InspectorMemberActionsMenuItemsGenerationEvent eventData)
             => base.AppliesTo(eventData) && eventData.Target is IField;
 
-        protected override Task Handle(GenerateInspectorMemberActionsMenuItemsAsyncEvent eventData)
+        protected override Task Handle(InspectorMemberActionsMenuItemsGenerationEvent eventData)
         {
             var field = (IField)eventData.Target;
             var menuItem = eventData.ContextMenu.AddItem("Copy to Clipboard",
@@ -23,7 +23,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             menuItem.Button.LocalPressed += (button, _) =>
             {
                 button.World.InputInterface.Clipboard.SetText(field.BoxedValue.ToString());
-                button.World.LocalUser.CloseContextMenu(eventData.Instance);
+                button.World.LocalUser.CloseContextMenu(eventData.MemberActions);
             };
 
             return Task.CompletedTask;
