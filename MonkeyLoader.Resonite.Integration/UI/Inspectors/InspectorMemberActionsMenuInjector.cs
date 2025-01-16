@@ -14,13 +14,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     [HarmonyPatch]
     [HarmonyPatchCategory(nameof(InspectorMemberActionsMenuInjector))]
     internal sealed class InspectorMemberActionsMenuInjector : ResoniteMonkey<InspectorMemberActionsMenuInjector>,
-        IAsyncEventSource<GenerateInspectorMemberActionsMenuItemsAsyncEvent>
+        IAsyncEventSource<InspectorMemberActionsMenuItemsGenerationEvent>
     {
         private static AccessTools.FieldRef<object, ButtonEventData> _accessButtonEventData = null!;
         private static AccessTools.FieldRef<object, InspectorMemberActions> _accessMemberActions = null!;
         private static AccessTools.FieldRef<object, ISyncMember> _accessTarget = null!;
 
-        private static AsyncEventDispatching<GenerateInspectorMemberActionsMenuItemsAsyncEvent>? _generateInspectorMemberActionsMenuItems;
+        private static AsyncEventDispatching<InspectorMemberActionsMenuItemsGenerationEvent>? _inspectorMemberActionsMenuItemsGeneration;
 
         public override bool CanBeDisabled => true;
 
@@ -61,10 +61,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             await __result;
 
-            var eventData = new GenerateInspectorMemberActionsMenuItemsAsyncEvent(
+            var eventData = new InspectorMemberActionsMenuItemsGenerationEvent(
                 memberActions, buttonEventData, target);
 
-            await (_generateInspectorMemberActionsMenuItems?.Invoke(eventData) ?? Task.CompletedTask);
+            await (_inspectorMemberActionsMenuItemsGeneration?.Invoke(eventData) ?? Task.CompletedTask);
         }
 
         private static MethodBase TargetMethod()
@@ -90,10 +90,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             return method;
         }
 
-        event AsyncEventDispatching<GenerateInspectorMemberActionsMenuItemsAsyncEvent>? IAsyncEventSource<GenerateInspectorMemberActionsMenuItemsAsyncEvent>.Dispatching
+        event AsyncEventDispatching<InspectorMemberActionsMenuItemsGenerationEvent>? IAsyncEventSource<InspectorMemberActionsMenuItemsGenerationEvent>.Dispatching
         {
-            add => _generateInspectorMemberActionsMenuItems += value;
-            remove => _generateInspectorMemberActionsMenuItems -= value;
+            add => _inspectorMemberActionsMenuItemsGeneration += value;
+            remove => _inspectorMemberActionsMenuItemsGeneration -= value;
         }
     }
 }
