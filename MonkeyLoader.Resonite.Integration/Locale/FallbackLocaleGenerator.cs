@@ -27,10 +27,11 @@ namespace MonkeyLoader.Resonite.Locale
         public override int Priority => -4096;
 
         /// <inheritdoc/>
-        protected override bool AppliesTo(LocaleLoadingEvent eventData) => eventData.LocaleCode == LocaleCode;
+        protected override bool AppliesTo(LocaleLoadingEvent eventData)
+            => base.AppliesTo(eventData) && eventData.LocaleCode == LocaleCode;
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         /// <inheritdoc/>
         protected override async Task Handle(LocaleLoadingEvent eventData)

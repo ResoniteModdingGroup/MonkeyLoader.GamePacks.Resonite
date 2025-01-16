@@ -30,9 +30,12 @@ namespace MonkeyLoader.Resonite
         /// Determines whether the given event should be handled
         /// by this event handler based on its data.
         /// </summary>
+        /// <remarks>
+        /// <i>By default:</i> Returns this monkey's <see cref="MonkeyBase{TMonkey}.Enabled">Enabled</see> state.
+        /// </remarks>
         /// <param name="eventData">An object containing all the relevant information for the event.</param>
         /// <returns><c>true</c> if this event handler applies to the event; otherwise, <c>false</c>.</returns>
-        protected abstract bool AppliesTo(TEvent eventData);
+        protected virtual bool AppliesTo(TEvent eventData) => Enabled;
 
         /// <summary>
         /// Handles the given event based on its data, if <see cref="AppliesTo">AppliesTo</see> returned <c>true</c>.
@@ -102,9 +105,12 @@ namespace MonkeyLoader.Resonite
         /// Determines whether the given event should be handled
         /// by this event handler based on its data.
         /// </summary>
+        /// <remarks>
+        /// <i>By default:</i> Returns this monkey's <see cref="MonkeyBase{TMonkey}.Enabled">Enabled</see> state.
+        /// </remarks>
         /// <param name="eventData">An object containing all the relevant information for the event.</param>
         /// <returns><c>true</c> if this event handler applies to the event; otherwise, <c>false</c>.</returns>
-        protected abstract bool AppliesTo(TEvent eventData);
+        protected virtual bool AppliesTo(TEvent eventData) => Enabled;
 
         /// <summary>
         /// Handles the given event based on its data, if <see cref="AppliesTo">AppliesTo</see> returned <c>true</c>.
