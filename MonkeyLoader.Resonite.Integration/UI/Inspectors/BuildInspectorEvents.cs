@@ -4,6 +4,8 @@ using System;
 using MonkeyLoader.Resonite.Events;
 using MonkeyLoader.Events;
 using MonkeyLoader;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -108,44 +110,118 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     public sealed class BuildInspectorHeaderEvent : BuildInspectorEvent
     {
         /// <summary>
-        /// Gets whether the inspector header that's currently being build needs to have a Destroy button created.
+        /// The name for the <see cref="DestroyButton">Destroy button</see>.
+        /// </summary>
+        public const string DestroyButtonName = "Destroy";
+
+        /// <summary>
+        /// The name for the <see cref="DuplicateButton">Duplicate button</see>.
+        /// </summary>
+        public const string DuplicateButtonName = "Duplicate";
+
+        /// <summary>
+        /// The name for the <see cref="OpenContainerButton">Open Container button</see>.
+        /// </summary>
+        public const string OpenContainerButtonName = "OpenContainer";
+
+        /// <summary>
+        /// The name for the <see cref="WorkerNameButton">Worker Name button</see>.
+        /// </summary>
+        public const string WorkerNameButtonName = "WorkerName";
+
+        private readonly Dictionary<string, IButton> _buttons = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Gets whether the inspector header that's currently being build
+        /// still needs to have a <see cref="DestroyButton">Destroy button</see> created.
         /// </summary>
         public bool CreateDestroyButton => AllowDestroy && !HasDestroyButton;
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build needs to have a Duplicate button created.
+        /// Gets whether the inspector header that's currently being build
+        /// still needs to have a <see cref="DuplicateButton">Duplicate button</see> created.
         /// </summary>
         public bool CreateDuplicateButton => AllowDuplicate && !HasDuplicateButton;
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build needs to and can have an Open Container button created.
+        /// Gets whether the inspector header that's currently being build
+        /// still needs to and can have an <see cref="OpenContainerButton">Open Container button</see> created.
         /// </summary>
         public bool CreateOpenContainerButton => AllowContainer && !HasOpenContainerButton && Worker.FindNearestParent<Slot>() != null;
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build needs to have a Worker Name button created.
+        /// Gets whether the inspector header that's currently being build
+        /// still needs to have a <see cref="WorkerNameButton">Worker Name button</see> created.
         /// </summary>
         public bool CreateWorkerNameButton => !HasWorkerNameButton;
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build already has a Destroy button.
+        /// Gets the Destroy button of the inspector header that's currently being build.
         /// </summary>
-        public bool HasDestroyButton { get; set; }
+        /// <value>The button or <c>null</c> if there is none yet.</value>
+        [MaybeNull]
+        public IButton DestroyButton
+        {
+            get => GetButton(DestroyButtonName);
+            set => SetButton(DestroyButtonName, value);
+        }
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build already has a Duplicate button.
+        /// Gets the Duplicate button of the inspector header that's currently being build.
         /// </summary>
-        public bool HasDuplicateButton { get; set; }
+        /// <value>The button or <c>null</c> if there is none yet.</value>
+        [MaybeNull]
+        public IButton DuplicateButton
+        {
+            get => GetButton(DuplicateButtonName);
+            set => SetButton(DuplicateButtonName, value);
+        }
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build already has an Open Container button.
+        /// Gets whether the inspector header that's currently being build
+        /// already has a <see cref="DestroyButton">Destroy</see> button.
         /// </summary>
-        public bool HasOpenContainerButton { get; set; }
+        public bool HasDestroyButton => HasButton(DestroyButtonName);
 
         /// <summary>
-        /// Gets whether the inspector header that's currently being build already has a Worker Name button.
+        /// Gets whether the inspector header that's currently being build
+        /// already has a <see cref="DuplicateButton">Duplicate</see> button.
         /// </summary>
-        public bool HasWorkerNameButton { get; set; }
+        public bool HasDuplicateButton => HasButton(DuplicateButtonName);
+
+        /// <summary>
+        /// Gets whether the inspector header that's currently being build
+        /// already has an <see cref="OpenContainerButton">Open Container</see> button.
+        /// </summary>
+        public bool HasOpenContainerButton => HasButton(OpenContainerButtonName);
+
+        /// <summary>
+        /// Gets whether the inspector header that's currently being build
+        /// already has a <see cref="WorkerNameButton">Worker Name</see> button.
+        /// </summary>
+        public bool HasWorkerNameButton => HasButton(WorkerNameButtonName);
+
+        /// <summary>
+        /// Gets the Open Container button of the inspector header that's currently being build.
+        /// </summary>
+        /// <value>The button or <c>null</c> if there is none yet.</value>
+        [MaybeNull]
+        public IButton OpenContainerButton
+        {
+            get => GetButton(OpenContainerButtonName);
+            set => SetButton(OpenContainerButtonName, value);
+        }
+
+        /// <summary>
+        /// Gets the Worker Name button of the inspector header that's currently being build.
+        /// </summary>
+        /// <value>The button or <c>null</c> if there is none yet.</value>
+        [MaybeNull]
+        public IButton WorkerNameButton
+        {
+            get => GetButton(WorkerNameButtonName);
+            set => SetButton(WorkerNameButtonName, value);
+        }
 
         /// <summary>
         /// Allows adding custom inspector elements to the header of the <see cref="WorkerInspector"/> being build.
@@ -161,5 +237,73 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
             : base(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter)
         { }
+
+        /// <summary>
+        /// Determines whether the given <paramref name="name"/> is valid for buttons.
+        /// </summary>
+        /// <remarks>
+        /// Names must not be <c>null</c> or whitespace.
+        /// </remarks>
+        /// <param name="name">The name to validate.</param>
+        /// <returns><c>true</c> if the <paramref name="name"/> is valid; otherwise, <c>false</c>.</returns>
+        public static bool IsValidButtonName(string name)
+            => !string.IsNullOrWhiteSpace(name);
+
+        /// <summary>
+        /// Gets the button with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the button to get.</param>
+        /// <returns>The button with the given <paramref name="name"/> if it exists; otherwise, <c>null</c>.</returns>
+        /// <exception cref="ArgumentNullException">When the <paramref name="name"/> is <see cref="IsValidButtonName">invalid</see>.</exception>
+        public IButton? GetButton(string name)
+        {
+            if (!IsValidButtonName(name))
+                throw new ArgumentNullException(nameof(name), "Name must not be null or whitespace!");
+
+            if (_buttons.TryGetValue(name, out var button))
+                return button;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Determines if there is a button with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the button to check for.</param>
+        /// <returns><c>true</c> if there is a button with the given <paramref name="name"/>; otherwise, <c>false</c>.</returns>
+        public bool HasButton(string name)
+            => GetButton(name) is not null;
+
+        /// <summary>
+        /// Sets a <paramref name="button"/> for the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name to set the <paramref name="button"/> for.</param>
+        /// <param name="button">The button to set for the <paramref name="name"/>.</param>
+        /// <exception cref="ArgumentNullException">
+        /// When the <paramref name="name"/> is <see cref="IsValidButtonName">invalid</see>,
+        /// or the <paramref name="button"/> is <c>null</c>.
+        /// </exception>
+        public void SetButton(string name, IButton button)
+        {
+            if (!IsValidButtonName(name))
+                throw new ArgumentNullException(nameof(name), "Name must not be null or whitespace!");
+
+            if (button is null)
+                throw new ArgumentNullException(nameof(button));
+
+            _buttons[name] = button;
+        }
+
+        /// <summary>
+        /// Tries to get the button with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the button to get.</param>
+        /// <param name="button">The button with the given <paramref name="name"/> if it exists; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if there is a button with the given <paramref name="name"/>; otherwise, <c>false</c>.</returns>
+        public bool TryGetButton(string name, [NotNullWhen(true)] out IButton? button)
+        {
+            button = GetButton(name);
+            return button is not null;
+        }
     }
 }

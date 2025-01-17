@@ -29,6 +29,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
 
                 ConfigSection.WorkerNameOffset.DriveFromVariable(button.Slot._orderOffset);
+
+                eventData.WorkerNameButton = button;
             }
 
             ui.PushStyle();
@@ -40,7 +42,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
                 ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot._orderOffset);
 
-                eventData.HasOpenContainerButton = true;
+                eventData.OpenContainerButton = button;
             }
 
             if (eventData.CreateDuplicateButton)
@@ -48,7 +50,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
                 ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot._orderOffset);
 
-                eventData.HasDuplicateButton = true;
+                eventData.DuplicateButton = button;
             }
 
             if (eventData.CreateDestroyButton)
@@ -56,7 +58,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
                 ConfigSection.DestroyOffset.DriveFromVariable(button.Slot._orderOffset);
 
-                eventData.HasDestroyButton = true;
+                eventData.DestroyButton = button;
             }
 
             ui.PopStyle();
