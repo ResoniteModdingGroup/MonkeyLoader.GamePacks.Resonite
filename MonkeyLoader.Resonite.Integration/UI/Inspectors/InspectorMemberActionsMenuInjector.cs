@@ -1,6 +1,5 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader;
 using MonkeyLoader.Events;
 using System;
 using System.Collections.Generic;
@@ -69,6 +68,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
         private static MethodBase TargetMethod()
         {
+            // The actual menu generation happens inside a lambda,
+            // which gets turned into a compiler generated class.
+            // We look for this based on the necessary fields and method.
+
             var generatedType = AccessTools.InnerTypes(typeof(InspectorMemberActions))
                 .SingleOrDefault(MatchesRequiredType)
                 ?? throw new InvalidOperationException("Found no suitable nested type in InspectorMemberActions!");
