@@ -1,10 +1,9 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
-using MonkeyLoader.Resonite.UI.Inspectors;
 using System;
 
-namespace MonkeyLoader.Resonite.UI
+namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
     /// Represents the config for the <see cref="DefaultInspectorHeaderHandler"/>.

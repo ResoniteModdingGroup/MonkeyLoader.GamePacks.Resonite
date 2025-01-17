@@ -20,7 +20,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// for <see cref="Worker"/>s of a(n open) generic base type.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent> : ResoniteInspectorMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
+    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent>
+            : ResoniteInspectorMonkey<TMonkey, TEvent>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : BuildInspectorEvent
@@ -34,7 +35,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         ConfigSection IConfiguredMonkey.ConfigSection => ConfigSection;
 
         /// <inheritdoc/>
-        protected ConfiguredResoniteInspectorMonkey(Type baseType) : base(baseType)
+        protected ConfiguredResoniteInspectorMonkey(Type baseType)
+            : base(baseType)
         { }
 
         /// <remarks>
@@ -64,7 +66,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// for <see cref="Worker"/>s of a specific (base) type.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker> : ResoniteInspectorMonkey<TMonkey, TEvent, TWorker>, IConfiguredMonkey<TConfigSection>
+    public abstract class ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker>
+            : ResoniteInspectorMonkey<TMonkey, TEvent, TWorker>, IConfiguredMonkey<TConfigSection>
         where TMonkey : ConfiguredResoniteInspectorMonkey<TMonkey, TConfigSection, TEvent, TWorker>, new()
         where TConfigSection : ConfigSection, new()
         where TEvent : BuildInspectorEvent
