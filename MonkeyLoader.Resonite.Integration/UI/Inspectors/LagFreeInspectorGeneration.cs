@@ -31,8 +31,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             {
                 __instance.Slot.ActiveSelf = false;
 
-                await SetupContainerAsync(__instance,
-                    container, memberFilter ?? Filter, workerFilter ?? Filter, includeContainer);
+                await SetupContainerAsync(__instance, container, memberFilter, workerFilter, includeContainer);
 
                 __instance.Slot.ActiveSelf = true;
             });
@@ -41,10 +40,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         }
 
         private static async Task SetupContainerAsync(WorkerInspector __instance,
-            Worker container, Predicate<ISyncMember> memberFilter, Predicate<Worker> workerFilter, bool includeContainer)
+            Worker container, Predicate<ISyncMember>? memberFilter, Predicate<Worker>? workerFilter, bool includeContainer)
         {
             __instance._targetContainer.Target = container;
-            __instance._workerFilter.Target = workerFilter;
+            __instance._workerFilter.Target = workerFilter!;
+
+            memberFilter ??= Filter;
+            workerFilter ??= Filter;
 
             var verticalLayout = __instance.Slot.AttachComponent<VerticalLayout>();
             verticalLayout.Spacing.Value = 4f;
