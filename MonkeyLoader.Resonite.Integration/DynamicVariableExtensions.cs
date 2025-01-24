@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
-    /// Contains extension methods related to <see cref="DynamicVariableSpace"/>s.
+    /// Contains extension methods related to <see cref="DynamicVariableSpace"/>s
+    /// and their <see cref="IDynamicVariable">variables</see>.
     /// </summary>
     public static class DynamicVariableExtensions
     {
@@ -62,20 +63,38 @@ namespace MonkeyLoader.Resonite
             => slot.FindSpace(spaceName!) ?? CreateSpace(slot, spaceName, onlyDirectBinding);
 
         /// <summary>
+        /// Gets the <see cref="DynamicVariableHandler{T}"/> of this
+        /// <see cref="IDynamicVariable{T}">dynamic variable</see>.
+        /// </summary>
+        /// <param name="dynamicVariable">The dynamic variable of which to get the <see cref="DynamicVariableHandler{T}"/>.</param>
+        /// <returns>The <see cref="DynamicVariableHandler{T}"/> of this <see cref="IDynamicVariable{T}">dynamic variable</see>.</returns>
+        /// <exception cref="NullReferenceException">
+        /// When the <see cref="DynamicVariableHandler{T}"/> of this <see cref="IDynamicVariable{T}">dynamic variable</see> could not be found.
+        /// </exception>
+        public static DynamicVariableHandler<T> GetHandler<T>(this IDynamicVariable<T> dynamicVariable)
+        {
+            if (dynamicVariable.TryGetHandler(out var handler))
+                return handler;
+
+            throw new NullReferenceException("Dynamic variable handler could not be found!");
+        }
+
+        /// <summary>
         /// Gets the <see cref="DynamicVariableSpace"/> that this
         /// <see cref="IDynamicVariable">dynamic variable</see> is linked to.
         /// </summary>
         /// <param name="dynamicVariable">The dynamic variable of which to get the linked <see cref="DynamicVariableSpace"/>.</param>
         /// <returns>The <see cref="DynamicVariableSpace"/> that this <see cref="IDynamicVariable">dynamic variable</see> is linked to.</returns>
         /// <exception cref="NullReferenceException">
-        /// When this <see cref="IDynamicVariable">dynamic variable</see> is not linked to a <see cref="DynamicVariableSpace"/>.
+        /// When this <see cref="IDynamicVariable">dynamic variable</see> is
+        /// not linked to a <see cref="DynamicVariableSpace"/> or it could not be found.
         /// </exception>
         public static DynamicVariableSpace GetLinkedSpace(this IDynamicVariable dynamicVariable)
         {
             if (dynamicVariable.TryGetLinkedSpace(out var space))
                 return space;
 
-            throw new NullReferenceException("Dynamic variable is not linked against a space!");
+            throw new NullReferenceException("Dynamic variable is not linked against a space or it could not be found!");
         }
 
         /// <inheritdoc cref="GetLinkedVariables"/>
@@ -268,13 +287,34 @@ namespace MonkeyLoader.Resonite
             => DynamicVariableHelper.ProcessName(variableName!);
 
         /// <summary>
+        /// Tries to get the <see cref="DynamicVariableHandler{T}"/> of this
+        /// <see cref="IDynamicVariable{T}">dynamic variable</see>.
+        /// </summary>
+        /// <param name="dynamicVariable">The dynamic variable of which to get the <see cref="DynamicVariableHandler{T}"/>.</param>
+        /// <param name="handler">
+        /// The <see cref="DynamicVariableHandler{T}"/> of this <see cref="IDynamicVariable">dynamic variable</see>; otherwise, <c>null</c>.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the <see cref="DynamicVariableHandler{T}"/> of this
+        /// <see cref="IDynamicVariable">dynamic variable</see> was found; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool TryGetHandler<T>(this IDynamicVariable<T> dynamicVariable, [NotNullWhen(true)] out DynamicVariableHandler<T>? handler)
+        {
+            handler = Traverse.Create(dynamicVariable)
+                .Field(nameof(DynamicVariableBase<dummy>.handler))
+                .GetValue<DynamicVariableHandler<T>>();
+
+            return handler is not null;
+        }
+
+        /// <summary>
         /// Tries to get the <see cref="DynamicVariableSpace"/> that this
         /// <see cref="IDynamicVariable">dynamic variable</see> is linked to.
         /// </summary>
         /// <param name="dynamicVariable">The dynamic variable of which to get the linked <see cref="DynamicVariableSpace"/>.</param>
         /// <param name="linkedSpace">
-        /// The <see cref="DynamicVariableSpace"/> that this
-        /// <see cref="IDynamicVariable">dynamic variable</see> is linked to; otherwise, <c>null</c>.
+        /// The <see cref="DynamicVariableSpace"/> that this <see cref="IDynamicVariable">dynamic
+        /// variable</see> is linked to was found; otherwise, <c>null</c>.
         /// </param>
         /// <returns>
         /// <c>true</c> if this <see cref="IDynamicVariable">dynamic variable</see>
