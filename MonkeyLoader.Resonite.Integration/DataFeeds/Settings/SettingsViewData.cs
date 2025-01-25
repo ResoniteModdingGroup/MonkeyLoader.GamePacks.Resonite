@@ -50,7 +50,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         /// </summary>
         public RootCategoryView? RootCategoryView
         {
-            get => _rootCategoryView = _rootCategoryView.FilterWorldElement();
+            get => _rootCategoryView = _rootCategoryView!.FilterWorldElement();
             internal set
             {
                 if (ReferenceEquals(_rootCategoryView, value))
@@ -85,7 +85,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         /// </summary>
         internal Slider<float>? ScrollSlider
         {
-            get => _scrollSlider = _scrollSlider.FilterWorldElement();
+            get => _scrollSlider = _scrollSlider!.FilterWorldElement();
             set => _scrollSlider = value;
         }
 
@@ -210,7 +210,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                     ui.PushStyle();
                     ui.Style.MinWidth = 521.36f;
-                    SyncMemberEditorBuilder.Build(member, null, fieldInfo, ui, 0f);
+                    SyncMemberEditorBuilder.Build(member, null!, fieldInfo, ui, 0f);
                     ui.PopStyle();
 
                     var memberActions = ui.Root?.GetComponentInChildren<InspectorMemberActions>()?.Slot;

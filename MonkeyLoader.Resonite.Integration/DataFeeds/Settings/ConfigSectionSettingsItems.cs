@@ -209,7 +209,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             var quantityField = new DataFeedQuantityField<TQuantity, T>();
             quantityField.InitBase(path, groupKeys, configKey);
-            quantityField.InitUnitConfiguration(quantity.DefaultConfiguration, quantity.ImperialConfiguration);
+            quantityField.InitUnitConfiguration(quantity.DefaultConfiguration, quantity.ImperialConfiguration!);
             quantityField.InitSetup(quantityField => quantityField.SetupConfigKeyField(configKey), quantity.Min, quantity.Max);
 
             return quantityField;

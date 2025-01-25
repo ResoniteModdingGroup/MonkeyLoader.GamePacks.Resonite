@@ -57,7 +57,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             await Task.CompletedTask;
 
             var modsGroup = new DataFeedGroup();
-            modsGroup.InitBase("Mods.Group", path, null, Mod.GetLocaleString("Mods"));
+            modsGroup.InitBase("Mods.Group", path, null!, Mod.GetLocaleString("Mods"));
             yield return modsGroup;
 
             var modsGrid = new DataFeedGrid();
@@ -74,7 +74,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
 
             var gamePacksGroup = new DataFeedGroup();
-            gamePacksGroup.InitBase("GamePacks.Group", path, null, Mod.GetLocaleString("GamePacks"));
+            gamePacksGroup.InitBase("GamePacks.Group", path, null!, Mod.GetLocaleString("GamePacks"));
             yield return gamePacksGroup;
 
             var gamePacksGrid = new DataFeedGrid();
@@ -91,7 +91,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             }
 
             var monkeyLoaderGroup = new DataFeedGroup();
-            monkeyLoaderGroup.InitBase("MonkeyLoader", path, null, Mod.GetLocaleString("MonkeyLoader.Name"));
+            monkeyLoaderGroup.InitBase("MonkeyLoader", path, null!, Mod.GetLocaleString("MonkeyLoader.Name"));
             yield return monkeyLoaderGroup;
 
             var monkeyLoaderGrouping = new[] { Mod.Loader.Id };
@@ -130,7 +130,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static IAsyncEnumerable<DataFeedItem> WorldNotUserspaceWarningAsync(IReadOnlyList<string> path)
         {
             var warning = new DataFeedIndicator<string>();
-            warning.InitBase("Information", path, null, Mod.GetLocaleString("Information"));
+            warning.InitBase("Information", path, null!, Mod.GetLocaleString("Information"));
             warning.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleString("WorldNotUserspace")));
             return ((DataFeedItem)warning).YieldAsync();
         }

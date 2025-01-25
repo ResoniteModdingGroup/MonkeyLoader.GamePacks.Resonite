@@ -46,7 +46,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             var path = parameters.Path;
 
             var modGroup = new DataFeedGroup();
-            modGroup.InitBase("Metadata", path, null, Mod.GetLocaleString("Mod.Metadata"));
+            modGroup.InitBase("Metadata", path, null!, Mod.GetLocaleString("Mod.Metadata"));
             yield return modGroup;
 
             var grouping = new[] { "Metadata" };

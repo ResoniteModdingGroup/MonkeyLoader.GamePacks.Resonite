@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
     <AssemblyTitle>MonkeyLoader.Resonite.Unity</AssemblyTitle>
-    <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
