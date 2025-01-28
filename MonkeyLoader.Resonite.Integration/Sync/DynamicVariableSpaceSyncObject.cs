@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite.Sync
     {
         public override bool IsLinkValid => LinkObject!.FilterWorldElement() is not null;
 
-        protected override bool EstablishLinkFor(string propertyName, IMonkeySyncValue syncValue)
+        protected override bool EstablishLinkFor(string propertyName, IMonkeySyncValue syncValue, bool fromRemote)
         {
             // need syncValue.ValueType
 
@@ -26,7 +26,7 @@ namespace MonkeyLoader.Resonite.Sync
         }
 
         /// <inheritdoc/>
-        protected override bool EstablishLinkFor(string methodName, Action<TSyncObject> syncMethod)
+        protected override bool EstablishLinkFor(string methodName, Action<TSyncObject> syncMethod, bool fromRemote)
         {
             var boolVar = LinkObject!.Slot.AttachComponent<DynamicValueVariable<bool>>();
             boolVar.VariableName.Value = $"{LinkObject.SpaceName.Value}/{methodName}";
@@ -34,5 +34,26 @@ namespace MonkeyLoader.Resonite.Sync
 
             return true;
         }
+
+        /// <inheritdoc/>
+        protected override bool EstablishLinkWith(DynamicVariableSpace linkObject, bool fromRemote)
+        {
+            linkObject.OnlyDirectBinding.Value = true;
+            linkObject.SpaceName.Value = $"{DynamicVariableSpaceSync.SpaceNamePrefix}::{typeof(TSyncObject).Name}";
+
+            return base.EstablishLinkWith(linkObject, fromRemote);
+        }
+
+        /// <inheritdoc/>
+        protected override void OnDisposing() => base.OnDisposing();
+
+        /// <inheritdoc/>
+        protected override bool TryRestoreLink() => base.TryRestoreLink();
+
+        /// <inheritdoc/>
+        protected override bool TryRestoreLinkFor(string propertyName, IMonkeySyncValue syncValue) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        protected override bool TryRestoreLinkFor(string methodName, Action<TSyncObject> syncMethod) => throw new NotImplementedException();
     }
 }
