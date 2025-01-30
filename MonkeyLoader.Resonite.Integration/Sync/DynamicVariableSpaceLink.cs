@@ -7,6 +7,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Resonite.Sync
 {
+    /// <summary>
+    /// Hooks <see cref="DynamicVariableSpace"/>s to create the
+    /// <see cref="DynamicVariableSpaceSyncObject{TSyncObject}">MonkeySync objects
+    /// linked through them</see> when they have the right name.
+    /// </summary>
     [HarmonyPatchCategory(nameof(DynamicVariableSpaceLink))]
     [HarmonyPatch(typeof(DynamicVariableSpace), nameof(DynamicVariableSpace.UpdateName))]
     public sealed class DynamicVariableSpaceLink : ResoniteMonkey<DynamicVariableSpaceLink>
@@ -21,7 +26,7 @@ namespace MonkeyLoader.Resonite.Sync
         {
             var name = DynamicVariableHelper.ProcessName(__instance.SpaceName);
 
-            if ((__instance._lastNameSet && name == __instance._lastName) || !(name?.StartsWith(SpaceNamePrefix) ?? false))
+            if ((__instance._lastNameSet && name == __instance._lastName) || !(name?.StartsWith(SpaceNamePrefix) ?? false) || MonkeySyncRegistry.HasLinkedSyncObject(__instance))
                 return;
 
             __instance.RunInUpdates(32, () => TryCreateSyncObject(__instance, name, out _));
@@ -36,15 +41,19 @@ namespace MonkeyLoader.Resonite.Sync
 
             var syncObjectName = name[SpaceNamePrefix.Length..];
 
-            if (!MonkeySyncRegistry.TryGetRegisteredSyncObject<DynamicVariableSpace>(syncObjectName, out var registeredSyncObject))
+            if (!MonkeySyncRegistry.TryGetSyncObjectRegistration<DynamicVariableSpace>(syncObjectName, out var registration))
                 return false;
 
-            var createdSyncObject = registeredSyncObject.CreateSyncObject();
+            var createdSyncObject = registration.CreateSyncObject();
 
             if (!createdSyncObject.LinkWith(space, true))
+            {
+                createdSyncObject.Dispose();
                 return false;
+            }
 
             syncObject = createdSyncObject;
+            MonkeySyncRegistry.RegisterLinkedSyncObject(syncObject);
 
             return true;
         }
