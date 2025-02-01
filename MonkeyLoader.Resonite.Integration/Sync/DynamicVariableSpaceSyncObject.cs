@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using HarmonyLib;
 using MonkeyLoader.Sync;
 using System;
 using System.Collections.Generic;
@@ -34,19 +35,49 @@ namespace MonkeyLoader.Resonite.Sync
         /// <inheritdoc/>
         protected override sealed bool EstablishLinkFor(string propertyName, IMonkeySyncValue syncValue, bool fromRemote)
         {
-            var isReference = typeof(IWorldElement).IsAssignableFrom(syncValue.ValueType);
-            var varType = isReference ? typeof(DynamicReferenceVariable<>) : typeof(DynamicValueVariable<>);
-            varType = varType.MakeGenericType(syncValue.ValueType);
+            try
+            {
+                var isReference = typeof(IWorldElement).IsAssignableFrom(syncValue.ValueType);
 
-            var dynVar = LinkObject.Slot.AttachComponent(varType);
-            dynVar.TryGetField<string>(nameof(DynamicVariableBase<dummy>.VariableName)).Value = $"{VariableSpaceName}/{propertyName}";
+                if (fromRemote)
+                {
+                    var bareMethod = AccessTools.DeclaredMethod(typeof(DynamicVariableSpaceLink),
+                        isReference
+                            ? nameof(DynamicVariableSpaceLink.CreateReferenceLink)
+                            : nameof(DynamicVariableSpaceLink.CreateValueLink));
 
-            if (isReference)
-                ((ISyncRef)dynVar.TryGetField(nameof(DynamicReferenceVariable<IWorldElement>.Reference))).Target = (syncValue.Value as IWorldElement)!;
-            else
-                dynVar.TryGetField(nameof(DynamicValueVariable<dummy>.Value)).BoxedValue = syncValue.Value!;
+                    var genericMethod = bareMethod.MakeGenericMethod(syncValue.ValueType);
 
-            return true;
+                    var variableType = isReference
+                        ? typeof(DynamicReferenceVariable<>)
+                        : typeof(DynamicValueVariable<>);
+
+                    // This actually needs to consider the name
+                    var variable = LinkObject.Slot.GetComponent(variableType.MakeGenericType(syncValue.ValueType));
+
+                    if (variable is null)
+                        return false;
+
+                    genericMethod.Invoke(null, [variable, syncValue]);
+                }
+                else
+                {
+                    var bareMethod = AccessTools.DeclaredMethod(typeof(DynamicVariableSpaceLink),
+                        isReference
+                            ? nameof(DynamicVariableSpaceLink.CreateLinkedReferenceVariable)
+                            : nameof(DynamicVariableSpaceLink.CreateLinkedValueVariable));
+
+                    var genericMethod = bareMethod.MakeGenericMethod(syncValue.ValueType);
+
+                    genericMethod.Invoke(null, [LinkObject.Slot, $"{VariableSpaceName}/{propertyName}", syncValue]);
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <inheritdoc/>

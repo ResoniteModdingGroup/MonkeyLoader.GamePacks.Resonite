@@ -22,6 +22,44 @@ namespace MonkeyLoader.Resonite.Sync
         /// </summary>
         public const string SpaceNamePrefix = "MonkeySyncObject.";
 
+        public static DynamicReferenceVariable<T> CreateLinkedReferenceVariable<T>(Slot slot, string variableName, IMonkeySyncValue<T> syncValue)
+            where T : class, IWorldElement
+        {
+            var referenceVariable = slot.AttachComponent<DynamicReferenceVariable<T>>();
+            referenceVariable.VariableName.Value = variableName;
+            referenceVariable.Reference.Target = syncValue.Value;
+
+            CreateReferenceLink(referenceVariable, syncValue);
+
+            return referenceVariable;
+        }
+
+        public static DynamicValueVariable<T> CreateLinkedValueVariable<T>(Slot slot, string variableName, IMonkeySyncValue<T> syncValue)
+        {
+            var valueVariable = slot.AttachComponent<DynamicValueVariable<T>>();
+            valueVariable.VariableName.Value = variableName;
+            valueVariable.Value.Value = syncValue.Value;
+
+            CreateValueLink(valueVariable, syncValue);
+
+            return valueVariable;
+        }
+
+        public static void CreateReferenceLink<T>(DynamicReferenceVariable<T> referenceVariable, IMonkeySyncValue<T> syncValue)
+            where T : class, IWorldElement
+        {
+            referenceVariable.Reference.OnTargetChange += field => syncValue.Value = field.Target;
+
+            syncValue.Changed += (sender, args) => referenceVariable.RunSynchronously(() => referenceVariable.Reference.Target = args.NewValue!);
+        }
+
+        public static void CreateValueLink<T>(DynamicValueVariable<T> valueVariable, IMonkeySyncValue<T> syncValue)
+        {
+            valueVariable.Value.OnValueChange += field => syncValue.Value = field.Value;
+
+            syncValue.Changed += (sender, args) => valueVariable.RunSynchronously(() => valueVariable.Value.Value = args.NewValue!);
+        }
+
         private static void Prefix(DynamicVariableSpace __instance)
         {
             var name = DynamicVariableHelper.ProcessName(__instance.SpaceName);
@@ -53,7 +91,6 @@ namespace MonkeyLoader.Resonite.Sync
             }
 
             syncObject = createdSyncObject;
-            MonkeySyncRegistry.RegisterLinkedSyncObject(syncObject);
 
             return true;
         }
