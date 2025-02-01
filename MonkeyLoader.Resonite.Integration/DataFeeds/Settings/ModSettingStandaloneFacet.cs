@@ -20,6 +20,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
 
+        public override IEnumerable<string> Authors { get; } = ["Nytra"];
+
         protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
 
         private static IDefiningConfigKey? GetConfigKeyByFullId(string fullId)
