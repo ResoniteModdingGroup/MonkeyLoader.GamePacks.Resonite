@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Logging;
+using MonkeyLoader.Resonite.Sync.DynamicVariables;
 using MonkeyLoader.Sync;
 using System;
 using System.Collections.Generic;

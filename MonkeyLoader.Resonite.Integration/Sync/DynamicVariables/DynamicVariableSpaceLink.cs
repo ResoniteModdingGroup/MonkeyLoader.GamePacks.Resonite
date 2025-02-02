@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MonkeyLoader.Resonite.Sync
+namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
     /// <summary>
     /// Hooks <see cref="DynamicVariableSpace"/>s to create the
@@ -64,7 +64,7 @@ namespace MonkeyLoader.Resonite.Sync
         {
             var name = DynamicVariableHelper.ProcessName(__instance.SpaceName);
 
-            if ((__instance._lastNameSet && name == __instance._lastName) || !(name?.StartsWith(SpaceNamePrefix) ?? false) || MonkeySyncRegistry.HasLinkedSyncObject(__instance))
+            if (__instance._lastNameSet && name == __instance._lastName || !(name?.StartsWith(SpaceNamePrefix) ?? false) || MonkeySyncRegistry.HasLinkedSyncObject(__instance))
                 return;
 
             __instance.RunInUpdates(32, () => TryCreateSyncObject(__instance, name, out _));

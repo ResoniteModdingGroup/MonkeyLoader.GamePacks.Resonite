@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MonkeyLoader.Resonite.Sync
+namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
     public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IMonkeySyncValue, DynamicVariableSpace>
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
