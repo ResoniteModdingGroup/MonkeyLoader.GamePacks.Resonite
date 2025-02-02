@@ -13,8 +13,8 @@ namespace MonkeyLoader.Resonite.Sync
         private static readonly HashSet<TestObject> _objects = [];
 
         public Logger Logger { get; }
-        public MonkeySyncValue<DynamicVariableSpace?> Space { get; } = new(null);
-        public MonkeySyncValue<string> TestValue { get; } = "Hello, World!";
+        public DynamicReferenceVariableSyncValue<DynamicVariableSpace?> Space { get; } = new(null);
+        public DynamicValueVariableSyncValue<string> TestValue { get; } = new("Hello, World!");
 
         public TestObject(Logger logger)
         {

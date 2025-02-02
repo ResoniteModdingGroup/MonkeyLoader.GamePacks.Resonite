@@ -8,9 +8,11 @@ using System.Text;
 
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
-    public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IMonkeySyncValue, DynamicVariableSpace>
+    public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue, DynamicVariableSpace>
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
     {
+        private readonly Dictionary<string, DynamicValueVariableSyncValue<bool>> _syncMethodTogglesByName = new(StringComparer.Ordinal);
+
         /// <summary>
         /// Gets the <see cref="MonkeySyncRegistry"/> information for this MonkeySync object.
         /// </summary>
@@ -33,59 +35,14 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         }
 
         /// <inheritdoc/>
-        protected override sealed bool EstablishLinkFor(string propertyName, IMonkeySyncValue syncValue, bool fromRemote)
-        {
-            try
-            {
-                var isReference = typeof(IWorldElement).IsAssignableFrom(syncValue.ValueType);
-
-                if (fromRemote)
-                {
-                    var bareMethod = AccessTools.DeclaredMethod(typeof(DynamicVariableSpaceLink),
-                        isReference
-                            ? nameof(DynamicVariableSpaceLink.CreateReferenceLink)
-                            : nameof(DynamicVariableSpaceLink.CreateValueLink));
-
-                    var genericMethod = bareMethod.MakeGenericMethod(syncValue.ValueType);
-
-                    var variableType = isReference
-                        ? typeof(DynamicReferenceVariable<>)
-                        : typeof(DynamicValueVariable<>);
-
-                    // This actually needs to consider the name
-                    var variable = LinkObject.Slot.GetComponent(variableType.MakeGenericType(syncValue.ValueType));
-
-                    if (variable is null)
-                        return false;
-
-                    genericMethod.Invoke(null, [variable, syncValue]);
-                }
-                else
-                {
-                    var bareMethod = AccessTools.DeclaredMethod(typeof(DynamicVariableSpaceLink),
-                        isReference
-                            ? nameof(DynamicVariableSpaceLink.CreateLinkedReferenceVariable)
-                            : nameof(DynamicVariableSpaceLink.CreateLinkedValueVariable));
-
-                    var genericMethod = bareMethod.MakeGenericMethod(syncValue.ValueType);
-
-                    genericMethod.Invoke(null, [LinkObject.Slot, $"{VariableSpaceName}/{propertyName}", syncValue]);
-                }
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <inheritdoc/>
         protected override sealed bool EstablishLinkFor(string methodName, Action<TSyncObject> syncMethod, bool fromRemote)
         {
-            var boolVar = LinkObject!.Slot.AttachComponent<DynamicValueVariable<bool>>();
-            boolVar.VariableName.Value = $"{VariableSpaceName}/{methodName}";
-            boolVar.Value.Changed += _ => syncMethod((TSyncObject)this);
+            var syncValue = new DynamicValueVariableSyncValue<bool>(false);
+
+            if (!syncValue.EstablishLinkFor(this, methodName, fromRemote))
+                return false;
+
+            syncValue.Changed += (_, _) => syncMethod((TSyncObject)this);
 
             return true;
         }
@@ -93,9 +50,17 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         protected override sealed bool EstablishLinkWith(DynamicVariableSpace linkObject, bool fromRemote)
         {
-            linkObject.OnlyDirectBinding.Value = true;
+            if (fromRemote)
+            {
+                if (linkObject.SpaceName != VariableSpaceName)
+                    return false;
+            }
+            else
+            {
+                linkObject.OnlyDirectBinding.Value = true;
+                linkObject.SpaceName.Value = VariableSpaceName;
+            }
 
-            linkObject.SpaceName.Value = VariableSpaceName;
             linkObject.SpaceName.OnValueChange += field => LinkObject.RunSynchronously(OnLinkInvalidated);
 
             return base.EstablishLinkWith(linkObject, fromRemote);
@@ -116,7 +81,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         }
 
         /// <inheritdoc/>
-        protected override sealed bool TryRestoreLinkFor(string propertyName, IMonkeySyncValue syncValue) => throw new NotImplementedException();
+        protected override sealed bool TryRestoreLinkFor(string propertyName, IUnlinkedDynamicVariableSyncValue syncValue) => throw new NotImplementedException();
 
         /// <inheritdoc/>
         protected override sealed bool TryRestoreLinkFor(string methodName, Action<TSyncObject> syncMethod) => throw new NotImplementedException();
