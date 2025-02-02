@@ -63,6 +63,107 @@ namespace MonkeyLoader.Resonite
             => slot.FindSpace(spaceName!) ?? CreateSpace(slot, spaceName, onlyDirectBinding);
 
         /// <summary>
+        /// Gets all <see cref="DynamicVariableSpace"/>s that apply to this <see cref="Slot"/>.<br/>
+        /// Optionally includes only those that pass through the <paramref name="filter"/>.
+        /// </summary>
+        /// <remarks>
+        /// This function is different from a regular
+        /// <c><see cref="Slot"/>.<see cref="Slot.GetComponentInParents{T}(Predicate{T}, bool, bool)">GetComponentsInParents</see>&lt;<see cref="DynamicVariableSpace"/>&gt;()</c>
+        /// call,<br/> as it considers that <see cref="DynamicVariableSpace"/>s deeper in the hierarchy
+        /// hide ones higher up with the same <see cref="DynamicVariableSpace.SpaceName">name</see>.<br/>
+        /// If a <see cref="DynamicVariableSpace"/> deeper in the hierarchy doesn't pass the <paramref name="filter"/>,<br/>
+        /// it will still hide any higher up ones with the same <see cref="DynamicVariableSpace.SpaceName">name</see>
+        /// that might pass it, because they don't apply to this <see cref="Slot"/>.
+        /// </remarks>
+        /// <param name="slot">The <see cref="Slot"/> to find all applicable <see cref="DynamicVariableSpace"/>s for.</param>
+        /// <param name="filter">The optional predicate to apply to the returned </param>
+        /// <returns>All <see cref="DynamicVariableSpace"/> that apply to this <see cref="Slot"/> and optionally pass the <paramref name="filter"/>.</returns>
+        public static IEnumerable<DynamicVariableSpace> GetAvailableSpaces(this Slot slot, Predicate<DynamicVariableSpace>? filter = null)
+        {
+            filter ??= Filter;
+            var result = new List<DynamicVariableSpace>();
+            var presentNames = Pool.BorrowHashSet<string>();
+
+            while (slot is not null)
+            {
+                var currentSpaces = slot.GetComponents<DynamicVariableSpace>();
+
+                foreach (var currentSpace in currentSpaces)
+                {
+                    if (!filter(currentSpace))
+                    {
+                        presentNames.Add(currentSpace.SpaceName);
+                        continue;
+                    }
+
+                    if (presentNames.Contains(currentSpace.SpaceName))
+                        continue;
+
+                    result.Add(currentSpace);
+                    presentNames.Add(currentSpace.SpaceName.Value);
+                }
+
+                slot = slot.Parent;
+            }
+
+            Pool.Return(ref presentNames);
+
+            return [.. result];
+        }
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
+        /// identities</see> that apply to this <see cref="Slot"/>,
+        /// which can be assigned a value of the given <see cref="Type"/>.
+        /// </summary>
+        /// <param name="slot">The <see cref="Slot"/> to find all applicable full Dynamic Variable identities for.</param>
+        /// <param name="type">The type that must be assignable to the variables.</param>
+        /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that the given <see cref="Type"/> can be assigned to.</returns>
+        /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
+        public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot, Type type)
+            => slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(type)).ToArray();
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
+        /// identities</see> that apply to this <see cref="Slot"/>,
+        /// which match the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="slot">The <see cref="Slot"/> to find all applicable full Dynamic Variable identities for.</param>
+        /// <param name="name">The name that the variable identities must have.</param>
+        /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that have the given <paramref name="name"/>.</returns>
+        /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
+        public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot, string name)
+            => slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(name)).ToArray();
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
+        /// identities</see> that apply to this <see cref="Slot"/>,
+        /// which can be assigned a value of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type that must be assignable to the variables.</typeparam>
+        /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that <typeparamref name="T"/> can be assigned to.</returns>
+        /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
+        public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities<T>(this Slot slot)
+            => slot.GetAvailableSpaces().SelectMany(GetVariableIdentities<T>).ToArray();
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
+        /// identities</see> that apply to this <see cref="Slot"/>
+        /// </summary>
+        /// <remarks>
+        /// This function uses
+        /// <c><see cref="DynamicVariableSpace"/>.<see cref="GetAvailableSpaces(Slot, Predicate{DynamicVariableSpace}?)">GetAvailableSpaces</see>()</c>,<br/>
+        /// which is different from a regular
+        /// <c><see cref="Slot"/>.<see cref="Slot.GetComponentInParents{T}(Predicate{T}, bool, bool)">GetComponentsInParents</see>&lt;<see cref="DynamicVariableSpace"/>&gt;()</c>
+        /// call,<br/> as it considers that <see cref="DynamicVariableSpace"/>s deeper in the hierarchy
+        /// hide ones higher up with the same <see cref="DynamicVariableSpace.SpaceName">name</see>.
+        /// </remarks>
+        /// <param name="slot">The <see cref="Slot"/> to find all applicable full Dynamic Variable identities for.</param>
+        /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/>.</returns>
+        public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot)
+            => slot.GetAvailableSpaces().SelectMany(GetVariableIdentities).ToArray();
+
+        /// <summary>
         /// Gets the <see cref="DynamicVariableHandler{T}"/> of this
         /// <see cref="IDynamicVariable{T}">dynamic variable</see>.
         /// </summary>
@@ -198,6 +299,56 @@ namespace MonkeyLoader.Resonite
 
             return typeField.SyncWithVariable(variable, setupReset, forceCurrentValue);
         }
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable identities</see>
+        /// that are associated with this <see cref="DynamicVariableSpace"/>.
+        /// </summary>
+        /// <param name="space">The <see cref="DynamicVariableSpace"/> to get all the variable identities of.</param>
+        /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/>.</returns>
+        public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space)
+        {
+            var i = 0;
+            var identities = new DynamicVariableIdentity[space._dynamicValues.Keys.Count];
+
+            foreach (var identity in space._dynamicValues.Keys)
+                identities[i++] = new(space, identity);
+
+            return identities;
+        }
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable identities</see>
+        /// that are associated with this <see cref="DynamicVariableSpace"/>,
+        /// which can be assigned a value of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type that must be assignable to the variables.</typeparam>
+        /// <param name="space">The <see cref="DynamicVariableSpace"/> to get all the variable identities of.</param>
+        /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/> that <typeparamref name="T"/> can be assigned to.</returns>
+        public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities<T>(this DynamicVariableSpace space)
+            => space.GetVariableIdentities(typeof(T));
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable identities</see>
+        /// that are associated with this <see cref="DynamicVariableSpace"/>,
+        /// which can be assigned a value of the given <see cref="Type"/>.
+        /// </summary>
+        /// <param name="space">The <see cref="DynamicVariableSpace"/> to get all the variable identities of.</param>
+        /// <param name="type">The type that must be assignable to the variables.</param>
+        /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/> that the given <see cref="Type"/> can be assigned to.</returns>
+        public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space, Type type)
+            => space.GetVariableIdentities().Where(id => id.Type.IsAssignableFrom(type)).ToArray();
+
+        /// <summary>
+        /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable identities</see>
+        /// that are associated with this <see cref="DynamicVariableSpace"/>,
+        /// which match the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="space">The <see cref="DynamicVariableSpace"/> to get all the variable identities of.</param>
+        /// <param name="name">The name that the variable identities must have.</param>
+        /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/> that have the given <paramref name="name"/>.</returns>
+        public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space, string name)
+            => space.GetVariableIdentities().Where(id => id.Name == name).ToArray();
 
         //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
         //{
