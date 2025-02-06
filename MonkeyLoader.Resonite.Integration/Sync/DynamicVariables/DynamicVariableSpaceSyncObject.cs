@@ -4,10 +4,16 @@ using HarmonyLib;
 using MonkeyLoader.Sync;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
+    /// <summary>
+    /// Implements the abstract base for MonkeySync objects that use the variables of a
+    /// <see cref="DynamicVariableSpace"/> to synchronize their values with others.
+    /// </summary>
+    /// <inheritdoc/>
     public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue, DynamicVariableSpace>
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
     {
@@ -42,7 +48,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             if (!syncValue.EstablishLinkFor(this, methodName, fromRemote))
                 return false;
 
-            syncValue.Changed += (_, _) => syncMethod((TSyncObject)this);
+            syncValue.Changed += (_, _) => LinkObject.RunSynchronously(() => syncMethod((TSyncObject)this));
 
             return true;
         }
@@ -62,12 +68,34 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             }
 
             linkObject.SpaceName.OnValueChange += field => LinkObject.RunSynchronously(OnLinkInvalidated);
+            linkObject.Destroyed += _ => OnLinkInvalidated();
 
             return base.EstablishLinkWith(linkObject, fromRemote);
         }
 
+        /// <remarks>
+        /// Synchronously destroys all <see cref="IDynamicVariable">dynamic variable</see>
+        /// <see cref="Component"/>s linked to the <see cref="DynamicVariableSpace"/>
+        /// <see cref="MonkeySyncObject{TSyncObject, TSyncValue, TLink}.LinkObject">LinkObject</see>
+        /// and destroys them and the space itself.<br/>
+        /// If no components remain on the <see cref="Slot"/>, it is destroyed as well.
+        /// </remarks>
         /// <inheritdoc/>
-        protected override sealed void OnDisposing() => base.OnDisposing();
+        protected override sealed void OnDisposing()
+        {
+            LinkObject.RunSynchronously(() =>
+            {
+                var slot = LinkObject.Slot;
+
+                foreach (var variable in LinkObject.GetLinkedVariables().OfType<Component>())
+                    variable.Destroy();
+
+                LinkObject.Destroy();
+
+                if (slot.ComponentCount == 0)
+                    slot.Destroy();
+            }, true);
+        }
 
         /// <inheritdoc/>
         protected override sealed bool TryRestoreLink()

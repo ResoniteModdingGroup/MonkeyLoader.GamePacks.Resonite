@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         public bool IsSupportedType(Type type)
             => type is null || SyncObject.LinkObject.World.Types.IsSupported(type);
 
-        protected override void AddOnChangeHandler()
+        protected override void AddOnChangedHandler()
             => DynamicVariable.Value.OnValueChange += field => DirectValue = field.Value;
     }
 

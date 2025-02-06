@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Sync;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -7,6 +8,13 @@ using System.Text;
 
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
+    /// <summary>
+    /// Implements an abstract base for the <see cref="DynamicValueVariableSyncValue{T}">value</see>-,
+    /// <see cref="DynamicReferenceVariableSyncValue{T}">reference</see>-, or
+    /// <see cref="DynamicTypeVariableSyncValue">Type</see>-syncing implementations.
+    /// </summary>
+    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T}.Value">Value</see>.</typeparam>
+    /// <typeparam name="TVariable">The type of the <see cref="DynamicVariableBase{T}"/>-derived component used to sync this value.</typeparam>
     public abstract class DynamicVariableSyncValue<T, TVariable> : MonkeySyncValue<DynamicVariableSpace, T>,
             IUnlinkedDynamicVariableSyncValue, ILinkedDynamicVariableSyncValue<T>
         where TVariable : DynamicVariableBase<T>, new()
@@ -20,6 +28,13 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 
         IDynamicVariable<T> ILinkedDynamicVariableSyncValue<T>.DynamicVariable => DynamicVariable;
 
+        /// <remarks>
+        /// Also sets the <see cref="DynamicVariableBase{T}.LocalValue">LocalValue</see>
+        /// of the linked <see cref="DynamicVariable">DynamicVariable</see>.<br/>
+        /// This means that the setter of this property must be called in a
+        /// <see cref="World.RunSynchronously">synchronous</see> context.
+        /// </remarks>
+        /// <inheritdoc/>
         public override T Value
         {
             get => base.Value;
@@ -32,8 +47,13 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             }
         }
 
+        /// <inheritdoc/>
         public string VariableName { get; private set; } = null!;
 
+        /// <summary>
+        /// Sets the underlying <see cref="MonkeySyncValue{TLink, T}.Value"/> without
+        /// attempting to set the linked <see cref="DynamicVariable">DynamicVariable</see>'s.
+        /// </summary>
         protected T DirectValue
         {
             set => base.Value = value;
@@ -43,10 +63,22 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         protected DynamicVariableSyncValue(T value) : base(value)
         { }
 
-        protected abstract void AddOnChangeHandler();
+        /// <summary>
+        /// Adds the <typeparamref name="TVariable"/>-specific OnChanged handler
+        /// to the linked <see cref="DynamicVariable">DynamicVariable</see>'s value.
+        /// </summary>
+        protected abstract void AddOnChangedHandler();
 
+        /// <remarks>
+        /// Attaches a new <typeparamref name="TVariable"/> or finds an existing one
+        /// matching the <see cref="VariableName">VariableName</see>.
+        /// </remarks>
+        /// <inheritdoc/>
         protected override bool EstablishLinkInternal(bool fromRemote)
         {
+            if (!SyncObject.LinkObject.World.Types.IsSupported(typeof(TVariable)))
+                throw new InvalidOperationException($"Type {typeof(TVariable).CompactDescription()} is not supported by world {SyncObject.LinkObject.World.Name}");
+
             VariableName = $"{SyncObject.LinkObject.SpaceName.Value}/{Name}";
 
             if (fromRemote)
@@ -65,7 +97,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             if (DynamicVariable is null)
                 return false;
 
-            AddOnChangeHandler();
+            AddOnChangedHandler();
 
             return true;
         }
@@ -74,17 +106,38 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             => variable.IsLinkedToSpace(SyncObject.LinkObject) && (variable.VariableName == VariableName || variable.VariableName == Name);
     }
 
+    /// <summary>
+    /// Defines the generic interface for linked <see cref="DynamicVariableSyncValue{T, TVariable}"/>s.
+    /// </summary>
+    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T}.Value">Value</see>.</typeparam>
     public interface ILinkedDynamicVariableSyncValue<T> : ILinkedDynamicVariableSyncValue, ILinkedMonkeySyncValue<DynamicVariableSpace, T>
     {
+        /// <summary>
+        /// Gets the <see cref="IDynamicVariable{T}"/> component syncing this value.
+        /// </summary>
         public new IDynamicVariable<T> DynamicVariable { get; }
     }
 
+    /// <summary>
+    /// Defines the non-generic interface for <see cref="ILinkedDynamicVariableSyncValue{T}"/>s.
+    /// </summary>
     public interface ILinkedDynamicVariableSyncValue : ILinkedMonkeySyncValue<DynamicVariableSpace>
     {
+        /// <summary>
+        /// Gets the <see cref="IDynamicVariable"/> component syncing this value.
+        /// </summary>
         public IDynamicVariable DynamicVariable { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IDynamicVariable.VariableName">name</see>
+        /// of the linked <see cref="DynamicVariable">DynamicVariable</see>.
+        /// </summary>
         public string VariableName { get; }
     }
 
+    /// <summary>
+    /// Defines the interface for not yet linked <see cref="DynamicVariableSyncValue{T, TVariable}"/>s.
+    /// </summary>
     public interface IUnlinkedDynamicVariableSyncValue : ILinkedDynamicVariableSyncValue, IUnlinkedMonkeySyncValue<DynamicVariableSpace>
     { }
 }

@@ -1,5 +1,4 @@
 ﻿using FrooxEngine;
-using MonkeyLoader.Resonite.Configuration;
 using System;
 
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
@@ -25,7 +24,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         public bool IsValidReference(T value)
             => value is null || value.World == SyncObject.LinkObject.World;
 
-        protected override void AddOnChangeHandler()
+        protected override void AddOnChangedHandler()
             => DynamicVariable.Reference.OnTargetChange += reference => DirectValue = reference.Target;
     }
 

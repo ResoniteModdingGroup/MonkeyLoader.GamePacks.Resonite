@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
                 throw new InvalidOperationException($"Type {typeof(T).CompactDescription()} is not an Engine Primitive!");
         }
 
-        protected override void AddOnChangeHandler()
+        protected override void AddOnChangedHandler()
             => DynamicVariable.Value.OnValueChange += field => DirectValue = field.Value;
     }
 
