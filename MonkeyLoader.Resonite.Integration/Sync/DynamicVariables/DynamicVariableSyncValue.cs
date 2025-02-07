@@ -9,9 +9,11 @@ using System.Text;
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
     /// <summary>
-    /// Implements an abstract base for the <see cref="DynamicValueVariableSyncValue{T}">value</see>-,
-    /// <see cref="DynamicReferenceVariableSyncValue{T}">reference</see>-, or
-    /// <see cref="DynamicTypeVariableSyncValue">Type</see>-syncing implementations.
+    /// Implements an abstract base for the MonkeySync value implementations for
+    /// <see cref="DynamicValueVariableSyncValue{T}">values</see>,
+    /// <see cref="DynamicReferenceVariableSyncValue{T}">references</see>, and
+    /// <see cref="DynamicTypeVariableSyncValue">Types</see>
+    /// using <see cref="DynamicVariableBase{T}">dynamic variable</see> components.
     /// </summary>
     /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T}.Value">Value</see>.</typeparam>
     /// <typeparam name="TVariable">The type of the <see cref="DynamicVariableBase{T}"/>-derived component used to sync this value.</typeparam>
