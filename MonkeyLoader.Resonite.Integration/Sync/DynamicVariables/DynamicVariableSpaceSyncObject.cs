@@ -17,7 +17,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue, DynamicVariableSpace>
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
     {
-        private readonly Dictionary<string, DynamicValueVariableSyncValue<bool>> _syncMethodTogglesByName = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, DynamicReferenceVariableSyncValue<User?>> _syncMethodTogglesByName = new(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets the <see cref="MonkeySyncRegistry"/> information for this MonkeySync object.
@@ -33,6 +33,39 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 
         /// <inheritdoc/>
         public override bool IsLinkValid => LinkObject!.FilterWorldElement()?.SpaceName.Value == VariableSpaceName;
+
+        /// <summary>
+        /// Gets whether the <see cref="LocalUser">LocalUser</see> is the
+        /// <see cref="MainExecutingUser">MainExecutingUser</see>
+        /// that should execute MonkeySync methods for non-mod users.
+        /// </summary>
+        public bool IsMainExecutingUser => MainExecutingUser == LocalUser;
+
+        /// <summary>
+        /// Gets the list of <see cref="User"/>s that are currently linked with this MonkeySync object.
+        /// </summary>
+        /// <remarks>
+        /// The first entry in this list is the <see cref="MainExecutingUser">MainExecutingUser</see>.
+        /// </remarks>
+        public SyncRefList<User> LinkedUsers => LinkedUsersList.Value;
+
+        /// <summary>
+        /// Gets the <see cref="MonkeySyncObject{TSyncObject, TSyncValue, TLink}.LinkObject">LinkObject</see>'s <see cref="Worker.LocalUser">LocalUser</see>.
+        /// </summary>
+        public User LocalUser => LinkObject.LocalUser;
+
+        /// <summary>
+        /// Gets the <see cref="User"/> that should execute MonkeySync methods for non-mod users.
+        /// </summary>
+        /// <remarks>
+        /// This is always the first entry in the list of <see cref="LinkedUsers">LinkedUsers</see>.
+        /// </remarks>
+        public User MainExecutingUser => LinkedUsers[0];
+
+        /// <summary>
+        /// Gets the MonkeySync value referencing the list of <see cref="LinkedUsers">LinkedUsers</see>.
+        /// </summary>
+        protected DynamicReferenceVariableSyncValue<SyncRefList<User>> LinkedUsersList { get; private set; } = new(null!);
 
         static DynamicVariableSpaceSyncObject()
         {
@@ -55,7 +88,14 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             LinkObject.SpaceName.OnValueChange += field => LinkObject.RunSynchronously(OnLinkInvalidated);
             LinkObject.Destroyed += _ => OnLinkInvalidated();
 
-            return base.EstablishLink(fromRemote);
+            if (!base.EstablishLink(fromRemote))
+                return false;
+
+            if (!fromRemote)
+                LinkedUsersList.Value = LinkObject.Slot.AttachComponent<ReferenceMultiplexer<User>>().References;
+
+            LinkedUsers.Add(LinkObject.LocalUser);
+            return true;
         }
 
         /// <inheritdoc/>
@@ -67,12 +107,23 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
                 return true;
             }
 
-            var syncValue = new DynamicValueVariableSyncValue<bool>(false);
+            var syncValue = new DynamicReferenceVariableSyncValue<User?>(null!);
 
             if (!syncValue.EstablishLinkFor(this, methodName, fromRemote))
                 return false;
 
-            syncValue.Changed += (_, _) => LinkObject.RunSynchronously(syncMethod);
+            syncValue.Changed += (_, eventArgs) =>
+            {
+                if (eventArgs.NewValue is null
+                 || (eventArgs.NewValue != LinkObject.LocalUser && !IsMainExecutingUser))
+                    return;
+
+                LinkObject.RunSynchronously(() =>
+                {
+                    syncMethod();
+                    syncValue.Value = null!;
+                });
+            };
 
             syncValues.Add(syncValue);
             _syncMethodTogglesByName.Add(methodName, syncValue);

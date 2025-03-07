@@ -101,6 +101,9 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
             {
                 DynamicVariable = SyncObject.LinkObject.Slot.GetComponent<TVariable>(MatchesVariable);
 
+                if (DynamicVariable is null)
+                    return false;
+
                 DirectValue = DynamicVariable.LocalValue;
             }
             else
@@ -109,9 +112,6 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
                 DynamicVariable.VariableName.Value = VariableName;
                 DynamicVariable.LocalValue = Value;
             }
-
-            if (DynamicVariable is null)
-                return false;
 
             AddOnChangedHandler();
 

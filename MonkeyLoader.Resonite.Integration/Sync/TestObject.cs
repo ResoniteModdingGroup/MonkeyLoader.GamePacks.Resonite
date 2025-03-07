@@ -27,7 +27,6 @@ namespace MonkeyLoader.Resonite.Sync
         {
             Logger.Info(() => $"Called from sync object on space [{Space}]!");
 
-            // Need to overwrite ToString
             Logger.Info(() => TestValue);
         }
     }
