@@ -1,6 +1,5 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Sync;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -64,6 +63,21 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         protected DynamicVariableSyncValue(T value) : base(value)
         { }
+
+        /// <inheritdoc/>
+        public override bool TryRestoreLink()
+        {
+            if (DynamicVariable.FilterWorldElement() is null)
+                return EstablishLinkInternal(false);
+
+            if (!MatchesVariable(DynamicVariable))
+            {
+                DynamicVariable.VariableName.Value = VariableName;
+                return true;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Adds the <typeparamref name="TVariable"/>-specific OnChanged handler

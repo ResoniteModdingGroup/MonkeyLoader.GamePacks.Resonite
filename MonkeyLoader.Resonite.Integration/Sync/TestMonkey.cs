@@ -19,6 +19,7 @@ namespace MonkeyLoader.Resonite.Sync
             {
                 var syncObject = new TestObject(Logger);
                 syncObject.LinkWith(space);
+                syncObject.Space.Value = space;
             });
         }
     }

@@ -41,36 +41,43 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         }
 
         /// <inheritdoc/>
-        protected override sealed bool EstablishLinkFor(string methodName, Action<TSyncObject> syncMethod, bool fromRemote)
+        protected override sealed bool EstablishLink(bool fromRemote)
         {
+            if (fromRemote)
+            {
+                if (LinkObject.SpaceName != VariableSpaceName)
+                    return false;
+            }
+
+            LinkObject.OnlyDirectBinding.Value = true;
+            LinkObject.SpaceName.Value = VariableSpaceName;
+
+            LinkObject.SpaceName.OnValueChange += field => LinkObject.RunSynchronously(OnLinkInvalidated);
+            LinkObject.Destroyed += _ => OnLinkInvalidated();
+
+            return base.EstablishLink(fromRemote);
+        }
+
+        /// <inheritdoc/>
+        protected override sealed bool EstablishLinkFor(Action syncMethod, string methodName, bool fromRemote)
+        {
+            if (_syncMethodTogglesByName.ContainsKey(methodName))
+            {
+                DynamicVariableSpaceLink.Logger.Warn(() => $"Attempted to establish link for method [{methodName}] that already has a toggle! Skipping.");
+                return true;
+            }
+
             var syncValue = new DynamicValueVariableSyncValue<bool>(false);
 
             if (!syncValue.EstablishLinkFor(this, methodName, fromRemote))
                 return false;
 
-            syncValue.Changed += (_, _) => LinkObject.RunSynchronously(() => syncMethod((TSyncObject)this));
+            syncValue.Changed += (_, _) => LinkObject.RunSynchronously(syncMethod);
+
+            syncValues.Add(syncValue);
+            _syncMethodTogglesByName.Add(methodName, syncValue);
 
             return true;
-        }
-
-        /// <inheritdoc/>
-        protected override sealed bool EstablishLinkWith(DynamicVariableSpace linkObject, bool fromRemote)
-        {
-            if (fromRemote)
-            {
-                if (linkObject.SpaceName != VariableSpaceName)
-                    return false;
-            }
-            else
-            {
-                linkObject.OnlyDirectBinding.Value = true;
-                linkObject.SpaceName.Value = VariableSpaceName;
-            }
-
-            linkObject.SpaceName.OnValueChange += field => LinkObject.RunSynchronously(OnLinkInvalidated);
-            linkObject.Destroyed += _ => OnLinkInvalidated();
-
-            return base.EstablishLinkWith(linkObject, fromRemote);
         }
 
         /// <remarks>
@@ -100,18 +107,21 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         protected override sealed bool TryRestoreLink()
         {
-            if (LinkObject?.IsDestroyed ?? true)
+            if (LinkObject.FilterWorldElement() is null)
                 return false;
 
+            LinkObject.OnlyDirectBinding.Value = true;
             LinkObject.SpaceName.Value = VariableSpaceName;
 
             return base.TryRestoreLink();
         }
 
         /// <inheritdoc/>
-        protected override sealed bool TryRestoreLinkFor(string propertyName, IUnlinkedDynamicVariableSyncValue syncValue) => throw new NotImplementedException();
+        protected override sealed bool TryRestoreLinkFor(IUnlinkedDynamicVariableSyncValue syncValue)
+            => syncValue.TryRestoreLink();
 
         /// <inheritdoc/>
-        protected override sealed bool TryRestoreLinkFor(string methodName, Action<TSyncObject> syncMethod) => throw new NotImplementedException();
+        protected override sealed bool TryRestoreLinkFor(Action syncMethod, string methodName)
+            => true; // Covered by TryRestoreLinkFor(syncValue)
     }
 }
