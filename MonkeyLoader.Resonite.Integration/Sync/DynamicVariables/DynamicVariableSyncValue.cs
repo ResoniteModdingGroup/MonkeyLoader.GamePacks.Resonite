@@ -14,10 +14,13 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// <see cref="DynamicTypeVariableSyncValue">Types</see>
     /// using <see cref="DynamicVariableBase{T}">dynamic variable</see> components.
     /// </summary>
-    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T}.Value">Value</see>.</typeparam>
+    /// <typeparam name="TSyncValue">The concrete type of the sync value.</typeparam>
+    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{TSyncObject, T}.Value">Value</see>.</typeparam>
     /// <typeparam name="TVariable">The type of the <see cref="DynamicVariableBase{T}"/>-derived component used to sync this value.</typeparam>
-    public abstract class DynamicVariableSyncValue<T, TVariable> : MonkeySyncValue<DynamicVariableSpace, T>,
-            IUnlinkedDynamicVariableSyncValue, ILinkedDynamicVariableSyncValue<T>
+    public abstract class DynamicVariableSyncValue<TSyncValue, T, TVariable> : MonkeySyncValue<DynamicVariableSpace, ILinkedDynamicVariableSpaceSyncObject, TSyncValue, T>,
+            IUnlinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, TSyncValue>,
+            ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>
+        where TSyncValue : DynamicVariableSyncValue<TSyncValue, T, TVariable>
         where TVariable : DynamicVariableBase<T>, new()
     {
         /// <summary>
@@ -25,9 +28,9 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// </summary>
         public TVariable DynamicVariable { get; protected set; } = null!;
 
-        IDynamicVariable ILinkedDynamicVariableSyncValue.DynamicVariable => DynamicVariable;
+        IDynamicVariable ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject>.DynamicVariable => DynamicVariable;
 
-        IDynamicVariable<T> ILinkedDynamicVariableSyncValue<T>.DynamicVariable => DynamicVariable;
+        IDynamicVariable<T> ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>.DynamicVariable => DynamicVariable;
 
         /// <remarks>
         /// Also sets the <see cref="DynamicVariableBase{T}.LocalValue">LocalValue</see>
@@ -125,8 +128,11 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// <summary>
     /// Defines the generic interface for linked <see cref="DynamicVariableSyncValue{T, TVariable}"/>s.
     /// </summary>
-    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T}.Value">Value</see>.</typeparam>
-    public interface ILinkedDynamicVariableSyncValue<T> : ILinkedDynamicVariableSyncValue, ILinkedMonkeySyncValue<DynamicVariableSpace, T>
+    /// <typeparam name="TSyncObject">The type of the sync object that may contain this sync value.</typeparam>
+    /// <typeparam name="T">The type of the <see cref="ILinkedMonkeySyncValue{T, TSyncObject}.Value">Value</see>.</typeparam>
+    public interface ILinkedDynamicVariableSyncValue<out TSyncObject, T>
+            : ILinkedDynamicVariableSyncValue<TSyncObject>, ILinkedMonkeySyncValue<DynamicVariableSpace, TSyncObject, T>
+        where TSyncObject : ILinkedDynamicVariableSpaceSyncObject
     {
         /// <summary>
         /// Gets the <see cref="IDynamicVariable{T}"/> component syncing this value.
@@ -137,7 +143,9 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// <summary>
     /// Defines the non-generic interface for <see cref="ILinkedDynamicVariableSyncValue{T}"/>s.
     /// </summary>
-    public interface ILinkedDynamicVariableSyncValue : ILinkedMonkeySyncValue<DynamicVariableSpace>
+    public interface ILinkedDynamicVariableSyncValue<out TSyncObject>
+        : ILinkedMonkeySyncValue<DynamicVariableSpace, TSyncObject>
+        where TSyncObject : ILinkedDynamicVariableSpaceSyncObject
     {
         /// <summary>
         /// Gets the <see cref="IDynamicVariable"/> component syncing this value.
@@ -154,6 +162,9 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// <summary>
     /// Defines the interface for not yet linked <see cref="DynamicVariableSyncValue{T, TVariable}"/>s.
     /// </summary>
-    public interface IUnlinkedDynamicVariableSyncValue : ILinkedDynamicVariableSyncValue, IUnlinkedMonkeySyncValue<DynamicVariableSpace>
+    public interface IUnlinkedDynamicVariableSyncValue<in TSyncObject, out TLinkedSyncValue>
+            : IUnlinkedMonkeySyncValue<DynamicVariableSpace, TSyncObject, TLinkedSyncValue>
+        where TSyncObject : ILinkedDynamicVariableSpaceSyncObject
+        where TLinkedSyncValue : ILinkedDynamicVariableSyncValue<TSyncObject>
     { }
 }

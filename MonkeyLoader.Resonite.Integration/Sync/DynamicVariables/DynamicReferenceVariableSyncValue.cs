@@ -4,12 +4,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 {
+    /// <inheritdoc/>
+    public sealed class DynamicReferenceVariableSyncValue<T> : DynamicReferenceVariableSyncValueBase<DynamicReferenceVariableSyncValue<T>, T>
+        where T : class?, IWorldElement
+    {
+        /// <inheritdoc/>
+        public DynamicReferenceVariableSyncValue(T value) : base(value)
+        { }
+    }
+
     /// <summary>
     /// Implements a MonkeySync value that uses a <see cref="DynamicReferenceVariable{T}"/>
     /// to sync <typeparamref name="T"/>s valid in the respective <see cref="World"/>.
     /// </summary>
     /// <inheritdoc/>
-    public sealed class DynamicReferenceVariableSyncValue<T> : DynamicVariableSyncValue<T, DynamicReferenceVariable<T>>, ILinkedDynamicReferenceVariableSyncValue<T>
+    public abstract class DynamicReferenceVariableSyncValueBase<TSyncValue, T> : DynamicVariableSyncValue<TSyncValue, T, DynamicReferenceVariable<T>>,
+            ILinkedDynamicReferenceVariableSyncValue<T>
+        where TSyncValue : DynamicReferenceVariableSyncValueBase<TSyncValue, T>
         where T : class?, IWorldElement
     {
         /// <value>
@@ -30,7 +41,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         }
 
         /// <inheritdoc/>
-        public DynamicReferenceVariableSyncValue(T value) : base(value)
+        public DynamicReferenceVariableSyncValueBase(T value) : base(value)
         { }
 
         /// <summary>
@@ -52,8 +63,8 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync <typeparamref name="T"/>s valid in the respective <see cref="World"/>.
     /// </summary>
     /// <inheritdoc/>
-    public interface ILinkedDynamicReferenceVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<T>
-            where T : class, IWorldElement
+    public interface ILinkedDynamicReferenceVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>
+        where T : class, IWorldElement
     {
         /// <inheritdoc/>
         public new DynamicReferenceVariable<T> DynamicVariable { get; }

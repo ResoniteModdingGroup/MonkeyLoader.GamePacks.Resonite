@@ -9,7 +9,8 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync Resonite <see cref="Coder{T}.IsEnginePrimitive">engine primitives</see>.
     /// </summary>
     /// <inheritdoc/>
-    public sealed class DynamicValueVariableSyncValue<T> : DynamicVariableSyncValue<T, DynamicValueVariable<T>>, ILinkedDynamicValueVariableSyncValue<T>
+    public sealed class DynamicValueVariableSyncValue<T> : DynamicVariableSyncValue<DynamicValueVariableSyncValue<T>, T, DynamicValueVariable<T>>,
+        ILinkedDynamicValueVariableSyncValue<T>
     {
         /// <inheritdoc/>
         public DynamicValueVariableSyncValue(T value) : base(value)
@@ -28,7 +29,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync Resonite <see cref="Coder{T}.IsEnginePrimitive">engine primitives</see>.
     /// </summary>
     /// <inheritdoc/>
-    public interface ILinkedDynamicValueVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<T>
+    public interface ILinkedDynamicValueVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>
     {
         /// <inheritdoc/>
         public new DynamicValueVariable<T> DynamicVariable { get; }

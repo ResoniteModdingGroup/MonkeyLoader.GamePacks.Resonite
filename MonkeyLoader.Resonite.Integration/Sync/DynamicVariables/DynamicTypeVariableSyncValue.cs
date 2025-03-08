@@ -11,7 +11,8 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync <see cref="Type"/>s supported by the respective <see cref="World"/>.
     /// </summary>
     /// <inheritdoc/>
-    public sealed class DynamicTypeVariableSyncValue : DynamicVariableSyncValue<Type?, DynamicTypeVariable>, IDynamicTypeVariableSyncValue
+    public sealed class DynamicTypeVariableSyncValue : DynamicVariableSyncValue<DynamicTypeVariableSyncValue, Type?, DynamicTypeVariable>,
+        IDynamicTypeVariableSyncValue
     {
         /// <value>
         /// A <see cref="Type"/> <see cref="IsSupportedType">supported</see>
@@ -53,7 +54,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync <see cref="Type"/>s supported by the respective <see cref="World"/>.
     /// </summary>
     /// <inheritdoc/>
-    public interface IDynamicTypeVariableSyncValue : ILinkedDynamicVariableSyncValue<Type?>
+    public interface IDynamicTypeVariableSyncValue : ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, Type?>
     {
         /// <inheritdoc/>
         public new DynamicTypeVariable DynamicVariable { get; }

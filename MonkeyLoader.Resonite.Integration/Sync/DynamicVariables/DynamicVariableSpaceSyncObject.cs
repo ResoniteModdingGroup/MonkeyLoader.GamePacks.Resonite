@@ -14,11 +14,11 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// <see cref="DynamicVariableSpace"/> to synchronize their values with others.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class DynamicVariableSpaceSyncObject<TSyncObject> : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue, DynamicVariableSpace>
+    public abstract class DynamicVariableSpaceSyncObject<TSyncObject>
+        : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue<TSyncObject, ILinkedDynamicVariableSyncValue<TSyncObject>>, ILinkedDynamicVariableSyncValue<TSyncObject>, DynamicVariableSpace>,
+            IUnlinkedDynamicVariableSpaceSyncObject, ILinkedDynamicVariableSpaceSyncObject
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
     {
-        private readonly Dictionary<string, DynamicReferenceVariableSyncValue<User?>> _syncMethodTogglesByName = new(StringComparer.Ordinal);
-
         /// <summary>
         /// Gets the <see cref="MonkeySyncRegistry"/> information for this MonkeySync object.
         /// </summary>
@@ -34,32 +34,16 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         public override bool IsLinkValid => LinkObject!.FilterWorldElement()?.SpaceName.Value == VariableSpaceName;
 
-        /// <summary>
-        /// Gets whether the <see cref="LocalUser">LocalUser</see> is the
-        /// <see cref="MainExecutingUser">MainExecutingUser</see>
-        /// that should execute MonkeySync methods for non-mod users.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsMainExecutingUser => MainExecutingUser == LocalUser;
 
-        /// <summary>
-        /// Gets the list of <see cref="User"/>s that are currently linked with this MonkeySync object.
-        /// </summary>
-        /// <remarks>
-        /// The first entry in this list is the <see cref="MainExecutingUser">MainExecutingUser</see>.
-        /// </remarks>
+        /// <inheritdoc/>
         public SyncRefList<User> LinkedUsers => LinkedUsersList.Value;
 
-        /// <summary>
-        /// Gets the <see cref="MonkeySyncObject{TSyncObject, TSyncValue, TLink}.LinkObject">LinkObject</see>'s <see cref="Worker.LocalUser">LocalUser</see>.
-        /// </summary>
+        /// <inheritdoc/>
         public User LocalUser => LinkObject.LocalUser;
 
-        /// <summary>
-        /// Gets the <see cref="User"/> that should execute MonkeySync methods for non-mod users.
-        /// </summary>
-        /// <remarks>
-        /// This is always the first entry in the list of <see cref="LinkedUsers">LinkedUsers</see>.
-        /// </remarks>
+        /// <inheritdoc/>
         public User MainExecutingUser => LinkedUsers[0];
 
         /// <summary>
@@ -76,6 +60,8 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         protected override sealed bool EstablishLink(bool fromRemote)
         {
+            IUnlinkedDynamicVariableSyncValue<TSyncObject, ILinkedDynamicVariableSyncValue<TSyncObject>> x = new DynamicValueVariableSyncValue<string>("");
+
             if (fromRemote)
             {
                 if (LinkObject.SpaceName != VariableSpaceName)
@@ -95,39 +81,6 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
                 LinkedUsersList.Value = LinkObject.Slot.AttachComponent<ReferenceMultiplexer<User>>().References;
 
             LinkedUsers.Add(LinkObject.LocalUser);
-            return true;
-        }
-
-        /// <inheritdoc/>
-        protected override sealed bool EstablishLinkFor(Action syncMethod, string methodName, bool fromRemote)
-        {
-            if (_syncMethodTogglesByName.ContainsKey(methodName))
-            {
-                DynamicVariableSpaceLink.Logger.Warn(() => $"Attempted to establish link for method [{methodName}] that already has a toggle! Skipping.");
-                return true;
-            }
-
-            var syncValue = new DynamicReferenceVariableSyncValue<User?>(null!);
-
-            if (!syncValue.EstablishLinkFor(this, methodName, fromRemote))
-                return false;
-
-            syncValue.Changed += (_, eventArgs) =>
-            {
-                if (eventArgs.NewValue is null
-                 || (eventArgs.NewValue != LinkObject.LocalUser && !IsMainExecutingUser))
-                    return;
-
-                LinkObject.RunSynchronously(() =>
-                {
-                    syncMethod();
-                    syncValue.Value = null!;
-                });
-            };
-
-            syncValues.Add(syncValue);
-            _syncMethodTogglesByName.Add(methodName, syncValue);
-
             return true;
         }
 
@@ -166,13 +119,46 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
 
             return base.TryRestoreLink();
         }
-
-        /// <inheritdoc/>
-        protected override sealed bool TryRestoreLinkFor(IUnlinkedDynamicVariableSyncValue syncValue)
-            => syncValue.TryRestoreLink();
-
-        /// <inheritdoc/>
-        protected override sealed bool TryRestoreLinkFor(Action syncMethod, string methodName)
-            => true; // Covered by TryRestoreLinkFor(syncValue)
     }
+
+    /// <summary>
+    /// Defines the interface for <see cref="DynamicVariableSpace"/>
+    /// <see cref="DynamicVariableSpaceSyncObject{TSyncObject}">MonkeySync objects</see> that have been linked.
+    /// </summary>
+    public interface ILinkedDynamicVariableSpaceSyncObject : ILinkedMonkeySyncObject<DynamicVariableSpace>
+    {
+        /// <summary>
+        /// Gets whether the <see cref="LocalUser">LocalUser</see> is the
+        /// <see cref="MainExecutingUser">MainExecutingUser</see>
+        /// that should execute MonkeySync methods for non-mod users.
+        /// </summary>
+        bool IsMainExecutingUser { get; }
+
+        /// <summary>
+        /// Gets the list of <see cref="User"/>s that are currently linked with this MonkeySync object.
+        /// </summary>
+        /// <remarks>
+        /// The first entry in this list is the <see cref="MainExecutingUser">MainExecutingUser</see>.
+        /// </remarks>
+        SyncRefList<User> LinkedUsers { get; }
+
+        /// <summary>
+        /// Gets the <see cref="MonkeySyncObject{TSyncObject, TSyncValue, TLink}.LinkObject">LinkObject</see>'s <see cref="Worker.LocalUser">LocalUser</see>.
+        /// </summary>
+        User LocalUser { get; }
+
+        /// <summary>
+        /// Gets the <see cref="User"/> that should execute MonkeySync methods for non-mod users.
+        /// </summary>
+        /// <remarks>
+        /// This is always the first entry in the list of <see cref="LinkedUsers">LinkedUsers</see>.
+        /// </remarks>
+        User MainExecutingUser { get; }
+    }
+
+    /// Defines the interface for <see cref="DynamicVariableSpace"/>
+    /// <see cref="DynamicVariableSpaceSyncObject{TSyncObject}">MonkeySync objects</see> that are yet to be linked.
+    public interface IUnlinkedDynamicVariableSpaceSyncObject
+        : ILinkedDynamicVariableSpaceSyncObject, IUnlinkedMonkeySyncObject<DynamicVariableSpace>
+    { }
 }
