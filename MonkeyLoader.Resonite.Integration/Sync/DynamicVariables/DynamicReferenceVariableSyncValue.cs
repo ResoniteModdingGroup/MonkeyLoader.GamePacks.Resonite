@@ -63,7 +63,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync <typeparamref name="T"/>s valid in the respective <see cref="World"/>.
     /// </summary>
     /// <inheritdoc/>
-    public interface ILinkedDynamicReferenceVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>
+    public interface ILinkedDynamicReferenceVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<T>
         where T : class, IWorldElement
     {
         /// <inheritdoc/>

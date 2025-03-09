@@ -15,7 +15,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// </summary>
     /// <inheritdoc/>
     public abstract class DynamicVariableSpaceSyncObject<TSyncObject>
-        : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue<TSyncObject, ILinkedDynamicVariableSyncValue<TSyncObject>>, ILinkedDynamicVariableSyncValue<TSyncObject>, DynamicVariableSpace>,
+        : MonkeySyncObject<TSyncObject, IUnlinkedDynamicVariableSyncValue, ILinkedDynamicVariableSyncValue, DynamicVariableSpace>,
             IUnlinkedDynamicVariableSpaceSyncObject, ILinkedDynamicVariableSpaceSyncObject
         where TSyncObject : DynamicVariableSpaceSyncObject<TSyncObject>
     {
@@ -60,7 +60,8 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
         /// <inheritdoc/>
         protected override sealed bool EstablishLink(bool fromRemote)
         {
-            IUnlinkedDynamicVariableSyncValue<TSyncObject, ILinkedDynamicVariableSyncValue<TSyncObject>> x = new DynamicValueVariableSyncValue<string>("");
+            //IUnlinkedDynamicVariableSyncValue<ILinkedDynamicVariableSyncValue> x = new DynamicValueVariableSyncValue<string>("");
+            //IUnlinkedMonkeySyncValue<DynamicVariableSpace, ILinkedMonkeySyncObject<DynamicVariableSpace>, ILinkedDynamicVariableSyncValue> y = new DynamicValueVariableSyncValue<string>("");
 
             if (fromRemote)
             {

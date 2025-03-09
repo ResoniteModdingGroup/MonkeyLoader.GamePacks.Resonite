@@ -29,7 +29,7 @@ namespace MonkeyLoader.Resonite.Sync.DynamicVariables
     /// to sync Resonite <see cref="Coder{T}.IsEnginePrimitive">engine primitives</see>.
     /// </summary>
     /// <inheritdoc/>
-    public interface ILinkedDynamicValueVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<ILinkedDynamicVariableSpaceSyncObject, T>
+    public interface ILinkedDynamicValueVariableSyncValue<T> : ILinkedDynamicVariableSyncValue<T>
     {
         /// <inheritdoc/>
         public new DynamicValueVariable<T> DynamicVariable { get; }
