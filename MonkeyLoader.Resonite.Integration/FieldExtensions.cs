@@ -1,7 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using MonkeyLoader.Configuration;
-using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Configuration;
 using System;
 using System.Collections.Generic;
@@ -61,7 +60,7 @@ namespace MonkeyLoader.Resonite
         /// <para>
         /// The <paramref name="eventLabel"/> is passed when
         /// <see cref="IDefiningConfigKey{T}.TrySetValue">setting the value</see> of the config key.<br/>
-        /// It defaults to: <c>$"SyncedField.WriteBack.{<paramref name="field"/>.<see cref="IWorldElement.World">World</see>.<see cref="SharedConfig.GetIdentifier">GetIdentifier</see>()}"</c>
+        /// It defaults to: <c>$"{<see cref="WriteBackPrefix">WriteBackPrefix</see>}.{<paramref name="field"/>.<see cref="IWorldElement.World">World</see>.<see cref="SharedConfig.GetIdentifier">GetIdentifier</see>()}"</c>
         /// </para>
         /// </remarks>
         /// <typeparam name="T">The type of the field's value.</typeparam>
@@ -112,15 +111,116 @@ namespace MonkeyLoader.Resonite
             return FieldChangedHandler;
         }
 
+        public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
+                IDefiningConfigKey<T?> configKey, T referenceValue, string? eventLabel = null, bool allowWriteBack = true)
+            where T : unmanaged, Enum
+            => field.SyncWithEnumFlagUntyped(configKey, referenceValue, eventLabel, allowWriteBack);
+
+        public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
+                IDefiningConfigKey<T> configKey, T referenceValue, string? eventLabel = null, bool allowWriteBack = true)
+            where T : unmanaged, Enum
+            => field.SyncWithEnumFlagUntyped(configKey, referenceValue, eventLabel, allowWriteBack);
+
+        public static Action<IChangeable> SyncWithEnumFlagUntyped<T>(this IField<bool> field,
+                IDefiningConfigKey configKey, T referenceValue, string? eventLabel = null, bool allowWriteBack = true)
+            where T : unmanaged, Enum
+        {
+            var longReferenceValue = Convert.ToInt64(referenceValue);
+            var isZeroReference = longReferenceValue == 0;
+
+            var enumType = typeof(T);
+            eventLabel ??= field.GetWriteBackEventLabel();
+
+            if (configKey.GetValue() is null)
+            {
+                field.Value = false;
+            }
+            else
+            {
+                var currentValue = Convert.ToInt64(configKey.GetValue());
+
+                field.Value = isZeroReference
+                    ? currentValue == 0
+                    : (currentValue & longReferenceValue) == longReferenceValue;
+            }
+
+            void FieldChanged(IChangeable changeable)
+            {
+                var currentValue = Convert.ToInt64(configKey.GetValue() ?? default(T));
+
+                var newValue = field.Value
+                    ? currentValue | longReferenceValue
+                    : currentValue & ~longReferenceValue;
+
+                // If writeback allowed, sensible, and successful: return
+                if (allowWriteBack && !isZeroReference && configKey.TrySetValue(Enum.ToObject(enumType, newValue), eventLabel))
+                    return;
+
+                // Otherwise reset field value for current state
+                field.World.RunSynchronously(() =>
+                {
+                    field.Changed -= FieldChanged;
+
+                    var currentValue = Convert.ToInt64(configKey.GetValue());
+
+                    field.Value = isZeroReference
+                        ? currentValue == 0
+                        : (currentValue & longReferenceValue) == longReferenceValue;
+
+                    field.Changed += FieldChanged;
+                });
+            }
+
+            void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
+            {
+                if (field.FilterWorldElement() is null)
+                {
+                    configKey.Changed -= KeyChanged;
+                    return;
+                }
+
+                if (changedEvent.NewValue is null)
+                {
+                    field.World.RunSynchronously(() =>
+                    {
+                        field.Changed -= FieldChanged;
+                        field.Value = false;
+                        field.Changed += FieldChanged;
+                    });
+
+                    return;
+                }
+
+                var newValue = Convert.ToInt64(changedEvent.NewValue);
+                var isPartialCombinedValue = (newValue & longReferenceValue) != 0;
+
+                field.World.RunSynchronously(() =>
+                {
+                    field.Changed -= FieldChanged;
+
+                    field.Value = isZeroReference
+                        ? newValue == 0
+                        : (newValue & longReferenceValue) == longReferenceValue;
+
+                    field.Changed += FieldChanged;
+                });
+            }
+
+            field.Changed += FieldChanged;
+            configKey.Changed += KeyChanged;
+
+            return FieldChanged;
+        }
+
         /// <summary>
-        /// Synchronizes the <paramref name="field"/>'s <see cref="IValue{T}.Value"/> with
+        /// Synchronizes this <paramref name="field"/>'s <see cref="IValue{T}.Value">Value</see> with
         /// the <see cref="Nullable{T}.HasValue"/> of the <paramref name="configKey"/>.<br/>
         /// When the field is toggled to <c>true</c> or set to <c>false</c>,
         /// the <see cref="Nullable{T}.Value"/> is set to <c>default(<typeparamref name="T"/>)</c>.
         /// </summary>
         /// <inheritdoc cref="SyncWithConfigKey{T}(IField{T}, IDefiningConfigKey{T}, string?, bool)"/>
         public static Action<IChangeable> SyncWithNullableConfigKeyHasValue<T>(this IField<bool> field,
-            IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
+                IDefiningConfigKey<T?> configKey, string? eventLabel = null, bool allowWriteBack = true)
             where T : struct
         {
             field.Value = configKey.GetValue().HasValue;
@@ -140,14 +240,28 @@ namespace MonkeyLoader.Resonite
             {
                 T? newValue = field.Value ? default(T) : null;
 
-                if (field.Value != configKey.GetValue().HasValue && (!allowWriteBack || !configKey.TrySetValue(newValue, eventLabel)))
-                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
+                if (field.Value == configKey.GetValue().HasValue || (allowWriteBack && configKey.TrySetValue(newValue, eventLabel)))
+                    return;
+
+                field.World.RunSynchronously(() =>
+                {
+                    field.Changed -= FieldChangedHandler;
+                    field.Value = configKey.GetValue().HasValue;
+                    field.Changed += FieldChangedHandler;
+                });
             }
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
-                if (field.Value != configKey.GetValue().HasValue)
-                    field.World.RunSynchronously(() => field.Value = configKey.GetValue().HasValue);
+                if (field.Value == configKey.GetValue().HasValue)
+                    return;
+
+                field.World.RunSynchronously(() =>
+                {
+                    field.Changed -= FieldChangedHandler;
+                    field.Value = configKey.GetValue().HasValue;
+                    field.Changed += FieldChangedHandler;
+                });
             }
 
             field.Changed += FieldChangedHandler;
@@ -157,99 +271,7 @@ namespace MonkeyLoader.Resonite
             return FieldChangedHandler;
         }
 
-        public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
-            IDefiningConfigKey configKey, long longValue, string? eventLabel = null, bool allowWriteBack = true)
-        {
-            Type enumType = typeof(T);
-            if (typeof(T).IsNullable())
-            {
-                enumType = typeof(T).GetGenericArguments()[0];
-            }
-
-            if (configKey.GetValue() is null)
-            {
-                field.Value = false;
-            }
-            else
-            {
-                if (longValue == 0)
-                {
-                    field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
-                }
-                else
-                {
-                    field.Value = (Convert.ToInt64(configKey.GetValue()) & longValue) == longValue;
-                }
-            }
-
-            void FieldChanged(IChangeable changeable)
-            {
-                long val;
-                if (longValue == 0)
-                {
-                    val = 0;
-                    field.World.RunSynchronously(() =>
-                    {
-                        field.Changed -= FieldChanged;
-                        field.Value = Convert.ToInt64(configKey.GetValue()) == 0;
-                        field.Changed += FieldChanged;
-                    });
-                }
-                else
-                {
-                    val = field.Value ? Convert.ToInt64(configKey.GetValue() ?? default(T)) | longValue : Convert.ToInt64(configKey.GetValue() ?? default(T)) & ~longValue;
-                }
-                configKey.TrySetValue(Enum.ToObject(enumType, val), eventLabel);
-            }
-
-            void KeyChanged(object sender, IConfigKeyChangedEventArgs changedEvent)
-            {
-                if (field.FilterWorldElement() is null)
-                {
-                    configKey.Changed -= KeyChanged;
-                    return;
-                }
-
-                if (changedEvent.NewValue is null)
-                {
-                    field.World.RunSynchronously(() =>
-                    {
-                        field.Changed -= FieldChanged;
-                        field.Value = false;
-                        field.Changed += FieldChanged;
-                    });
-                    return;
-                }
-
-                var newValue = Convert.ToInt64(changedEvent.NewValue);
-                var isPartialCombinedValue = (newValue & longValue) != 0;
-
-                field.World.RunSynchronously(() =>
-                {
-                    if (isPartialCombinedValue || longValue == 0)
-                        field.Changed -= FieldChanged;
-
-                    if (longValue == 0)
-                    {
-                        field.Value = newValue == 0;
-                    }
-                    else
-                    {
-                        field.Value = (newValue & longValue) == longValue;
-                    }
-
-                    if (isPartialCombinedValue || longValue == 0)
-                        field.Changed += FieldChanged;
-                });
-            }
-
-            field.Changed += FieldChanged;
-            configKey.Changed += KeyChanged;
-
-            return FieldChanged;
-        }
-
         private static string GetWriteBackEventLabel(this IField field)
-            => $"SyncedField.WriteBack.{field.World.GetIdentifier()}";
+            => $"{WriteBackPrefix}.{field.World.GetIdentifier()}";
     }
 }

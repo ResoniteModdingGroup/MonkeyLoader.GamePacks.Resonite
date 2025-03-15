@@ -20,8 +20,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private const string ModSettingStandaloneFacetTag = "MonkeyLoaderStandaloneFacet";
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
-        private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), "SyncWithNullableConfigKeyHasValue");
-        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), "SyncWithEnumFlag");
+        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithEnumFlagUntyped));
+        private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithNullableConfigKeyHasValue));
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
 
@@ -151,7 +151,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
                         {
                             var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
-                            genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, longField.Value.Value, ConfigKeyChangeLabel, true]);
+                            genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, Enum.ToObject(foundKey.ValueType, longField.Value.Value), ConfigKeyChangeLabel, true]);
                         }
                         else
                         {
