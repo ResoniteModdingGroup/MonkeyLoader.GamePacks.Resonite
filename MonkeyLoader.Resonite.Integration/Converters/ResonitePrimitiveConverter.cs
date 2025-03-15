@@ -19,6 +19,9 @@ namespace MonkeyLoader.Resonite.Converters
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
+            if (objectType.IsNullable())
+                objectType = Nullable.GetUnderlyingType(objectType);
+
             // handle all non-enum Resonite Primitives
             return !objectType.IsEnum && _primitivesAssembly.Equals(objectType.Assembly)
                 && Coder.IsEnginePrimitive(objectType) && GetCoderMethods(objectType).SupportsStringCoding;
@@ -27,6 +30,9 @@ namespace MonkeyLoader.Resonite.Converters
         /// <inheritdoc/>
         public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
+            if (objectType.IsNullable() && reader.TokenType == JsonToken.Null)
+                return null!;
+
             if (reader.Value is not string serialized)
                 throw new ArgumentException($"Could not deserialize primitive type [{objectType}] from reader type [{reader?.Value?.GetType()}]!");
 
@@ -37,6 +43,12 @@ namespace MonkeyLoader.Resonite.Converters
         /// <inheritdoc/>
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (value is null)
+            {
+                writer.WriteNull();
+                return;
+            }
+
             var serialized = GetCoderMethods(value!.GetType()).Encode(value);
 
             writer.WriteValue(serialized);
@@ -75,10 +87,10 @@ namespace MonkeyLoader.Resonite.Converters
             }
 
             public object Decode(string serialized)
-                => _decode.Invoke(null, new[] { serialized });
+                => _decode.Invoke(null, [serialized]);
 
             public string Encode(object? value)
-                => (string)_encode.Invoke(null, new[] { value });
+                => (string)_encode.Invoke(null, [value]);
         }
     }
 }
