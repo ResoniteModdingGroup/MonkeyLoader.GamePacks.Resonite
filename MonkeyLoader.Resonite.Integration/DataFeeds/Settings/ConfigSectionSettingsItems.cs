@@ -143,7 +143,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         longField.Value.Value = longValue;
                     }
 
-                    field.SyncWithEnumFlagUntyped(configKey, value);
+                    field.SyncWithConfigKeyEnumFlagUntyped(configKey, value);
                 });
 
                 yield return flagToggle;

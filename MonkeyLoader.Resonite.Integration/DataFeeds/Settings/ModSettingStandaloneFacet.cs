@@ -1,5 +1,4 @@
-﻿using Elements.Core;
-using FrooxEngine;
+﻿using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
@@ -20,7 +19,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private const string ModSettingStandaloneFacetTag = "MonkeyLoaderStandaloneFacet";
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
-        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithEnumFlagUntyped));
+        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithConfigKeyEnumFlagUntyped));
         private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithNullableConfigKeyHasValue));
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
@@ -97,15 +96,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static void SyncWithConfigKeyWrapper<T>(IField field, IDefiningConfigKey key, string? eventLabel)
         {
-            if (typeof(T) == typeof(bool) && key.ValueType.IsNullable() && key.ValueType.GetGenericArguments()[0].IsEnum)
+            if (typeof(T) == typeof(bool) && Nullable.GetUnderlyingType(key.ValueType) is Type innerType && innerType.IsEnum)
             {
-                var type = key.ValueType.GetGenericArguments()[0];
-                _syncWithNullableConfigKeyHasValueMethod.MakeGenericMethod(type).Invoke(null, [(IField<bool>)field, key, eventLabel, true]);
+                _syncWithNullableConfigKeyHasValueMethod.MakeGenericMethod(innerType).Invoke(null, [field, key, eventLabel, true]);
+                return;
             }
-            else
-            {
-                ((IField<T>)field).SyncWithConfigKey(key, eventLabel);
-            }
+
+            ((IField<T>)field).SyncWithConfigKeyUntyped(key, eventLabel);
         }
 
         [HarmonyPatch(typeof(Facet), nameof(Facet.OnLoading))]
@@ -120,8 +117,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                 __instance.RunSynchronously(() =>
                 {
-                    if (__instance.FilterWorldElement() is null
-                        || __instance.Slot.Tag != ModSettingStandaloneFacetTag)
+                    if (__instance.FilterWorldElement() is null || __instance.Slot.Tag != ModSettingStandaloneFacetTag)
                         return;
 
                     if (__instance.Slot.GetComponentInChildren<FeedItemInterface>() is not FeedItemInterface feedItemInterface
@@ -151,7 +147,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                         if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
                         {
                             var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
-                            genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, Enum.ToObject(foundKey.ValueType, longField.Value.Value), ConfigKeyChangeLabel, true]);
+                            genericMethod.Invoke(null, [valueField, foundKey, Enum.ToObject(foundKey.ValueType, longField.Value.Value), ConfigKeyChangeLabel, true]);
                         }
                         else
                         {
@@ -215,22 +211,22 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     }
                 }
 
-                if (feedItemInterface.GetSyncMember("Value") is ISyncRef valueFieldRef && valueFieldRef.Target is IField valueField)
-                {
-                    if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
-                    {
-                        var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
-                        genericMethod.Invoke(null, [(IField<bool>)valueField, foundKey, longField.Value.Value, ConfigKeyChangeLabel, true]);
-                    }
-                    else
-                    {
-                        var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
-                        genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
-                    }
-
-                    feedItemInterface.Slot.PersistentSelf = true;
+                if (feedItemInterface.GetSyncMember("Value") is not ISyncRef valueFieldRef || valueFieldRef.Target is not IField valueField)
                     return;
+
+                if (feedItemInterface.Slot.GetComponent<ValueField<long>>() is ValueField<long> longField)
+                {
+                    var genericMethod = _syncWithEnumFlagMethod.MakeGenericMethod(foundKey.ValueType);
+                    genericMethod.Invoke(null, [valueField, foundKey, Enum.ToObject(foundKey.ValueType, longField.Value.Value), ConfigKeyChangeLabel, true]);
                 }
+                else
+                {
+                    var genericMethod = _syncWithConfigKeyWrapperMethod.MakeGenericMethod(valueField.ValueType);
+                    genericMethod.Invoke(null, [valueField, foundKey, ConfigKeyChangeLabel]);
+                }
+
+                feedItemInterface.Slot.PersistentSelf = true;
+                return;
             }
         }
     }
