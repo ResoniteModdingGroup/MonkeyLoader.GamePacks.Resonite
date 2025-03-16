@@ -78,37 +78,29 @@ namespace MonkeyLoader.Resonite
             field.Value = (T)(configKey.GetValue() ?? default(T)!);
             eventLabel ??= field.GetWriteBackEventLabel();
 
-            var parent = field.FindNearestParent<Component>();
-
-            void ParentDestroyedHandler(IDestroyable _)
+            void FieldChanged(IChangeable _)
             {
-                parent.Destroyed -= ParentDestroyedHandler;
+                // If writeback allowed, sensible, and successful: return
+                if (Equals(field.Value, configKey.GetValue())
+                 || ((Nullable.GetUnderlyingType(configKey.ValueType)?.IsEnum ?? false) && configKey.GetValue() is null && Equals(field.Value, default(T)))
+                 || (allowWriteBack && configKey.TrySetValue(field.Value, eventLabel)))
+                    return;
 
-                field.Changed -= FieldChangedHandler;
-                configKey.Changed -= ConfigKeyChangedHandler;
+                // Otherwise reset field value for current state
+                field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
             }
 
-            void FieldChangedHandler(IChangeable _)
+            void KeyChanged(object sender, IConfigKeyChangedEventArgs args)
             {
-                if (!Equals(field.Value, configKey.GetValue()) &&
-                    !(configKey.ValueType.IsNullable() && configKey.ValueType.GetGenericArguments()[0].IsEnum && configKey.GetValue() is null && Equals(field.Value, default(T))) &&
-                    (!allowWriteBack || !configKey.TrySetValue(field.Value, eventLabel)))
-                {
-                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
-                }
+                if (Equals(field.Value, configKey.GetValue()))
+                    return;
+
+                field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
             }
 
-            void ConfigKeyChangedHandler(object sender, IConfigKeyChangedEventArgs args)
-            {
-                if (!Equals(field.Value, configKey.GetValue()))
-                    field.World.RunSynchronously(() => field.Value = (T)(configKey.GetValue() ?? default(T)!));
-            }
+            SetupChangedHandlers(field, FieldChanged, configKey, KeyChanged);
 
-            field.Changed += FieldChangedHandler;
-            configKey.Changed += ConfigKeyChangedHandler;
-            parent.Destroyed += ParentDestroyedHandler;
-
-            return FieldChangedHandler;
+            return FieldChanged;
         }
 
         public static Action<IChangeable> SyncWithEnumFlag<T>(this IField<bool> field,
@@ -153,7 +145,7 @@ namespace MonkeyLoader.Resonite
                     : currentValue & ~longReferenceValue;
 
                 // If writeback allowed, sensible, and successful: return
-                if (allowWriteBack && !isZeroReference && configKey.TrySetValue(Enum.ToObject(enumType, newValue), eventLabel))
+                if (!isZeroReference && allowWriteBack && configKey.TrySetValue(Enum.ToObject(enumType, newValue), eventLabel))
                     return;
 
                 // Otherwise reset field value for current state
@@ -195,8 +187,7 @@ namespace MonkeyLoader.Resonite
                 });
             }
 
-            field.Changed += FieldChanged;
-            configKey.Changed += KeyChanged;
+            SetupChangedHandlers(field, FieldChanged, configKey, KeyChanged);
 
             return FieldChanged;
         }
@@ -215,43 +206,67 @@ namespace MonkeyLoader.Resonite
             field.Value = configKey.GetValue().HasValue;
             eventLabel ??= field.GetWriteBackEventLabel();
 
-            var parent = field.FindNearestParent<Component>();
-
-            void ParentDestroyedHandler(IDestroyable _)
-            {
-                parent.Destroyed -= ParentDestroyedHandler;
-
-                field.Changed -= FieldChangedHandler;
-                configKey.Changed -= ConfigKeyChangedHandler;
-            }
-
-            void FieldChangedHandler(IChangeable _)
+            void FieldChanged(IChangeable _)
             {
                 T? newValue = field.Value ? default(T) : null;
 
                 if (field.Value == configKey.GetValue().HasValue || (allowWriteBack && configKey.TrySetValue(newValue, eventLabel)))
                     return;
 
-                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChangedHandler));
+                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChanged));
             }
 
-            void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
+            void KeyChanged(object sender, ConfigKeyChangedEventArgs<T?> args)
             {
                 if (field.Value == configKey.GetValue().HasValue)
                     return;
 
-                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChangedHandler));
+                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChanged));
             }
 
-            field.Changed += FieldChangedHandler;
-            configKey.Changed += ConfigKeyChangedHandler;
-            parent.Destroyed += ParentDestroyedHandler;
+            SetupChangedHandlers(field, FieldChanged, configKey, KeyChanged);
 
-            return FieldChangedHandler;
+            return FieldChanged;
         }
 
         private static string GetWriteBackEventLabel(this IField field)
             => $"{WriteBackPrefix}.{field.World.GetIdentifier()}";
+
+        private static void SetupChangedHandlers<T>(IField field, Action<IChangeable> fieldChangedHandler,
+            IDefiningConfigKey<T> configKey, ConfigKeyChangedEventHandler<T> configKeyChangedHandler)
+        {
+            var parent = field.FindNearestParent<Component>();
+
+            void ParentDestroyedHandler(IDestroyable _)
+            {
+                parent.Destroyed -= ParentDestroyedHandler;
+
+                field.Changed -= fieldChangedHandler;
+                configKey.Changed -= configKeyChangedHandler;
+            }
+
+            field.Changed += fieldChangedHandler;
+            configKey.Changed += configKeyChangedHandler;
+            parent.Destroyed += ParentDestroyedHandler;
+        }
+
+        private static void SetupChangedHandlers(IField field, Action<IChangeable> fieldChangedHandler,
+            IDefiningConfigKey configKey, ConfigKeyChangedEventHandler configKeyChangedHandler)
+        {
+            var parent = field.FindNearestParent<Component>();
+
+            void ParentDestroyedHandler(IDestroyable _)
+            {
+                parent.Destroyed -= ParentDestroyedHandler;
+
+                field.Changed -= fieldChangedHandler;
+                configKey.Changed -= configKeyChangedHandler;
+            }
+
+            field.Changed += fieldChangedHandler;
+            configKey.Changed += configKeyChangedHandler;
+            parent.Destroyed += ParentDestroyedHandler;
+        }
 
         private static void SetWithoutChangedHandler<T>(this IField<T> field, T value, Action<IChangeable> changedHandler)
         {
