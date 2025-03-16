@@ -79,82 +79,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         private static Logger Logger => MonkeyLoaderRootCategorySettingsItems.Logger;
 
-        /// <summary>
-        /// Gets the <see cref="SettingsViewData"/> associated with this <see cref="SettingsDataFeed"/>.
-        /// </summary>
-        /// <param name="dataFeed">The <see cref="SettingsDataFeed"/> to get the view data for.</param>
-        /// <returns>The view data associated with this data feed.</returns>
-        public static SettingsViewData GetViewData(this SettingsDataFeed dataFeed)
-            => _settingsViewsByFeed.GetOrCreateValue(dataFeed, () => CreateViewData(dataFeed));
-
-        /// <summary>
-        /// Shorthand for <see cref="DataFeedItem">DataFeedItem</see>.InitBase() with the
-        /// <see cref="IIdentifiable.FullId">FullId</see> as well as the locale-name and locale-description
-        /// of the given <see cref="IDefiningConfigKey"/>.
-        /// </summary>
-        /// <param name="item">The <see cref="DataFeedItem"/> to initialize.</param>
-        /// <param name="path">The path to initialize the item with.</param>
-        /// <param name="groupKeys">The group keys to initialize the item with.</param>
-        /// <param name="configKey">The config key to initialize the id, and localize the name and description of the item with.</param>
-        public static void InitBase(this DataFeedItem item, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
-            => item.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleString("Name"), configKey.GetLocaleString("Description"));
-
-        /// <summary>
-        /// Checks whether an editor template can be injected for the given <see cref="Type"/>.
-        /// </summary>
-        /// <param name="type">The <see cref="Type"/> to check.</param>
-        /// <returns><c>true</c> if the <paramref name="type"/> is suitable for a template; otherwise, <c>false</c>.</returns>
-        public static bool IsInjectableEditorType(this Type type)
-            // Check with nameof for dummy, because there's also dummy<>
-            => type.Name != nameof(dummy) && (Coder.IsEnginePrimitive(type) || type == typeof(Type));
-
-        /// <summary>
-        /// Checks whether an editor template can be injected for the given <see cref="Type"/>.
-        /// </summary>
-        /// <typeparam name="T">The type to check.</typeparam>
-        /// <returns><c>true</c> if <typeparamref name="T"/> is suitable for a template; otherwise, <c>false</c>.</returns>
-        public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
-
-        /// <summary>
-        /// Handles the standard case of setting up the field of a <see cref="DataFeedItem"/>
-        /// to be synchronized with a <see cref="IDefiningConfigKey{T}">config key</see>.
-        /// </summary>
-        /// <remarks>
-        /// Adds a <see cref="Comment"/> with the <paramref name="configKey"/>.<see cref="IIdentifiable.FullId">FullId</see>
-        /// to allow easily mapping it back to the config key in the standalone facet process.
-        /// </remarks>
-        /// <typeparam name="T">The type of the field and config item's value.</typeparam>
-        /// <param name="field">The field to synchronize with the <paramref name="configKey"/>.</param>
-        /// <param name="configKey">The config key to synchronize with the <paramref name="field"/>.</param>
-        public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey configKey)
-        {
-            var slot = field.FindNearestParent<Slot>();
-
-            if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
-            {
-                // Adding the config key's full id to make it easier to create standalone facets
-                feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
-            }
-
-            field.SyncWithConfigKey(configKey, ConfigKeyChangeLabel);
-        }
-
-        private static SettingsViewData CreateViewData(SettingsDataFeed dataFeed)
-        {
-            static void OnDestroyed(IDestroyable destroyable)
-            {
-                destroyable.Destroyed -= OnDestroyed;
-                _settingsViewsByFeed.Remove((SettingsDataFeed)destroyable);
-
-                Logger.Debug(() => $"Removed ViewData for SettingsDataFeed ({destroyable.ReferenceID})");
-            }
-
-            var viewData = new SettingsViewData(dataFeed);
-            dataFeed.Destroyed += OnDestroyed;
-
-            return viewData;
-        }
-
         public static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, Mod mod, string monkeyType, Mod localeMod, bool forceCheck = false, bool canBeDisabled = true)
         {
             await Task.CompletedTask;
@@ -169,16 +93,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             };
 
             if (forceCheck)
-            {
-                if (canBeDisabled)
-                {
-                    monkeys = monkeys.Where(monkey => monkey.CanBeDisabled).ToArray();
-                }
-                else
-                {
-                    monkeys = monkeys.Where(monkey => !monkey.CanBeDisabled).ToArray();
-                }
-            }
+                monkeys = monkeys.Where(monkey => monkey.CanBeDisabled == canBeDisabled).ToArray();
 
             if (monkeys.Length == 0)
                 yield break;
@@ -252,6 +167,82 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 //typeIndicator.InitSetupValue(field => field.Value = monkey.Type.BaseType.CompactDescription());
                 //yield return typeIndicator;
             }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SettingsViewData"/> associated with this <see cref="SettingsDataFeed"/>.
+        /// </summary>
+        /// <param name="dataFeed">The <see cref="SettingsDataFeed"/> to get the view data for.</param>
+        /// <returns>The view data associated with this data feed.</returns>
+        public static SettingsViewData GetViewData(this SettingsDataFeed dataFeed)
+            => _settingsViewsByFeed.GetOrCreateValue(dataFeed, () => CreateViewData(dataFeed));
+
+        /// <summary>
+        /// Shorthand for <see cref="DataFeedItem">DataFeedItem</see>.InitBase() with the
+        /// <see cref="IIdentifiable.FullId">FullId</see> as well as the locale-name and locale-description
+        /// of the given <see cref="IDefiningConfigKey"/>.
+        /// </summary>
+        /// <param name="item">The <see cref="DataFeedItem"/> to initialize.</param>
+        /// <param name="path">The path to initialize the item with.</param>
+        /// <param name="groupKeys">The group keys to initialize the item with.</param>
+        /// <param name="configKey">The config key to initialize the id, and localize the name and description of the item with.</param>
+        public static void InitBase(this DataFeedItem item, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
+            => item.InitBase(configKey.FullId, path, groupKeys, configKey.GetLocaleString("Name"), configKey.GetLocaleString("Description"));
+
+        /// <summary>
+        /// Checks whether an editor template can be injected for the given <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to check.</param>
+        /// <returns><c>true</c> if the <paramref name="type"/> is suitable for a template; otherwise, <c>false</c>.</returns>
+        public static bool IsInjectableEditorType(this Type type)
+            // Check with nameof for dummy, because there's also dummy<>
+            => type.Name != nameof(dummy) && (Coder.IsEnginePrimitive(type) || type == typeof(Type));
+
+        /// <summary>
+        /// Checks whether an editor template can be injected for the given <see cref="Type"/>.
+        /// </summary>
+        /// <typeparam name="T">The type to check.</typeparam>
+        /// <returns><c>true</c> if <typeparamref name="T"/> is suitable for a template; otherwise, <c>false</c>.</returns>
+        public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
+
+        /// <summary>
+        /// Handles the standard case of setting up the field of a <see cref="DataFeedItem"/>
+        /// to be synchronized with a <see cref="IDefiningConfigKey{T}">config key</see>.
+        /// </summary>
+        /// <remarks>
+        /// Adds a <see cref="Comment"/> with the <paramref name="configKey"/>.<see cref="IIdentifiable.FullId">FullId</see>
+        /// to allow easily mapping it back to the config key in the standalone facet process.
+        /// </remarks>
+        /// <typeparam name="T">The type of the field and config item's value.</typeparam>
+        /// <param name="field">The field to synchronize with the <paramref name="configKey"/>.</param>
+        /// <param name="configKey">The config key to synchronize with the <paramref name="field"/>.</param>
+        public static void SetupConfigKeyField<T>(this IField<T> field, IDefiningConfigKey configKey)
+        {
+            var slot = field.FindNearestParent<Slot>();
+
+            if (slot.GetComponentInParents<FeedItemInterface>() is FeedItemInterface feedItemInterface)
+            {
+                // Adding the config key's full id to make it easier to create standalone facets
+                feedItemInterface.Slot.AttachComponent<Comment>().Text.Value = configKey.FullId;
+            }
+
+            field.SyncWithConfigKeyUntyped(configKey, ConfigKeyChangeLabel);
+        }
+
+        private static SettingsViewData CreateViewData(SettingsDataFeed dataFeed)
+        {
+            static void OnDestroyed(IDestroyable destroyable)
+            {
+                destroyable.Destroyed -= OnDestroyed;
+                _settingsViewsByFeed.Remove((SettingsDataFeed)destroyable);
+
+                Logger.Debug(() => $"Removed ViewData for SettingsDataFeed ({destroyable.ReferenceID})");
+            }
+
+            var viewData = new SettingsViewData(dataFeed);
+            dataFeed.Destroyed += OnDestroyed;
+
+            return viewData;
         }
     }
 }
