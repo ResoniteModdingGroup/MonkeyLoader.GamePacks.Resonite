@@ -159,15 +159,12 @@ namespace MonkeyLoader.Resonite
                 // Otherwise reset field value for current state
                 field.World.RunSynchronously(() =>
                 {
-                    field.Changed -= FieldChanged;
-
                     var currentValue = Convert.ToInt64(configKey.GetValue());
-
-                    field.Value = isZeroReference
+                    var newValue = isZeroReference
                         ? currentValue == 0
                         : (currentValue & longReferenceValue) == longReferenceValue;
 
-                    field.Changed += FieldChanged;
+                    field.SetWithoutChangedHandler(newValue, FieldChanged);
                 });
             }
 
@@ -181,13 +178,7 @@ namespace MonkeyLoader.Resonite
 
                 if (changedEvent.NewValue is null)
                 {
-                    field.World.RunSynchronously(() =>
-                    {
-                        field.Changed -= FieldChanged;
-                        field.Value = false;
-                        field.Changed += FieldChanged;
-                    });
-
+                    field.World.RunSynchronously(() => field.SetWithoutChangedHandler(false, FieldChanged));
                     return;
                 }
 
@@ -196,13 +187,11 @@ namespace MonkeyLoader.Resonite
 
                 field.World.RunSynchronously(() =>
                 {
-                    field.Changed -= FieldChanged;
-
-                    field.Value = isZeroReference
+                    var newFieldValue = isZeroReference
                         ? newValue == 0
                         : (newValue & longReferenceValue) == longReferenceValue;
 
-                    field.Changed += FieldChanged;
+                    field.SetWithoutChangedHandler(newFieldValue, FieldChanged);
                 });
             }
 
@@ -243,12 +232,7 @@ namespace MonkeyLoader.Resonite
                 if (field.Value == configKey.GetValue().HasValue || (allowWriteBack && configKey.TrySetValue(newValue, eventLabel)))
                     return;
 
-                field.World.RunSynchronously(() =>
-                {
-                    field.Changed -= FieldChangedHandler;
-                    field.Value = configKey.GetValue().HasValue;
-                    field.Changed += FieldChangedHandler;
-                });
+                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChangedHandler));
             }
 
             void ConfigKeyChangedHandler(object sender, ConfigKeyChangedEventArgs<T?> args)
@@ -256,12 +240,7 @@ namespace MonkeyLoader.Resonite
                 if (field.Value == configKey.GetValue().HasValue)
                     return;
 
-                field.World.RunSynchronously(() =>
-                {
-                    field.Changed -= FieldChangedHandler;
-                    field.Value = configKey.GetValue().HasValue;
-                    field.Changed += FieldChangedHandler;
-                });
+                field.World.RunSynchronously(() => field.SetWithoutChangedHandler(configKey.GetValue().HasValue, FieldChangedHandler));
             }
 
             field.Changed += FieldChangedHandler;
@@ -273,5 +252,12 @@ namespace MonkeyLoader.Resonite
 
         private static string GetWriteBackEventLabel(this IField field)
             => $"{WriteBackPrefix}.{field.World.GetIdentifier()}";
+
+        private static void SetWithoutChangedHandler<T>(this IField<T> field, T value, Action<IChangeable> changedHandler)
+        {
+            field.Changed -= changedHandler;
+            field.Value = value;
+            field.Changed += changedHandler;
+        }
     }
 }
