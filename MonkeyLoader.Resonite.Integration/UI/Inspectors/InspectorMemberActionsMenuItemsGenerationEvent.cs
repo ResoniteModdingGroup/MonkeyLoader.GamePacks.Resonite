@@ -7,11 +7,10 @@ using System.Text;
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
-    /// Represents the event data for the Fallback Locale Generation Event.
+    /// Represents the event data for the <see cref="InspectorMemberActions"/> <see cref="ContextMenu"/> items generation event.
     /// </summary>
     /// <remarks>
-    /// This event can be used by Monkeys that make use of locale keys to inject
-    /// programmatically generated keys, if they haven't been defined previously.
+    /// This event is additive to the options added by the vanilla implementation.
     /// </remarks>
     public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
     {
@@ -38,6 +37,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public Slot? Slot { get; }
 
         /// <summary>
+        /// Gets the <see cref="ISyncMember"/> that
+        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
+        /// </summary>
+        public ISyncMember Target { get; }
+
+        /// <summary>
         /// Gets the <see cref="Target">Target</see>'s <see cref="Slot">Slot</see>'s
         /// <see cref="Slot.ActiveUser">ActiveUser</see>, or its parent <see cref="FrooxEngine.User"/>
         /// if it belongs to a <see cref="UserComponent"/>.
@@ -48,12 +53,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// this will be <c>null</c>.
         /// </remarks>
         public User? User { get; }
-
-        /// <summary>
-        /// Gets the <see cref="ISyncMember"/> that
-        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
-        /// </summary>
-        public ISyncMember Target { get; }
 
         internal InspectorMemberActionsMenuItemsGenerationEvent(User summoningUser,
             InspectorMemberActions summoner, ButtonEventData buttonEventData, ISyncMember target)
