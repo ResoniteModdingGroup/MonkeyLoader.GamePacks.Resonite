@@ -43,7 +43,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             await __result;
 
             var eventData = new InspectorMemberActionsMenuItemsGenerationEvent(
-                memberActions, buttonEventData, target);
+                memberActions.LocalUser, memberActions, buttonEventData, target);
 
             await DispatchAsync(eventData);
         }
