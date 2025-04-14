@@ -1,5 +1,5 @@
 ﻿using FrooxEngine;
-using MonkeyLoader.Events;
+using MonkeyLoader.Resonite.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// This event can be used by Monkeys that make use of locale keys to inject
     /// programmatically generated keys, if they haven't been defined previously.
     /// </remarks>
-    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : AsyncEvent
+    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
     {
         /// <summary>
         /// Gets the <see cref="ButtonEventData">data</see> for the button press
@@ -22,20 +22,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public ButtonEventData ButtonEventData { get; }
 
         /// <summary>
-        /// Gets the <see cref="FrooxEngine.ContextMenu"/> that was opened.
+        /// Gets the <see cref="InspectorMemberActions"/> that the
+        /// <see cref="ContextMenuItemsGenerationEvent.ContextMenu">ContextMenu</see>
+        /// is being summoned by.
         /// </summary>
-        /// <remarks>
-        /// You need to pass the <see cref="MemberActions">MemberActions</see>
-        /// when <see cref="ContextMenuExtensions.CloseContextMenu">closing</see>
-        /// the <see cref="ContextMenu">ContextMenu</see> from your added event handlers.
-        /// </remarks>
-        public ContextMenu ContextMenu { get; }
-
-        /// <summary>
-        /// Gets the <see cref="InspectorMemberActions"/> component
-        /// that triggered opening the <see cref="ContextMenu">ContextMenu</see>.
-        /// </summary>
-        public InspectorMemberActions MemberActions { get; }
+        [Obsolete("Use Summoner instead.")]
+        public InspectorMemberActions MemberActions => Summoner;
 
         /// <summary>
         /// Gets the <see cref="Target">Target</see>'s parent <see cref="FrooxEngine.Slot"/>.
@@ -44,12 +36,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// This may be <c>null</c> if <see cref="Target">Target</see>'s parent is a <see cref="UserComponent"/>.
         /// </remarks>
         public Slot? Slot { get; }
-
-        /// <summary>
-        /// Gets the <see cref="ISyncMember"/> that
-        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
-        /// </summary>
-        public ISyncMember Target { get; }
 
         /// <summary>
         /// Gets the <see cref="Target">Target</see>'s <see cref="Slot">Slot</see>'s
@@ -63,14 +49,19 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </remarks>
         public User? User { get; }
 
-        internal InspectorMemberActionsMenuItemsGenerationEvent(
-            InspectorMemberActions instance, ButtonEventData buttonEventData, ISyncMember target)
+        /// <summary>
+        /// Gets the <see cref="ISyncMember"/> that
+        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
+        /// </summary>
+        public ISyncMember Target { get; }
+
+        internal InspectorMemberActionsMenuItemsGenerationEvent(User summoningUser,
+            InspectorMemberActions summoner, ButtonEventData buttonEventData, ISyncMember target)
+                : base(summoningUser, summoner)
         {
-            MemberActions = instance;
             ButtonEventData = buttonEventData;
             Target = target;
 
-            ContextMenu = instance.LocalUser.GetUserContextMenu();
             Slot = target.FindNearestParent<Slot>();
             User = Slot?.ActiveUser ?? target.FindNearestParent<User>();
         }
