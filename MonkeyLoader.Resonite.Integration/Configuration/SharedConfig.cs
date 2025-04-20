@@ -49,7 +49,16 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <param name="world">The <see cref="World"/> to get the <see cref="Slot"/> for.</param>
         /// <returns>The SharedConfig slot for the given world.</returns>
         public static Slot GetSharedConfigSlot(this World world)
-            => world.AssetsSlot.FindChildOrAdd(Identifier);
+        {
+            if (world.AssetsSlot.FindChild(Identifier) is not Slot sharedConfigSlot)
+            {
+                sharedConfigSlot = world.AssetsSlot.AddSlot(Identifier, false);
+                sharedConfigSlot.AttachComponent<Comment>().Text.Value =
+                    "This slot is used by a feature of the config system of MonkeyLoader. You can safely integrate with the config, make this slot persistent or delete it - though it will automatically be recreated if something needs it.";
+            }
+
+            return sharedConfigSlot;
+        }
 
         /// <summary>
         /// Gets the given config owner's <see cref="Slot"/>
