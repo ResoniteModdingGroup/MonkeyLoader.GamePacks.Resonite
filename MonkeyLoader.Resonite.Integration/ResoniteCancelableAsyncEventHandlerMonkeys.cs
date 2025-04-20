@@ -13,7 +13,8 @@ namespace MonkeyLoader.Resonite
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
     /// <typeparam name="TEvent">The <see cref="CancelableAsyncEvent"/> type to handle.</typeparam>
     /// <inheritdoc/>
-    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent> : ResoniteMonkey<TMonkey>, ICancelableAsyncEventHandler<TEvent>
+    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>
+            : ResoniteMonkey<TMonkey>, ICancelableAsyncEventHandler<TEvent>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent>, new()
         where TEvent : CancelableAsyncEvent
     {
@@ -83,8 +84,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteCancelableAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1>,
-            ICancelableAsyncEventHandler<TEvent2>
+    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>
+            : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1>, ICancelableAsyncEventHandler<TEvent2>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, new()
         where TEvent1 : CancelableAsyncEvent
         where TEvent2 : CancelableAsyncEvent
@@ -122,8 +123,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteCancelableAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>,
-            ICancelableAsyncEventHandler<TEvent3>
+    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>
+            : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, ICancelableAsyncEventHandler<TEvent3>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, new()
         where TEvent1 : CancelableAsyncEvent
         where TEvent2 : CancelableAsyncEvent
@@ -203,8 +204,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteCancelableAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>,
-            ICancelableAsyncEventHandler<TEvent5>
+    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>
+            : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, ICancelableAsyncEventHandler<TEvent5>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, new()
         where TEvent1 : CancelableAsyncEvent
         where TEvent2 : CancelableAsyncEvent
@@ -256,8 +257,8 @@ namespace MonkeyLoader.Resonite
     /// <typeparam name="TEvent5">The fifth <see cref="CancelableAsyncEvent"/> type to handle.</typeparam>
     /// <typeparam name="TEvent6">The sixth <see cref="CancelableAsyncEvent"/> type to handle.</typeparam>
     /// <inheritdoc cref="ResoniteMonkey{TMonkey}"/>
-    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6> : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>,
-            ICancelableAsyncEventHandler<TEvent6>
+    public abstract class ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>
+            : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, ICancelableAsyncEventHandler<TEvent6>
         where TMonkey : ResoniteCancelableAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>, new()
         where TEvent1 : CancelableAsyncEvent
         where TEvent2 : CancelableAsyncEvent

@@ -13,7 +13,8 @@ namespace MonkeyLoader.Resonite
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
     /// <typeparam name="TEvent">The <see cref="AsyncEvent"/> type to handle.</typeparam>
     /// <inheritdoc/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent> : ResoniteMonkey<TMonkey>, IAsyncEventHandler<TEvent>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>
+            : ResoniteMonkey<TMonkey>, IAsyncEventHandler<TEvent>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent>, new()
         where TEvent : AsyncEvent
     {
@@ -84,8 +85,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1>,
-            IAsyncEventHandler<TEvent2>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>
+            : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1>, IAsyncEventHandler<TEvent2>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, new()
         where TEvent1 : AsyncEvent
         where TEvent2 : AsyncEvent
@@ -127,8 +128,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>,
-            IAsyncEventHandler<TEvent3>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>
+            : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, IAsyncEventHandler<TEvent3>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, new()
         where TEvent1 : AsyncEvent
         where TEvent2 : AsyncEvent
@@ -171,8 +172,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>,
-            IAsyncEventHandler<TEvent4>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>
+        : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, IAsyncEventHandler<TEvent4>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, new()
         where TEvent1 : AsyncEvent
         where TEvent2 : AsyncEvent
@@ -216,8 +217,8 @@ namespace MonkeyLoader.Resonite
     }
 
     /// <inheritdoc cref="ResoniteAsyncEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>,
-            IAsyncEventHandler<TEvent5>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>
+            : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, IAsyncEventHandler<TEvent5>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, new()
         where TEvent1 : AsyncEvent
         where TEvent2 : AsyncEvent
@@ -273,8 +274,8 @@ namespace MonkeyLoader.Resonite
     /// <typeparam name="TEvent5">The fifth <see cref="AsyncEvent"/> type to handle.</typeparam>
     /// <typeparam name="TEvent6">The sixth <see cref="AsyncEvent"/> type to handle.</typeparam>
     /// <inheritdoc cref="ResoniteMonkey{TMonkey}"/>
-    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6> : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>,
-            IAsyncEventHandler<TEvent6>
+    public abstract class ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>
+            : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, IAsyncEventHandler<TEvent6>
         where TMonkey : ResoniteAsyncEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>, new()
         where TEvent1 : AsyncEvent
         where TEvent2 : AsyncEvent
