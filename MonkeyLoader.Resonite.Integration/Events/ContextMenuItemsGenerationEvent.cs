@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite.Events
     /// </summary>
     /// <remarks>
     /// Use <see cref="ContextMenuItemsGenerationEvent{T}"/> for derived classes instead.<br/>
-    /// This class only exists as a subscribable catch all event.
+    /// This class only exists as a subscribable catch-all event.
     /// </remarks>
     [DispatchableBaseEvent]
     public abstract class ContextMenuItemsGenerationEvent : AsyncEvent
@@ -97,7 +97,7 @@ namespace MonkeyLoader.Resonite.Events
     /// <summary>
     /// Represents a base class for all events that generate a <see cref="ContextMenu"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the <see cref="Summoner">Summoner</see>.</typeparam>
     public abstract class ContextMenuItemsGenerationEvent<T> : ContextMenuItemsGenerationEvent
         where T : class, IWorldElement
     {
