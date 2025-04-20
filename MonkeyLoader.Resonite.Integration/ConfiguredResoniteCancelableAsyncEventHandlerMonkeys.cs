@@ -155,7 +155,7 @@ namespace MonkeyLoader.Resonite
 
     /// <summary>
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>
-    /// Specifically, to act as an <see cref="ICancelableAsyncEventHandler{TEvent}">async event handler</see> for the <c>TEvent</c> generic parameter(s).
+    /// Specifically, to act as an <see cref="ICancelableAsyncEventHandler{TEvent}">async event handler</see> for the cancelable <c>TEvent</c> generic parameter(s).
     /// </summary>
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
     /// <typeparam name="TConfigSection">The type of the config section to load.</typeparam>
