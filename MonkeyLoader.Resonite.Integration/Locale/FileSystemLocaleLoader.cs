@@ -1,5 +1,4 @@
 ﻿using Elements.Assets;
-using MonkeyLoader;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;

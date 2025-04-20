@@ -1,8 +1,6 @@
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using MonkeyLoader.Events;
-using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -15,69 +13,54 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     [HarmonyPatch(typeof(SyncMemberEditorBuilder))]
     [HarmonyPatchCategory(nameof(DefaultBuildMemberEditorHandlers))]
-    internal sealed class DefaultBuildMemberEditorHandlers : ResoniteMonkey<DefaultBuildMemberEditorHandlers>,
-        ICancelableEventHandler<BuildArrayEditorEvent>, ICancelableEventHandler<BuildBagEditorEvent>,
-        ICancelableEventHandler<BuildListEditorEvent>, ICancelableEventHandler<BuildPlaybackEditorEvent>,
-        ICancelableEventHandler<BuildFieldEditorEvent>, ICancelableEventHandler<BuildObjectEditorEvent>
+    internal sealed class DefaultBuildMemberEditorHandlers : ResoniteCancelableEventHandlerMonkey<DefaultBuildMemberEditorHandlers,
+        BuildArrayEditorEvent, BuildBagEditorEvent, BuildListEditorEvent,
+        BuildPlaybackEditorEvent, BuildFieldEditorEvent, BuildObjectEditorEvent>
     {
-        public int Priority => HarmonyLib.Priority.Normal;
+        public override int Priority => HarmonyLib.Priority.Normal;
 
-        public bool SkipCanceled => true;
+        public override bool SkipCanceled => true;
 
-        void ICancelableEventHandler<BuildArrayEditorEvent>.Handle(BuildArrayEditorEvent eventData)
+        protected override void Handle(BuildArrayEditorEvent eventData)
         {
             BuildArray(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI, eventData.LabelSize!.Value);
 
             eventData.Canceled = true;
         }
 
-        public void Handle(BuildBagEditorEvent eventData)
+        protected override void Handle(BuildBagEditorEvent eventData)
         {
             BuildBag(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI);
 
             eventData.Canceled = true;
         }
 
-        public void Handle(BuildListEditorEvent eventData)
+        protected override void Handle(BuildListEditorEvent eventData)
         {
             BuildList(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI);
 
             eventData.Canceled = true;
         }
 
-        public void Handle(BuildPlaybackEditorEvent eventData)
+        protected override void Handle(BuildPlaybackEditorEvent eventData)
         {
             BuildPlayback(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI, eventData.LabelSize!.Value);
 
             eventData.Canceled = true;
         }
 
-        public void Handle(BuildFieldEditorEvent eventData)
+        protected override void Handle(BuildFieldEditorEvent eventData)
         {
             BuildField(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI, eventData.LabelSize!.Value);
 
             eventData.Canceled = true;
         }
 
-        public void Handle(BuildObjectEditorEvent eventData)
+        protected override void Handle(BuildObjectEditorEvent eventData)
         {
             BuildSyncObject(eventData.Member, eventData.Name, eventData.FieldInfo, eventData.UI, eventData.LabelSize!.Value);
 
             eventData.Canceled = true;
-        }
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        protected override bool OnEngineReady()
-        {
-            Mod.RegisterEventHandler<BuildArrayEditorEvent>(this);
-            Mod.RegisterEventHandler<BuildBagEditorEvent>(this);
-            Mod.RegisterEventHandler<BuildListEditorEvent>(this);
-            Mod.RegisterEventHandler<BuildPlaybackEditorEvent>(this);
-            Mod.RegisterEventHandler<BuildFieldEditorEvent>(this);
-            Mod.RegisterEventHandler<BuildObjectEditorEvent>(this);
-
-            return base.OnEngineReady();
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
