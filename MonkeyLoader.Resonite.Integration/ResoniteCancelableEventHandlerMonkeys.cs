@@ -2,31 +2,30 @@
 using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>
-    /// Specifically, to act as an <see cref="IEventHandler{TEvent}">event handler</see> for <typeparamref name="TEvent"/>s.
+    /// Specifically, to act as an <see cref="ICancelableEventHandler{TEvent}">event handler</see> for cancelable <typeparamref name="TEvent"/>s.
     /// </summary>
     /// <inheritdoc/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent>
-            : ResoniteMonkey<TMonkey>, IEventHandler<TEvent>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent>, new()
-        where TEvent : SyncEvent
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent>
+            : ResoniteMonkey<TMonkey>, ICancelableEventHandler<TEvent>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent>, new()
+        where TEvent : CancelableSyncEvent
     {
         /// <inheritdoc/>
         public abstract int Priority { get; }
 
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        public abstract bool SkipCanceled { get; }
+
+        /// <inheritdoc/>
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent>.Handle(TEvent eventData)
+        void ICancelableEventHandler<TEvent>.Handle(TEvent eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
@@ -54,7 +53,7 @@ namespace MonkeyLoader.Resonite
         /// but strongly consider also overriding this method if you do that.<br/>
         /// Otherwise your patches will be applied twice, if you're using <c>[<see cref="HarmonyPatchCategory"/>(nameof(MyPatcher))]</c> attributes.
         /// <para/>
-        /// <i>By default:</i> <see cref="Mod.RegisterEventHandler{TEvent}(IEventHandler{TEvent})">Registers</see>
+        /// <i>By default:</i> <see cref="Mod.RegisterEventHandler{TEvent}(ICancelableEventHandler{TEvent})">Registers</see>
         /// this Monkey as an event handler and applies the <see cref="Harmony"/> patches of the
         /// <see cref="Harmony.PatchCategory(string)">category</see> with this patcher's type's name.<br/>
         /// Easy to apply by using <c>[<see cref="HarmonyPatchCategory"/>(nameof(MyPatcher))]</c> attribute.
@@ -68,7 +67,7 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <remarks>
-        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(IEventHandler{TEvent})">Unregisters</see>
+        /// <i>By default:</i> <see cref="Mod.UnregisterEventHandler{TEvent}(ICancelableEventHandler{TEvent})">Unregisters</see>
         /// this monkey as an event handler for <typeparamref name="TEvent"/>s
         /// and removes all <see cref="Harmony"/> patches done
         /// using this Monkey's <see cref="MonkeyBase.Harmony">Harmony</see> instance,
@@ -84,27 +83,27 @@ namespace MonkeyLoader.Resonite
         }
     }
 
-    /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2>
-            : ResoniteEventHandlerMonkey<TMonkey, TEvent1>, IEventHandler<TEvent2>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, new()
-        where TEvent1 : SyncEvent
-        where TEvent2 : SyncEvent
+    /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2>
+            : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1>, ICancelableEventHandler<TEvent2>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, new()
+        where TEvent1 : CancelableSyncEvent
+        where TEvent2 : CancelableSyncEvent
     {
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent2>.Handle(TEvent2 eventData)
+        void ICancelableEventHandler<TEvent2>.Handle(TEvent2 eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
         }
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
         protected virtual bool AppliesTo(TEvent2 eventData) => Enabled;
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
         protected abstract void Handle(TEvent2 eventData);
 
         /// <inheritdoc/>
@@ -125,28 +124,28 @@ namespace MonkeyLoader.Resonite
         }
     }
 
-    /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>
-            : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, IEventHandler<TEvent3>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, new()
-        where TEvent1 : SyncEvent
-        where TEvent2 : SyncEvent
-        where TEvent3 : SyncEvent
+    /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>
+            : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2>, ICancelableEventHandler<TEvent3>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, new()
+        where TEvent1 : CancelableSyncEvent
+        where TEvent2 : CancelableSyncEvent
+        where TEvent3 : CancelableSyncEvent
     {
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent3>.Handle(TEvent3 eventData)
+        void ICancelableEventHandler<TEvent3>.Handle(TEvent3 eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
         }
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
         protected virtual bool AppliesTo(TEvent3 eventData) => Enabled;
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
         protected abstract void Handle(TEvent3 eventData);
 
         /// <inheritdoc/>
@@ -167,29 +166,29 @@ namespace MonkeyLoader.Resonite
         }
     }
 
-    /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>
-            : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, IEventHandler<TEvent4>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, new()
-        where TEvent1 : SyncEvent
-        where TEvent2 : SyncEvent
-        where TEvent3 : SyncEvent
-        where TEvent4 : SyncEvent
+    /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>
+            : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3>, ICancelableEventHandler<TEvent4>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, new()
+        where TEvent1 : CancelableSyncEvent
+        where TEvent2 : CancelableSyncEvent
+        where TEvent3 : CancelableSyncEvent
+        where TEvent4 : CancelableSyncEvent
     {
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent4>.Handle(TEvent4 eventData)
+        void ICancelableEventHandler<TEvent4>.Handle(TEvent4 eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
         }
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
         protected virtual bool AppliesTo(TEvent4 eventData) => Enabled;
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
         protected abstract void Handle(TEvent4 eventData);
 
         /// <inheritdoc/>
@@ -210,30 +209,30 @@ namespace MonkeyLoader.Resonite
         }
     }
 
-    /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>
-            : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, IEventHandler<TEvent5>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, new()
-        where TEvent1 : SyncEvent
-        where TEvent2 : SyncEvent
-        where TEvent3 : SyncEvent
-        where TEvent4 : SyncEvent
-        where TEvent5 : SyncEvent
+    /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6}"/>
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>
+            : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4>, ICancelableEventHandler<TEvent5>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, new()
+        where TEvent1 : CancelableSyncEvent
+        where TEvent2 : CancelableSyncEvent
+        where TEvent3 : CancelableSyncEvent
+        where TEvent4 : CancelableSyncEvent
+        where TEvent5 : CancelableSyncEvent
     {
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent5>.Handle(TEvent5 eventData)
+        void ICancelableEventHandler<TEvent5>.Handle(TEvent5 eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
         }
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
         protected virtual bool AppliesTo(TEvent5 eventData) => Enabled;
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
         protected abstract void Handle(TEvent5 eventData);
 
         /// <inheritdoc/>
@@ -256,40 +255,40 @@ namespace MonkeyLoader.Resonite
 
     /// <summary>
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>
-    /// Specifically, to act as an <see cref="IEventHandler{TEvent}">event handler</see> for the <c>TEvent</c> generic parameter(s).
+    /// Specifically, to act as an <see cref="ICancelableEventHandler{TEvent}">event handler</see> for the cancelable <c>TEvent</c> generic parameter(s).
     /// </summary>
     /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
-    /// <typeparam name="TEvent1">The first <see cref="SyncEvent"/> type to handle.</typeparam>
-    /// <typeparam name="TEvent2">The second <see cref="SyncEvent"/> type to handle.</typeparam>
-    /// <typeparam name="TEvent3">The third <see cref="SyncEvent"/> type to handle.</typeparam>
-    /// <typeparam name="TEvent4">The fourth <see cref="SyncEvent"/> type to handle.</typeparam>
-    /// <typeparam name="TEvent5">The fifth <see cref="SyncEvent"/> type to handle.</typeparam>
-    /// <typeparam name="TEvent6">The sixth <see cref="SyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent1">The first <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent2">The second <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent3">The third <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent4">The fourth <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent5">The fifth <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
+    /// <typeparam name="TEvent6">The sixth <see cref="CancelableSyncEvent"/> type to handle.</typeparam>
     /// <inheritdoc cref="ResoniteMonkey{TMonkey}"/>
-    public abstract class ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>
-            : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, IEventHandler<TEvent6>
-        where TMonkey : ResoniteEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>, new()
-        where TEvent1 : SyncEvent
-        where TEvent2 : SyncEvent
-        where TEvent3 : SyncEvent
-        where TEvent4 : SyncEvent
-        where TEvent5 : SyncEvent
-        where TEvent6 : SyncEvent
+    public abstract class ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>
+            : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5>, ICancelableEventHandler<TEvent6>
+        where TMonkey : ResoniteCancelableEventHandlerMonkey<TMonkey, TEvent1, TEvent2, TEvent3, TEvent4, TEvent5, TEvent6>, new()
+        where TEvent1 : CancelableSyncEvent
+        where TEvent2 : CancelableSyncEvent
+        where TEvent3 : CancelableSyncEvent
+        where TEvent4 : CancelableSyncEvent
+        where TEvent5 : CancelableSyncEvent
+        where TEvent6 : CancelableSyncEvent
     {
         /// <inheritdoc/>
-        protected ResoniteEventHandlerMonkey()
+        protected ResoniteCancelableEventHandlerMonkey()
         { }
 
-        void IEventHandler<TEvent6>.Handle(TEvent6 eventData)
+        void ICancelableEventHandler<TEvent6>.Handle(TEvent6 eventData)
         {
             if (AppliesTo(eventData))
                 Handle(eventData);
         }
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.AppliesTo"/>
         protected virtual bool AppliesTo(TEvent6 eventData) => Enabled;
 
-        /// <inheritdoc cref="ResoniteEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
+        /// <inheritdoc cref="ResoniteCancelableEventHandlerMonkey{TMonkey, TEvent}.Handle"/>
         protected abstract void Handle(TEvent6 eventData);
 
         /// <inheritdoc/>
