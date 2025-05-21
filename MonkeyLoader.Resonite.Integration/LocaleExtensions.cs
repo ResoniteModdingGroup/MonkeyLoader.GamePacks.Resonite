@@ -290,12 +290,12 @@ namespace MonkeyLoader.Resonite
 
             try
             {
-                if (Engine.Current.Platform == Platform.Android)
+                if (Engine.Current.Platform is Platform.Android)
                 {
                     var localeContent = await Engine.Current.InternalResources.ReadTextResource($"Locale/{FallbackLocaleCode}");
 
-                    if (localeContent != null)
-                        locale.LoadDataAdditively(localeContent);
+                    if (localeContent is not null)
+                        await Task.Run(() => locale.LoadDataAdditively(localeContent));
                 }
                 else
                 {
@@ -315,8 +315,17 @@ namespace MonkeyLoader.Resonite
             FallbackLocale = locale;
         }
 
+        internal static async Task ReloadLocalesAsync()
+        {
+            TriggerCurrentLocaleReload();
+            await LoadFallbackLocaleAsync();
+        }
+
+        internal static void TriggerCurrentLocaleReload()
+            => Userspace.Current.GetCoreLocale().Asset.ForceAssetUpdate();
+
         private static (string, object)[] AddModIndicator(this (string, object)[]? arguments)
-            => [.. (arguments ?? []), (ModLocaleStringIndicatorArgumentName, string.Empty)];
+            => [.. arguments ?? [], (ModLocaleStringIndicatorArgumentName, string.Empty)];
 
         private static Dictionary<string, object> AddModIndicator(this Dictionary<string, object>? arguments)
         {
