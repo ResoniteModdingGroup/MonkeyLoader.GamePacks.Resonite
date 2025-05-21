@@ -3,7 +3,6 @@ using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,9 +29,6 @@ namespace MonkeyLoader.Resonite.Locale
                 await (_localeLoading?.Invoke(eventData) ?? Task.CompletedTask);
             }
         }
-
-        /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         /// <inheritdoc/>
         protected override bool OnEngineReady()
@@ -83,7 +79,7 @@ namespace MonkeyLoader.Resonite.Locale
         }
 
         [HarmonyPrefix]
-        private static void LoadTargetVariantPrefix(LocaleResource __instance, ref bool __state)
+        private static void LoadTargetVariantPrefix(LocaleResource __instance, out bool __state)
             => __state = __instance.Data != null;
 
         /// <inheritdoc/>
