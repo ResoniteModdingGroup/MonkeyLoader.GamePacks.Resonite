@@ -91,10 +91,14 @@ namespace MonkeyLoader.Resonite
                 resoniteMonkey.EngineReady();
 
             Logger.Info(() => $"Done late-executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
-            Logger.Info(() => "Triggering reloading of fallback locale data for mods!");
 
-            Task.Run(LocaleExtensions.LoadFallbackLocaleAsync);
-            Task.Run(Mod.Loader.LogPotentialConflicts);
+            Task.Run(async () =>
+            {
+                Mod.Loader.LogPotentialConflicts();
+
+                Logger.Info(() => "Triggering reloading of fallback locale data for mods!");
+                await LocaleExtensions.ReloadLocalesAsync();
+            });
         }
 
         private static void OnEngineShutdown()
@@ -174,14 +178,14 @@ namespace MonkeyLoader.Resonite
             }
 
             LoadProgressReporter.AdvanceFixedPhase("Determining potential Mod conflicts...");
-            await Task.Run(Mod.Loader.LogPotentialConflicts);
+            await Task.WhenAll(Task.Delay(200), Task.Run(Mod.Loader.LogPotentialConflicts));
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
 
             LoadProgressReporter.AdvanceFixedPhase("Loading Fallback Locale Data for Mods...");
             sw.Restart();
 
-            await LocaleExtensions.LoadFallbackLocaleAsync();
+            await Task.WhenAll(Task.Delay(200), Task.Run(LocaleExtensions.LoadFallbackLocaleAsync));
             Logger.Info(() => $"Done loading fallback locale data for mods in {sw.ElapsedMilliseconds}ms!");
 
             LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
