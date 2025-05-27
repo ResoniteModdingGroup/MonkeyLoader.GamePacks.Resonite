@@ -18,7 +18,7 @@ namespace MonkeyLoader.Resonite
     // TODO: Add an event after InitializePostfixAsync is done?
     [HarmonyPatchCategory(nameof(EngineInitHook))]
     [HarmonyPatch(typeof(Engine), nameof(Engine.Initialize))]
-    internal sealed class EngineInitHook : ConfiguredMonkey<EngineInitHook, EngineInitHookConfig>
+    internal sealed class EngineInitHook : ConfiguredMonkey<EngineInitHook, LoadingConfig>
     {
         private static IResoniteMonkeyInternal[] ResoniteMonkeys
         {
@@ -152,7 +152,7 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
-                await PrettyAwaitAsync(50, Task.Run(resoniteMonkey.EngineInit));
+                await LoadProgressReporter.RunForPrettySplashAsync(50, resoniteMonkey.EngineInit);
                 LoadProgressReporter.ExitSubphase();
             }
 
@@ -173,34 +173,22 @@ namespace MonkeyLoader.Resonite
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
-                await PrettyAwaitAsync(50, Task.Run(resoniteMonkey.EngineReady));
+                await LoadProgressReporter.RunForPrettySplashAsync(50, resoniteMonkey.EngineReady);
                 LoadProgressReporter.ExitSubphase();
             }
 
             LoadProgressReporter.AdvanceFixedPhase("Determining potential Mod conflicts...");
-            await PrettyAwaitAsync(200, Task.Run(Mod.Loader.LogPotentialConflicts));
+            await LoadProgressReporter.RunForPrettySplashAsync(200, Mod.Loader.LogPotentialConflicts);
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
 
             LoadProgressReporter.AdvanceFixedPhase("Loading Fallback Locale Data for Mods...");
             sw.Restart();
 
-            await PrettyAwaitAsync(200, Task.Run(LocaleExtensions.LoadFallbackLocaleAsync));
+            await LoadProgressReporter.RunForPrettySplashAsync(200, LocaleExtensions.LoadFallbackLocaleAsync);
             Logger.Info(() => $"Done loading fallback locale data for mods in {sw.ElapsedMilliseconds}ms!");
 
             LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
-        }
-
-        private static async Task PrettyAwaitAsync(int milliseconds, Task task)
-        {
-            if (ConfigSection.PrettySplashEnabled)
-            {
-                await Task.WhenAll(Task.Delay(milliseconds), task);
-            }
-            else
-            {
-                await task;
-            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using MonkeyLoader.Patching;
 using MonkeyLoader.Unity;
 using System;
 using System.Collections.Generic;
@@ -84,11 +83,11 @@ namespace MonkeyLoader.Resonite
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        /// <inheritdoc/>
         protected override bool OnFirstSceneReady(Scene scene)
         {
+            if (!LoadingConfig.Instance.HijackLoadProgressIndicator)
+                return true;
+
             _loadProgress = scene.GetRootGameObjects()
                 .Select(g => g.GetComponentInChildren<EngineLoadProgress>())
                 .FirstOrDefault(elp => elp != null);
