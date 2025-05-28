@@ -13,6 +13,8 @@ namespace MonkeyLoader.Resonite
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>
     /// Specifically, to act as an <see cref="IEventSource{TEvent}">event source</see> for <typeparamref name="TEvent"/>s.
     /// </summary>
+    /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
+    /// <typeparam name="TEvent">The <see cref="SyncEvent"/> type to dispatch.</typeparam>
     /// <inheritdoc/>
     public abstract class ResoniteEventSourceMonkey<TMonkey, TEvent>
             : ResoniteMonkey<TMonkey>, IEventSource<TEvent>
