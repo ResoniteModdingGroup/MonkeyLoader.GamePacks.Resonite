@@ -30,7 +30,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent"/> with the given data.
         /// </summary>
         /// <param name="eventData">The event data to dispatch.</param>
-        protected async Task DispatchAsync(TEvent eventData)
+        protected static async Task DispatchAsync(TEvent eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <remarks>
@@ -91,7 +91,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent2"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteAsyncEventSourceMonkey{TMonkey, TEvent}.DispatchAsync"/>
-        protected async Task DispatchAsync(TEvent2 eventData)
+        protected static async Task DispatchAsync(TEvent2 eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <inheritdoc/>
@@ -136,7 +136,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent3"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteAsyncEventSourceMonkey{TMonkey, TEvent}.DispatchAsync"/>
-        protected async Task DispatchAsync(TEvent3 eventData)
+        protected static async Task DispatchAsync(TEvent3 eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <inheritdoc/>
@@ -182,7 +182,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent4"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteAsyncEventSourceMonkey{TMonkey, TEvent}.DispatchAsync"/>
-        protected async Task DispatchAsync(TEvent4 eventData)
+        protected static async Task DispatchAsync(TEvent4 eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <inheritdoc/>
@@ -229,7 +229,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent5"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteAsyncEventSourceMonkey{TMonkey, TEvent}.DispatchAsync"/>
-        protected async Task DispatchAsync(TEvent5 eventData)
+        protected static async Task DispatchAsync(TEvent5 eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <inheritdoc/>
@@ -288,7 +288,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent6"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteAsyncEventSourceMonkey{TMonkey, TEvent}.DispatchAsync"/>
-        protected async Task DispatchAsync(TEvent6 eventData)
+        protected static async Task DispatchAsync(TEvent6 eventData)
             => await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
         /// <inheritdoc/>
