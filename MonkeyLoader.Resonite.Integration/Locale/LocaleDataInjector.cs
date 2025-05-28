@@ -1,7 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using System;
 using System.Collections;
@@ -16,40 +15,22 @@ namespace MonkeyLoader.Resonite.Locale
 {
     [HarmonyPatchCategory(nameof(LocaleDataInjector))]
     [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadTargetVariant))]
-    internal sealed class LocaleDataInjector : ResoniteMonkey<LocaleDataInjector>, IAsyncEventSource<LocaleLoadingEvent>
+    internal sealed class LocaleDataInjector
+        : ResoniteAsyncEventSourceMonkey<LocaleDataInjector, LocaleLoadingEvent>
     {
-        private static AsyncEventDispatching<LocaleLoadingEvent>? _localeLoading;
-
         internal static async Task LoadLocalesAsync(Elements.Assets.LocaleResource localeResource, IEnumerable<string> localeCodes)
         {
             foreach (var localeCode in localeCodes)
             {
                 var eventData = new LocaleLoadingEvent(localeResource, localeCode, localeCode == LocaleExtensions.FallbackLocaleCode);
 
-                await (_localeLoading?.Invoke(eventData) ?? Task.CompletedTask);
+                await DispatchAsync(eventData);
             }
-        }
-
-        /// <inheritdoc/>
-        protected override bool OnEngineReady()
-        {
-            Mod.RegisterEventSource(this);
-
-            return base.OnEngineReady();
-        }
-
-        /// <inheritdoc/>
-        protected override bool OnShutdown(bool applicationExiting)
-        {
-            if (!applicationExiting)
-                Mod.UnregisterEventSource(this);
-
-            return base.OnShutdown(applicationExiting);
         }
 
         [HarmonyTranspiler]
         [HarmonyPatch(MethodType.Async)]
-        private static IEnumerable<CodeInstruction> LoadTargetVariantMoveNextTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase targetMethod)
+        private static IEnumerable<CodeInstruction> LoadTargetVariantMoveNextTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var onLoadStateChangeMethod = AccessTools.Method(typeof(Asset), nameof(Asset.OnLoadStateChanged));
 
@@ -81,12 +62,5 @@ namespace MonkeyLoader.Resonite.Locale
         [HarmonyPrefix]
         private static void LoadTargetVariantPrefix(LocaleResource __instance, out bool __state)
             => __state = __instance.Data != null;
-
-        /// <inheritdoc/>
-        event AsyncEventDispatching<LocaleLoadingEvent>? IAsyncEventSource<LocaleLoadingEvent>.Dispatching
-        {
-            add => _localeLoading += value;
-            remove => _localeLoading -= value;
-        }
     }
 }

@@ -12,31 +12,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     [HarmonyPatch]
     [HarmonyPatchCategory(nameof(InspectorMemberActionsMenuInjector))]
-    internal sealed class InspectorMemberActionsMenuInjector : ResoniteMonkey<InspectorMemberActionsMenuInjector>,
-        IAsyncEventSource<InspectorMemberActionsMenuItemsGenerationEvent>
+    internal sealed class InspectorMemberActionsMenuInjector : ResoniteAsyncEventSourceMonkey<InspectorMemberActionsMenuInjector, InspectorMemberActionsMenuItemsGenerationEvent>
     {
         private static AccessTools.FieldRef<object, ButtonEventData> _accessButtonEventData = null!;
         private static AccessTools.FieldRef<object, InspectorMemberActions> _accessMemberActions = null!;
         private static AccessTools.FieldRef<object, ISyncMember> _accessTarget = null!;
 
-        private static AsyncEventDispatching<InspectorMemberActionsMenuItemsGenerationEvent>? _inspectorMemberActionsMenuItemsGeneration;
-
         public override bool CanBeDisabled => true;
-
-        protected override bool OnEngineReady()
-        {
-            Mod.RegisterEventSource(this);
-
-            return base.OnEngineReady();
-        }
-
-        protected override bool OnShutdown(bool applicationExiting)
-        {
-            if (!applicationExiting)
-                Mod.UnregisterEventSource(this);
-
-            return base.OnShutdown(applicationExiting);
-        }
 
         private static bool MatchesRequiredMethod(MethodInfo method)
             => method.ReturnType == typeof(Task);
@@ -63,7 +45,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             var eventData = new InspectorMemberActionsMenuItemsGenerationEvent(
                 memberActions, buttonEventData, target);
 
-            await (_inspectorMemberActionsMenuItemsGeneration?.Invoke(eventData) ?? Task.CompletedTask);
+            await DispatchAsync(eventData);
         }
 
         private static MethodBase TargetMethod()
@@ -91,12 +73,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             _accessTarget = AccessTools.FieldRefAccess<object, ISyncMember>(targetField);
 
             return method;
-        }
-
-        event AsyncEventDispatching<InspectorMemberActionsMenuItemsGenerationEvent>? IAsyncEventSource<InspectorMemberActionsMenuItemsGenerationEvent>.Dispatching
-        {
-            add => _inspectorMemberActionsMenuItemsGeneration += value;
-            remove => _inspectorMemberActionsMenuItemsGeneration -= value;
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using MonkeyLoader.Events;
-using MonkeyLoader.Patching;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,24 +10,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     [HarmonyPatchCategory(nameof(CustomInspectorInjector))]
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
-    internal sealed class CustomInspectorInjector : ResoniteMonkey<CustomInspectorInjector>,
-        IEventSource<BuildInspectorHeaderEvent>, IEventSource<BuildInspectorBodyEvent>
+    internal sealed class CustomInspectorInjector
+        : ResoniteEventSourceMonkey<CustomInspectorInjector,
+            BuildInspectorHeaderEvent, BuildInspectorBodyEvent>
     {
-        private static EventDispatching<BuildInspectorBodyEvent>? _buildInspectorBody;
-        private static EventDispatching<BuildInspectorHeaderEvent>? _buildInspectorHeader;
-
         public override bool CanBeDisabled => true;
-
-        /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        protected override bool OnEngineReady()
-        {
-            Mod.RegisterEventSource<BuildInspectorHeaderEvent>(this);
-            Mod.RegisterEventSource<BuildInspectorBodyEvent>(this);
-
-            return base.OnEngineReady();
-        }
 
         [HarmonyPrefix]
         private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
@@ -80,7 +65,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             var eventData = new BuildInspectorBodyEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
-            _buildInspectorBody?.Invoke(eventData);
+            Dispatch(eventData);
 
             ui.NestInto(root);
         }
@@ -92,21 +77,9 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
-            _buildInspectorHeader?.Invoke(eventData);
+            Dispatch(eventData);
 
             ui.NestInto(root);
-        }
-
-        event EventDispatching<BuildInspectorHeaderEvent>? IEventSource<BuildInspectorHeaderEvent>.Dispatching
-        {
-            add => _buildInspectorHeader += value;
-            remove => _buildInspectorHeader -= value;
-        }
-
-        event EventDispatching<BuildInspectorBodyEvent>? IEventSource<BuildInspectorBodyEvent>.Dispatching
-        {
-            add => _buildInspectorBody += value;
-            remove => _buildInspectorBody -= value;
         }
     }
 }

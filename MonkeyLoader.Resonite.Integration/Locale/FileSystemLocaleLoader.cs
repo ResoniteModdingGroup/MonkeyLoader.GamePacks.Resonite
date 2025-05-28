@@ -1,7 +1,6 @@
 ﻿using Elements.Assets;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,8 +18,6 @@ namespace MonkeyLoader.Resonite.Locale
         public override int Priority => HarmonyLib.Priority.First;
 
         protected override bool AppliesTo(LocaleLoadingEvent eventData) => true;
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
 
         /// <summary>
         /// Handles the given locale loading event by checking every loaded mod's
