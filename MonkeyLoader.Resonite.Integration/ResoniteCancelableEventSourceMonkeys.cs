@@ -29,7 +29,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent"/> with the given data.
         /// </summary>
         /// <param name="eventData">The event data to dispatch.</param>
-        protected void Dispatch(TEvent eventData)
+        protected static void Dispatch(TEvent eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <remarks>
@@ -90,7 +90,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent2"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteCancelableEventSourceMonkey{TMonkey, TEvent}.Dispatch"/>
-        protected void Dispatch(TEvent2 eventData)
+        protected static void Dispatch(TEvent2 eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <inheritdoc/>
@@ -135,7 +135,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent3"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteCancelableEventSourceMonkey{TMonkey, TEvent}.Dispatch"/>
-        protected void Dispatch(TEvent3 eventData)
+        protected static void Dispatch(TEvent3 eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <inheritdoc/>
@@ -181,7 +181,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent4"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteCancelableEventSourceMonkey{TMonkey, TEvent}.Dispatch"/>
-        protected void Dispatch(TEvent4 eventData)
+        protected static void Dispatch(TEvent4 eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <inheritdoc/>
@@ -228,7 +228,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent5"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteCancelableEventSourceMonkey{TMonkey, TEvent}.Dispatch"/>
-        protected void Dispatch(TEvent5 eventData)
+        protected static void Dispatch(TEvent5 eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <inheritdoc/>
@@ -287,7 +287,7 @@ namespace MonkeyLoader.Resonite
         /// Dispatches the <typeparamref name="TEvent6"/> with the given data.
         /// </summary>
         /// <inheritdoc cref="ResoniteCancelableEventSourceMonkey{TMonkey, TEvent}.Dispatch"/>
-        protected void Dispatch(TEvent6 eventData)
+        protected static void Dispatch(TEvent6 eventData)
             => _eventDispatching?.Invoke(eventData);
 
         /// <inheritdoc/>
