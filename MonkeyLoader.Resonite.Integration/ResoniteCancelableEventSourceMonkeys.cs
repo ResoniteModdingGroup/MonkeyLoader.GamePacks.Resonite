@@ -13,6 +13,8 @@ namespace MonkeyLoader.Resonite
     /// Represents the base class for patchers that run after Resonite's assemblies have been loaded and that hook into the game's lifecycle.<br/>
     /// Specifically, to act as a <see cref="ICancelableEventSource{TEvent}">cancelable event source</see> for <typeparamref name="TEvent"/>s.
     /// </summary>
+    /// <typeparam name="TMonkey">The type of the actual patcher.</typeparam>
+    /// <typeparam name="TEvent">The <see cref="CancelableSyncEvent"/> type to dispatch.</typeparam>
     /// <inheritdoc/>
     public abstract class ResoniteCancelableEventSourceMonkey<TMonkey, TEvent>
             : ResoniteMonkey<TMonkey>, ICancelableEventSource<TEvent>
