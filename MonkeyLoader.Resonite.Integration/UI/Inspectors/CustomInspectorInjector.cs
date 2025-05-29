@@ -26,6 +26,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             var ui = new UIBuilder(__instance.Slot);
             RadiantUI_Constants.SetupEditorStyle(ui);
+            ui.Style.RequireLockInToPress = true;
             var vertical = ui.VerticalLayout(6f);
 
             if (worker is not Slot)
@@ -44,8 +45,16 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             if (worker is ICustomInspector customInspector)
             {
-                ui.Style.MinHeight = 24f;
-                customInspector.BuildInspectorUI(ui);
+                try
+                {
+                    ui.Style.MinHeight = 24f;
+                    customInspector.BuildInspectorUI(ui);
+                }
+                catch (Exception ex)
+                {
+                    ui.Text((LocaleString)"EXCEPTION BUILDING UI. See log");
+                    UniLog.Error(ex.ToString(), stackTrace: false);
+                }
             }
             else
             {
