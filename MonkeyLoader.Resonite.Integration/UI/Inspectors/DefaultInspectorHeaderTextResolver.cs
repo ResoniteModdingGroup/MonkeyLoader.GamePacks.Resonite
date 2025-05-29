@@ -14,6 +14,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 return;
 
             eventData.AddItem(new(eventData.DefaultHeader.LocaleKey, eventData.DefaultHeader.MinHeight), -HarmonyLib.Priority.First);
+            eventData.DefaultHeaderWasAdded = true;
         }
     }
 }

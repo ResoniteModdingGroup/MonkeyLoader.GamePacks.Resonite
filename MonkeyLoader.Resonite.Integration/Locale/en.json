@@ -63,7 +63,7 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Count",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "The number of Early Monkeys of this Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Enabled",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.\n\nBeware: Changes may only take effect after a restart.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Toggles whether this Early Monkey is active.<size=50%><br/><br/></size>Beware: Changes may only take effect after a restart.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Always Enabled",
 
     "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Calls Unity Monkeys after the first scene has been loaded.",
@@ -84,6 +84,7 @@
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Sends out the various Build Member Editor events to allow monkeys to override the generation of them.",
     "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Name": "Default Member Editor Handlers",
     "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generates the default member editors for inspectors.",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Description": "Adds the default inspector header text to worker inspectors.",
     "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Turns the SyncDelegate targeted by a Button into a locale key to display as a tooltip.",
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Adds tooltip resolve requests to UIX Buttons.",
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Resolves the tooltip for a button based on a Comment component's text starting with 'TooltipperyLabel:'.",
