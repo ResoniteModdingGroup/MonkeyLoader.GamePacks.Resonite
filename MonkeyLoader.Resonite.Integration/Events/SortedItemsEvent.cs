@@ -27,7 +27,9 @@ namespace MonkeyLoader.Resonite.Events
         /// <summary>
         /// Gets the unique items as sorted by their sort order values.
         /// </summary>
-        public virtual IEnumerable<T> Items => sortableItems.OrderBy(entry => entry.Value).Select(entry => entry.Key);
+        public virtual IEnumerable<T> Items
+            => sortableItems.OrderBy(static entry => entry.Value)
+                .Select(static entry => entry.Key);
 
         /// <summary>
         /// Creates a new instance with no items.
@@ -42,7 +44,7 @@ namespace MonkeyLoader.Resonite.Events
         /// setting their sort order values to <c>0</c>.
         /// </summary>
         /// <param name="items">The items to start with.</param>
-        protected SortedItemsEvent(IEnumerable<T> items) : this(items, item => 0)
+        protected SortedItemsEvent(IEnumerable<T> items) : this(items, static item => 0)
         { }
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace MonkeyLoader.Resonite.Events
         /// <param name="getSortOrder">The function to map items to a sort order value.</param>
         protected SortedItemsEvent(IEnumerable<T> items, Func<T, int> getSortOrder)
         {
-            sortableItems = items.ToDictionary(item => item, getSortOrder);
+            sortableItems = items.ToDictionary(static item => item, getSortOrder);
         }
 
         /// <summary>
