@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using System;
@@ -12,7 +13,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     [HarmonyPatch(typeof(WorkerInspector), nameof(WorkerInspector.BuildUIForComponent))]
     internal sealed class CustomInspectorInjector
         : ResoniteEventSourceMonkey<CustomInspectorInjector,
-            BuildInspectorHeaderEvent, BuildInspectorBodyEvent>
+            BuildInspectorHeaderEvent, ResolveInspectorHeaderTextEvent, BuildInspectorBodyEvent>
     {
         public override bool CanBeDisabled => true;
 
@@ -38,6 +39,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 ui.NestInto(vertical.Slot);
             }
+
+            OnBuildInspectorHeaderText(ui, worker);
 
             if (worker is ICustomInspector customInspector)
             {
@@ -79,6 +82,72 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             Dispatch(eventData);
 
+            ui.NestInto(root);
+        }
+
+        private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
+        {
+            var eventData = new ResolveInspectorHeaderTextEvent(worker);
+
+            Dispatch(eventData);
+
+            if (eventData.ItemCount is 0)
+                return;
+
+            // The expander code is based on SlotInspector.OnChanges
+
+            var root = ui.Root;
+
+            ui.PushStyle();
+            ui.Style.MinHeight = 32;
+            ui.Style.ForceExpandHeight = false;
+            ui.Style.ChildAlignment = Alignment.TopLeft;
+
+            var headerLayout = ui.HorizontalLayout(4);
+            var headerButton = headerLayout.Slot.AttachComponent<Button>();
+            var expander = headerLayout.Slot.AttachComponent<Expander>();
+            var expanderIndicator = headerLayout.Slot.AttachComponent<TextExpandIndicator>();
+
+            ui.Style.MinWidth = 32;
+            ui.Style.FlexibleWidth = -1;
+
+            var expanderButton = ui.Button();
+            expanderButton.ColorDrivers[0].MoveTo(headerButton);
+            expanderIndicator.Text.Target = expanderButton.Slot.GetComponentInChildren<Text>().Content;
+            expanderButton.Destroy();
+
+            ui.Style.FlexibleWidth = 1;
+            var label = ui.Text(Mod.GetLocaleString("Inspector.HeaderTextLabel"), alignment: Alignment.MiddleLeft);
+            var labelColorDriver = headerButton.ColorDrivers.Add();
+            labelColorDriver.ColorDrive.Target = label.Color;
+            RadiantUI_Constants.SetupLabelDriverColors(labelColorDriver);
+
+            ui.NestOut();
+            ui.Style.FlexibleWidth = -1;
+            ui.Style.MinHeight = -1;
+
+            var childrenLayout = ui.HorizontalLayout(4);
+            expander.SectionRoot.Target = childrenLayout.Slot;
+            expanderIndicator.SectionRoot.Target = childrenLayout.Slot;
+            DefaultInspectorHeaderConfig.Instance.StartHeaderTextExpanded.DriveWithLocalOverride(childrenLayout.Slot.ActiveSelf_Field);
+
+            ui.Style.MinWidth = 32;
+            ui.Empty("Spacer");
+
+            ui.Style.FlexibleWidth = 1;
+            var textLayout = ui.VerticalLayout(6);
+            expanderIndicator.ChildrenRoot.Target = textLayout.Slot;
+
+            ui.PopStyle();
+            ui.PushStyle();
+
+            foreach (var headerText in eventData.Items)
+            {
+                ui.Style.MinHeight = headerText.MinHeight;
+                ui.Text(headerText.Text, alignment: Alignment.TopLeft);
+            }
+
+            ui.PopStyle();
             ui.NestInto(root);
         }
     }
