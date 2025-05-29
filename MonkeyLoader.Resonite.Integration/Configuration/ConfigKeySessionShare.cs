@@ -115,6 +115,10 @@ namespace MonkeyLoader.Resonite.Configuration
         /// Creates a <see cref="ValueCopy{T}"/> on the given <paramref name="field"/>'s
         /// parent <see cref="Slot"/>, which drives it from the shared value.
         /// </summary>
+        /// <remarks>
+        /// Be aware that this will break when the world is closed,
+        /// as the SessionShare <see cref="Slot"/> storing the sources is usually non-persistent.
+        /// </remarks>
         /// <param name="field">The field to drive with the shared value.</param>
         /// <param name="writeBack">
         /// Whether to allow changes to the driven field and propagate them back to the shared value.<br/>
@@ -147,6 +151,29 @@ namespace MonkeyLoader.Resonite.Configuration
             driver.DefaultValue.Value = DefaultValue!;
 
             return driver;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ValueUserOverride{T}"/> on the given <paramref name="field"/>'s
+        /// parent <see cref="Slot"/>, which drives it.<br/>
+        /// The VUO's <see cref="ValueOverrideBase{T}.Default">default value</see> is driven
+        /// <see cref="DriveFromVariable(IField{TShared})">through a <see cref="DynamicValueVariableDriver{T}"/></see>.
+        /// Overrides are <see cref="ValueOverrideBase{T}.PersistentOverrides">persistent</see>
+        /// and <see cref="ValueOverrideBase{T}.CreateOverrideOnWrite">created on write</see>.
+        /// </summary>
+        /// <param name="field">The field to drive with the shared value.</param>
+        /// <returns>The created <see cref="DynamicValueVariableDriver{T}"/> component.</returns>
+        public ValueUserOverride<TShared> DriveWithLocalOverride(IField<TShared> field)
+        {
+            // Get Shared Value to ensure that the necessary components exist
+            GetSharedValue(field.World);
+
+            var vuo = field.GetUserOverride(true);
+            vuo.PersistentOverrides.Value = true;
+            vuo.CreateOverrideOnWrite.Value = true;
+            DriveFromVariable(vuo.Default);
+
+            return vuo;
         }
 
         /// <summary>

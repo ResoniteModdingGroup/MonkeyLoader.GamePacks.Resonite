@@ -28,6 +28,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             MakeOffsetRangeShare(10)
         };
 
+        private readonly DefiningConfigKey<bool> _startHeaderTextExpanded = new("StartHeaderTextExpanded", "Whether the inspector header text should be shown by default.", () => true)
+        {
+            new ConfigKeySessionShare<bool>(true)
+        };
+
         private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Higher is further right.", () => 6)
         {
             OffsetRange,
@@ -59,6 +64,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// Gets the Order Offset share for the Open Container button on Inspector Headers.
         /// </summary>
         public ConfigKeySessionShare<int, long> OpenContainerOffset => _openContainerOffset.Components.Get<ConfigKeySessionShare<int, long>>();
+
+        /// <summary>
+        /// Gets the share for whether the inspector header text should be shown by default.
+        /// </summary>
+        public ConfigKeySessionShare<bool> StartHeaderTextExpanded => _startHeaderTextExpanded.Components.Get<ConfigKeySessionShare<bool>>();
 
         /// <inheritdoc/>
         public override Version Version { get; } = new Version(1, 0, 1);

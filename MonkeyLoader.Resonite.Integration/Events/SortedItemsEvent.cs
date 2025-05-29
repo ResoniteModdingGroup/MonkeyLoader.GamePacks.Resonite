@@ -20,6 +20,11 @@ namespace MonkeyLoader.Resonite.Events
         protected readonly Dictionary<T, int> sortableItems;
 
         /// <summary>
+        /// Gets the number of items that have been added to the event.
+        /// </summary>
+        public int ItemCount => sortableItems.Count;
+
+        /// <summary>
         /// Gets the unique items as sorted by their sort order values.
         /// </summary>
         public virtual IEnumerable<T> Items => sortableItems.OrderBy(entry => entry.Value).Select(entry => entry.Key);
@@ -29,7 +34,7 @@ namespace MonkeyLoader.Resonite.Events
         /// </summary>
         protected SortedItemsEvent()
         {
-            sortableItems = new();
+            sortableItems = [];
         }
 
         /// <summary>
