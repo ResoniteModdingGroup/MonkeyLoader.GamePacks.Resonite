@@ -64,20 +64,25 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public static bool HasTooltip(IButton button)
             => _openTooltips.ContainsKey(button);
 
+        /// <inheritdoc cref="MakeTooltip(IButton, Slot, in float3, float, in LocaleString)"/>
+        public static Tooltip MakeTooltip(IButton button, Slot parent, in float3 localPosition, in LocaleString label)
+            => MakeTooltip(button, parent, localPosition, 1, label);
+
         /// <summary>
         /// Creates a tooltip according to the given parameters for the given button.<br/>
-        /// Any existing open tooltip will be closed.
+        /// Any already existing open tooltip will be closed.
         /// </summary>
         /// <param name="button">The button the tooltip is attached to.</param>
         /// <param name="parent">The slot the tooltip will be parented to.</param>
-        /// <param name="startingPosition">The position that the button starts at inside its parent slot.</param>
+        /// <param name="localPosition">The position of the tooltip inside its <paramref name="parent"/>.</param>
+        /// <param name="localScale">The scale of the tooltip inside its <paramref name="parent"/>.</param>
         /// <param name="label">The label that should be shown on the tooltip.</param>
         /// <returns>The data for the newly created tooltip.</returns>
-        public static Tooltip MakeTooltip(IButton button, Slot parent, in float3 startingPosition, in LocaleString label)
+        public static Tooltip MakeTooltip(IButton button, Slot parent, in float3 localPosition, float localScale, in LocaleString label)
         {
             CloseTooltip(button);
 
-            var tooltip = new Tooltip(parent, startingPosition, label);
+            var tooltip = new Tooltip(parent, localPosition, localScale, label);
             _openTooltips.Add(button, tooltip);
 
             return tooltip;
@@ -128,6 +133,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public static bool TryGetTooltip(IButton button, [NotNullWhen(true)] out Tooltip? tooltip)
             => _openTooltips.TryGetValue(button, out tooltip);
 
+        /// <inheritdoc cref="TryOpenTooltip(IButton, ButtonEventData, Slot, out Tooltip?, in float3, float)"/>
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent,
+            [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
+            => TryOpenTooltip(button, buttonEventData, tooltipParent, out tooltip, globalOffset);
+
         /// <summary>
         /// Tries to open a tooltip for the given button details,
         /// optionally returning the already open or newly created tooltip.
@@ -141,9 +151,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
         /// <param name="tooltip">The tooltip if one was already open or newly opened; otherwise, <c>null</c>.</param>
         /// <param name="globalOffset">The offset from the button hitpoint at which the tooltip should be opened in global space.</param>
+        /// <param name="localScale">The local scale of the tooltip to be opened inside the <paramref name="tooltipParent"/>.</param>
         /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
         public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent,
-            [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
+            [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default, float localScale = 1)
         {
             if (_openTooltips.TryGetValue(button, out tooltip))
                 return true;
@@ -154,26 +165,22 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             var position = buttonEventData.globalPoint + globalOffset;
 
             tooltip = MakeTooltip(button, tooltipParent,
-                tooltipParent.GlobalPointToLocal(position),// new float3(buttonEventData.localPoint.X, buttonEventData.localPoint.Y, -1 * button.World.LocalUserViewScale.Z * (.001f / tooltipParent.GlobalScale.Z)),
-                label.Value);
+                tooltipParent.GlobalPointToLocal(position),
+                localScale, label.Value);
 
             return true;
         }
 
+        /// <inheritdoc cref="TryOpenTooltip(IButton, ButtonEventData, Slot, in float3, float)"/>
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, in float3 globalOffset = default)
+            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset, 1);
+
         /// <summary>
         /// Tries to open a tooltip for the given button details.
         /// </summary>
-        /// <remarks>
-        /// If the label for the tooltip fails to <see cref="TryResolveTooltipLabel">resolve</see>
-        /// or it's a locale key missing a message, no tooltip will be created.
-        /// </remarks>
-        /// <param name="button">The button the tooltip is attached to.</param>
-        /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
-        /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
-        /// <param name="globalOffset">The offset of the top-mi</param>
-        /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, in float3 globalOffset = default)
-            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset);
+        /// <inheritdoc cref="TryOpenTooltip(IButton, ButtonEventData, Slot, out Tooltip?, in float3, float)"/>
+        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, in float3 globalOffset = default, float localScale = 1)
+            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset, localScale);
 
         /// <summary>
         /// Tries to resolve the tooltip label for the given button details.
