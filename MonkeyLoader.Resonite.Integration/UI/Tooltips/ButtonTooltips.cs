@@ -48,7 +48,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             __instance.World.RunInSeconds(TooltipConfig.Instance.HoverTime, () =>
             {
                 if (!TooltipManager.HasTooltip(__instance) && __instance.IsHovering)
-                    TooltipManager.TryOpenTooltip(__instance, eventData, tooltipParent, in offset);
+                    TooltipManager.TryOpenTooltip(__instance, eventData, tooltipParent, in offset, 1f / buttonRect.Canvas.UnitScale);
             });
         }
 
