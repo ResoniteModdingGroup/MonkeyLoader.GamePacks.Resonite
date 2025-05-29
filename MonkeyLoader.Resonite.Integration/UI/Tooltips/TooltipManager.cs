@@ -237,7 +237,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         protected override bool OnEngineReady()
         {
-            Mod.RegisterEventSource(this);
             Mod.RegisterEventHandler(this);
 
             return base.OnEngineReady();
@@ -247,10 +246,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         protected override bool OnShutdown(bool applicationExiting)
         {
             if (!applicationExiting)
-            {
-                Mod.UnregisterEventHandler(this);
                 Mod.UnregisterEventSource(this);
-            }
 
             return base.OnShutdown(applicationExiting);
         }
