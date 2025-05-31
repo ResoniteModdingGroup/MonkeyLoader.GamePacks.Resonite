@@ -14,18 +14,18 @@ namespace MonkeyLoader.Resonite.Events
     /// Use <see cref="ContextMenuItemsGenerationEvent{T}"/> for derived classes instead.<br/>
     /// This class only exists as a subscribable catch-all event.
     /// </remarks>
-    [DispatchableBaseEvent]
+    [DispatchableBaseEvent, SubscribableBaseEvent]
     public abstract class ContextMenuItemsGenerationEvent : AsyncEvent
     {
         /// <summary>
-        /// Gets the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>.
+        /// Gets the <see cref="FrooxEngine.ContextMenu"/> being summoned.
         /// </summary>
         public ContextMenu ContextMenu { get; }
 
         /// <summary>
-        /// Gets whether the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/> is open.
+        /// Gets whether the <see cref="ContextMenu">ContextMenu</see> is open.
         /// </summary>
-        /// <value><c>true</c> if the <see cref="FrooxEngine.ContextMenu"/> is open; otherwise, <c>false</c>.</value>
+        /// <value><see langword="true"/> if the <see cref="ContextMenu">ContextMenu</see> is open; otherwise, <see langword="false"/>.</value>
         public bool IsContextMenuOpen => ContextMenu.MenuState != ContextMenu.State.Closed;
 
         /// <summary>
@@ -41,26 +41,39 @@ namespace MonkeyLoader.Resonite.Events
         /// <summary>
         /// Internal implementation for <see cref="Summoner"/>.
         /// </summary>
-        private protected abstract IWorldElement SummonerInternal { get; }
+        protected abstract IWorldElement SummonerInternal { get; }
 
         /// <summary>
-        /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given <paramref name="summoningUser"/>.
+        /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
+        /// <paramref name="summoningUser"/> and its <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see>.
         /// </summary>
         /// <param name="summoningUser">The <see cref="User"/> that the <see cref="FrooxEngine.ContextMenu"/> is being summoned for.</param>
-        /// <exception cref="ArgumentNullException">
-        /// If the <paramref name="summoningUser"/> or its <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <c>null</c>.
-        /// </exception>
-        private protected ContextMenuItemsGenerationEvent(User summoningUser)
+        /// <exception cref="ArgumentNullException">When the <paramref name="summoningUser"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">When the <paramref name="summoningUser"/>'s <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <see langword="null"/>.</exception>
+        protected ContextMenuItemsGenerationEvent(User summoningUser)
         {
             SummoningUser = summoningUser ?? throw new ArgumentNullException(nameof(summoningUser));
-            ContextMenu = summoningUser.GetUserContextMenu() ?? throw new ArgumentNullException(nameof(ContextMenu), $"Context Menu was null for user {summoningUser}!");
+            ContextMenu = summoningUser.GetUserContextMenu() ?? throw new ArgumentException($"Context Menu was missing for User: {summoningUser}!", nameof(summoningUser));
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
+        /// <paramref name="contextMenu"/> and its <see cref="Slot.ActiveUser">active</see> <see cref="User"/>.
+        /// </summary>
+        /// <param name="contextMenu">The <see cref="FrooxEngine.ContextMenu"/> being summoned.</param>
+        /// <exception cref="ArgumentNullException">When the <paramref name="contextMenu"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">When the <paramref name="contextMenu"/>'s <see cref="Slot.ActiveUser">active</see> <see cref="User"/> is <see langword="null"/>.</exception>
+        protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
+        {
+            ContextMenu = contextMenu ?? throw new ArgumentNullException(nameof(contextMenu));
+            SummoningUser = contextMenu.Slot.ActiveUser ?? throw new ArgumentException($"Active User was missing for Context Menu: {contextMenu.ParentHierarchyToString()}", nameof(contextMenu));
         }
 
         /// <summary>
         /// Closes the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>.
         /// </summary>
         public void CloseContextMenu()
-            => SummoningUser.CloseContextMenu(Summoner);
+            => ContextMenu.Close();
 
         /// <summary>
         /// Ensures that the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
@@ -75,9 +88,9 @@ namespace MonkeyLoader.Resonite.Events
         /// This is typically the slot of the <see cref="TouchSource"/> that triggered the opening.
         /// </param>
         /// <param name="options">The additional options for opening the menu.</param>
-        /// <returns>The <see cref="SummoningUser">SummoningUser</see>'s opened <see cref="FrooxEngine.ContextMenu"/>.</returns>
-        public async Task<ContextMenu> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-            => await SummoningUser.OpenContextMenu(Summoner, pointer, options);
+        /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
+        public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
+            => await ContextMenu.OpenMenu(Summoner, pointer, options) ? ContextMenu : null;
 
         /// <summary>
         /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
@@ -91,14 +104,27 @@ namespace MonkeyLoader.Resonite.Events
         /// </returns>
         /// <inheritdoc cref="OpenContextMenuAsync"/>
         public async Task<ContextMenu?> ToggleContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-            => await SummoningUser.ToggleContextMenu(Summoner, pointer, options);
+        {
+            if (!IsContextMenuOpen || ContextMenu.CurrentSummoner != Summoner)
+                return await OpenContextMenuAsync(pointer, options);
+
+            CloseContextMenu();
+            return null;
+        }
+
+        internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu contextMenu)
+        {
+            var type = typeof(ContextMenuItemsGenerationEvent<>).MakeGenericType(contextMenu.CurrentSummoner.GetType());
+            var instance = Activator.CreateInstance(type, contextMenu.Slot.ActiveUser, contextMenu.CurrentSummoner);
+            return (ContextMenuItemsGenerationEvent)instance;
+        }
     }
 
     /// <summary>
-    /// Represents a base class for all events that generate a <see cref="ContextMenu"/>.
+    /// Represents a generic (base) class for all events that generate a <see cref="ContextMenu"/>.
     /// </summary>
     /// <typeparam name="T">The type of the <see cref="Summoner">Summoner</see>.</typeparam>
-    public abstract class ContextMenuItemsGenerationEvent<T> : ContextMenuItemsGenerationEvent
+    public class ContextMenuItemsGenerationEvent<T> : ContextMenuItemsGenerationEvent
         where T : class, IWorldElement
     {
         /// <summary>
@@ -109,24 +135,18 @@ namespace MonkeyLoader.Resonite.Events
         public new T Summoner { get; }
 
         /// <inheritdoc/>
-        private protected override sealed IWorldElement SummonerInternal => Summoner;
+        protected override sealed IWorldElement SummonerInternal => Summoner;
 
-        /// <summary>
-        /// Creates a new <see cref="ContextMenu"/> items generation event with the given <paramref name="summoningUser"/> and <paramref name="summoner"/>.
-        /// </summary>
-        /// <param name="summoningUser">The <see cref="User"/> that the <see cref="FrooxEngine.ContextMenu"/> is being summoned for.</param>
-        /// <param name="summoner">
-        /// The <typeparamref name="T"/> that the
-        /// <see cref="ContextMenuItemsGenerationEvent.ContextMenu">ContextMenu</see>
-        /// is being summoned by.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// If the <paramref name="summoner"/>, or the <paramref name="summoningUser"/> or
-        /// its <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <c>null</c>.
-        /// </exception>
-        protected ContextMenuItemsGenerationEvent(User summoningUser, T summoner) : base(summoningUser)
+        /// <inheritdoc/>
+        public ContextMenuItemsGenerationEvent(User summoningUser) : base(summoningUser)
         {
-            Summoner = summoner ?? throw new ArgumentNullException(nameof(summoner));
+            Summoner = ContextMenu.CurrentSummoner as T ?? throw new ArgumentException($"Summoner was null or not of type {typeof(T).CompactDescription()} for User: {summoningUser}!");
+        }
+
+        /// <inheritdoc/>
+        public ContextMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
+        {
+            Summoner = ContextMenu.CurrentSummoner as T ?? throw new ArgumentException($"Summoner was null or not of type {typeof(T).CompactDescription()} for Context Menu: {contextMenu.ParentHierarchyToString()}");
         }
     }
 }
