@@ -41,7 +41,7 @@ namespace MonkeyLoader.Resonite.Events
         /// <summary>
         /// Internal implementation for <see cref="Summoner"/>.
         /// </summary>
-        private protected abstract IWorldElement SummonerInternal { get; }
+        protected abstract IWorldElement SummonerInternal { get; }
 
         /// <summary>
         /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given <paramref name="summoningUser"/>.
@@ -50,7 +50,7 @@ namespace MonkeyLoader.Resonite.Events
         /// <exception cref="ArgumentNullException">
         /// If the <paramref name="summoningUser"/> or its <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <c>null</c>.
         /// </exception>
-        private protected ContextMenuItemsGenerationEvent(User summoningUser)
+        protected ContextMenuItemsGenerationEvent(User summoningUser)
         {
             SummoningUser = summoningUser ?? throw new ArgumentNullException(nameof(summoningUser));
             ContextMenu = summoningUser.GetUserContextMenu() ?? throw new ArgumentNullException(nameof(ContextMenu), $"Context Menu was null for user {summoningUser}!");
@@ -92,6 +92,13 @@ namespace MonkeyLoader.Resonite.Events
         /// <inheritdoc cref="OpenContextMenuAsync"/>
         public async Task<ContextMenu?> ToggleContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
             => await SummoningUser.ToggleContextMenu(Summoner, pointer, options);
+
+        internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu instance)
+        {
+            // Todo: Resolve concrete T for ContextMenuItemsGenerationEvent<T>
+            // or even derived event type for extra properties
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -109,7 +116,7 @@ namespace MonkeyLoader.Resonite.Events
         public new T Summoner { get; }
 
         /// <inheritdoc/>
-        private protected override sealed IWorldElement SummonerInternal => Summoner;
+        protected override sealed IWorldElement SummonerInternal => Summoner;
 
         /// <summary>
         /// Creates a new <see cref="ContextMenu"/> items generation event with the given <paramref name="summoningUser"/> and <paramref name="summoner"/>.
