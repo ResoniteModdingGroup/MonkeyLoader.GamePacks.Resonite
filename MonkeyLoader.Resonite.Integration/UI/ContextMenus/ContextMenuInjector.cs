@@ -1,0 +1,45 @@
+﻿using FrooxEngine;
+using HarmonyLib;
+using MonkeyLoader.Resonite.Events;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MonkeyLoader.Resonite.UI.ContextMenus
+{
+    [HarmonyPatchCategory(nameof(ContextMenuInjector))]
+    [HarmonyPatch(typeof(ContextMenu), nameof(ContextMenu.OpenMenuIntern))]
+    internal sealed class ContextMenuInjector : ResoniteAsyncEventSourceMonkey<ContextMenuInjector, ContextMenuItemsGenerationEvent>
+    {
+        [HarmonyPostfix]
+        private static async Task<bool> PostfixAsync(Task<bool> __result, ContextMenu __instance)
+        {
+            if (!await __result.ConfigureAwait(false))
+                return false;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            __instance.StartTask(async () =>
+            {
+                var summoner = __instance.CurrentSummoner;
+                var screen = !__instance.InputInterface.ScreenActive ? null
+                    : __instance.LocalUserRoot.GetRegisteredComponent<ScreenController>();
+
+                // Loop condition from InteractionHandler.PositionContextMenu
+                while (__instance.CurrentSummoner == summoner && (__instance.MenuState == ContextMenu.State.Opening || screen?.ActiveTargetting.Target?.IsViewTransitioning == true))
+                    await default(NextUpdate);
+
+                // Wait an extra update
+                await default(NextUpdate);
+
+                var eventData = ContextMenuItemsGenerationEvent.CreateFor(__instance);
+
+                // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
+                await DispatchAsync(eventData);
+            });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+            return true;
+        }
+    }
+}
