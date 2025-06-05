@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,8 +25,10 @@ namespace MonkeyLoader.Resonite.Configuration
     {
         private readonly Converter<TShared?, TKey?> _convertToKey;
         private readonly Converter<TKey?, TShared?> _convertToShared;
+
         private readonly Lazy<string> _sharedId;
         private readonly Lazy<string> _variableName;
+
         private TShared? _defaultValue;
 
         /// <inheritdoc/>
@@ -218,29 +219,33 @@ namespace MonkeyLoader.Resonite.Configuration
 
         private ValueField<T> GetSharedValueFieldOrCreate<T>(World world, string sharedKey, Action<ValueField<T>> onCreate, bool updateExisting, Func<Slot> getRoot)
         {
-            // check that the key name starts with MonkeyLoader.SharedConfig before we remove stuff, just in case
+            // Todo: Can probably remove this at some point in the future - 5.6.25
+            // Check that the key name starts with MonkeyLoader.SharedConfig before we remove stuff, just in case
             if (sharedKey.StartsWith(SharedConfig.Identifier))
             {
-                // remove monkeyloader things from world._keys and world._keyVersions
-                if (world._keys.ContainsKey(sharedKey))
-                    world._keys.Remove(sharedKey);
-                if (world._keyVersions.ContainsKey(sharedKey))
-                    world._keyVersions.Remove(sharedKey);
+                // Remove monkeyloader things from world._keys and world._keyVersions
+                world._keys.Remove(sharedKey);
+                world._keyVersions.Remove(sharedKey);
             }
-            Slot root = getRoot();
+
+            var root = getRoot();
             var dynField = root.GetComponent<DynamicField<T>>(c => c.VariableName.Value == VariableName);
-            ValueField<T> field;
-            if (dynField == null || dynField.TargetField.Target == null)
+
+            if (dynField?.TargetField.Target?.Parent is ValueField<T> field)
             {
-                field = root.AttachComponent<ValueField<T>>();
-                if (dynField != null)
-                    dynField.TargetField.Target = field.Value;
-                onCreate(field);
+                if (updateExisting)
+                    onCreate(field);
+
                 return field;
             }
-            field = (ValueField<T>)dynField.TargetField.Target.Parent;
-            if (updateExisting)
-                onCreate(field);
+
+            field = root.AttachComponent<ValueField<T>>();
+
+            if (dynField is not null)
+                dynField.TargetField.Target = field.Value;
+
+            onCreate(field);
+
             return field;
         }
 
@@ -260,9 +265,7 @@ namespace MonkeyLoader.Resonite.Configuration
         private void SharedValueChanged(SyncField<TShared> field)
         {
             if (!AllowWriteBack || !ConfigKey.TrySetValue(ConvertToKey(field.Value)!, $"{SharedConfig.WriteBackPrefix}.{field.World.GetIdentifier()}"))
-            {
                 field.World.RunSynchronously(() => field.Value = ConvertToShared(ConfigKey.GetValue())!);
-            }
         }
 
         private void ValueChanged(object sender, ConfigKeyChangedEventArgs<TKey> configKeyChangedEventArgs)
