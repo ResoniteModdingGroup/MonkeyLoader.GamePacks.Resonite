@@ -214,7 +214,35 @@ namespace MonkeyLoader.Resonite.Configuration
             => GetSharedValue(world).Value.GetUserOverride();
 
         private ValueField<TShared> GetSharedValue(World world, bool initialLoad = false)
-            => world.GetSharedComponentOrCreate<ValueField<TShared>>(SharedId, SetupSharedField, 0, true, initialLoad, () => GetSharedConfigSlot(world));
+            => GetSharedValueFieldOrCreate<TShared>(world, SharedId, SetupSharedField, initialLoad, () => GetSharedConfigSlot(world));
+
+        private ValueField<T> GetSharedValueFieldOrCreate<T>(World world, string sharedKey, Action<ValueField<T>> onCreate, bool updateExisting, Func<Slot> getRoot)
+        {
+            // check that the key name starts with MonkeyLoader.SharedConfig before we remove stuff, just in case
+            if (sharedKey.StartsWith(SharedConfig.Identifier))
+            {
+                // remove monkeyloader things from world._keys and world._keyVersions
+                if (world._keys.ContainsKey(sharedKey))
+                    world._keys.Remove(sharedKey);
+                if (world._keyVersions.ContainsKey(sharedKey))
+                    world._keyVersions.Remove(sharedKey);
+            }
+            Slot root = getRoot();
+            var dynField = root.GetComponent<DynamicField<T>>(c => c.VariableName.Value == VariableName);
+            ValueField<T> field;
+            if (dynField == null || dynField.TargetField.Target == null)
+            {
+                field = root.AttachComponent<ValueField<T>>();
+                if (dynField != null)
+                    dynField.TargetField.Target = field.Value;
+                onCreate(field);
+                return field;
+            }
+            field = (ValueField<T>)dynField.TargetField.Target.Parent;
+            if (updateExisting)
+                onCreate(field);
+            return field;
+        }
 
         private void SetupSharedField(ValueField<TShared> field)
         {
