@@ -17,6 +17,11 @@ namespace MonkeyLoader.Resonite.Configuration
     public static class SharedConfig
     {
         /// <summary>
+        /// The <see cref="Comment"/> text for the <see cref="GetSharedConfigSlot(World)">shared config slot</see>.
+        /// </summary>
+        public const string CommentText = "This slot is used by a feature of the config system of MonkeyLoader. You can safely integrate with the config, make this slot persistent or delete it - though it will automatically be recreated if something needs it.";
+
+        /// <summary>
         /// The name of the <see cref="GetSharedConfigSlot(World)">shared config slot</see>
         /// in a <see cref="World"/>'s <see cref="World.AssetsSlot">Assets</see> <see cref="Slot"/>.
         /// </summary>
@@ -31,11 +36,6 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <c>$"{<see cref="WriteBackPrefix"/>}.{<see cref="ValueField{T}">field</see>.<see cref="World"/>.<see cref="GetIdentifier">GetIdentifier</see>()}"</c>
         /// </remarks>
         public const string WriteBackPrefix = "SharedConfig.WriteBack";
-
-        /// <summary>
-        /// The comment text for the <see cref="GetSharedConfigSlot(World)">shared config slot</see>
-        /// </summary>
-        public const string CommentText = "This slot is used by a feature of the config system of MonkeyLoader. You can safely integrate with the config, make this slot persistent or delete it - though it will automatically be recreated if something needs it.";
 
         private static readonly HashSet<IConfigKeySessionShare> _configKeySessionShares = [];
 
@@ -59,12 +59,17 @@ namespace MonkeyLoader.Resonite.Configuration
             {
                 sharedConfigSlot = world.AssetsSlot.AddSlot(Identifier, false);
                 sharedConfigSlot.AttachComponent<Comment>().Text.Value = CommentText;
+
+                return sharedConfigSlot;
             }
 
+            // Todo: Can probably remove this again at some point in the future - 5.6.25
             // Retroactively find old slots and make them non-persistent
             if (sharedConfigSlot.GetComponent<Comment>() is null)
             {
-                sharedConfigSlot.persistent.Value = false;
+                // Only set them to be non-persistent when they were created before the
+                // update that made them so by default, to not reset ones intentionally made persistent.
+                sharedConfigSlot.PersistentSelf = false;
                 sharedConfigSlot.AttachComponent<Comment>().Text.Value = CommentText;
             }
 
