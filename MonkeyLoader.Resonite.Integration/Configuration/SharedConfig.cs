@@ -32,6 +32,11 @@ namespace MonkeyLoader.Resonite.Configuration
         /// </remarks>
         public const string WriteBackPrefix = "SharedConfig.WriteBack";
 
+        /// <summary>
+        /// The comment text for the <see cref="GetSharedConfigSlot(World)">shared config slot</see>
+        /// </summary>
+        public const string CommentText = "This slot is used by a feature of the config system of MonkeyLoader. You can safely integrate with the config, make this slot persistent or delete it - though it will automatically be recreated if something needs it.";
+
         private static readonly HashSet<IConfigKeySessionShare> _configKeySessionShares = [];
 
         /// <summary>
@@ -53,8 +58,14 @@ namespace MonkeyLoader.Resonite.Configuration
             if (world.AssetsSlot.FindChild(Identifier) is not Slot sharedConfigSlot)
             {
                 sharedConfigSlot = world.AssetsSlot.AddSlot(Identifier, false);
-                sharedConfigSlot.AttachComponent<Comment>().Text.Value =
-                    "This slot is used by a feature of the config system of MonkeyLoader. You can safely integrate with the config, make this slot persistent or delete it - though it will automatically be recreated if something needs it.";
+                sharedConfigSlot.AttachComponent<Comment>().Text.Value = CommentText;
+            }
+
+            // Retroactively find old slots and make them non-persistent
+            if (sharedConfigSlot.GetComponent<Comment>() is null)
+            {
+                sharedConfigSlot.persistent.Value = false;
+                sharedConfigSlot.AttachComponent<Comment>().Text.Value = CommentText;
             }
 
             return sharedConfigSlot;
