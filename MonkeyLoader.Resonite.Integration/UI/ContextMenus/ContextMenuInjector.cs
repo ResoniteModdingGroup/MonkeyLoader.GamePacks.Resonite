@@ -1,6 +1,5 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader.Resonite.Events;
 using System;
 using System.Collections.Generic;
 using System.Text;
