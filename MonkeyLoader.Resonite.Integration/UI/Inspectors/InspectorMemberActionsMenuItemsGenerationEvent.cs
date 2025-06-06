@@ -1,7 +1,9 @@
 ﻿using FrooxEngine;
-using MonkeyLoader.Resonite.Events;
+using MonkeyLoader;
+using MonkeyLoader.Resonite.UI.ContextMenus;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
@@ -9,16 +11,18 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// <summary>
     /// Represents the event data for the <see cref="InspectorMemberActions"/> <see cref="ContextMenu"/> items generation event.
     /// </summary>
-    /// <remarks>
-    /// This event is additive to the options added by the vanilla implementation.
-    /// </remarks>
     public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
     {
+        public int? BlendshapeIndex { get; }
+
         /// <summary>
         /// Gets the <see cref="ButtonEventData">data</see> for the button press
         /// that triggered opening the <see cref="ContextMenu">ContextMenu</see>.
         /// </summary>
         public ButtonEventData ButtonEventData { get; }
+
+        [MemberNotNullWhen(true, nameof(SkinnedMesh), nameof(BlendshapeIndex))]
+        public bool HasSkinnedMesh => SkinnedMesh is not null;
 
         /// <summary>
         /// Gets the <see cref="InspectorMemberActions"/> that the
@@ -27,6 +31,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </summary>
         [Obsolete("Use Summoner instead.")]
         public InspectorMemberActions MemberActions => Summoner;
+
+        public SkinnedMeshRenderer? SkinnedMesh { get; }
 
         /// <summary>
         /// Gets the <see cref="Target">Target</see>'s parent <see cref="FrooxEngine.Slot"/>.
@@ -54,15 +60,15 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </remarks>
         public User? User { get; }
 
-        internal InspectorMemberActionsMenuItemsGenerationEvent(User summoningUser,
-            InspectorMemberActions summoner, ButtonEventData buttonEventData, ISyncMember target)
-                : base(summoningUser, summoner)
+        /// <inheritdoc/>
+        public InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
         {
-            ButtonEventData = buttonEventData;
-            Target = target;
+            Target = Summoner.Member.Target;
+            SkinnedMesh = Summoner.SkinnedMesh;
+            BlendshapeIndex = HasSkinnedMesh ? Summoner.BlendshapeIndex : null;
 
-            Slot = target.FindNearestParent<Slot>();
-            User = Slot?.ActiveUser ?? target.FindNearestParent<User>();
+            Slot = Target.FindNearestParent<Slot>();
+            User = Slot?.ActiveUser ?? Target.FindNearestParent<User>();
         }
     }
 }
