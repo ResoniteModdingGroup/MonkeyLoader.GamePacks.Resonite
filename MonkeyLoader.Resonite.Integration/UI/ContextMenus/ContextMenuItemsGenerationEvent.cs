@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonkeyLoader.Resonite.Events
+namespace MonkeyLoader.Resonite.UI.ContextMenus
 {
     /// <summary>
     /// Represents a dispatchable base class for all events that generate a <see cref="FrooxEngine.ContextMenu"/>.
@@ -17,6 +17,8 @@ namespace MonkeyLoader.Resonite.Events
     [DispatchableBaseEvent, SubscribableBaseEvent]
     public abstract class ContextMenuItemsGenerationEvent : AsyncEvent
     {
+        private static readonly AnyMap _concreteEventConstructors = new();
+
         /// <summary>
         /// Gets the <see cref="FrooxEngine.ContextMenu"/> being summoned.
         /// </summary>
@@ -114,6 +116,12 @@ namespace MonkeyLoader.Resonite.Events
 
         internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu contextMenu)
         {
+            // Find best instanciation method for the contextMenu summoner's type,
+            // i.e. walk up its types until there's one that takes it
+            // Have basic ISyncMember taking one as the base that falls back to constructing the plain generic event.
+            // Store Dictionary<Type (of Summoner), Func<Summoner, ContextMenuItemsGenerationEvent>>
+            // This could be an AnyMap storing the funcs - keep cache of the constructed Func types?
+
             var type = typeof(ContextMenuItemsGenerationEvent<>).MakeGenericType(contextMenu.CurrentSummoner.GetType());
             var instance = Activator.CreateInstance(type, contextMenu.Slot.ActiveUser, contextMenu.CurrentSummoner);
             return (ContextMenuItemsGenerationEvent)instance;
@@ -123,6 +131,9 @@ namespace MonkeyLoader.Resonite.Events
     /// <summary>
     /// Represents a generic (base) class for all events that generate a <see cref="ContextMenu"/>.
     /// </summary>
+    /// <remarks>
+    /// These events are always additive to the options added by the vanilla implementation.
+    /// </remarks>
     /// <typeparam name="T">The type of the <see cref="Summoner">Summoner</see>.</typeparam>
     public class ContextMenuItemsGenerationEvent<T> : ContextMenuItemsGenerationEvent
         where T : class, IWorldElement
