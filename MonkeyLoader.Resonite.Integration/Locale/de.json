@@ -19,6 +19,7 @@
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Einstellungen Speichern",
     "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Standardeinstellungen Wiederherstellen",
+    "MonkeyLoader.GamePacks.Resonite.UnsavableWarning": "Mindestens einer der Abschnitte der Einstellungen dieser Mod wurden als nicht speicherbar markiert. Dies passiert meistens, wenn der gespeicherte Abschnitt eine höhere Version hat, als das wofür er geladen wird.<br/>Um dies zu beheben, stelle sicher, dass die neueste Version der Mod installiert ist - falls dies nicht hilft, ändere manuell die Versionen in der Datei auf <b>0.0.0.0</b>, um sie wieder alt zu machen.",
     "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Schaltet das <i>{FlagName}</i>-Flag der <i>{EnumName}</i> Enumeration um.",
 
     "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "Diese Kategorie ist nur im Userspace verfügbar.",
