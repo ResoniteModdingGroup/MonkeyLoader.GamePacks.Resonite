@@ -72,6 +72,7 @@
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Fügt Tooltip Auflösungsanfragen für UIX Buttons hinzu.",
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons auf, indem es nach einer Comment Komponente sucht, deren Text mit 'TooltipperyLabel:' anfängt.",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Versendet die Tooltip Auflösungsanfragen aus verschiedenen Quellen. Das Tooltipsystem basiert auf dem Tooltippery Mod, der ursprünglich von Psychpsyo erstellt wurde.",
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Steuert die Einstellung dafür, jede Nachricht im Resonite Log sofort zu schreiben, indem es den eigenen Aktivierungszustand damit synchronisiert.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben.",
 

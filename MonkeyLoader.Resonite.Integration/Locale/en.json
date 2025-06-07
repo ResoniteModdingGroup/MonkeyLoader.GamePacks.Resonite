@@ -89,6 +89,7 @@
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Adds tooltip resolve requests to UIX Buttons.",
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Resolves the tooltip for a button based on a Comment component's text starting with 'TooltipperyLabel:'.",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Sends out tooltip resolve requests from different sources. The tooltip system is based on the Tooltippery mod originally created by Psychpsyo.",
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Controls the option to immediately flush every message in Resonite's log by proxying its enabled state to it.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sends the FrooxEngine UniLog messages to the MonkeyLoader Console when available.",
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Handles injecting elements into the SettingsDataFeed.<br/>This injector can't be disabled to ensure that the MonkeyLoader settings remain available.",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "Root Category Settings Items",
