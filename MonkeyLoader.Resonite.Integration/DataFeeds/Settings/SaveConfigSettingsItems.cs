@@ -56,15 +56,14 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             parameters.IncludeOriginalResult = false;
 
-            if (!config.Sections.Any(section => section.Keys.Any(key => !key.InternalAccessOnly)))
+            if (!config.Sections.Any(section => section.Keys.Any(key => !key.InternalAccessOnly))
+             || !Mod.Loader.TryGet<Mod>().ById(path[1], out var mod) || !mod.MonkeyToggles.Keys.Any())
                 return current;
 
-            return current.Concat(EnumerateSaveButtonsAsync(parameters));
+            return current.Concat(EnumerateSaveButtonsAsync(parameters, config.Sections.Any(section => !section.Saveable)));
         }
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        private static async IAsyncEnumerable<DataFeedItem> EnumerateSaveButtonsAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters)
+        private static async IAsyncEnumerable<DataFeedItem> EnumerateSaveButtonsAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, bool unsavableWarning)
         {
             await Task.CompletedTask;
 
@@ -75,6 +74,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             var resetConfigButton = new DataFeedCategory();
             resetConfigButton.InitBase(SettingsHelpers.ResetConfig, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString(SettingsHelpers.ResetConfig));
             yield return resetConfigButton;
+
+            if (!unsavableWarning)
+                yield break;
+
+            var warningIndicator = new DataFeedIndicator<string>();
+            warningIndicator.InitBase("UnsavableWarning", parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("UnsavableWarning"));
+            yield return warningIndicator;
         }
     }
 }

@@ -29,6 +29,7 @@
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Save Configuration",
     "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Reset Configuration to Default",
+    "MonkeyLoader.GamePacks.Resonite.UnsavableWarning": "At least one of the sections of this Mod's config were marked as unsavable. This usually happens if the saved section has a higher version than what its being loaded for.<br/>To fix this, make sure the installed version of your mod is up to date - if that doesn't help, manually adjust the versions in the file to <b>0.0.0.0</b> to make it old again.",
     "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Toggles the <i>{FlagName}</i>-flag of the <i>{EnumName}</i> enumeration.",
     "MonkeyLoader.GamePacks.Resonite.EnumFlags.Name": "{KeyId} Flags",
     "MonkeyLoader.GamePacks.Resonite.NullableEnumHasValue.Name": "HasValue",
