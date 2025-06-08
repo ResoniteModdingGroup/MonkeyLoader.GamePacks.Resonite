@@ -79,8 +79,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield break;
 
             var warningIndicator = new DataFeedIndicator<string>();
-            warningIndicator.InitBase("UnsavableWarning", parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("UnsavableWarning"));
-            warningIndicator.InitSetupValue(field => field.Value = "");
+            warningIndicator.InitBase("UnsavableWarning", parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("Information"));
+            warningIndicator.InitSetupValue(field => field.AssignLocaleString(Mod.GetLocaleString("UnsavableWarning")));
             yield return warningIndicator;
         }
     }
