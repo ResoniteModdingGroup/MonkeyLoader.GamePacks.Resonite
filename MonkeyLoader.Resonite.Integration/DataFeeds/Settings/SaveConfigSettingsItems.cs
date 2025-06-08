@@ -56,8 +56,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             parameters.IncludeOriginalResult = false;
 
-            if (!config.Sections.Any(section => section.Keys.Any(key => !key.InternalAccessOnly))
-             || !Mod.Loader.TryGet<Mod>().ById(path[1], out var mod) || !mod.MonkeyToggles.Keys.Any())
+            var mod = config.FindNearestParent<Mod>();
+            if (!config.Sections.Any(section => section.Keys.Any(key => !key.InternalAccessOnly)) && !mod.Monkeys.Any(monkey => monkey.CanBeDisabled) && !mod.EarlyMonkeys.Any(monkey => monkey.CanBeDisabled))
                 return current;
 
             return current.Concat(EnumerateSaveButtonsAsync(parameters, config.Sections.Any(section => !section.Saveable)));
