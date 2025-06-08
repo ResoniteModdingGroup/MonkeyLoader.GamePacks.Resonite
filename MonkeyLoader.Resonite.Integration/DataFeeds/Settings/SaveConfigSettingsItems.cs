@@ -80,6 +80,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             var warningIndicator = new DataFeedIndicator<string>();
             warningIndicator.InitBase("UnsavableWarning", parameters.Path, parameters.GroupKeys, Mod.GetLocaleString("UnsavableWarning"));
+            warningIndicator.InitSetupValue(field => field.Value = "");
             yield return warningIndicator;
         }
     }
