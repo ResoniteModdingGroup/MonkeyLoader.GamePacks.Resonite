@@ -3,6 +3,7 @@ using HarmonyLib;
 using MonkeyLoader.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// Internal implementation for <see cref="Summoner"/>.
         /// </summary>
         // Make sure this stays private protected
-        protected abstract IWorldElement SummonerInternal { get; }
+        private protected abstract IWorldElement SummonerInternal { get; }
 
         /// <summary>
         /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
@@ -60,7 +61,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// </summary>
         /// <inheritdoc cref="CreateFor(ContextMenu)"/>
         // Make sure this stays private protected
-        protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
+        private protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
         {
             ContextMenu = contextMenu ?? throw new ArgumentNullException(nameof(contextMenu));
             SummoningUser = contextMenu.Slot.ActiveUser ?? throw new ArgumentException($"Active User was missing for Context Menu: {contextMenu.ParentHierarchyToString()}", nameof(contextMenu));
@@ -87,7 +88,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <param name="options">The additional options for opening the menu.</param>
         /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
         public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-            => await ContextMenu.OpenMenu(Summoner, pointer, options) ? ContextMenu : null;
+        {
+            ContextMenuInjector.IsHandlerOpeningContextMenu = true;
+            var success = await ContextMenu.OpenMenu(Summoner, pointer, options);
+            ContextMenuInjector.IsHandlerOpeningContextMenu = false;
+
+            return success ? ContextMenu : null;
+        }
 
         /// <summary>
         /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
@@ -97,7 +104,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// </summary>
         /// <returns>
         /// The <see cref="SummoningUser">SummoningUser</see>'s newly opened <see cref="FrooxEngine.ContextMenu"/>,
-        /// or <c>null</c> if it was already open before.
+        /// or <c>null</c> if opening failed or it was already open before.
         /// </returns>
         /// <inheritdoc cref="OpenContextMenuAsync"/>
         public async Task<ContextMenu?> ToggleContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
@@ -108,6 +115,76 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             CloseContextMenu();
             return null;
         }
+
+        /// <summary>
+        /// Adds the given <paramref name="constructorFunc"/> as a concrete derived event
+        /// constructor for <see cref="ContextMenu.CurrentSummoner">summoners</see>
+        /// of type <typeparamref name="TSummoner"/> or a more derived type.
+        /// </summary>
+        /// <typeparam name="TSummoner">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to use the <paramref name="constructorFunc"/> for.</typeparam>
+        /// <inheritdoc cref="AddConcreteEvent(Type, Func{ContextMenu, ContextMenuItemsGenerationEvent}, bool)"/>
+        public static bool AddConcreteEvent<TSummoner>(Func<ContextMenu, ContextMenuItemsGenerationEvent> constructorFunc, bool replace = false)
+            => AddConcreteEvent(typeof(TSummoner), constructorFunc, replace);
+
+        /// <summary>
+        /// Adds the given <paramref name="constructorFunc"/> as a concrete derived event
+        /// constructor for <see cref="ContextMenu.CurrentSummoner">summoners</see>
+        /// of the <paramref name="summonerType"/> or a more derived type.
+        /// </summary>
+        /// <param name="summonerType">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to use the <paramref name="constructorFunc"/> for.</param>
+        /// <param name="constructorFunc">A function that constructs the concrete <see cref="ContextMenuItemsGenerationEvent{T}"/>-derived instance with the given <see cref="FrooxEngine.ContextMenu"/>.</param>
+        /// <param name="replace"><see langword="true"/> if the given <paramref name="constructorFunc"/> should replace one that's already present; otherwise, <see langword="false"/>.</param>
+        /// <returns><see langword="true"/> if the given <paramref name="constructorFunc"/> is now the used one; otherwise, <see langword="false"/>.</returns>
+        public static bool AddConcreteEvent(Type summonerType, Func<ContextMenu, ContextMenuItemsGenerationEvent> constructorFunc, bool replace = false)
+        {
+            if (_contextMenuConstructorsBySummonerType.ContainsKey(summonerType) && !replace)
+                return false;
+
+            _contextMenuConstructorsBySummonerType[summonerType] = constructorFunc;
+
+            return true;
+        }
+
+        /// <inheritdoc cref="HasConcreteEvent{TSummoner}(out Func{ContextMenu, ContextMenuItemsGenerationEvent}?)"/>
+        public static bool HasConcreteEvent<TSummoner>()
+            => HasConcreteEvent(typeof(TSummoner));
+
+        /// <summary>
+        /// Determines whether there is a concrete derived event constructor for the type <typeparamref name="TSummoner"/>.
+        /// </summary>
+        /// <typeparam name="TSummoner">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to check.</typeparam>
+        /// <inheritdoc cref="HasConcreteEvent(Type, out Func{ContextMenu, ContextMenuItemsGenerationEvent}?)"/>
+        public static bool HasConcreteEvent<TSummoner>([NotNullWhen(true)] out Func<ContextMenu, ContextMenuItemsGenerationEvent>? constructorFunc)
+            => HasConcreteEvent(typeof(TSummoner), out constructorFunc);
+
+        /// <inheritdoc cref="HasConcreteEvent(Type, out Func{ContextMenu, ContextMenuItemsGenerationEvent}?)"/>
+        public static bool HasConcreteEvent(Type summonerType)
+            => _contextMenuConstructorsBySummonerType.ContainsKey(summonerType);
+
+        /// <summary>
+        /// Determines whether there is a concrete derived event constructor for the given <paramref name="summonerType"/>.
+        /// </summary>
+        /// <param name="summonerType">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to check.</param>
+        /// <param name="constructorFunc">The function that constructs the concrete <see cref="ContextMenuItemsGenerationEvent{T}"/>-derived instance with the given <see cref="FrooxEngine.ContextMenu"/> if there is one; otherwise, <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if a constructor function for the <paramref name="summonerType"/> was found; otherwise, <see langword="false"/>.</returns>
+        public static bool HasConcreteEvent(Type summonerType, [NotNullWhen(true)] out Func<ContextMenu, ContextMenuItemsGenerationEvent>? constructorFunc)
+            => _contextMenuConstructorsBySummonerType.TryGetValue(summonerType, out constructorFunc);
+
+        /// <summary>
+        /// Removes the concrete derived event constructor for the type <typeparamref name="TSummoner"/>.
+        /// </summary>
+        /// <typeparam name="TSummoner">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to remove the constructor function for.</typeparam>
+        /// <inheritdoc cref="RemoveConcreteEvent(Type)"/>
+        public static bool RemoveConcreteEvent<TSummoner>()
+            => RemoveConcreteEvent(typeof(TSummoner));
+
+        /// <summary>
+        /// Removes the concrete derived event constructor for the given <paramref name="summonerType"/>.
+        /// </summary>
+        /// <param name="summonerType">The type of the <see cref="ContextMenu.CurrentSummoner">summoners</see> to remove the constructor function for.</param>
+        /// <returns><see langword="true"/> if a constructor function for the <paramref name="summonerType"/> was found and removed; otherwise, <see langword="false"/>.</returns>
+        public static bool RemoveConcreteEvent(Type summonerType)
+            => _contextMenuConstructorsBySummonerType.Remove(summonerType);
 
         /// <summary>
         /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
@@ -197,7 +274,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         public new T Summoner { get; }
 
         /// <inheritdoc/>
-        protected override sealed IWorldElement SummonerInternal => Summoner;
+        private protected override sealed IWorldElement SummonerInternal => Summoner;
 
         /// <inheritdoc/>
         public ContextMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)

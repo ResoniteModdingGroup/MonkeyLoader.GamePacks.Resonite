@@ -13,14 +13,31 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     /// </summary>
     public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
     {
+        /// <summary>
+        /// Gets the index of the <see cref="Target">Target</see> in the
+        /// <see cref="SkinnedMesh">SkinnedMesh</see>'s <see cref="SkinnedMeshRenderer.BlendShapeWeights">blend shapes</see>.
+        /// </summary>
+        /// <value>
+        /// The blend shape index if the <see cref="Target">Target</see>
+        /// <see cref="HasSkinnedMesh">is on</see> a <see cref="SkinnedMeshRenderer"/>;
+        /// otherwise <see langword="null"/>.</value>
         public int? BlendshapeIndex { get; }
 
         /// <summary>
-        /// Gets the <see cref="ButtonEventData">data</see> for the button press
+        /// Gets the <see cref="FrooxEngine.ButtonEventData">data</see> for the button press
         /// that triggered opening the <see cref="ContextMenu">ContextMenu</see>.
         /// </summary>
+        [Obsolete("Not available anymore.")]
         public ButtonEventData ButtonEventData { get; }
 
+        /// <summary>
+        /// Gets whether the <see cref="Target">Target</see> is on a <see cref="SkinnedMeshRenderer"/>.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if <see cref="SkinnedMesh">SkinnedMesh</see>
+        /// and <see cref="BlendshapeIndex">BlendShapeIndex</see> are not
+        /// <see langword="null"/>; otherwise, <see langword="false"/>.
+        /// </value>
         [MemberNotNullWhen(true, nameof(SkinnedMesh), nameof(BlendshapeIndex))]
         public bool HasSkinnedMesh => SkinnedMesh is not null;
 
@@ -32,6 +49,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         [Obsolete("Use Summoner instead.")]
         public InspectorMemberActions MemberActions => Summoner;
 
+        /// <summary>
+        /// Gets the <see cref="SkinnedMeshRenderer"/> that the <see cref="Target">Target</see>
+        /// is a <see cref="SkinnedMeshRenderer.BlendShapeWeights">blend shape</see> for.
+        /// </summary>
         public SkinnedMeshRenderer? SkinnedMesh { get; }
 
         /// <summary>
@@ -60,11 +81,17 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </remarks>
         public User? User { get; }
 
+        static InspectorMemberActionsMenuItemsGenerationEvent()
+        {
+            AddConcreteEvent<InspectorMemberActions>(contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
+        }
+
         /// <inheritdoc/>
         public InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
         {
             Target = Summoner.Member.Target;
             SkinnedMesh = Summoner.SkinnedMesh;
+            // The has-check is important, otherwise the property throws an exception
             BlendshapeIndex = HasSkinnedMesh ? Summoner.BlendshapeIndex : null;
 
             Slot = Target.FindNearestParent<Slot>();
