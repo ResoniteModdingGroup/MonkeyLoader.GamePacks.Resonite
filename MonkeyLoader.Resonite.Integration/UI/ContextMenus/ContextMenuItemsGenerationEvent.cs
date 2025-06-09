@@ -158,13 +158,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <param name="options">The additional options for opening the menu.</param>
         /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
         public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-        {
-            ContextMenuInjector.IsHandlerOpeningContextMenu = true;
-            var success = await ContextMenu.OpenMenu(Summoner, pointer, options);
-            ContextMenuInjector.IsHandlerOpeningContextMenu = false;
-
-            return success ? ContextMenu : null;
-        }
+            => await ContextMenu.OpenMenu(Summoner, pointer, options) ? ContextMenu : null;
 
         /// <summary>
         /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
