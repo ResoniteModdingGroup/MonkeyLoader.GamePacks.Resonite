@@ -64,8 +64,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public Slot? Slot { get; }
 
         /// <summary>
-        /// Gets the <see cref="ISyncMember"/> that
-        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
+        /// Gets the target <see cref="ISyncMember"/> of the <see cref="InspectorMemberActions"/> that
+        /// the <see cref="ContextMenuItemsGenerationEvent.ContextMenu">ContextMenu</see> was opened for.
         /// </summary>
         public ISyncMember Target { get; }
 
@@ -80,11 +80,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// this will be <c>null</c>.
         /// </remarks>
         public User? User { get; }
-
-        static InspectorMemberActionsMenuItemsGenerationEvent()
-        {
-            AddConcreteEvent<InspectorMemberActions>(contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
-        }
 
         /// <inheritdoc/>
         public InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)

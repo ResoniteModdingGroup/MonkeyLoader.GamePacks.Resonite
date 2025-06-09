@@ -68,55 +68,6 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         }
 
         /// <summary>
-        /// Closes the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>.
-        /// </summary>
-        public void CloseContextMenu()
-            => ContextMenu.Close();
-
-        /// <summary>
-        /// Ensures that the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
-        /// is open at the position determined by the <paramref name="pointer"/> using the given <paramref name="options"/>.
-        /// </summary>
-        /// <remarks>
-        /// If <paramref name="options"/>.<see cref="ContextMenuOptions.keepPosition">keepPosition</see>
-        /// is <c>true</c> the last position will be kept instead.
-        /// </remarks>
-        /// <param name="pointer">
-        /// The slot that the <see cref="FrooxEngine.ContextMenu"/> will be centered at.<br/>
-        /// This is typically the slot of the <see cref="TouchSource"/> that triggered the opening.
-        /// </param>
-        /// <param name="options">The additional options for opening the menu.</param>
-        /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
-        public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-        {
-            ContextMenuInjector.IsHandlerOpeningContextMenu = true;
-            var success = await ContextMenu.OpenMenu(Summoner, pointer, options);
-            ContextMenuInjector.IsHandlerOpeningContextMenu = false;
-
-            return success ? ContextMenu : null;
-        }
-
-        /// <summary>
-        /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
-        /// at the position determined by the <paramref name="pointer"/> using the given <paramref name="options"/>
-        /// if it's not open already.<br/>
-        /// If it is open already, it will be closed instead.
-        /// </summary>
-        /// <returns>
-        /// The <see cref="SummoningUser">SummoningUser</see>'s newly opened <see cref="FrooxEngine.ContextMenu"/>,
-        /// or <c>null</c> if opening failed or it was already open before.
-        /// </returns>
-        /// <inheritdoc cref="OpenContextMenuAsync"/>
-        public async Task<ContextMenu?> ToggleContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-        {
-            if (!IsContextMenuOpen || ContextMenu.CurrentSummoner != Summoner)
-                return await OpenContextMenuAsync(pointer, options);
-
-            CloseContextMenu();
-            return null;
-        }
-
-        /// <summary>
         /// Adds the given <paramref name="constructorFunc"/> as a concrete derived event
         /// constructor for <see cref="ContextMenu.CurrentSummoner">summoners</see>
         /// of type <typeparamref name="TSummoner"/> or a more derived type.
@@ -187,6 +138,55 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             => _contextMenuConstructorsBySummonerType.Remove(summonerType);
 
         /// <summary>
+        /// Closes the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>.
+        /// </summary>
+        public void CloseContextMenu()
+            => ContextMenu.Close();
+
+        /// <summary>
+        /// Ensures that the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
+        /// is open at the position determined by the <paramref name="pointer"/> using the given <paramref name="options"/>.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="options"/>.<see cref="ContextMenuOptions.keepPosition">keepPosition</see>
+        /// is <c>true</c> the last position will be kept instead.
+        /// </remarks>
+        /// <param name="pointer">
+        /// The slot that the <see cref="FrooxEngine.ContextMenu"/> will be centered at.<br/>
+        /// This is typically the slot of the <see cref="TouchSource"/> that triggered the opening.
+        /// </param>
+        /// <param name="options">The additional options for opening the menu.</param>
+        /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
+        public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
+        {
+            ContextMenuInjector.IsHandlerOpeningContextMenu = true;
+            var success = await ContextMenu.OpenMenu(Summoner, pointer, options);
+            ContextMenuInjector.IsHandlerOpeningContextMenu = false;
+
+            return success ? ContextMenu : null;
+        }
+
+        /// <summary>
+        /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
+        /// at the position determined by the <paramref name="pointer"/> using the given <paramref name="options"/>
+        /// if it's not open already.<br/>
+        /// If it is open already, it will be closed instead.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="SummoningUser">SummoningUser</see>'s newly opened <see cref="FrooxEngine.ContextMenu"/>,
+        /// or <c>null</c> if opening failed or it was already open before.
+        /// </returns>
+        /// <inheritdoc cref="OpenContextMenuAsync"/>
+        public async Task<ContextMenu?> ToggleContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
+        {
+            if (!IsContextMenuOpen || ContextMenu.CurrentSummoner != Summoner)
+                return await OpenContextMenuAsync(pointer, options);
+
+            CloseContextMenu();
+            return null;
+        }
+
+        /// <summary>
         /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
         /// <paramref name="summoningUser"/> and its <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see>.
         /// </summary>
@@ -238,6 +238,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     contextMenuConstructor = customContextMenuConstructor;
                     break;
                 }
+
+                summonerType = summonerType.BaseType;
             }
 
             return contextMenuConstructor(contextMenu);
