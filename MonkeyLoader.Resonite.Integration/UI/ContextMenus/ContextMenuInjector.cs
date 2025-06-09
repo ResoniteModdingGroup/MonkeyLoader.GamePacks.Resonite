@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
+using MonkeyLoader.Resonite.UI.Inspectors;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +13,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     internal sealed class ContextMenuInjector : ResoniteAsyncEventSourceMonkey<ContextMenuInjector, ContextMenuItemsGenerationEvent>
     {
         internal static bool IsHandlerOpeningContextMenu { get; set; }
+
+        protected override bool OnLoaded()
+        {
+            ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
+
+            return base.OnLoaded();
+        }
 
         [HarmonyPostfix]
         private static async Task<bool> PostfixAsync(Task<bool> __result, ContextMenu __instance)
@@ -35,13 +43,15 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     await default(NextUpdate);
 
                 // Wait an extra update
-                await default(NextUpdate);
+                // Waiting adds a noticable frame of delay to the items
+                //await default(NextUpdate);
 
                 // If summoner changed, it's not "our" ContextMenu opening anymore
                 if (__instance.CurrentSummoner != summoner)
                     return;
 
                 var eventData = ContextMenuItemsGenerationEvent.CreateFor(__instance);
+                Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
                 await DispatchAsync(eventData);
