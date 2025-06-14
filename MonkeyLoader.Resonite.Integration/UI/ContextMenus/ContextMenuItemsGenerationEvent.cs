@@ -255,9 +255,15 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     /// <summary>
     /// Represents a generic (base) class for all events that generate a <see cref="ContextMenu"/>.
     /// </summary>
-    /// <remarks>
+    /// <remarks><para>
     /// These events are always additive to the options added by the vanilla implementation.
-    /// </remarks>
+    /// </para><para>
+    /// This event is triggered automatically when <see cref="InteractionHandler.OpenContextMenu"/>
+    /// or <see cref="ContextMenuExtensions.OpenContextMenu"/> are called.<br/>
+    /// If you want to avoid the event being triggered for something,
+    /// first use <see cref="ContextMenuExtensions.GetUserContextMenu(User)"/>
+    /// and then open it using <see cref="ContextMenu.OpenMenu(IWorldElement, Slot, ContextMenuOptions)"/>.
+    /// </para></remarks>
     /// <typeparam name="T">The type of the <see cref="Summoner">Summoner</see>.</typeparam>
     public class ContextMenuItemsGenerationEvent<T> : ContextMenuItemsGenerationEvent
         where T : class, IWorldElement
