@@ -11,7 +11,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 {
     [HarmonyPatchCategory(nameof(InteractionHandlerContextMenuInjector))]
     [HarmonyPatch(typeof(InteractionHandler), nameof(InteractionHandler.OpenContextMenu))]
-    internal sealed class InteractionHandlerContextMenuInjector : ResoniteAsyncEventSourceMonkey<InteractionHandlerContextMenuInjector, ContextMenuItemsGenerationEvent>
+    internal sealed class InteractionHandlerContextMenuInjector
+        : ConfiguredResoniteAsyncEventSourceMonkey<InteractionHandlerContextMenuInjector, ContextMenusConfig, ContextMenuItemsGenerationEvent>
     {
         public override bool CanBeDisabled => true;
 
@@ -127,32 +128,45 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                             __instance.UpdateUndoRedoItems();
                         }
 
-                        if (!hasTooltip || __instance.InputInterface.ScreenActive)
+                        var wouldShowLocomotionOrScale = !hasTooltip || __instance.InputInterface.ScreenActive;
+
+                        if (wouldShowLocomotionOrScale || ConfigSection.AlwaysShowLocomotionOrScaling)
                         {
+                            var showLocomotion = wouldShowLocomotionOrScale || ConfigSection.AlwaysShowLocomotion;
+                            var showScale = wouldShowLocomotionOrScale || ConfigSection.AlwaysShowScaling;
+
                             var locomotion = __instance.LocomotionController.Target;
                             var module = locomotion?.ActiveModule;
 
-                            if (locomotion != null && !locomotion.IsSupressed && locomotion.CanUseAnyLocomotion())
+                            if (showLocomotion && locomotion != null && !locomotion.IsSupressed && locomotion.CanUseAnyLocomotion())
                             {
                                 var locomotionLabel = string.Concat(str2: __instance.GetLocalized(module?.LocomotionName) ?? __instance.GetLocalized("Interaction.Locomotion.None"), str0: __instance.GetLocalized("Interaction.Locomotion"), str1: "\n<size=75%>", str3: "</size>");
                                 menu.AddItem(locomotionLabel, module?.LocomotionIcon!, module?.LocomotionColor ?? colorX.Black, __instance.OpenLocomotionMenu);
                             }
 
-                            if (__instance.CanScale)
+                            if (showScale && __instance.CanScale)
                             {
-                                if (__instance.Slot.ActiveUserRoot.IsAtScale(__instance.Slot.ActiveUserRoot.GetDefaultScale()))
+                                var isAtDefaultScale = __instance.Slot.ActiveUserRoot.IsAtScale(__instance.Slot.ActiveUserRoot.GetDefaultScale());
+
+                                var showScalingToggle = ConfigSection.AlwaysAllowScaleToggle || isAtDefaultScale;
+
+                                var showResetScale = !isAtDefaultScale
+                                    && (!ConfigSection.AlwaysAllowScaleToggle || ConfigSection.ShowResetScaleWithToggle);
+
+                                if (showScalingToggle)
                                     menu.AddToggleItem(locomotion!.ScalingEnabled, AsMenuLocaleKey("Interaction.ScalingEnabled"), AsMenuLocaleKey("Interaction.ScalingDisabled"), colorX.Green, colorX.Red, OfficialAssets.Graphics.Icons.Tool.SetScalable, OfficialAssets.Graphics.Icons.Tool.LockScale);
-                                else
+
+                                if (showResetScale)
                                     menu.AddItem(AsMenuLocaleKey("Interaction.ResetScale"), OfficialAssets.Graphics.Icons.General.ResetScale, new colorX(1f, 0.4f, 0.2f), __instance.ResetUserScale);
                             }
+                        }
 
-                            if (!hasTooltip)
-                            {
-                                menu.AddToggleItem(__instance._laserEnabled, AsMenuLocaleKey("Interaction.LaserEnabled"), AsMenuLocaleKey("Interaction.LaserDisabled"), new colorX(0.3f, 0.5f, 1f), colorX.Gray, OfficialAssets.Graphics.Icons.Tool.EnableLasers, OfficialAssets.Graphics.Icons.Tool.DisableLasers);
+                        if (!hasTooltip)
+                        {
+                            menu.AddToggleItem(__instance._laserEnabled, AsMenuLocaleKey("Interaction.LaserEnabled"), AsMenuLocaleKey("Interaction.LaserDisabled"), new colorX(0.3f, 0.5f, 1f), colorX.Gray, OfficialAssets.Graphics.Icons.Tool.EnableLasers, OfficialAssets.Graphics.Icons.Tool.DisableLasers);
 
-                                if (__instance.InputInterface.VR_Active)
-                                    menu.AddItem("Interaction.Grabbing".AsLocaleKey(), (Uri?)null, RadiantUI_Constants.Hero.ORANGE, __instance.OpenGrabbingMenu);
-                            }
+                            if (__instance.InputInterface.VR_Active)
+                                menu.AddItem("Interaction.Grabbing".AsLocaleKey(), (Uri?)null, RadiantUI_Constants.Hero.ORANGE, __instance.OpenGrabbingMenu);
                         }
 
                         __instance.ActiveTool?.GenerateMenuItems(__instance, menu);
