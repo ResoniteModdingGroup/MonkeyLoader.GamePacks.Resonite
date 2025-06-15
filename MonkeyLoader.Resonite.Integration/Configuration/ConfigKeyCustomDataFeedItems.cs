@@ -47,6 +47,7 @@ namespace MonkeyLoader.Resonite.Configuration
     /// Defines the interface for config key components which generate <see cref="DataFeedItem"/>s
     /// for the config key to represent themselves, rather than requiring default handling.
     /// </summary>
+    /// <typeparam name="T">The type of the config item's value.</typeparam>
     public interface IConfigKeyCustomDataFeedItems<T> : IConfigKeyComponent<IDefiningConfigKey<T>>, ICustomDataFeedItems
     { }
 }
