@@ -61,6 +61,7 @@
     <PackageReference Include="Resonite.LiteDB" Version="5.0.20" />
     <PackageReference Include="Resonite.LiteDB.Async" Version="0.1.10" />
     <PackageReference Include="Resonite.SkyFrost.Base" Version="2.1.0" />
+    <PackageReference Include="Resonite.SkyFrost.Base.Models" Version="2.1.5" />
   </ItemGroup>
 
   <ItemGroup>

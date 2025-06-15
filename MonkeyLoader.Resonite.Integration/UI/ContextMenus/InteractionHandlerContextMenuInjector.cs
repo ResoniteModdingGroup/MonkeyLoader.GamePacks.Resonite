@@ -19,6 +19,25 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         private static LocaleString AsMenuLocaleKey(string key)
             => key.AsLocaleKey(continuous: false, null);
 
+        private static string GetPrettyInventoryPath()
+        {
+            if (InventoryBrowser.CurrentUserspaceInventory?.CurrentDirectory is null)
+                return string.Empty;
+
+            var path = InventoryBrowser.CurrentUserspaceInventory.CurrentDirectory.GetChainFromRoot();
+
+            // With zero-width space to allow line-breaking after folder separators
+            // With non-breaking space in folder names to avoid line-breaks in names ... which the font renderer seems to ignore :'C
+            return $"{GetPrettyRootDirectoryName(path[0])}://\u200B{path.Skip(1).Join(directory => directory.Name, "/\u200B")}"
+                .Replace(" ", "\u00A0");
+        }
+
+        private static string GetPrettyRootDirectoryName(RecordDirectory directory)
+            => directory.Name != "Inventory" ? directory.Name
+                : (directory.OwnerId == Engine.Current.Cloud.CurrentUserID ? "Personal"
+                    : Engine.Current.Cloud.Groups.CurrentUserMemberships.FirstOrDefault(membership => membership.GroupId == directory.OwnerId)?.GroupName)
+                        ?? "Unknown";
+
         [HarmonyPrefix]
         private static bool OpenContextMenuPrefix(InteractionHandler __instance, MenuOptions options, float? speedOverride)
         {
@@ -60,20 +79,24 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                         if (__instance.IsHoldingObjects || controllerData.userspaceHoldingThings || (hasTooltip && !__instance._toolLocked))
                         {
-                            menu.AddItem(AsMenuLocaleKey("Interaction.Destroy"), OfficialAssets.Graphics.Icons.General.Cancel, new colorX?(new colorX(1f, 0.3f, 0.3f)), __instance.DestroyGrabbed);
-                            menu.AddItem(AsMenuLocaleKey("Interaction.Duplicate"), OfficialAssets.Graphics.Icons.Item.Duplicate, new colorX?(new colorX(0.3f, 1f, 0.4f)), __instance.DuplicateGrabbed);
+                            menu.AddItem(AsMenuLocaleKey("Interaction.Destroy"), OfficialAssets.Graphics.Icons.General.Cancel, new colorX(1f, 0.3f, 0.3f), __instance.DestroyGrabbed);
+                            menu.AddItem(AsMenuLocaleKey("Interaction.Duplicate"), OfficialAssets.Graphics.Icons.Item.Duplicate, new colorX(0.3f, 1f, 0.4f), __instance.DuplicateGrabbed);
 
                             if (__instance.CanSaveItem(__instance.Grabber))
                             {
                                 var labelLocaleKey = "Interaction.SaveToInventory";
                                 var canWrite = InventoryBrowser.CurrentUserspaceInventory?.CanWriteToCurrentDirectory ?? false;
+                                var canShowLocation = ConfigSection.ShowSaveLocation && InventoryBrowser.CurrentUserspaceInventory?.CurrentDirectory is not null && __instance.Cloud.Session.CurrentUserID is not null;
 
                                 if (__instance.Cloud.Session.CurrentUserID is null)
                                     labelLocaleKey = "Interaction.SaveToInventory.NotLoggedIn";
                                 else if (!canWrite)
                                     labelLocaleKey = "Interaction.SaveToInventory.NoWritePermission";
 
-                                menu.AddItem(AsMenuLocaleKey(labelLocaleKey), OfficialAssets.Graphics.Icons.General.Save, new colorX?(new colorX(0.25f, 0.5f, 1f)), __instance.SaveGrabbed)
+                                var locationFormat = !canShowLocation ? null
+                                    : $"{{0}}<br/><size=75%><i>{GetPrettyInventoryPath()}";
+
+                                menu.AddItem(labelLocaleKey.AsLocaleKey(locationFormat, true), OfficialAssets.Graphics.Icons.General.Save, new colorX(0.25f, 0.5f, 1f), __instance.SaveGrabbed)
                                     .Button.Enabled = canWrite;
                             }
 
@@ -120,15 +143,15 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                         if (__instance.EquippingEnabled && (hasTooltip || grabbedTooltip is not null))
                         {
                             if (__instance._toolLocked && hasTooltip)
-                                menu.AddItem(AsMenuLocaleKey("Interaction.DequipTool"), OfficialAssets.Graphics.Icons.General.HandDropping, new colorX?(new colorX(0.8f, 0.8f, 0.8f)), __instance.Dequip);
+                                menu.AddItem(AsMenuLocaleKey("Interaction.DequipTool"), OfficialAssets.Graphics.Icons.General.HandDropping, new colorX(0.8f, 0.8f, 0.8f), __instance.Dequip);
                             else
-                                menu.AddItem(AsMenuLocaleKey("Interaction.EquipTool"), OfficialAssets.Graphics.Icons.General.Fist, new colorX?(new colorX(0.8f, 0.8f, 0.8f)), __instance.EquipGrabbed);
+                                menu.AddItem(AsMenuLocaleKey("Interaction.EquipTool"), OfficialAssets.Graphics.Icons.General.Fist, new colorX(0.8f, 0.8f, 0.8f), __instance.EquipGrabbed);
                         }
 
                         if (!__instance.IsHoldingObjects || __instance.HasGripEquippedTool)
                         {
-                            __instance._undoItem.Target = menu.AddItem(AsMenuLocaleKey("Interaction.Undo"), OfficialAssets.Graphics.Icons.General.Undo, new colorX?(new colorX(1f, 0.1f, 0.1f)), __instance.Undo);
-                            __instance._redoItem.Target = menu.AddItem(AsMenuLocaleKey("Interaction.Redo"), OfficialAssets.Graphics.Icons.General.Redo, new colorX?(new colorX(0.2f, 0.4f, 1f)), __instance.Redo);
+                            __instance._undoItem.Target = menu.AddItem(AsMenuLocaleKey("Interaction.Undo"), OfficialAssets.Graphics.Icons.General.Undo, new colorX(1f, 0.1f, 0.1f), __instance.Undo);
+                            __instance._redoItem.Target = menu.AddItem(AsMenuLocaleKey("Interaction.Redo"), OfficialAssets.Graphics.Icons.General.Redo, new colorX(0.2f, 0.4f, 1f), __instance.Redo);
 
                             __instance.UpdateUndoRedoItems();
                         }
