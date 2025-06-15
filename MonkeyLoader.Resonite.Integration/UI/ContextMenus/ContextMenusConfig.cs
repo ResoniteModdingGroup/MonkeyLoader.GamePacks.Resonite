@@ -23,6 +23,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             new AlwaysAllowScaleToggleLink()
         };
 
+        private static readonly DefiningConfigKey<bool> _showSaveLocation = new("ShowSaveLocation", "Show the current inventory path when trying to save something.", () => true);
+
         /// <summary>
         /// Gets whether to show the scaling toggle even when not at the default scale for the avatar.
         /// </summary>
@@ -54,6 +56,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// Gets whether to show the reset scale action alongside the scaling toggle when it is always allowed.
         /// </summary>
         public bool ShowResetScaleWithToggle => _showResetScaleWithToggle;
+
+        /// <summary>
+        /// Gets whether to show the current inventory path when trying to save something.
+        /// </summary>
+        public bool ShowSaveLocation => _showSaveLocation;
 
         /// <inheritdoc/>
         public override Version Version { get; } = new(1, 0, 0);
