@@ -18,7 +18,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     {
         protected override bool OnLoaded()
         {
-            ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
+            ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(static contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
 
             return base.OnLoaded();
         }
@@ -35,7 +35,6 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             __instance.RunSynchronouslyAsync(async () =>
             {
                 var eventData = ContextMenuItemsGenerationEvent.CreateFor(__instance);
-                Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
                 await DispatchAsync(eventData);

@@ -103,6 +103,8 @@
     "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Generates data feed items to save and reset the config sections.",
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Generates fallback locale messages for the mod settings.",
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generates data feed items for the toggleable monkeys.",
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "Sends out the Context Menu Items Generation event when it is opened through the Extension methods on Users (i.e. for buttons, drag and drop, etc.).",
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Sends out the Context Menu Items Generation event when it is opened by the Interaction Handler (i.e. using with the controller, keyboard, or mouse).<br/>If any entries are added in an update, this monkey can be disabled to get access - though it will prevent the extra Context Menu settings and events from working.",
 
     "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "Additional Information",
 
