@@ -1,41 +1,59 @@
 ﻿using FrooxEngine;
-using MonkeyLoader.Events;
+using MonkeyLoader;
+using MonkeyLoader.Resonite.UI.ContextMenus;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
-    /// Represents the event data for the Fallback Locale Generation Event.
+    /// Represents the event data for the <see cref="InspectorMemberActions"/> <see cref="ContextMenu"/> items generation event.
     /// </summary>
-    /// <remarks>
-    /// This event can be used by Monkeys that make use of locale keys to inject
-    /// programmatically generated keys, if they haven't been defined previously.
-    /// </remarks>
-    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : AsyncEvent
+    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
     {
         /// <summary>
-        /// Gets the <see cref="ButtonEventData">data</see> for the button press
+        /// Gets the index of the <see cref="Target">Target</see> in the
+        /// <see cref="SkinnedMesh">SkinnedMesh</see>'s <see cref="SkinnedMeshRenderer.BlendShapeWeights">blend shapes</see>.
+        /// </summary>
+        /// <value>
+        /// The blend shape index if the <see cref="Target">Target</see>
+        /// <see cref="HasSkinnedMesh">is on</see> a <see cref="SkinnedMeshRenderer"/>;
+        /// otherwise <see langword="null"/>.</value>
+        public int? BlendshapeIndex { get; }
+
+        /// <summary>
+        /// Gets the <see cref="FrooxEngine.ButtonEventData">data</see> for the button press
         /// that triggered opening the <see cref="ContextMenu">ContextMenu</see>.
         /// </summary>
+        [Obsolete("Not available anymore.")]
         public ButtonEventData ButtonEventData { get; }
 
         /// <summary>
-        /// Gets the <see cref="FrooxEngine.ContextMenu"/> that was opened.
+        /// Gets whether the <see cref="Target">Target</see> is on a <see cref="SkinnedMeshRenderer"/>.
         /// </summary>
-        /// <remarks>
-        /// You need to pass the <see cref="MemberActions">MemberActions</see>
-        /// when <see cref="ContextMenuExtensions.CloseContextMenu">closing</see>
-        /// the <see cref="ContextMenu">ContextMenu</see> from your added event handlers.
-        /// </remarks>
-        public ContextMenu ContextMenu { get; }
+        /// <value>
+        /// <see langword="true"/> if <see cref="SkinnedMesh">SkinnedMesh</see>
+        /// and <see cref="BlendshapeIndex">BlendShapeIndex</see> are not
+        /// <see langword="null"/>; otherwise, <see langword="false"/>.
+        /// </value>
+        [MemberNotNullWhen(true, nameof(SkinnedMesh), nameof(BlendshapeIndex))]
+        public bool HasSkinnedMesh => SkinnedMesh is not null;
 
         /// <summary>
-        /// Gets the <see cref="InspectorMemberActions"/> component
-        /// that triggered opening the <see cref="ContextMenu">ContextMenu</see>.
+        /// Gets the <see cref="InspectorMemberActions"/> that the
+        /// <see cref="ContextMenuItemsGenerationEvent.ContextMenu">ContextMenu</see>
+        /// is being summoned by.
         /// </summary>
-        public InspectorMemberActions MemberActions { get; }
+        [Obsolete("Use Summoner instead.")]
+        public InspectorMemberActions MemberActions => Summoner;
+
+        /// <summary>
+        /// Gets the <see cref="SkinnedMeshRenderer"/> that the <see cref="Target">Target</see>
+        /// is a <see cref="SkinnedMeshRenderer.BlendShapeWeights">blend shape</see> for.
+        /// </summary>
+        public SkinnedMeshRenderer? SkinnedMesh { get; }
 
         /// <summary>
         /// Gets the <see cref="Target">Target</see>'s parent <see cref="FrooxEngine.Slot"/>.
@@ -46,8 +64,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public Slot? Slot { get; }
 
         /// <summary>
-        /// Gets the <see cref="ISyncMember"/> that
-        /// the <see cref="ContextMenu">ContextMenu</see> was opened for.
+        /// Gets the target <see cref="ISyncMember"/> of the <see cref="InspectorMemberActions"/> that
+        /// the <see cref="ContextMenuItemsGenerationEvent.ContextMenu">ContextMenu</see> was opened for.
         /// </summary>
         public ISyncMember Target { get; }
 
@@ -63,16 +81,16 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </remarks>
         public User? User { get; }
 
-        internal InspectorMemberActionsMenuItemsGenerationEvent(
-            InspectorMemberActions instance, ButtonEventData buttonEventData, ISyncMember target)
+        /// <inheritdoc/>
+        public InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
         {
-            MemberActions = instance;
-            ButtonEventData = buttonEventData;
-            Target = target;
+            Target = Summoner.Member.Target;
+            SkinnedMesh = Summoner.SkinnedMesh;
+            // The has-check is important, otherwise the property throws an exception
+            BlendshapeIndex = HasSkinnedMesh ? Summoner.BlendshapeIndex : null;
 
-            ContextMenu = instance.LocalUser.GetUserContextMenu();
-            Slot = target.FindNearestParent<Slot>();
-            User = Slot?.ActiveUser ?? target.FindNearestParent<User>();
+            Slot = Target.FindNearestParent<Slot>();
+            User = Slot?.ActiveUser ?? Target.FindNearestParent<User>();
         }
     }
 }
