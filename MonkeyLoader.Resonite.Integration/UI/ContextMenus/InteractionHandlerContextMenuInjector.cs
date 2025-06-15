@@ -22,6 +22,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         [HarmonyPrefix]
         private static bool OpenContextMenuPrefix(InteractionHandler __instance, MenuOptions options, float? speedOverride)
         {
+            // Sadly have to replace the whole implementation, as the juicy part is all inside an async lambda -
+            // which are an absolute pain to target *and* to patch as well.
+            // That's why this is a separate Monkey to the ContextMenuInjector one for the ContextMenuExtensions,
+            // so that it can be toggled separately if there's any update adding entries to the InteractionHandler Context Menu.
+
             if (!Enabled)
                 return true;
 

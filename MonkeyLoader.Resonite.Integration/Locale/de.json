@@ -77,6 +77,8 @@
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Steuert die Einstellung dafür, jede Nachricht im Resonite Log sofort zu schreiben, indem es den eigenen Aktivierungszustand damit synchronisiert.",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben.",
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "Versendet die Context Menu Items Generation Events, wenn es durch die Erweiterungsmethoden auf Usern geöffnet wird (also für Buttons, Drag und Drop, etc.).",
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Versendet die Context Menu Items Generation Events, wenn es durch den Interaction Handler geöffnet wird (also mittels Controller, Tastatur oder Maus).<br/>Falls Einträge in einem Update hinzugefügt werden, kann dieser Monkey deaktiviert werden, um Zugriff zu erhalten - dies verhindert dann allerdings, dass die extra Einstellungen für das Kontextmenü sowie die Events funktionieren.",
 
     "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Versucht einen Hyperlink zu öffnen.<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
     "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
