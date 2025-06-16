@@ -7,6 +7,7 @@ using MonkeyLoader;
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
+using MonkeyLoader.Resonite.DataFeeds;
 using MonkeyLoader.Resonite.DataFeeds.Settings;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,11 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
+    /// <summary>
+    /// Contains extension methods to generate <see cref="DataFeedItem"/>(s)
+    /// for <see cref="IDefiningConfigKey{T}">config keys</see> to represent them
+    /// in <see cref="IDataFeed">data feeds</see> - in particular, the <see cref="SettingsDataFeed"/>.
+    /// </summary>
     public static class ConfigKeyDataFeedItems
     {
         private static readonly Type _dummyType = typeof(dummy);
@@ -24,16 +30,57 @@ namespace MonkeyLoader.Resonite.Configuration
         private static readonly MethodInfo _getFlagsEnumItems = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GetFlagsEnumFieldsAsync));
         private static readonly MethodInfo _getNullableEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GetNullableEnumItemsAsync));
         private static readonly MethodInfo _getQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GetQuantityFieldItem));
+
         private static Mod Mod => EngineInitHook.Mod;
 
+        /// <summary>
+        /// Gets the <see cref="DataFeedItem"/>(s) that represent this <see cref="IDefiningConfigKey{T}">config key</see>.
+        /// </summary>
+        /// <remarks>
+        /// <b>Do not</b> use this method on the <see cref="IDefiningConfigKey{T}">config key</see>
+        /// that you are implementing a <see cref="IConfigKeyCustomDataFeedItems{T}">custom items component</see> for.<br/>
+        /// Use <c><see cref="GetDefaultDataFeedItems{T}(IDefiningConfigKey{T}, IReadOnlyList{string},
+        /// IReadOnlyList{string}, string?, object?)">GetDefaultDataFeedItems</see>()</c> instead
+        /// to avoid recursion and a stack overflow.
+        /// </remarks>
+        /// <typeparam name="T">The type of the config item's value.</typeparam>
+        /// <param name="configKey">The config key to get the <see cref="DataFeedItem"/>(s) for.</param>
+        /// <param name="path">The path for this enumeration request.</param>
+        /// <param name="groupKeys">The group keys for this enumeration request.</param>
+        /// <param name="searchPhrase">The search phrase for this enumeration request.</param>
+        /// <param name="viewData">The custom view data for this enumeration request.</param>
+        /// <returns>
+        /// The <see cref="ICustomDataFeedItems">custom items</see> for this <see cref="IDefiningConfigKey{T}">config key</see>
+        /// if it has a <see cref="IConfigKeyCustomDataFeedItems{T}">custom items component</see>;
+        /// otherwise, the <see cref="GetDefaultDataFeedItems{T}(IDefiningConfigKey{T}, IReadOnlyList{string},
+        /// IReadOnlyList{string}, string?, object?)">default items</see>.
+        /// </returns>
         public static IAsyncEnumerable<DataFeedItem> GetDataFeedItems<T>(this IDefiningConfigKey<T> configKey,
-            IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
+            IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase = null, object? viewData = null)
         {
             IEntity<IDefiningConfigKey<T>> configKeyEntity = configKey;
 
             // If the config key has a custom items component, use only that.
             if (configKeyEntity.Components.TryGet<IConfigKeyCustomDataFeedItems<T>>(out var customItems))
                 return customItems.Enumerate(path, groupKeys, searchPhrase, viewData);
+
+            // Otherwise, use the default items.
+            return configKey.GetDefaultDataFeedItems(path, groupKeys, searchPhrase, viewData);
+        }
+
+        /// <summary>
+        /// Gets the <i>default</i> <see cref="DataFeedItem"/>(s) that represent this <see cref="IDefiningConfigKey{T}">config key</see>.
+        /// </summary>
+        /// <remarks>
+        /// Use this method on the <see cref="IDefiningConfigKey{T}">config key</see> that you are implementing
+        /// a <see cref="IConfigKeyCustomDataFeedItems{T}">custom items component</see> for.
+        /// </remarks>
+        /// <returns>The default <see cref="DataFeedItem"/>(s) representing this <see cref="IDefiningConfigKey{T}">config key</see>.</returns>
+        /// <inheritdoc cref="GetDataFeedItems{T}(IDefiningConfigKey{T}, IReadOnlyList{string}, IReadOnlyList{string}, string?, object?)"/>
+        public static IAsyncEnumerable<DataFeedItem> GetDefaultDataFeedItems<T>(this IDefiningConfigKey<T> configKey,
+            IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase = null, object? viewData = null)
+        {
+            IEntity<IDefiningConfigKey<T>> configKeyEntity = configKey;
 
             //if (setting is SettingIndicatorProperty)
             //{

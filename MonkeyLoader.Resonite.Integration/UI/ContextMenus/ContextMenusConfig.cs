@@ -20,7 +20,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
         private static readonly DefiningConfigKey<bool> _showResetScaleWithToggle = new("ShowResetScaleWithToggle", "Show the reset scale action alongside the scaling toggle when it is always allowed.", () => true)
         {
-            new AlwaysAllowScaleToggleLink()
+            new ConfigKeyDataFeedItemEnabledSource<bool>(_alwaysShowScaling)
         };
 
         private static readonly DefiningConfigKey<bool> _showSaveLocation = new("ShowSaveLocation", "Show the current inventory path when trying to save something.", () => true);
