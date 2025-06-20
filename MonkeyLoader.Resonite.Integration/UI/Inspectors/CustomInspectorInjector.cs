@@ -53,14 +53,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            bool storedVerticalLayout = false;
             Label? afterHeaderBranchLabel = null;
             Label? afterHeaderTextBranchLabel = null;
             bool headerDone = false;
             bool headerTextDone = false;
             bool bodyDone = false;
-
-            var verticalLayoutLocal = generator.DeclareLocal(typeof(VerticalLayout));
 
             Label afterHeaderPatchLabel = generator.DefineLabel();
 
@@ -94,11 +91,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 4);
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
-
-                    yield return new CodeInstruction(OpCodes.Ldloc_0);
-                    yield return new CodeInstruction(OpCodes.Ldloc, verticalLayoutLocal.LocalIndex);
-                    yield return new CodeInstruction(OpCodes.Callvirt, _getSlotMethod);
-                    yield return new CodeInstruction(OpCodes.Callvirt, _nestIntoMethod);
 
                     // skip original if did patch
                     yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
@@ -137,12 +129,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     instruction.operand = beforeBodyPatchLabel;
                 }
                 yield return instruction;
-                if (!storedVerticalLayout && instruction.Calls(AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.VerticalLayout), [typeof(float), typeof(float), typeof(Alignment?), typeof(bool?), typeof(bool?)])))
-                {
-                    yield return new CodeInstruction(OpCodes.Dup);
-                    yield return new CodeInstruction(OpCodes.Stloc, verticalLayoutLocal.LocalIndex);
-                    storedVerticalLayout = true;
-                }
                 if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
                 {
                     // check Enabled
@@ -183,6 +169,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
+            var root = ui.Root;
+
             ui.Style.MinHeight = 32f;
             ui.HorizontalLayout(4f);
             ui.Style.MinHeight = 24f;
@@ -191,6 +179,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
+
+            ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
