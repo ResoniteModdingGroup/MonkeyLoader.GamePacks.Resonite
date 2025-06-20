@@ -42,8 +42,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             bool bodyDone = false;
             bool afterHeaderBranch = false;
             bool afterHeaderTextBranch = false;
-            int numBranches = 0;
-            int branchDepth = 0;
             List<Label?> labels = new();
             var instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
@@ -52,36 +50,33 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (headerLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
                     headerLabel = (Label)instruction.operand;
+                    labels.Add(headerLabel);
                 }
                 if (headerTextLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
                     instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
                 {
                     headerTextLabel = (Label)instruction.operand;
+                    labels.Add(headerTextLabel);
+                    yield return new CodeInstruction(OpCodes.Pop); // skip this branch to match behavior of the old patch
+                    continue;
                 }
                 bool didBranch = false;
                 if (instruction.Branches(out var label))
                 {
-                    numBranches++;
-                    branchDepth++;
                     didBranch = true;
-                    labels.Add(label);
                 }
                 if (!didBranch)
                 {
-                    if (branchDepth > 0)
+                    foreach (var storedLabel in labels.ToArray())
                     {
-                        foreach (var storedLabel in labels.ToArray())
+                        if (instruction.labels.Contains(storedLabel!.Value) && instruction.operand != (object)storedLabel!.Value)
                         {
-                            if (instruction.labels.Contains(storedLabel!.Value) && instruction.operand != (object)storedLabel!.Value)
-                            {
-                                if (storedLabel == headerLabel)
-                                    afterHeaderBranch = true;
-                                else if (storedLabel == headerTextLabel)
-                                    afterHeaderTextBranch = true;
-                                labels.Remove(storedLabel);
-                                branchDepth--;
-                                break;
-                            }
+                            if (storedLabel == headerLabel)
+                                afterHeaderBranch = true;
+                            else if (storedLabel == headerTextLabel)
+                                afterHeaderTextBranch = true;
+                            labels.Remove(storedLabel);
+                            break;
                         }
                     }
                     if (headerLabel != null && !headerDone)
