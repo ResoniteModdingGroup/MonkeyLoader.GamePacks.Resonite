@@ -119,8 +119,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
+                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _saveItemsMethod);
@@ -141,8 +141,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
+                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Ldloc_S, 4);
@@ -178,8 +178,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
+                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _handleEndMethod);
