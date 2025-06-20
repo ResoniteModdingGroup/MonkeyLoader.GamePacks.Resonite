@@ -23,6 +23,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static MethodInfo _buildHeaderTextMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeaderText));
         private static MethodInfo _buildBodyMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorBody));
         private static MethodInfo _storeVerticalLayoutMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(StoreVerticalLayout));
+        private static MethodInfo _getEnabledMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetEnabled));
 
         private static VerticalLayout _verticalLayout;
 
@@ -31,8 +32,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             _verticalLayout = layout;
         }
 
+        private static bool GetEnabled()
+        {
+            return Enabled;
+        }
+
         [HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             bool storedVerticalLayout = false;
             Label? headerLabel = null;
@@ -43,6 +49,19 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             bool afterHeaderBranch = false;
             bool afterHeaderTextBranch = false;
             List<Label?> labels = new();
+
+            Label skipHeaderLabel = generator.DefineLabel();
+            Label afterHeaderOriginalLabel = generator.DefineLabel();
+            bool injectedAfterHeaderOriginal = false;
+
+            Label skipHeaderTextLabel = generator.DefineLabel();
+            Label afterHeaderTextOriginalLabel = generator.DefineLabel();
+            bool injectedAfterHeaderTextOriginal = false;
+
+            Label skipBodyLabel = generator.DefineLabel();
+            Label afterBodyOriginalLabel = generator.DefineLabel();
+            bool injectedAfterBodyOriginal = false;
+
             var instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
             {
@@ -57,8 +76,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 {
                     headerTextLabel = (Label)instruction.operand;
                     labels.Add(headerTextLabel);
-                    yield return new CodeInstruction(OpCodes.Pop); // skip this branch to match behavior of the old patch
-                    continue;
                 }
                 bool didBranch = false;
                 if (instruction.Branches(out var label))
@@ -81,6 +98,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     }
                     if (headerLabel != null && !headerDone)
                     {
+                        // check Enabled
+                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                        yield return new CodeInstruction(OpCodes.Brfalse, skipHeaderLabel);
+
                         // do header
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 0);
@@ -90,19 +111,48 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Ldarg, 4);
                         yield return new CodeInstruction(OpCodes.Ldarg, 5);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+
+                        // check Enabled
+                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                        yield return new CodeInstruction(OpCodes.Brtrue, afterHeaderOriginalLabel);
+
+                        yield return new CodeInstruction(OpCodes.Nop) { labels = [skipHeaderLabel] };
                         headerDone = true;
                     }
                     if (headerTextLabel != null && !headerTextDone)
                     {
+                        // check Enabled
+                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                        yield return new CodeInstruction(OpCodes.Brfalse, skipHeaderTextLabel);
+
                         // do header text
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 1);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
+
+                        // check Enabled
+                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                        yield return new CodeInstruction(OpCodes.Brtrue, afterHeaderTextOriginalLabel);
+
+                        yield return new CodeInstruction(OpCodes.Nop) { labels = [skipHeaderTextLabel] };
                         headerTextDone = true;
                     }
                 }
-                if (headerDone && !afterHeaderBranch) continue;
-                if (headerTextDone && !afterHeaderTextBranch) continue;
+                if (headerDone && afterHeaderBranch && !injectedAfterHeaderOriginal)
+                {
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderOriginalLabel] };
+                    injectedAfterHeaderOriginal = true;
+                }
+                if (headerTextDone && afterHeaderTextBranch && !injectedAfterHeaderTextOriginal)
+                {
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextOriginalLabel] };
+                    injectedAfterHeaderTextOriginal = true;
+                }
+                if (bodyDone && !injectedAfterBodyOriginal)
+                {
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyOriginalLabel] };
+                    injectedAfterBodyOriginal = true;
+                }
                 yield return instruction;
                 if (!storedVerticalLayout && instruction.Calls(AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.VerticalLayout), [typeof(float), typeof(float), typeof(Alignment?), typeof(bool?), typeof(bool?)])))
                 {
@@ -112,6 +162,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 }
                 if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
                 {
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, skipBodyLabel);
+
                     // do body
                     yield return new CodeInstruction(OpCodes.Ldloc_0);
                     yield return new CodeInstruction(OpCodes.Ldarg, 0);
@@ -121,6 +175,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 4);
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
+
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brtrue, afterBodyOriginalLabel);
+
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [skipBodyLabel] };
                     bodyDone = true;
                 }
             }
