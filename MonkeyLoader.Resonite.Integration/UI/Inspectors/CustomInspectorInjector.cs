@@ -48,7 +48,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             bool bodyDone = false;
             bool afterHeaderBranch = false;
             bool afterHeaderTextBranch = false;
-            List<Label?> labels = new();
 
             Label afterHeaderPatchLabel = generator.DefineLabel();
             Label afterHeaderOriginalLabel = generator.DefineLabel();
@@ -58,6 +57,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             Label afterHeaderTextOriginalLabel = generator.DefineLabel();
             bool injectedAfterHeaderTextOriginal = false;
 
+            Label beforeBodyPatchLabel = generator.DefineLabel();
             Label afterBodyPatchLabel = generator.DefineLabel();
             Label afterBodyOriginalLabel = generator.DefineLabel();
             bool injectedAfterBodyOriginal = false;
@@ -70,28 +70,23 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (headerLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
                     headerLabel = (Label)instruction.operand;
-                    labels.Add(headerLabel);
                     didBranch = true;
                 }
                 if (headerTextLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
                     instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
                 {
                     headerTextLabel = (Label)instruction.operand;
-                    labels.Add(headerTextLabel);
                     didBranch = true;
                 }
                 if (!didBranch)
                 {
-                    foreach (var storedLabel in labels.ToArray())
+                    if (headerLabel.HasValue && instruction.labels.Contains(headerLabel.Value) && instruction.operand != (object)headerLabel.Value)
                     {
-                        if (instruction.labels.Contains(storedLabel!.Value) && instruction.operand != (object)storedLabel!.Value)
-                        {
-                            if (storedLabel == headerLabel)
-                                afterHeaderBranch = true;
-                            else if (storedLabel == headerTextLabel)
-                                afterHeaderTextBranch = true;
-                            labels.Remove(storedLabel);
-                        }
+                        afterHeaderBranch = true;
+                    }
+                    if (headerTextLabel.HasValue && instruction.labels.Contains(headerTextLabel.Value) && instruction.operand != (object)headerTextLabel.Value)
+                    {
+                        afterHeaderTextBranch = true;
                     }
                     if (headerLabel != null && !headerDone)
                     {
@@ -148,6 +143,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyOriginalLabel] };
                     injectedAfterBodyOriginal = true;
                 }
+                if (instruction.opcode == OpCodes.Leave_S &&
+                    (instArr[i - 1].Calls(AccessTools.Method(typeof(UniLog), nameof(UniLog.Error))) || instArr[i - 1].Calls(AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI)))))
+                {
+                    instruction.operand = beforeBodyPatchLabel;
+                }
                 yield return instruction;
                 if (!storedVerticalLayout && instruction.Calls(AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.VerticalLayout), [typeof(float), typeof(float), typeof(Alignment?), typeof(bool?), typeof(bool?)])))
                 {
@@ -158,7 +158,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
                 {
                     // check Enabled
-                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod) { labels = [beforeBodyPatchLabel] };
                     yield return new CodeInstruction(OpCodes.Brfalse, afterBodyPatchLabel);
 
                     // do body
