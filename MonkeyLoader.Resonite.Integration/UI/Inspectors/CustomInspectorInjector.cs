@@ -124,59 +124,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             }
         }
 
-        //[HarmonyPrefix]
-        //private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
-        //    bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
-        //{
-        //    if (!Enabled)
-        //        return true;
-
-        //    var ui = new UIBuilder(__instance.Slot);
-        //    RadiantUI_Constants.SetupEditorStyle(ui);
-        //    ui.Style.RequireLockInToPress = true;
-        //    var vertical = ui.VerticalLayout(6f);
-
-        //    if (worker is not Slot)
-        //    {
-        //        ui.Style.MinHeight = 32f;
-        //        ui.HorizontalLayout(4f);
-        //        ui.Style.MinHeight = 24f;
-        //        ui.Style.FlexibleWidth = 1000f;
-
-        //        OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-        //        ui.NestInto(vertical.Slot);
-        //    }
-
-        //    OnBuildInspectorHeaderText(ui, worker);
-
-        //    if (worker is ICustomInspector customInspector)
-        //    {
-        //        try
-        //        {
-        //            ui.Style.MinHeight = 24f;
-        //            customInspector.BuildInspectorUI(ui);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            ui.Text((LocaleString)"EXCEPTION BUILDING UI. See log");
-        //            UniLog.Error(ex.ToString(), stackTrace: false);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
-        //    }
-
-        //    OnBuildInspectorBody(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-        //    ui.Style.MinHeight = 8f;
-        //    ui.Panel();
-        //    ui.NestOut();
-
-        //    return false;
-        //}
-
         private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
