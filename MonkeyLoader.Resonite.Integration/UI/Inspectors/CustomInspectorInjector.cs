@@ -45,15 +45,22 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             int numBranches = 0;
             int branchDepth = 0;
             List<Label?> labels = new();
-            foreach (var instruction in instructions)
+            var instArr = instructions.ToArray();
+            for (int i = 0; i < instArr.Length; i++)
             {
+                var instruction = instArr[i];
+                if (headerLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
+                {
+                    headerLabel = (Label)instruction.operand;
+                }
+                if (headerTextLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
+                    instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
+                {
+                    headerTextLabel = (Label)instruction.operand;
+                }
                 bool didBranch = false;
                 if (instruction.Branches(out var label))
                 {
-                    if (numBranches == 0)
-                        headerLabel = label;
-                    else if (numBranches == 6)
-                        headerTextLabel = label;
                     numBranches++;
                     branchDepth++;
                     didBranch = true;
@@ -77,7 +84,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                             }
                         }
                     }
-                    if (numBranches == 1 && !headerDone)
+                    if (headerLabel != null && !headerDone)
                     {
                         // do header
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
@@ -90,7 +97,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
                         headerDone = true;
                     }
-                    if (numBranches == 7 && !headerTextDone)
+                    if (headerTextLabel != null && !headerTextDone)
                     {
                         // do header text
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
@@ -144,13 +151,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             ui.Style.MinHeight = 24f;
             ui.Style.FlexibleWidth = 1000f;
 
-            var root = ui.Root;
-
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
 
-            ui.NestInto(root);
             ui.NestInto(_verticalLayout.Slot);
         }
 
