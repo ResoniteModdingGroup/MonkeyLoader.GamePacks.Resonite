@@ -101,11 +101,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             var instArr = instructions.ToArray();
             bool saveItemDone = false;
             bool notHasTooltipDone = false;
+            bool endDone = false;
             Label? afterSaveItemsBranchLabel = null;
             Label? afterNotHasTooltipBranchLabel = null;
             Label afterSaveItemsPatchLabel = generator.DefineLabel();
             Label afterNotHasTooltipPatchLabel = generator.DefineLabel();
             Label newBranchForNotTooltipLabel = generator.DefineLabel();
+            Label afterEndLabel = generator.DefineLabel();
             for (int i = 0; i < instArr.Length; i++)
             {
                 var instruction = instArr[i];
@@ -158,7 +160,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     afterSaveItemsBranchLabel = (Label)instruction.operand;
                 }
 
-                // look for: if (!hasTooltip || base.InputInterface.ScreenActive || ConfigSection.AlwaysShowLocomotionOrScaling)
+                // look for: if (!hasTooltip || base.InputInterface.ScreenActive)
                 if (afterNotHasTooltipBranchLabel is null && instruction.opcode == OpCodes.Brfalse && instArr[i-1].Calls(AccessTools.Method(typeof(InputInterface), "get_ScreenActive")))
                 {
                     afterNotHasTooltipBranchLabel = (Label)instruction.operand;
@@ -168,8 +170,12 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                 yield return instruction;
 
                 // look for TaskAwaiter.GetResult with local 44
-                if (instruction.Calls(AccessTools.Method(typeof(TaskAwaiter), nameof(TaskAwaiter.GetResult))) && instArr[i - 1].opcode == OpCodes.Ldloca_S && instArr[i - 1].operand == (object)44)
+                if (!endDone && instruction.Calls(AccessTools.Method(typeof(TaskAwaiter), nameof(TaskAwaiter.GetResult))) && instArr[i - 1].opcode == OpCodes.Ldloca_S && instArr[i - 1].operand == (object)44)
                 {
+
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterEndLabel);
+
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
@@ -177,6 +183,9 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _handleEndMethod);
+
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterEndLabel] };
+                    endDone = true;
                 }
             }
         }
