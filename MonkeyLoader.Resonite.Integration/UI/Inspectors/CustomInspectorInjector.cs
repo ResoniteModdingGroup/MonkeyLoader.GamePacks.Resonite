@@ -22,14 +22,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static MethodInfo _buildHeaderMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeader));
         private static MethodInfo _buildHeaderTextMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeaderText));
         private static MethodInfo _buildBodyMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorBody));
-        private static MethodInfo _getSlotMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetSlot));
         private static MethodInfo _getEnabledMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetEnabled));
-        private static MethodInfo _nestIntoMethod = AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.NestInto), [typeof(Slot)]);
-
-        private static Slot GetSlot(VerticalLayout layout)
-        {
-            return layout.Slot;
-        }
 
         private static bool GetEnabled()
         {
