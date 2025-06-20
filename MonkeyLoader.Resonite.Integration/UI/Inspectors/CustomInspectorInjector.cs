@@ -52,7 +52,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 {
                     if (numBranches == 0)
                         headerLabel = label;
-                    else if (numBranches == 4)
+                    else if (numBranches == 6)
                         headerTextLabel = label;
                     numBranches++;
                     branchDepth++;
@@ -65,7 +65,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     {
                         foreach (var storedLabel in labels.ToArray())
                         {
-                            if (instruction.labels.Contains(storedLabel!.Value))
+                            if (instruction.labels.Contains(storedLabel!.Value) && instruction.operand != (object)storedLabel!.Value)
                             {
                                 if (storedLabel == headerLabel)
                                     afterHeaderBranch = true;
@@ -89,30 +89,14 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Ldarg, 5);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
                         headerDone = true;
-                        //continue;
                     }
-                    if (numBranches == 6 && !headerTextDone)
+                    if (numBranches == 7 && !headerTextDone)
                     {
                         // do header text
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 1);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
                         headerTextDone = true;
-                        //continue;
-                    }
-                    if (numBranches == 7 && branchDepth == 0 && !bodyDone)
-                    {
-                        // do body
-                        yield return new CodeInstruction(OpCodes.Ldloc_0);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 0);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 2);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 3);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 4);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 5);
-                        yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
-                        bodyDone = true;
-                        //continue;
                     }
                 }
                 if (headerDone && !afterHeaderBranch) continue;
@@ -123,6 +107,19 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Dup);
                     yield return new CodeInstruction(OpCodes.Call, _storeVerticalLayoutMethod);
                     storedVerticalLayout = true;
+                }
+                if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
+                {
+                    // do body
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                    yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
+                    bodyDone = true;
                 }
             }
         }
