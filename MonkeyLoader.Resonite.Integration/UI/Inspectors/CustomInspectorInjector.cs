@@ -22,14 +22,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static MethodInfo _buildHeaderMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeader));
         private static MethodInfo _buildHeaderTextMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeaderText));
         private static MethodInfo _buildBodyMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorBody));
-        private static MethodInfo _storeVerticalLayoutMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(StoreVerticalLayout));
+        private static MethodInfo _getSlotMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetSlot));
         private static MethodInfo _getEnabledMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetEnabled));
+        private static MethodInfo _nestIntoMethod = AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.NestInto), [typeof(Slot)]);
 
-        private static VerticalLayout _verticalLayout;
-
-        private static void StoreVerticalLayout(VerticalLayout layout)
+        private static Slot GetSlot(VerticalLayout layout)
         {
-            _verticalLayout = layout;
+            return layout.Slot;
         }
 
         private static bool GetEnabled()
@@ -60,6 +59,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             bool headerDone = false;
             bool headerTextDone = false;
             bool bodyDone = false;
+
+            var verticalLayoutLocal = generator.DeclareLocal(typeof(VerticalLayout));
 
             Label afterHeaderPatchLabel = generator.DefineLabel();
 
@@ -93,6 +94,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 4);
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldloc, verticalLayoutLocal.LocalIndex);
+                    yield return new CodeInstruction(OpCodes.Callvirt, _getSlotMethod);
+                    yield return new CodeInstruction(OpCodes.Callvirt, _nestIntoMethod);
 
                     // skip original if did patch
                     yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
@@ -134,7 +140,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (!storedVerticalLayout && instruction.Calls(AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.VerticalLayout), [typeof(float), typeof(float), typeof(Alignment?), typeof(bool?), typeof(bool?)])))
                 {
                     yield return new CodeInstruction(OpCodes.Dup);
-                    yield return new CodeInstruction(OpCodes.Call, _storeVerticalLayoutMethod);
+                    yield return new CodeInstruction(OpCodes.Stloc, verticalLayoutLocal.LocalIndex);
                     storedVerticalLayout = true;
                 }
                 if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
@@ -185,8 +191,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
-
-            ui.NestInto(_verticalLayout.Slot);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
