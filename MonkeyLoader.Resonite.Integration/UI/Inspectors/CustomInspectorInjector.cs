@@ -37,6 +37,20 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             return Enabled;
         }
 
+        private static Label? GetNextBranchLabel(CodeInstruction[] codes, int startIndex)
+        {
+            int i = startIndex;
+            while (i < codes.Length)
+            {
+                if (codes[i].Branches(out var label))
+                {
+                    return label;
+                }
+                i++;
+            }
+            return null;
+        }
+
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
@@ -56,65 +70,62 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             Label afterBodyOriginalLabel = generator.DefineLabel();
             bool injectedAfterBodyOriginal = false;
 
-            var instArr = instructions.ToArray();
+            CodeInstruction[] instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
             {
                 var instruction = instArr[i];
-                bool didBranch = false;
+                bool branchFound = false;
                 if (afterHeaderBranchLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
                     afterHeaderBranchLabel = (Label)instruction.operand;
-                    didBranch = true;
+                    branchFound = true;
                 }
-                if (afterHeaderTextBranchLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
-                    instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
+                if (!branchFound && afterHeaderBranchLabel != null && !headerDone)
                 {
-                    afterHeaderTextBranchLabel = (Label)instruction.operand;
-                    didBranch = true;
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
+
+                    // do header patch
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                    yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+
+                    // skip original if did patch
+                    yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
+
+                    // mark after patch (start of original)
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
+                    headerDone = true;
                 }
-                if (!didBranch)
+                // this patch calls OnBuildInspectorHeaderText unconditionally (even if there is no InspectorHeaderAttribute)
+                if (afterHeaderTextBranchLabel is null && !headerTextDone &&
+                    instruction.opcode == OpCodes.Ldloc_1 && 
+                    instArr[i-1].opcode == OpCodes.Stloc_1 && 
+                    instArr[i-2].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
                 {
-                    if (afterHeaderBranchLabel != null && !headerDone)
-                    {
-                        // check Enabled
-                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
+                    afterHeaderTextBranchLabel = GetNextBranchLabel(instArr, i+1);
 
-                        // do header patch
-                        yield return new CodeInstruction(OpCodes.Ldloc_0);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 0);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 2);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 3);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 4);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 5);
-                        yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
 
-                        // skip original if did patch
-                        yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
+                    // do header text patch
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
 
-                        // mark after patch (start of original)
-                        yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
-                        headerDone = true;
-                    }
-                    if (afterHeaderTextBranchLabel != null && !headerTextDone)
-                    {
-                        // check Enabled
-                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
+                    // skip original if did patch
+                    yield return new CodeInstruction(OpCodes.Br, afterHeaderTextBranchLabel);
 
-                        // do header text patch
-                        yield return new CodeInstruction(OpCodes.Ldloc_0);
-                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
-                        yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
-
-                        // skip original if did patch
-                        yield return new CodeInstruction(OpCodes.Br, afterHeaderTextBranchLabel);
-
-                        // mark after patch (start of original)
-                        yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
-                        headerTextDone = true;
-                    }
+                    // mark after patch (start of original)
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
+                    headerTextDone = true;
                 }
                 if (bodyDone && !injectedAfterBodyOriginal)
                 {
