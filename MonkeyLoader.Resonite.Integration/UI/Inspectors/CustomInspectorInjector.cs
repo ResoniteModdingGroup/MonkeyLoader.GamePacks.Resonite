@@ -41,21 +41,15 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
             bool storedVerticalLayout = false;
-            Label? headerLabel = null;
-            Label? headerTextLabel = null;
+            Label? afterHeaderBranchLabel = null;
+            Label? afterHeaderTextBranchLabel = null;
             bool headerDone = false;
             bool headerTextDone = false;
             bool bodyDone = false;
-            bool afterHeaderBranch = false;
-            bool afterHeaderTextBranch = false;
 
             Label afterHeaderPatchLabel = generator.DefineLabel();
-            Label afterHeaderOriginalLabel = generator.DefineLabel();
-            bool injectedAfterHeaderOriginal = false;
 
             Label afterHeaderTextPatchLabel = generator.DefineLabel();
-            Label afterHeaderTextOriginalLabel = generator.DefineLabel();
-            bool injectedAfterHeaderTextOriginal = false;
 
             Label beforeBodyPatchLabel = generator.DefineLabel();
             Label afterBodyPatchLabel = generator.DefineLabel();
@@ -67,28 +61,20 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             {
                 var instruction = instArr[i];
                 bool didBranch = false;
-                if (headerLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
+                if (afterHeaderBranchLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
-                    headerLabel = (Label)instruction.operand;
+                    afterHeaderBranchLabel = (Label)instruction.operand;
                     didBranch = true;
                 }
-                if (headerTextLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
+                if (afterHeaderTextBranchLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
                     instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
                 {
-                    headerTextLabel = (Label)instruction.operand;
+                    afterHeaderTextBranchLabel = (Label)instruction.operand;
                     didBranch = true;
                 }
                 if (!didBranch)
                 {
-                    if (headerLabel.HasValue && instruction.labels.Contains(headerLabel.Value) && instruction.operand != (object)headerLabel.Value)
-                    {
-                        afterHeaderBranch = true;
-                    }
-                    if (headerTextLabel.HasValue && instruction.labels.Contains(headerTextLabel.Value) && instruction.operand != (object)headerTextLabel.Value)
-                    {
-                        afterHeaderTextBranch = true;
-                    }
-                    if (headerLabel != null && !headerDone)
+                    if (afterHeaderBranchLabel != null && !headerDone)
                     {
                         // check Enabled
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
@@ -105,12 +91,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
 
                         // skip original
-                        yield return new CodeInstruction(OpCodes.Br, afterHeaderOriginalLabel);
+                        yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
 
                         yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
                         headerDone = true;
                     }
-                    if (headerTextLabel != null && !headerTextDone)
+                    if (afterHeaderTextBranchLabel != null && !headerTextDone)
                     {
                         // check Enabled
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
@@ -122,21 +108,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
 
                         // skip original
-                        yield return new CodeInstruction(OpCodes.Br, afterHeaderTextOriginalLabel);
+                        yield return new CodeInstruction(OpCodes.Br, afterHeaderTextBranchLabel);
 
                         yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
                         headerTextDone = true;
                     }
-                }
-                if (headerDone && afterHeaderBranch && !injectedAfterHeaderOriginal)
-                {
-                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderOriginalLabel] };
-                    injectedAfterHeaderOriginal = true;
-                }
-                if (headerTextDone && afterHeaderTextBranch && !injectedAfterHeaderTextOriginal)
-                {
-                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextOriginalLabel] };
-                    injectedAfterHeaderTextOriginal = true;
                 }
                 if (bodyDone && !injectedAfterBodyOriginal)
                 {
