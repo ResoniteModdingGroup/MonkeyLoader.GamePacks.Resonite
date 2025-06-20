@@ -50,15 +50,15 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             bool afterHeaderTextBranch = false;
             List<Label?> labels = new();
 
-            Label skipHeaderLabel = generator.DefineLabel();
+            Label afterHeaderPatchLabel = generator.DefineLabel();
             Label afterHeaderOriginalLabel = generator.DefineLabel();
             bool injectedAfterHeaderOriginal = false;
 
-            Label skipHeaderTextLabel = generator.DefineLabel();
+            Label afterHeaderTextPatchLabel = generator.DefineLabel();
             Label afterHeaderTextOriginalLabel = generator.DefineLabel();
             bool injectedAfterHeaderTextOriginal = false;
 
-            Label skipBodyLabel = generator.DefineLabel();
+            Label afterBodyPatchLabel = generator.DefineLabel();
             Label afterBodyOriginalLabel = generator.DefineLabel();
             bool injectedAfterBodyOriginal = false;
 
@@ -100,7 +100,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     {
                         // check Enabled
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brfalse, skipHeaderLabel);
+                        yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
 
                         // do header
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
@@ -112,29 +112,27 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Ldarg, 5);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
 
-                        // check Enabled
-                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brtrue, afterHeaderOriginalLabel);
+                        // skip original
+                        yield return new CodeInstruction(OpCodes.Br, afterHeaderOriginalLabel);
 
-                        yield return new CodeInstruction(OpCodes.Nop) { labels = [skipHeaderLabel] };
+                        yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
                         headerDone = true;
                     }
                     if (headerTextLabel != null && !headerTextDone)
                     {
                         // check Enabled
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brfalse, skipHeaderTextLabel);
+                        yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
 
                         // do header text
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 1);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
 
-                        // check Enabled
-                        yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                        yield return new CodeInstruction(OpCodes.Brtrue, afterHeaderTextOriginalLabel);
+                        // skip original
+                        yield return new CodeInstruction(OpCodes.Br, afterHeaderTextOriginalLabel);
 
-                        yield return new CodeInstruction(OpCodes.Nop) { labels = [skipHeaderTextLabel] };
+                        yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
                         headerTextDone = true;
                     }
                 }
@@ -164,7 +162,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 {
                     // check Enabled
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                    yield return new CodeInstruction(OpCodes.Brfalse, skipBodyLabel);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterBodyPatchLabel);
 
                     // do body
                     yield return new CodeInstruction(OpCodes.Ldloc_0);
@@ -176,11 +174,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
 
-                    // check Enabled
-                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
-                    yield return new CodeInstruction(OpCodes.Brtrue, afterBodyOriginalLabel);
+                    // skip original
+                    yield return new CodeInstruction(OpCodes.Br, afterBodyOriginalLabel);
 
-                    yield return new CodeInstruction(OpCodes.Nop) { labels = [skipBodyLabel] };
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyPatchLabel] };
                     bodyDone = true;
                 }
             }
