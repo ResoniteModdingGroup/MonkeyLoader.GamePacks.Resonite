@@ -80,7 +80,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                         yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
 
-                        // do header
+                        // do header patch
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 1);
@@ -90,9 +90,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Ldarg, 5);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
 
-                        // skip original
+                        // skip original if did patch
                         yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
 
+                        // mark after patch (start of original)
                         yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
                         headerDone = true;
                     }
@@ -102,14 +103,15 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                         yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                         yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
 
-                        // do header text
+                        // do header text patch
                         yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Ldarg, 1);
                         yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
 
-                        // skip original
+                        // skip original if did patch
                         yield return new CodeInstruction(OpCodes.Br, afterHeaderTextBranchLabel);
 
+                        // mark after patch (start of original)
                         yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
                         headerTextDone = true;
                     }
@@ -137,7 +139,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod) { labels = [beforeBodyPatchLabel] };
                     yield return new CodeInstruction(OpCodes.Brfalse, afterBodyPatchLabel);
 
-                    // do body
+                    // do body patch
                     yield return new CodeInstruction(OpCodes.Ldloc_0);
                     yield return new CodeInstruction(OpCodes.Ldarg, 0);
                     yield return new CodeInstruction(OpCodes.Ldarg, 1);
@@ -147,9 +149,10 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
 
-                    // skip original
+                    // skip original if did patch
                     yield return new CodeInstruction(OpCodes.Br, afterBodyOriginalLabel);
 
+                    // mark after patch (start of original)
                     yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyPatchLabel] };
                     bodyDone = true;
                 }
