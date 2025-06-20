@@ -6,6 +6,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -17,61 +19,169 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     {
         public override bool CanBeDisabled => true;
 
-        [HarmonyPrefix]
-        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
-            bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
+        private static MethodInfo _buildHeaderMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeader));
+        private static MethodInfo _buildHeaderTextMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeaderText));
+        private static MethodInfo _buildBodyMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorBody));
+        private static MethodInfo _storeVerticalLayoutMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(StoreVerticalLayout));
+
+        private static VerticalLayout _verticalLayout;
+
+        private static void StoreVerticalLayout(VerticalLayout layout)
         {
-            if (!Enabled)
-                return true;
-
-            var ui = new UIBuilder(__instance.Slot);
-            RadiantUI_Constants.SetupEditorStyle(ui);
-            ui.Style.RequireLockInToPress = true;
-            var vertical = ui.VerticalLayout(6f);
-
-            if (worker is not Slot)
-            {
-                ui.Style.MinHeight = 32f;
-                ui.HorizontalLayout(4f);
-                ui.Style.MinHeight = 24f;
-                ui.Style.FlexibleWidth = 1000f;
-
-                OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-                ui.NestInto(vertical.Slot);
-            }
-
-            OnBuildInspectorHeaderText(ui, worker);
-
-            if (worker is ICustomInspector customInspector)
-            {
-                try
-                {
-                    ui.Style.MinHeight = 24f;
-                    customInspector.BuildInspectorUI(ui);
-                }
-                catch (Exception ex)
-                {
-                    ui.Text((LocaleString)"EXCEPTION BUILDING UI. See log");
-                    UniLog.Error(ex.ToString(), stackTrace: false);
-                }
-            }
-            else
-            {
-                WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
-            }
-
-            OnBuildInspectorBody(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-            ui.Style.MinHeight = 8f;
-            ui.Panel();
-            ui.NestOut();
-
-            return false;
+            _verticalLayout = layout;
         }
 
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            bool storedVerticalLayout = false;
+            Label? headerLabel = null;
+            Label? headerTextLabel = null;
+            bool headerDone = false;
+            bool headerTextDone = false;
+            bool bodyDone = false;
+            bool afterHeaderBranch = false;
+            bool afterHeaderTextBranch = false;
+            int numBranches = 0;
+            int branchDepth = 0;
+            List<Label?> labels = new();
+            foreach (var instruction in instructions)
+            {
+                bool didBranch = false;
+                if (instruction.Branches(out var label))
+                {
+                    if (numBranches == 0)
+                        headerLabel = label;
+                    else if (numBranches == 4)
+                        headerTextLabel = label;
+                    numBranches++;
+                    branchDepth++;
+                    didBranch = true;
+                    labels.Add(label);
+                }
+                if (!didBranch)
+                {
+                    if (branchDepth > 0)
+                    {
+                        foreach (var storedLabel in labels.ToArray())
+                        {
+                            if (instruction.labels.Contains(storedLabel!.Value))
+                            {
+                                if (storedLabel == headerLabel)
+                                    afterHeaderBranch = true;
+                                else if (storedLabel == headerTextLabel)
+                                    afterHeaderTextBranch = true;
+                                labels.Remove(storedLabel);
+                                branchDepth--;
+                                break;
+                            }
+                        }
+                    }
+                    if (numBranches == 1 && !headerDone)
+                    {
+                        // do header
+                        yield return new CodeInstruction(OpCodes.Ldloc_0);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                        yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+                        headerDone = true;
+                        //continue;
+                    }
+                    if (numBranches == 6 && !headerTextDone)
+                    {
+                        // do header text
+                        yield return new CodeInstruction(OpCodes.Ldloc_0);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                        yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
+                        headerTextDone = true;
+                        //continue;
+                    }
+                    if (numBranches == 7 && branchDepth == 0 && !bodyDone)
+                    {
+                        // do body
+                        yield return new CodeInstruction(OpCodes.Ldloc_0);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                        yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                        yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
+                        bodyDone = true;
+                        //continue;
+                    }
+                }
+                if (headerDone && !afterHeaderBranch) continue;
+                if (headerTextDone && !afterHeaderTextBranch) continue;
+                yield return instruction;
+                if (!storedVerticalLayout && instruction.Calls(AccessTools.Method(typeof(UIBuilder), nameof(UIBuilder.VerticalLayout), [typeof(float), typeof(float), typeof(Alignment?), typeof(bool?), typeof(bool?)])))
+                {
+                    yield return new CodeInstruction(OpCodes.Dup);
+                    yield return new CodeInstruction(OpCodes.Call, _storeVerticalLayoutMethod);
+                    storedVerticalLayout = true;
+                }
+            }
+        }
+
+        //[HarmonyPrefix]
+        //private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
+        //    bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
+        //{
+        //    if (!Enabled)
+        //        return true;
+
+        //    var ui = new UIBuilder(__instance.Slot);
+        //    RadiantUI_Constants.SetupEditorStyle(ui);
+        //    ui.Style.RequireLockInToPress = true;
+        //    var vertical = ui.VerticalLayout(6f);
+
+        //    if (worker is not Slot)
+        //    {
+        //        ui.Style.MinHeight = 32f;
+        //        ui.HorizontalLayout(4f);
+        //        ui.Style.MinHeight = 24f;
+        //        ui.Style.FlexibleWidth = 1000f;
+
+        //        OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
+
+        //        ui.NestInto(vertical.Slot);
+        //    }
+
+        //    OnBuildInspectorHeaderText(ui, worker);
+
+        //    if (worker is ICustomInspector customInspector)
+        //    {
+        //        try
+        //        {
+        //            ui.Style.MinHeight = 24f;
+        //            customInspector.BuildInspectorUI(ui);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            ui.Text((LocaleString)"EXCEPTION BUILDING UI. See log");
+        //            UniLog.Error(ex.ToString(), stackTrace: false);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
+        //    }
+
+        //    OnBuildInspectorBody(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
+
+        //    ui.Style.MinHeight = 8f;
+        //    ui.Panel();
+        //    ui.NestOut();
+
+        //    return false;
+        //}
+
         private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
-            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+            bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
             var root = ui.Root;
 
@@ -83,8 +193,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         }
 
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
-            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+            bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
+            ui.Style.MinHeight = 32f;
+            ui.HorizontalLayout(4f);
+            ui.Style.MinHeight = 24f;
+            ui.Style.FlexibleWidth = 1000f;
+
             var root = ui.Root;
 
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
@@ -92,6 +207,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             Dispatch(eventData);
 
             ui.NestInto(root);
+            ui.NestInto(_verticalLayout.Slot);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
