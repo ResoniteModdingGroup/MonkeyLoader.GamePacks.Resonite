@@ -66,20 +66,18 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             for (int i = 0; i < instArr.Length; i++)
             {
                 var instruction = instArr[i];
+                bool didBranch = false;
                 if (headerLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
                     headerLabel = (Label)instruction.operand;
                     labels.Add(headerLabel);
+                    didBranch = true;
                 }
                 if (headerTextLabel is null && instruction.opcode == OpCodes.Brfalse_S && instArr[i-1].opcode == OpCodes.Ldloc_1 && instArr[i-2].opcode == OpCodes.Stloc_1 && 
                     instArr[i-3].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
                 {
                     headerTextLabel = (Label)instruction.operand;
                     labels.Add(headerTextLabel);
-                }
-                bool didBranch = false;
-                if (instruction.Branches(out var label))
-                {
                     didBranch = true;
                 }
                 if (!didBranch)
@@ -93,7 +91,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                             else if (storedLabel == headerTextLabel)
                                 afterHeaderTextBranch = true;
                             labels.Remove(storedLabel);
-                            break;
                         }
                     }
                     if (headerLabel != null && !headerDone)
