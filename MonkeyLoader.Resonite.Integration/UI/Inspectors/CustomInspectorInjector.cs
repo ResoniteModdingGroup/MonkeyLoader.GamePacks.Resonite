@@ -67,8 +67,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             Label beforeBodyPatchLabel = generator.DefineLabel();
             Label afterBodyPatchLabel = generator.DefineLabel();
-            Label afterBodyOriginalLabel = generator.DefineLabel();
-            bool injectedAfterBodyOriginal = false;
 
             CodeInstruction[] instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
@@ -127,11 +125,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
                     headerTextDone = true;
                 }
-                if (bodyDone && !injectedAfterBodyOriginal)
-                {
-                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyOriginalLabel] };
-                    injectedAfterBodyOriginal = true;
-                }
                 if (instruction.opcode == OpCodes.Leave_S &&
                     (instArr[i - 1].Calls(AccessTools.Method(typeof(UniLog), nameof(UniLog.Error))) || instArr[i - 1].Calls(AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI)))))
                 {
@@ -160,8 +153,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Ldarg, 5);
                     yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
 
-                    // skip original if did patch
-                    yield return new CodeInstruction(OpCodes.Br, afterBodyOriginalLabel);
+                    // there is no "original" in this case
 
                     // mark after patch (start of original)
                     yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyPatchLabel] };
