@@ -3,11 +3,16 @@
   "authors": [ "Banane9" ],
   "messages": {
     "Settings.MonkeyLoader.Breadcrumb": "Einstellungen",
+    "Settings.SaveConfig.Breadcrumb": "Speichere Einstellungen",
+    "Settings.ResetConfig.Breadcrumb": "Stelle Standardeinstellungen wieder her",
+    "Settings.ExportLocaleFile.Breadcrumb": "Exportiere Fallback Lokalisierungsdaten",
 
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Value": "{available, plural, =0{Keine Monkeys} other{<b>{active}</b> {active, plural, one{aktiver Monkey} other{aktive Monkeys}} von <b>{available}</b> verfügbaren}}.",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{Keine Early Monkeys} other{<b>{active}</b> {active, plural, one{aktiver Early Monkey} other{aktive Early Monkeys}} von <b>{available}</b> verfügbaren}}.",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "MonkeyLoader-Einstellungen Öffnen",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Öffnet die Einstellungen für den Modloader selbst.",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Label": "Fallback Lokalisierungsdaten Exportieren",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Ausgabe Pfad",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "Metadaten",
     "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Zeigt eine Übersicht über die Mod.",
@@ -65,6 +70,7 @@
     "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Läd automatisch die Übersetzungsdateien aus den Dateisystemen der Mods.",
     "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Versendet das Locale Generation Event, damit Monkeys Übersetzungsnachrichten laden können.",
     "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Erlaubt es auch Sprachen auszuwählen, die nicht direkt einen bekannten Kulturcode angeben, solange sie trotzdem auf einem bekannten Code basieren.",
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "Fügt einen Button zur Metadaten Sektion der Mods hinzu, welcher es erlaubt, deren programmatisch generierte Übersetzungsnachrichten zu exportieren.<br/>Da dies nur für Entwicklungszwecke gebraucht wird, ist es standardmäßig deaktiviert.",
     "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Sorgt dafür, dass die Übersetzungsnachrichten von Mods für Benutzer ohne die Mod auf Englisch angezeigt werden.",
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Erlaubt es funktionierende alleinstehende Facets der MonkeyLoader Mod Optionen zu erstellen.",
     "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Fügt die MonkeyLoader Kategorie zu den Optionen hinzu.",

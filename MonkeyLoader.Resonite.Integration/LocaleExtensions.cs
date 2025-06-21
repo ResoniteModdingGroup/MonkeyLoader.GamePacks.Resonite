@@ -38,6 +38,29 @@ namespace MonkeyLoader.Resonite
         public static LocaleResourceData FallbackLocale { get; private set; } = new();
 
         /// <summary>
+        /// Exports the fallback <see cref="Elements.Assets.LocaleData">locale
+        /// data</see> of this mod into a json file.
+        /// </summary>
+        /// <inheritdoc cref="ExportFallbackLocaleFileAsync"/>
+        public static void ExportFallbackLocaleFile(this Mod mod)
+            => Engine.Current.GlobalCoroutineManager.StartBackgroundTask(() =>
+                ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod)).Wait();
+
+        /// <summary>
+        /// Asynchronously exports the fallback <see cref="Elements.Assets.LocaleData">locale
+        /// data</see> of this mod into a json file.
+        /// </summary>
+        /// <remarks>
+        /// The file can be found at: <c>Resonite/MonkeyLoader/LocaleExport/{<paramref name="mod"/>.<see cref="Mod.Id">Id</see>}-en.json</c><br/>
+        /// This method represents an in-code alternative to starting the game
+        /// and exporting the locale data through the entry in the settings.
+        /// </remarks>
+        /// <param name="mod">The mod to export the fallback locale data for.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public static async Task ExportFallbackLocaleFileAsync(this Mod mod)
+            => await ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod);
+
+        /// <summary>
         /// Gets the formatted, localized message of this <see cref="LocaleString"/>
         /// according to the <see cref="CurrentLocale">current locale</see>.
         /// </summary>
@@ -323,7 +346,7 @@ namespace MonkeyLoader.Resonite
             => Userspace.Current.GetCoreLocale().Asset.ForceAssetUpdate();
 
         private static (string, object)[] AddModIndicator(this (string, object)[]? arguments, IIdentifiable identifiable)
-            => [.. (arguments ?? []), (ModLocaleStringIndicatorArgumentName, identifiable.GetModId())];
+            => [.. arguments ?? [], (ModLocaleStringIndicatorArgumentName, identifiable.GetModId())];
 
         private static Dictionary<string, object> AddModIndicator(this Dictionary<string, object>? arguments, IIdentifiable identifiable)
         {
