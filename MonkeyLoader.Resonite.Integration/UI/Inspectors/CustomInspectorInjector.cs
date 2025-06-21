@@ -56,6 +56,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             Label beforeBodyPatchLabel = generator.DefineLabel();
             Label afterBodyPatchLabel = generator.DefineLabel();
 
+            var getCustomAttributeMethod = AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)]);
+            var unilogErrorMethod = AccessTools.Method(typeof(UniLog), nameof(UniLog.Error));
+            var customInspectorBuildUiMethod = AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI));
+            var workerInspectorBuildUiMethod = AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI));
+
             CodeInstruction[] instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
             {
@@ -93,7 +98,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (afterHeaderTextBranchLabel is null && !headerTextDone &&
                     instruction.opcode == OpCodes.Ldloc_1 && 
                     instArr[i-1].opcode == OpCodes.Stloc_1 && 
-                    instArr[i-2].Calls(AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)])))
+                    instArr[i-2].Calls(getCustomAttributeMethod))
                 {
                     afterHeaderTextBranchLabel = GetNextBranchLabel(instArr, i+1);
 
@@ -114,12 +119,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     headerTextDone = true;
                 }
                 if (instruction.opcode == OpCodes.Leave_S &&
-                    (instArr[i - 1].Calls(AccessTools.Method(typeof(UniLog), nameof(UniLog.Error))) || instArr[i - 1].Calls(AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI)))))
+                    (instArr[i - 1].Calls(unilogErrorMethod) || instArr[i - 1].Calls(customInspectorBuildUiMethod)))
                 {
                     instruction.operand = beforeBodyPatchLabel;
                 }
                 yield return instruction;
-                if (!bodyDone && instruction.Calls(AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI))))
+                if (!bodyDone && instruction.Calls(workerInspectorBuildUiMethod))
                 {
                     // check Enabled
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod) { labels = [beforeBodyPatchLabel] };
