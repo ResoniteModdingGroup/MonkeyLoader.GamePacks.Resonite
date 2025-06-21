@@ -16,8 +16,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         protected override Task Handle(FallbackLocaleGenerationEvent eventData)
             => Task.Run(() => GenerateLocaleMessages(eventData));
 
@@ -49,9 +47,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
                     eventData.AddMessage(monkeyNameKey, monkey.Name);
                     eventData.AddMessage(monkey.GetLocaleKey("Description"), "No Description");
-
-                    if (monkey.CanBeDisabled)
-                        eventData.AddMessage(mod.MonkeyToggles.GetToggle(monkey).GetLocaleKey("Name"), $"{eventData.GetMessage(monkeyNameKey)} Enabled");
                 }
 
                 foreach (var configSection in mod.Config.Sections)
