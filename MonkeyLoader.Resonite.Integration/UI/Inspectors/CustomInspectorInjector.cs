@@ -34,11 +34,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             int i = startIndex;
             while (i < codes.Length)
             {
-                if (codes[i].Branches(out var label))
-                {
+                if (codes[i++].Branches(out var label))
                     return label;
-                }
-                i++;
             }
             return null;
         }
