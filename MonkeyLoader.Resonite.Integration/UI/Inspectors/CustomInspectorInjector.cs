@@ -6,6 +6,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -17,61 +19,138 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
     {
         public override bool CanBeDisabled => true;
 
-        [HarmonyPrefix]
-        private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,
-            bool allowRemove, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
+        private static MethodInfo _buildHeaderMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeader));
+        private static MethodInfo _buildHeaderTextMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorHeaderText));
+        private static MethodInfo _buildBodyMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(OnBuildInspectorBody));
+        private static MethodInfo _getEnabledMethod = AccessTools.Method(typeof(CustomInspectorInjector), nameof(GetEnabled));
+
+        private static bool GetEnabled()
         {
-            if (!Enabled)
-                return true;
+            return Enabled;
+        }
 
-            var ui = new UIBuilder(__instance.Slot);
-            RadiantUI_Constants.SetupEditorStyle(ui);
-            ui.Style.RequireLockInToPress = true;
-            var vertical = ui.VerticalLayout(6f);
-
-            if (worker is not Slot)
+        private static Label? GetNextBranchLabel(CodeInstruction[] codes, int startIndex)
+        {
+            int i = startIndex;
+            while (i < codes.Length)
             {
-                ui.Style.MinHeight = 32f;
-                ui.HorizontalLayout(4f);
-                ui.Style.MinHeight = 24f;
-                ui.Style.FlexibleWidth = 1000f;
-
-                OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-                ui.NestInto(vertical.Slot);
+                if (codes[i++].Branches(out var label))
+                    return label;
             }
+            return null;
+        }
 
-            OnBuildInspectorHeaderText(ui, worker);
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            Label? afterHeaderBranchLabel = null;
+            Label? afterHeaderTextBranchLabel = null;
+            bool headerDone = false;
+            bool headerTextDone = false;
+            bool bodyDone = false;
 
-            if (worker is ICustomInspector customInspector)
+            Label afterHeaderPatchLabel = generator.DefineLabel();
+
+            Label afterHeaderTextPatchLabel = generator.DefineLabel();
+
+            Label beforeBodyPatchLabel = generator.DefineLabel();
+            Label afterBodyPatchLabel = generator.DefineLabel();
+
+            var getCustomAttributeMethod = AccessTools.Method(typeof(CustomAttributeExtensions), nameof(CustomAttributeExtensions.GetCustomAttribute), [typeof(MemberInfo)], [typeof(InspectorHeaderAttribute)]);
+            var unilogErrorMethod = AccessTools.Method(typeof(UniLog), nameof(UniLog.Error));
+            var customInspectorBuildUiMethod = AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI));
+            var workerInspectorBuildUiMethod = AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI));
+
+            CodeInstruction[] instArr = instructions.ToArray();
+            for (int i = 0; i < instArr.Length; i++)
             {
-                try
+                var instruction = instArr[i];
+                bool branchFound = false;
+                if (afterHeaderBranchLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
-                    ui.Style.MinHeight = 24f;
-                    customInspector.BuildInspectorUI(ui);
+                    afterHeaderBranchLabel = (Label)instruction.operand;
+                    branchFound = true;
                 }
-                catch (Exception ex)
+                if (!branchFound && afterHeaderBranchLabel != null && !headerDone)
                 {
-                    ui.Text((LocaleString)"EXCEPTION BUILDING UI. See log");
-                    UniLog.Error(ex.ToString(), stackTrace: false);
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
+
+                    // do header patch
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                    yield return new CodeInstruction(OpCodes.Call, _buildHeaderMethod);
+
+                    // skip original if did patch
+                    yield return new CodeInstruction(OpCodes.Br, afterHeaderBranchLabel);
+
+                    // mark after patch (start of original)
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderPatchLabel] };
+                    headerDone = true;
+                }
+                // this patch calls OnBuildInspectorHeaderText unconditionally (even if there is no InspectorHeaderAttribute)
+                if (afterHeaderTextBranchLabel is null && !headerTextDone &&
+                    instruction.opcode == OpCodes.Ldloc_1 && 
+                    instArr[i-1].opcode == OpCodes.Stloc_1 && 
+                    instArr[i-2].Calls(getCustomAttributeMethod))
+                {
+                    afterHeaderTextBranchLabel = GetNextBranchLabel(instArr, i+1);
+
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
+
+                    // do header text patch
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
+
+                    // skip original if did patch
+                    yield return new CodeInstruction(OpCodes.Br, afterHeaderTextBranchLabel);
+
+                    // mark after patch (start of original)
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
+                    headerTextDone = true;
+                }
+                if (instruction.opcode == OpCodes.Leave_S &&
+                    (instArr[i - 1].Calls(unilogErrorMethod) || instArr[i - 1].Calls(customInspectorBuildUiMethod)))
+                {
+                    instruction.operand = beforeBodyPatchLabel;
+                }
+                yield return instruction;
+                if (!bodyDone && instruction.Calls(workerInspectorBuildUiMethod))
+                {
+                    // check Enabled
+                    yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod) { labels = [beforeBodyPatchLabel] };
+                    yield return new CodeInstruction(OpCodes.Brfalse, afterBodyPatchLabel);
+
+                    // do body patch
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 1);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 2);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 3);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 4);
+                    yield return new CodeInstruction(OpCodes.Ldarg, 5);
+                    yield return new CodeInstruction(OpCodes.Call, _buildBodyMethod);
+
+                    // there is no "original" in this case
+
+                    // mark after patch (start of original)
+                    yield return new CodeInstruction(OpCodes.Nop) { labels = [afterBodyPatchLabel] };
+                    bodyDone = true;
                 }
             }
-            else
-            {
-                WorkerInspector.BuildInspectorUI(worker, ui, memberFilter);
-            }
-
-            OnBuildInspectorBody(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
-
-            ui.Style.MinHeight = 8f;
-            ui.Panel();
-            ui.NestOut();
-
-            return false;
         }
 
         private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
-            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+            bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
             var root = ui.Root;
 
@@ -83,9 +162,14 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         }
 
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
-            bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
+            bool allowDestroy, bool allowDuplicate, bool allowContainer, Predicate<ISyncMember> memberFilter)
         {
             var root = ui.Root;
+
+            ui.Style.MinHeight = 32f;
+            ui.HorizontalLayout(4f);
+            ui.Style.MinHeight = 24f;
+            ui.Style.FlexibleWidth = 1000f;
 
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
