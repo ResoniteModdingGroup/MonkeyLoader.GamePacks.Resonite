@@ -31,9 +31,6 @@ namespace MonkeyLoader.Resonite.Locale
             => base.AppliesTo(eventData) && eventData.LocaleCode == LocaleCode;
 
         /// <inheritdoc/>
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
-        /// <inheritdoc/>
         protected override async Task Handle(LocaleLoadingEvent eventData)
         {
             var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource._formatMessages);

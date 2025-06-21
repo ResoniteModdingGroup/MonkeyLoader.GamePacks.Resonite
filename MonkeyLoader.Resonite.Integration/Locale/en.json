@@ -6,6 +6,7 @@
     "Settings.MonkeyLoader.Breadcrumb": "Settings",
     "Settings.SaveConfig.Breadcrumb": "Saving Config",
     "Settings.ResetConfig.Breadcrumb": "Resetting Config",
+    "Settings.ExportLocaleFile.Breadcrumb": "Exporting Fallback Locale Data",
 
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.Name": "MonkeyLoader",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Name": "Monkeys",
@@ -14,6 +15,8 @@
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{No Early Monkeys} other{<b>{active}</b> Early {active, plural, one{Monkey} other{Monkeys}} active out of <b>{available}</b> available}}.",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "Open MonkeyLoader Settings",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Opens the settings for the mod loader itself.",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Label": "Export Fallback Locale Data",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Output Path",
 
     "MonkeyLoader.GamePacks.Resonite.Mods": "Mods",
     "MonkeyLoader.GamePacks.Resonite.GamePacks": "Game Packs",
@@ -80,6 +83,7 @@
     "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Automatically loads locale files from the mods' file systems.",
     "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Sends out the Locale Generation event for Monkeys to load locale messages.",
     "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Allows selecting locales that don't directly map to a known culture code, as long as they're still based on a known code.",
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "Adds a button to the mods' Metadata sections that allows exporting their programmatically generated locale messages.<br/>As this is for development purposes only, it's disabled by default.",
     "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Ensures that mods' locale messages show up as the (English) fallback value for users without the mod adding them.",
     "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Allows creating working standalone facets from MonkeyLoader Mod Settings items.",
     "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Adds the MonkeyLoader category to the Settings.",

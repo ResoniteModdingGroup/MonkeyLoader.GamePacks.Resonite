@@ -1,4 +1,5 @@
 ﻿using Elements.Assets;
+using EnumerableToolkit;
 using MonkeyLoader.Events;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,12 @@ namespace MonkeyLoader.Resonite.Locale
     public sealed class FallbackLocaleGenerationEvent : AsyncEvent
     {
         private readonly Dictionary<string, LocaleResource.Message> _messages;
+
+        /// <summary>
+        /// Gets all currently known message keys with their associated messages.
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, LocaleResource.Message>> Messages
+            => _messages.AsSafeEnumerable();
 
         internal FallbackLocaleGenerationEvent(Dictionary<string, LocaleResource.Message> messages)
         {
