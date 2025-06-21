@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
 {
@@ -34,33 +35,28 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
             foreach (var nestedType in nestedTypes)
             {
-                if (nestedType.Name.Contains("c__DisplayClass328_0"))
+                var methods = nestedType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+                var targetMethod = methods.FirstOrDefault(m => m.Name.Contains(nameof(InteractionHandler.OpenContextMenu)) && m.ReturnType == typeof(Task));
+                if (targetMethod != null)
                 {
                     var nestedTypes2 = nestedType.GetNestedTypes(BindingFlags.NonPublic);
                     var fields = nestedType.GetFields(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var field in fields)
                     {
-                        if (field.Name.Contains("4__this"))
-                        {
+                        if (field.FieldType == typeof(InteractionHandler))
                             _handlerField = field;
-                        }
-                        if (field.Name.Contains("menu"))
-                        {
+                        if (field.FieldType == typeof(ContextMenu))
                             _menuField = field;
-                        }
                     }
                     foreach (var nestedType2 in nestedTypes2)
                     {
-                        if (nestedType2.Name.Contains("<<OpenContextMenu>b__0>d"))
-                        {
-                            
+                        if (nestedType2.GetInterfaces()[0] == typeof(IAsyncStateMachine))
                             return nestedType2.GetMethod("MoveNext", BindingFlags.NonPublic | BindingFlags.Instance);
-                        }
                     }
                 }
             }
 
-            throw new Exception("Could not find async state machine");
+            throw new Exception("Could not find async state machine MoveNext");
         }
 
         private static bool GetEnabled()
@@ -71,6 +67,17 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         private static bool GetAlwaysShowLocomotionOrScaling()
         {
             return ConfigSection.AlwaysShowLocomotionOrScaling;
+        }
+
+        private static int IndexOfPreviousBranch(CodeInstruction[] codes, int startIndex)
+        {
+            int i = startIndex;
+            while (i >= 0)
+            {
+                if (codes[i--].Branches(out var label)) 
+                    return i;
+            }
+            return -1;
         }
 
         private static LocaleString AsMenuLocaleKey(string key)
@@ -119,8 +126,6 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _saveItemsMethod);
@@ -141,8 +146,6 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Ldloc_S, 4);
@@ -163,8 +166,12 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                 // look for: if (!hasTooltip || base.InputInterface.ScreenActive)
                 if (afterNotHasTooltipBranchLabel is null && instruction.opcode == OpCodes.Brfalse && instArr[i-1].Calls(AccessTools.Method(typeof(InputInterface), "get_ScreenActive")))
                 {
-                    afterNotHasTooltipBranchLabel = (Label)instruction.operand;
-                    instruction.operand = newBranchForNotTooltipLabel;
+                    var indexOfPrevBranch = IndexOfPreviousBranch(instArr, i-1);
+                    if (instArr[indexOfPrevBranch-1].opcode == OpCodes.Ldloc_S && instArr[indexOfPrevBranch-1].operand == (object)4)
+                    {
+                        afterNotHasTooltipBranchLabel = (Label)instruction.operand;
+                        instruction.operand = newBranchForNotTooltipLabel;
+                    }
                 }
 
                 yield return instruction;
@@ -178,8 +185,6 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    //yield return new CodeInstruction(OpCodes.Ldloc_1);
-                    //yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
                     yield return new CodeInstruction(OpCodes.Ldloc_1);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _handleEndMethod);
