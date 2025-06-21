@@ -1,7 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +15,6 @@ namespace MonkeyLoader.Resonite.Locale
     [HarmonyPatchCategory(nameof(ModLocaleFallbackDriver))]
     internal sealed class ModLocaleFallbackDriver : ResoniteMonkey<ModLocaleFallbackDriver>
     {
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
-
         private static void AddFallbackMessage(IField<string> field, LocaleStringDriver localeDriver, string notFoundMessage, string fallbackMessage)
         {
             var booleanDriver = localeDriver.Slot.AttachComponent<BooleanValueDriver<string>>();
