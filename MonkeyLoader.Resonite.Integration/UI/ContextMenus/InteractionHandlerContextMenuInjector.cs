@@ -26,6 +26,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         private static MethodInfo _handleEndMethod = AccessTools.Method(typeof(InteractionHandlerContextMenuInjector), nameof(HandleEnd));
         private static FieldInfo _handlerField;
         private static FieldInfo _menuField;
+        private static FieldInfo _displayClassField;
 
         [HarmonyTargetMethod]
         static MethodBase TargetMethod()
@@ -51,7 +52,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     foreach (var nestedType2 in nestedTypes2)
                     {
                         if (nestedType2.GetInterfaces()[0] == typeof(IAsyncStateMachine))
+                        {
+                            var fields2 = nestedType2.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                            _displayClassField = fields2.FirstOrDefault(f => f.FieldType == nestedType);
                             return nestedType2.GetMethod("MoveNext", BindingFlags.NonPublic | BindingFlags.Instance);
+                        }
                     }
                 }
             }
@@ -80,6 +85,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             return -1;
         }
 
+        private static int GetLocalIndex(CodeInstruction inst)
+        {
+            if (inst.operand is LocalBuilder localBuilder)
+                return localBuilder.LocalIndex;
+            return inst.LocalIndex();
+        }
+
         private static LocaleString AsMenuLocaleKey(string key)
             => key.AsLocaleKey(continuous: false, null);
 
@@ -105,7 +117,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator, MethodBase original)
         {
-            var instArr = instructions.ToArray();
+            CodeInstruction[] instArr = instructions.ToArray();
             bool saveItemDone = false;
             bool notHasTooltipDone = false;
             bool endDone = false;
@@ -115,18 +127,22 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             Label afterNotHasTooltipPatchLabel = generator.DefineLabel();
             Label newBranchForNotTooltipLabel = generator.DefineLabel();
             Label afterEndLabel = generator.DefineLabel();
+            int hasTooltipIndex = -1;
+            int displayClassIndex = -1;
+            int endAwaiterIndex = -1;
+
             for (int i = 0; i < instArr.Length; i++)
             {
                 var instruction = instArr[i];
 
-                if (afterSaveItemsBranchLabel != null && !saveItemDone)
+                if (displayClassIndex != -1 && afterSaveItemsBranchLabel != null && !saveItemDone)
                 {
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                     yield return new CodeInstruction(OpCodes.Brfalse, afterSaveItemsPatchLabel);
 
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _saveItemsMethod);
 
@@ -136,7 +152,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     saveItemDone = true;
                 }
 
-                if (afterNotHasTooltipBranchLabel != null && !notHasTooltipDone)
+                if (displayClassIndex != -1 && hasTooltipIndex != -1 && afterNotHasTooltipBranchLabel != null && !notHasTooltipDone)
                 {
                     yield return new CodeInstruction(OpCodes.Call, _getAlwaysShowLocomotionOrScalingMethod) { labels = [newBranchForNotTooltipLabel] };
                     yield return new CodeInstruction(OpCodes.Brfalse, afterNotHasTooltipBranchLabel);
@@ -144,11 +160,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                     yield return new CodeInstruction(OpCodes.Brfalse, afterNotHasTooltipPatchLabel);
 
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_S, 4);
+                    yield return new CodeInstruction(OpCodes.Ldloc_S, hasTooltipIndex);
                     yield return new CodeInstruction(OpCodes.Call, _notHasTooltipMethod);
 
                     yield return new CodeInstruction(OpCodes.Br, afterNotHasTooltipBranchLabel);
@@ -157,7 +173,23 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                     notHasTooltipDone = true;
                 }
 
-                // look for CanSaveItem and replace the branch
+                if (endAwaiterIndex == -1 && instruction.Calls(AccessTools.Method(typeof(InteractionHandler), nameof(InteractionHandler.PositionContextMenu))) && instArr[i+2].IsStloc())
+                {
+                    endAwaiterIndex = GetLocalIndex(instArr[i+2]);
+                }    
+
+                if (displayClassIndex == -1 && instruction.LoadsField(_displayClassField) && instArr[i+1].IsStloc())
+                {
+                    displayClassIndex = GetLocalIndex(instArr[i+1]);
+                }
+
+                // look for ActiveTool != null
+                if (hasTooltipIndex == -1 && instruction.Calls(AccessTools.Method(typeof(InteractionHandler), "get_ActiveTool")) && instArr[i+1].opcode == OpCodes.Ldnull && instArr[i+2].opcode == OpCodes.Cgt_Un && instArr[i+3].IsStloc())
+                {
+                    hasTooltipIndex = GetLocalIndex(instArr[i+3]);
+                }
+
+                // look for CanSaveItem check
                 if (afterSaveItemsBranchLabel is null && instruction.opcode == OpCodes.Brfalse && instArr[i-1].Calls(AccessTools.Method(typeof(InteractionHandler), nameof(InteractionHandler.CanSaveItem))))
                 {
                     afterSaveItemsBranchLabel = (Label)instruction.operand;
@@ -167,7 +199,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                 if (afterNotHasTooltipBranchLabel is null && instruction.opcode == OpCodes.Brfalse && instArr[i-1].Calls(AccessTools.Method(typeof(InputInterface), "get_ScreenActive")))
                 {
                     var indexOfPrevBranch = IndexOfPreviousBranch(instArr, i-1);
-                    if (instArr[indexOfPrevBranch-1].opcode == OpCodes.Ldloc_S && instArr[indexOfPrevBranch-1].operand == (object)4)
+                    if (instArr[indexOfPrevBranch-1].opcode == OpCodes.Ldloc_S && instArr[indexOfPrevBranch-1].operand == (object)hasTooltipIndex)
                     {
                         afterNotHasTooltipBranchLabel = (Label)instruction.operand;
                         instruction.operand = newBranchForNotTooltipLabel;
@@ -176,16 +208,16 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                 yield return instruction;
 
-                // look for TaskAwaiter.GetResult with local 44
-                if (!endDone && instruction.Calls(AccessTools.Method(typeof(TaskAwaiter), nameof(TaskAwaiter.GetResult))) && instArr[i - 1].opcode == OpCodes.Ldloca_S && instArr[i - 1].operand == (object)44)
+                // look for TaskAwaiter.GetResult with endAwaiterIndex
+                if (displayClassIndex != -1 && !endDone && instruction.Calls(AccessTools.Method(typeof(TaskAwaiter), nameof(TaskAwaiter.GetResult))) && instArr[i - 1].opcode == OpCodes.Ldloca_S && instArr[i - 1].operand == (object)endAwaiterIndex)
                 {
 
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                     yield return new CodeInstruction(OpCodes.Brfalse, afterEndLabel);
 
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _handlerField);
-                    yield return new CodeInstruction(OpCodes.Ldloc_1);
+                    yield return new CodeInstruction(OpCodes.Ldloc, displayClassIndex);
                     yield return new CodeInstruction(OpCodes.Ldfld, _menuField);
                     yield return new CodeInstruction(OpCodes.Call, _handleEndMethod);
 
