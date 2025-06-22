@@ -14,10 +14,12 @@ namespace MonkeyLoader.Resonite.Locale
 {
     internal sealed class FileSystemLocaleLoader : ResoniteAsyncEventHandlerMonkey<FileSystemLocaleLoader, LocaleLoadingEvent>
     {
+        private static readonly string _localeDirectory = $"{UPath.DirectorySeparator}Locale{UPath.DirectorySeparator}";
+
+        private static readonly Dictionary<string, Func<UPath, bool>> _predicatesByLocaleCode = new(StringComparer.OrdinalIgnoreCase);
+
         /// <inheritdoc/>
         public override int Priority => HarmonyLib.Priority.First;
-
-        protected override bool AppliesTo(LocaleLoadingEvent eventData) => true;
 
         /// <summary>
         /// Handles the given locale loading event by checking every loaded mod's
@@ -26,11 +28,11 @@ namespace MonkeyLoader.Resonite.Locale
         /// <inheritdoc/>
         protected override async Task Handle(LocaleLoadingEvent eventData)
         {
-            var searchPath = (new UPath("Locale") / $"{eventData.LocaleCode}.json").ToRelative().ToString();
+            var localePredicate = GetPredicateForLocaleCode(eventData.LocaleCode);
 
             foreach (var mod in Mod.Loader.Mods)
             {
-                foreach (var localeFilePath in mod.ContentPaths.Where(path => path.ToString().EndsWith(searchPath, StringComparison.OrdinalIgnoreCase)))
+                foreach (var localeFilePath in mod.ContentPaths.Where(localePredicate))
                 {
                     try
                     {
@@ -52,6 +54,21 @@ namespace MonkeyLoader.Resonite.Locale
                     }
                 }
             }
+        }
+
+        private static Func<UPath, bool> GetPredicateForLocaleCode(string localeCode)
+        {
+            if (!_predicatesByLocaleCode.TryGetValue(localeCode, out var predicate))
+            {
+                var fileName = $"{UPath.DirectorySeparator}{localeCode}.json";
+
+                predicate = path => path.FullName.EndsWith(fileName, StringComparison.OrdinalIgnoreCase)
+                    && path.FullName.Contains(_localeDirectory, StringComparison.OrdinalIgnoreCase);
+
+                _predicatesByLocaleCode.Add(localeCode, predicate);
+            }
+
+            return predicate;
         }
     }
 }
