@@ -237,7 +237,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         protected override bool OnEngineReady()
         {
-            Mod.RegisterEventHandler(this);
+            Mod.RegisterEventSource(this);
 
             return base.OnEngineReady();
         }
