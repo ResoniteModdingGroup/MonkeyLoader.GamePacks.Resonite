@@ -40,6 +40,13 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             return null;
         }
 
+        private static int GetLocalIndex(CodeInstruction code)
+        {
+            if (code.operand is LocalBuilder localBuilder)
+                return localBuilder.LocalIndex;
+            return code.LocalIndex();
+        }
+
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
@@ -61,24 +68,30 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             var customInspectorBuildUiMethod = AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI));
             var workerInspectorBuildUiMethod = AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI));
 
+            int uiBuilderLocalIndex = -1;
+
             CodeInstruction[] instArr = instructions.ToArray();
             for (int i = 0; i < instArr.Length; i++)
             {
                 var instruction = instArr[i];
                 bool branchFound = false;
+                if (uiBuilderLocalIndex == -1 && instruction.opcode == OpCodes.Newobj && instruction.operand == AccessTools.Constructor(typeof(UIBuilder), [typeof(Slot), typeof(Slot)]) && instArr[i+1].IsStloc())
+                {
+                    uiBuilderLocalIndex = GetLocalIndex(instArr[i+1]);
+                }
                 if (afterHeaderBranchLabel is null && instruction.opcode == OpCodes.Brtrue && instArr[i-1].opcode == OpCodes.Isinst && instArr[i - 1].operand == (object)typeof(Slot))
                 {
                     afterHeaderBranchLabel = (Label)instruction.operand;
                     branchFound = true;
                 }
-                if (!branchFound && afterHeaderBranchLabel != null && !headerDone)
+                if (uiBuilderLocalIndex != -1 && !branchFound && afterHeaderBranchLabel != null && !headerDone)
                 {
                     // check Enabled
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod);
                     yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderPatchLabel);
 
                     // do header patch
-                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldloc, uiBuilderLocalIndex);
                     yield return new CodeInstruction(OpCodes.Ldarg, 0);
                     yield return new CodeInstruction(OpCodes.Ldarg, 1);
                     yield return new CodeInstruction(OpCodes.Ldarg, 2);
@@ -95,7 +108,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     headerDone = true;
                 }
                 // this patch calls OnBuildInspectorHeaderText unconditionally (even if there is no InspectorHeaderAttribute)
-                if (afterHeaderTextBranchLabel is null && !headerTextDone &&
+                if (uiBuilderLocalIndex != -1 && afterHeaderTextBranchLabel is null && !headerTextDone &&
                     instruction.opcode == OpCodes.Ldloc_1 && 
                     instArr[i-1].opcode == OpCodes.Stloc_1 && 
                     instArr[i-2].Calls(getCustomAttributeMethod))
@@ -107,7 +120,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Brfalse, afterHeaderTextPatchLabel);
 
                     // do header text patch
-                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldloc, uiBuilderLocalIndex);
                     yield return new CodeInstruction(OpCodes.Ldarg, 1);
                     yield return new CodeInstruction(OpCodes.Call, _buildHeaderTextMethod);
 
@@ -124,14 +137,14 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     instruction.operand = beforeBodyPatchLabel;
                 }
                 yield return instruction;
-                if (!bodyDone && instruction.Calls(workerInspectorBuildUiMethod))
+                if (uiBuilderLocalIndex != -1 && !bodyDone && instruction.Calls(workerInspectorBuildUiMethod))
                 {
                     // check Enabled
                     yield return new CodeInstruction(OpCodes.Call, _getEnabledMethod) { labels = [beforeBodyPatchLabel] };
                     yield return new CodeInstruction(OpCodes.Brfalse, afterBodyPatchLabel);
 
                     // do body patch
-                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Ldloc, uiBuilderLocalIndex);
                     yield return new CodeInstruction(OpCodes.Ldarg, 0);
                     yield return new CodeInstruction(OpCodes.Ldarg, 1);
                     yield return new CodeInstruction(OpCodes.Ldarg, 2);
