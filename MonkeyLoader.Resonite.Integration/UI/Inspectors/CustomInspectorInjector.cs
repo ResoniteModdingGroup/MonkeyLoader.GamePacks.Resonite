@@ -67,6 +67,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             var unilogErrorMethod = AccessTools.Method(typeof(UniLog), nameof(UniLog.Error));
             var customInspectorBuildUiMethod = AccessTools.Method(typeof(ICustomInspector), nameof(ICustomInspector.BuildInspectorUI));
             var workerInspectorBuildUiMethod = AccessTools.Method(typeof(WorkerInspector), nameof(WorkerInspector.BuildInspectorUI));
+            var uiBuilderConstructor = AccessTools.Constructor(typeof(UIBuilder), [typeof(Slot), typeof(Slot)]);
 
             int uiBuilderLocalIndex = -1;
 
@@ -75,7 +76,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             {
                 var instruction = instArr[i];
                 bool branchFound = false;
-                if (uiBuilderLocalIndex == -1 && instruction.opcode == OpCodes.Newobj && instruction.operand == AccessTools.Constructor(typeof(UIBuilder), [typeof(Slot), typeof(Slot)]) && instArr[i+1].IsStloc())
+                if (uiBuilderLocalIndex == -1 && instruction.opcode == OpCodes.Newobj && instruction.operand == uiBuilderConstructor && instArr[i+1].IsStloc())
                 {
                     uiBuilderLocalIndex = GetLocalIndex(instArr[i+1]);
                 }
@@ -131,7 +132,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     yield return new CodeInstruction(OpCodes.Nop) { labels = [afterHeaderTextPatchLabel] };
                     headerTextDone = true;
                 }
-                if (instruction.opcode == OpCodes.Leave_S &&
+                if (uiBuilderLocalIndex != -1 && instruction.opcode == OpCodes.Leave_S &&
                     (instArr[i - 1].Calls(unilogErrorMethod) || instArr[i - 1].Calls(customInspectorBuildUiMethod)))
                 {
                     instruction.operand = beforeBodyPatchLabel;
