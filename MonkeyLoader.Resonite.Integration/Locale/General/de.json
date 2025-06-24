@@ -1,0 +1,10 @@
+{
+  "localeCode": "de",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "Weitere Informationen",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Versucht einen Hyperlink zu öffnen.<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
+  }
+}
