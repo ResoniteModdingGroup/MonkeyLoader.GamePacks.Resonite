@@ -1,0 +1,10 @@
+{
+  "localeCode": "ja",
+  "authors": [ "kazu" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "追加情報",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "ハイパーリンクを開こうとしています。<size=50%><br/><br/></size><b>理由:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>理由:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
+  }
+}
