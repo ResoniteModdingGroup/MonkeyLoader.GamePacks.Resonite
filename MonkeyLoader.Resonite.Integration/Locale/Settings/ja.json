@@ -1,0 +1,71 @@
+{
+  "localeCode": "ja",
+  "authors": [ "kazu" ],
+  "messages": {
+    "Settings.Category.MonkeyLoader": "MonkeyLoader",
+    "Settings.MonkeyLoader.Breadcrumb": "設定",
+    "Settings.SaveConfig.Breadcrumb": "構成情報を保存中",
+    "Settings.ResetConfig.Breadcrumb": "構成情報をリセット中",
+    "Settings.ConfigSections.Breadcrumb": "設定",
+    "Settings.MonkeyToggles.Breadcrumb": "Monkey",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.Name": "MonkeyLoader",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Name": "有効なMonkeyの数 (有効数/総数)",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Value": "{available, plural, =0{有効にした Monkey はありません} other{<b>{active}</b> 個 / <b>{available}</b> 個}}",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Name": "有効なEarly Monkeyの数 (有効数/総数)",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{有効にした Early Monkey はありません} other{<b>{active}</b> 個 / <b>{available}</b> 個}}",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "MonkeyLoader の設定を開く",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "モッドローダー自体の設定を開きます。",
+
+    "MonkeyLoader.GamePacks.Resonite.Mods": "Mods",
+    "MonkeyLoader.GamePacks.Resonite.GamePacks": "Game Packs",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "追加情報",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Id": "Id",
+    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Mod の概要を表示します。",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenSettings": "Mod 設定を開く",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "説明",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Version": "バージョン",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "製作者",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project": "プロジェクト",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>プロジェクトが設定されていません</i>",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfig": "構成情報を保存",
+    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "構成情報をリセット",
+    "MonkeyLoader.GamePacks.Resonite.Warning": "警告",
+    "MonkeyLoader.GamePacks.Resonite.UnsavableWarning": "この Mod の構成のセクションの少なくとも 1 つが保存不可としてマークされました。これは通常、保存されたセクションのバージョンが読み込まれるバージョンよりも高い場合に発生します。<br/>これを修正するには、インストールされている Mod のバージョンが最新であることを確認してください。これが役立たない場合は、ファイル内のバージョンを手動で <b>0.0.0.0</b> に調整して古いものに戻してください。",
+    "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "<i>{EnumName}</i> の <i>{FlagName}</i> を切り替えます。",
+    "MonkeyLoader.GamePacks.Resonite.EnumFlags.Name": "{KeyId} フラグ",
+    "MonkeyLoader.GamePacks.Resonite.NullableEnumHasValue.Name": "HasValue",
+
+    "MonkeyLoader.GamePacks.Resonite.Information": "情報",
+    "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "このカテゴリはユーザースペースでのみアクセス可能です。",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "利用可能な設定を開く",
+
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "利用可能なMonkeyを開く",
+
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Name": "Monkey (パッチ)",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysToggleable.Name": "変更可能な Monkey",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysNonToggleable.Name": "閲覧専用の Monkey",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "この Mod のすべての利用可能な Monkey (パッチ)の詳細を表示し、切り替えることができます。",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "数",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysToggleable.Count.Name": "数",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysNonToggleable.Count.Name": "数",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "この Mod の Monkey の数。",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "有効",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "この Monkey をアクティブにするかどうかを切り替えます。",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.AlwaysEnabled": "常に有効",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "説明",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "この Monkey の説明。",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Name": "タイプ",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "この Monkey の基本タイプを表示します。",
+
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Name": "Early Monkey (事前パッチ)",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "この Mod のすべての利用可能な Early Monkey (事前パッチ) の詳細を表示し、有効化 / 無効化を切り替えることができます。",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "数",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "この Mod の Early Monkey の数。",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "有効",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "この Early Monkey をアクティブにするかどうかを切り替えます。 <size=50%><br/><br/></size>注意: 変更は再起動後にのみ有効になる場合があります。",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "常に有効"
+  }
+}
