@@ -14,24 +14,6 @@
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "利用可能な場合、 FrooxEngine UniLogメッセージを MonkeyLoaderコンソールに送信します。",
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "さまざまなビルドメンバーエディターイベントを送信して、 Monkey がそれらの生成をオーバーライドできるようにします。",
 
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DestroyOffset.Description": "Destroyボタンのオフセット位置を指定します。値を上げると右に移動します",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DuplicateOffset.Description": "Duplicateボタンのオフセット位置を指定します。値を上げると右に移動します",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.OpenContainerOffset.Description": "Open Containerボタンのオフセット位置を指定します。値を上げると右に移動します",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.StartHeaderTextExpanded.Description": "インスペクターヘッダーのテキストを最初から表示するかどうかを設定します",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.NameOffset.Description": "コンポーネント名のオフセット位置を指定します。値を上げると右に移動します",
-
-    "MonkeyLoader.GamePacks.Resonite.Config.Loading.HijackLoadProgressIndicator.Description": "ResoniteのUnityビルドで、初期画面にMonkeyLoaderに関する読み込み進捗が表示されるようにします。次回起動時に有効になります",
-    "MonkeyLoader.GamePacks.Resonite.Config.Loading.PrettySplashProgress.Description": "初期画面で全ての初期状況を表示するために、読み込みを少し遅くします。読み込み進捗表示が有効な場合のみ機能し、次回起動時に有効になります",
-
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.BackgroundColor.Description": "ツールチップの背景色を設定します",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.EnableDebugButtonData.Description": "ボタンツールチップが不足している場合のデバッグデータをログに記録するかどうかを制御します。新しいラベルを追加する際に便利です。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.EnableDebugTooltipStay.Description": "ツールチップが表示されているボタンからマウスを離した後も、ツールチップを表示し続けるかどうかを制御します。<br>無効にした後は再度ホバーすると削除されます。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.EnableNonLocalTooltips.Description": "有効にすると、ツールチップはローカルスロットではなく通常のスロットとして作成されます。他のユーザーにも表示することができます（実験的機能）。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.HoverTime.Description": "ツールチップが表示されるまでにボタンをホバーする必要がある時間を設定します（ミリ秒単位）。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.ShowExtendedTooltipForHyperlinks.Description": "有効にすると、ハイパーリンクコンポーネント （Hyperlink） の理由・URLが常にツールチップとして表示されます。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.TextColor.Description": "ツールチップのテキスト色を設定します。",
-    "MonkeyLoader.GamePacks.Resonite.Config.Tooltips.TextSize.Description": "ツールチップのテキストサイズを設定します。",
-
     "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "SettingsDataFeedに要素を注入する処理を行います。 このインジェクターは無効にできません。 MonkeyLoader設定が利用可能であることを保証します。",
     "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "設定にMonkeyLoaderカテゴリを追加します。",
 
@@ -60,12 +42,6 @@
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "さまざまなソースからツールチップ解決リクエストを送信します。 ツールチップシステムは、 Psychpsyoによって元々作成された Tooltippery に基づいています。",
 
     "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Description": "テスト用のEarly Monkeyです。<br/><i>これは、MonkeyLoaderの動作チェックに利用し、成功時にログを出力します。</i>",
-
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "ハイパーリンクを開こうとしています。<size=50%><br/><br/></size><b>理由:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>理由:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
-    "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "追加情報",
-
-    "MonkeyLoader.GamePacks.Resonite.InspectorMemberActionsMenuInjector.Description": "Deprecated - 削除予定",
 
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Resoniteのログ内のすべてのメッセージを即座に フラッシュするオプションを制御します。",
     "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "ユーザーの拡張メソッドを介して開かれたときにコンテキストメニューアイテム生成イベントを送信します（ボタン、ドラッグアンドドロップなど）。",
