@@ -48,7 +48,7 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc cref="ExportFallbackLocaleFileAsync"/>
         public static void ExportFallbackLocaleFile(this Mod mod)
             => Engine.Current.GlobalCoroutineManager.StartBackgroundTask(() =>
-                ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod)).Wait();
+                ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors)).Wait();
 
         /// <summary>
         /// Asynchronously exports the fallback <see cref="Elements.Assets.LocaleData">locale
@@ -62,7 +62,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="mod">The mod to export the fallback locale data for.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         public static async Task ExportFallbackLocaleFileAsync(this Mod mod)
-            => await ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod);
+            => await ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors);
 
         /// <summary>
         /// Gets the formatted, localized message of this <see cref="LocaleString"/>
