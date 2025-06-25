@@ -24,9 +24,8 @@ namespace MonkeyLoader.Resonite.Locale
         private const string ExportLocaleFileLabel = $"{ExportLocaleFile}.Label";
         private const string ExportLocaleFilePath = $"{ExportLocaleFile}.Path";
 
+        private static readonly string _localeExportDirectory = Path.Combine("MonkeyLoader", "LocaleExport");
         private static AsyncEventDispatching<FallbackLocaleGenerationEvent>? _eventDispatching;
-        private static string _localeExportDirectory = Path.Combine("MonkeyLoader", "LocaleExport");
-
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.Low;
@@ -45,39 +44,40 @@ namespace MonkeyLoader.Resonite.Locale
                 return current;
 
             // Format: MonkeyLoader / modId / [page]
-            if (!Mod.Loader.TryGet<Mod>().ById(path[1], out var mod))
+            if (!Mod.Loader.TryGet<Mod>().ById(path[1], out var mod) && path[1] is not SettingsHelpers.MonkeyLoader)
                 return current;
+
+            var exportId = mod?.Id ?? SettingsHelpers.MonkeyLoader;
+            var authors = mod?.Authors ?? Mod.Authors;
 
             if (path.Count == 3)
             {
-                parameters.DataFeed.StartTask(ExportLocaleFileAsync, mod);
+                Engine.Current.GlobalCoroutineManager.StartBackgroundTask(() => ExportLocaleFileAsync(exportId, authors));
 
                 parameters.MoveUpFromCategory();
                 return current;
             }
 
-            return InjectExportButtonAsync(current, parameters, mod);
+            return current.Concat(MakeExportItems(parameters, exportId).ToAsyncEnumerable());
         }
 
-        internal static async Task ExportLocaleFileAsync(Mod mod)
+        internal static async Task ExportLocaleFileAsync(string exportId, IEnumerable<string> authors)
         {
-            await default(ToBackground);
-
-            Logger.Info(() => $"Exporting locale file for mod: {mod.Id}");
+            Logger.Info(() => $"Exporting locale file for mod: {exportId}");
 
             var eventData = new FallbackLocaleGenerationEvent([]);
             await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
             LocaleData localeData = new()
             {
-                Authors = [.. mod.Authors],
+                Authors = [.. authors],
                 LocaleCode = FallbackLocaleGenerator.LocaleCode,
-                Messages = eventData.Messages.Where(message => message.Key.StartsWith(mod.Id))
+                Messages = eventData.Messages.Where(message => message.Key.StartsWith(exportId))
                     .ToDictionary(message => message.Key, message => message.Value.messagePattern)
             };
 
             Directory.CreateDirectory(_localeExportDirectory);
-            var fileName = $"{mod.Id}-{FallbackLocaleGenerator.LocaleCode}.json";
+            var fileName = $"{exportId}-{FallbackLocaleGenerator.LocaleCode}.json";
             using var fileStream = File.Open(Path.Combine(_localeExportDirectory, fileName), FileMode.Create, FileAccess.Write);
 
             JsonSerializerOptions serializerOptions = new()
@@ -108,27 +108,24 @@ namespace MonkeyLoader.Resonite.Locale
             return base.OnShutdown(applicationExiting);
         }
 
-        private async IAsyncEnumerable<DataFeedItem> InjectExportButtonAsync(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters, Mod mod)
+        private IEnumerable<DataFeedItem> MakeExportItems(EnumerateDataFeedParameters<SettingsDataFeed> parameters, string exportId)
         {
-            await foreach (var item in current)
-            {
-                yield return item;
+            var exportLocaleGroup = new DataFeedGroup();
+            exportLocaleGroup.InitBase(ExportLocaleFile, parameters.Path, parameters.GroupKeys, Mod.GetLocaleString(ExportLocaleFile));
+            yield return exportLocaleGroup;
 
-                if (item is DataFeedIndicator<string> && item.ItemKey == "Description")
-                {
-                    var exportLocaleFileButton = new DataFeedCategory();
-                    exportLocaleFileButton.InitBase(ExportLocaleFileLabel, parameters.Path, item.GroupingParameters, Mod.GetLocaleString(ExportLocaleFileLabel));
-                    exportLocaleFileButton.SetOverrideSubpath(ExportLocaleFile);
-                    yield return exportLocaleFileButton;
+            var fileName = $"{exportId}-{FallbackLocaleGenerator.LocaleCode}.json";
+            IReadOnlyList<string> groupKeys = [.. parameters.GroupKeys, ExportLocaleFile];
 
-                    var fileName = $"{mod.Id}-{FallbackLocaleGenerator.LocaleCode}.json";
+            var exportLocaleFilePath = new DataFeedIndicator<string>();
+            exportLocaleFilePath.InitBase(ExportLocaleFilePath, parameters.Path, groupKeys, Mod.GetLocaleString(ExportLocaleFilePath));
+            exportLocaleFilePath.InitSetupValue(field => field.Value = Path.Combine("Resonite", _localeExportDirectory, fileName));
+            yield return exportLocaleFilePath;
 
-                    var exportLocaleFilePath = new DataFeedIndicator<string>();
-                    exportLocaleFilePath.InitBase(ExportLocaleFilePath, parameters.Path, item.GroupingParameters, Mod.GetLocaleString(ExportLocaleFilePath));
-                    exportLocaleFilePath.InitSetupValue(field => field.Value = Path.Combine("Resonite", _localeExportDirectory, fileName));
-                    yield return exportLocaleFilePath;
-                }
-            }
+            var exportLocaleFileButton = new DataFeedCategory();
+            exportLocaleFileButton.InitBase(ExportLocaleFileLabel, parameters.Path, groupKeys, Mod.GetLocaleString(ExportLocaleFileLabel));
+            exportLocaleFileButton.SetOverrideSubpath(ExportLocaleFile);
+            yield return exportLocaleFileButton;
         }
 
         event AsyncEventDispatching<FallbackLocaleGenerationEvent>? IAsyncEventSource<FallbackLocaleGenerationEvent>.Dispatching

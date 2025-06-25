@@ -17,6 +17,8 @@
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{No Early Monkeys} other{<b>{active}</b> Early {active, plural, one{Monkey} other{Monkeys}} active out of <b>{available}</b> available}}.",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "Open MonkeyLoader Settings",
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Opens the settings for the mod loader itself.",
+
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile": "Locale Export",
     "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Label": "Export Fallback Locale Data",
     "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Output Path",
 
