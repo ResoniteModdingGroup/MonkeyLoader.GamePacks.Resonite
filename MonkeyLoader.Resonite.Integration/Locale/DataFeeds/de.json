@@ -1,0 +1,14 @@
+{
+  "localeCode": "de",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Name": "{typeName}-Injektor",
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Description": "Übernimmt das Injizieren von Elementen in den {typeName}.<br/>Beachte, dass das Deaktivieren dieses Monkeys auch die Effekte aller anderen Monkeys blockieren wird, die von diesem Injektor abhängig sind.",
+
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Name": "DataFeed Injektoren",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Description": "Enthält die dynamisch zusammengestellten Monkeys, welche das Injizieren von Elementen in ihre jeweiligen DataFeeds übernehmen.",
+
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Name": "Einstellungen-Injektor",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Übernimmt das Injizieren von Elementen in den SettingsDataFeed (also den Einstellungen-Tab).<br/>Dieser Injektor kann nicht deaktiviert werden, da dadurch die MonkeyLoader Kategorie in den Einstellungen nicht mehr funktionieren würde."
+  }
+}

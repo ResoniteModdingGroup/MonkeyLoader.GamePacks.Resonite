@@ -1,0 +1,14 @@
+{
+  "localeCode": "en",
+  "authors": [ "Banane9" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Name": "{typeName}-Injector",
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Description": "Handles injecting elements into the {typeName}.<br/>Note that disabling this will block the effects of all other Monkeys that rely on this injector.",
+
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Name": "DataFeed Injectors",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Description": "Contains the dynamically collected Monkeys that handle injecting elements into their respective DataFeed.",
+
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Name": "Settings-Injector",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Handles injecting elements into the SettingsDataFeed (i.e. the settings tab).<br/>This injector can't be disabled as the MonkeyLoader settings category would break in that case."
+  }
+}

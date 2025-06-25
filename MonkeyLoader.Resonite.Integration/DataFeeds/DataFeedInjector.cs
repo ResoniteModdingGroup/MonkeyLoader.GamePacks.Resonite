@@ -1,7 +1,6 @@
 ﻿using EnumerableToolkit.Builder;
 using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Locale;
 using System;
 using System.Collections.Generic;
@@ -36,12 +35,20 @@ namespace MonkeyLoader.Resonite.DataFeeds
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         protected override Task Handle(FallbackLocaleGenerationEvent eventData)
         {
-            eventData.AddMessage(this.GetLocaleKey("Name"), $"{typeof(TDataFeed).CompactDescription()}-Injector");
-            eventData.AddMessage(this.GetLocaleKey("Description"), $"Handles injecting elements into the {typeof(TDataFeed).CompactDescription()}.<br/>Note that disabling this will block the effects of all other Monkeys that rely on this injector.");
+            Dictionary<string, object> typeName = new() { ["typeName"] = typeof(TDataFeed).CompactDescription() };
+
+            var nameTemplateKey = Mod.GetLocaleKey("DataFeeds.Template.Name");
+            var descriptionTemplateKey = Mod.GetLocaleKey("DataFeeds.Template.Description");
+
+            var nameMessage = eventData.FormatMessage(nameTemplateKey, typeName)
+                ?? $"{typeof(TDataFeed).CompactDescription()}-Injector";
+            eventData.AddMessage(this.GetLocaleKey("Name"), nameMessage);
+
+            var descriptionMessage = eventData.FormatMessage(descriptionTemplateKey, typeName)
+                ?? $"Handles injecting elements into the {typeof(TDataFeed).CompactDescription()}.<br/>Note that disabling this will block the effects of all other Monkeys that rely on this injector.";
+            eventData.AddMessage(this.GetLocaleKey("Description"), descriptionMessage);
 
             return Task.CompletedTask;
         }
@@ -51,9 +58,12 @@ namespace MonkeyLoader.Resonite.DataFeeds
             var enumerateMethod = TargetMethod();
 
             if (enumerateMethod is null)
+            {
                 Logger.Error(() => $"Failed to find Enumerate(IReadOnlyList<string>, IReadOnlyList<string>, string) method declared on type [{typeof(TDataFeed).CompactDescription()}]");
-            else
-                Harmony.Patch(enumerateMethod, postfix: AccessTools.DeclaredMethod(GetType(), nameof(EnumeratePostfix)));
+                return false;
+            }
+
+            Harmony.Patch(enumerateMethod, postfix: AccessTools.DeclaredMethod(GetType(), nameof(EnumeratePostfix)));
 
             return base.OnEngineReady();
         }
