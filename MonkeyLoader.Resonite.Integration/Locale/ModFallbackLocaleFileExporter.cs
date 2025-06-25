@@ -65,7 +65,7 @@ namespace MonkeyLoader.Resonite.Locale
         {
             Logger.Info(() => $"Exporting locale file for mod: {exportId}");
 
-            var eventData = new FallbackLocaleGenerationEvent([]);
+            var eventData = new FallbackLocaleGenerationEvent(new());
             await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
             LocaleData localeData = new()
