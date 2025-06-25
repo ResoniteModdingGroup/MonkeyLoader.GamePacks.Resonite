@@ -33,7 +33,7 @@ namespace MonkeyLoader.Resonite.Locale
         /// <inheritdoc/>
         protected override async Task Handle(LocaleLoadingEvent eventData)
         {
-            var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource._formatMessages);
+            var generatorEventData = new FallbackLocaleGenerationEvent(eventData.LocaleResource);
 
             await (_generateFallbackMessages?.Invoke(generatorEventData) ?? Task.CompletedTask);
         }
