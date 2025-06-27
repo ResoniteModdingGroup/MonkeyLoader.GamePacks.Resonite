@@ -65,6 +65,8 @@ namespace MonkeyLoader.Resonite.Locale
         {
             Logger.Info(() => $"Exporting locale file for mod: {exportId}");
 
+            // Todo: Change this to resolve the actual messages in the fallback locale so that it can export the current state
+
             var eventData = new FallbackLocaleGenerationEvent(new());
             await (_eventDispatching?.Invoke(eventData) ?? Task.CompletedTask);
 
