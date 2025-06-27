@@ -46,9 +46,9 @@ namespace MonkeyLoader.Resonite
         /// data</see> of this mod into a json file.
         /// </summary>
         /// <inheritdoc cref="ExportFallbackLocaleFileAsync"/>
-        public static void ExportFallbackLocaleFile(this Mod mod)
+        public static void ExportFallbackLocaleFile(this Mod mod, bool useLoadedMessages = true)
             => Engine.Current.GlobalCoroutineManager.StartBackgroundTask(() =>
-                ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors)).Wait();
+                ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors, useLoadedMessages)).Wait();
 
         /// <summary>
         /// Asynchronously exports the fallback <see cref="Elements.Assets.LocaleData">locale
@@ -60,9 +60,14 @@ namespace MonkeyLoader.Resonite
         /// and exporting the locale data through the entry in the settings.
         /// </remarks>
         /// <param name="mod">The mod to export the fallback locale data for.</param>
+        /// <param name="useLoadedMessages">
+        /// Whether to use the actually loaded message patterns in the
+        /// <see cref="FallbackLocale">FallbackLocale</see> or the raw hard-coded ones.<br/>
+        /// Uses the loaded message patterns by default to preserve any already present custom messages.
+        /// </param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public static async Task ExportFallbackLocaleFileAsync(this Mod mod)
-            => await ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors);
+        public static async Task ExportFallbackLocaleFileAsync(this Mod mod, bool useLoadedMessages = true)
+            => await ModFallbackLocaleFileExporter.ExportLocaleFileAsync(mod.Id, mod.Authors, useLoadedMessages);
 
         /// <summary>
         /// Gets the formatted, localized message of this <see cref="LocaleString"/>

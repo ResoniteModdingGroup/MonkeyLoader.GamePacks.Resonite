@@ -6,7 +6,8 @@
     "Settings.MonkeyLoader.Breadcrumb": "Settings",
     "Settings.SaveConfig.Breadcrumb": "Saving Config",
     "Settings.ResetConfig.Breadcrumb": "Resetting Config",
-    "Settings.ExportLocaleFile.Breadcrumb": "Exporting Fallback Locale Data",
+    "Settings.ExportLocaleFile.Loaded.Breadcrumb": "Exporting Loaded Fallback Locale Data",
+    "Settings.ExportLocaleFile.Raw.Breadcrumb": "Exporting Raw Fallback Locale Data",
     "Settings.ConfigSections.Breadcrumb": "Settings",
     "Settings.MonkeyToggles.Breadcrumb": "Monkeys",
 
@@ -19,8 +20,9 @@
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Opens the settings for the mod loader itself.",
 
     "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile": "Locale Export",
-    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Label": "Export Fallback Locale Data",
     "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Output Path",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Loaded": "Export Loaded Fallback Locale Data",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Raw": "Export Raw Fallback Locale Data",
 
     "MonkeyLoader.GamePacks.Resonite.Mods": "Mods",
     "MonkeyLoader.GamePacks.Resonite.GamePacks": "Game Packs",

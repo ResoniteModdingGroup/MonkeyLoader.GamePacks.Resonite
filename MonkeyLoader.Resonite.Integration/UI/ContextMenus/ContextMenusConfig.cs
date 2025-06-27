@@ -16,7 +16,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     {
         private static readonly DefiningConfigKey<bool> _alwaysAllowScaleToggle = new("AlwaysAllowScaleToggle", "Show the scaling toggle even when not at the default scale for the avatar.", () => false);
         private static readonly DefiningConfigKey<bool> _alwaysShowLocomotion = new("AlwaysShowLocomotion", "Show the locomotion selection even when a tool is equipped.", () => false);
-        private static readonly DefiningConfigKey<bool> _alwaysShowScaling = new("AlwaysShowScalingToggle", "Show the scaling toggle and/or reset scale action even when a tool is equipped.", () => false);
+        private static readonly DefiningConfigKey<bool> _alwaysShowScaling = new("AlwaysShowScaling", "Show the scaling toggle and/or reset scale action even when a tool is equipped.", () => false);
 
         private static readonly DefiningConfigKey<bool> _showResetScaleWithToggle = new("ShowResetScaleWithToggle", "Show the reset scale action alongside the scaling toggle when it is always allowed.", () => true)
         {
