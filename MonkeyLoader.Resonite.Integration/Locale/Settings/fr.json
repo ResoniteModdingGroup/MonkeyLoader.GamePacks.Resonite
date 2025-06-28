@@ -1,0 +1,66 @@
+{
+  "localeCode": "fr",
+  "authors": [ "Brodokk" ],
+  "messages": {
+    "Settings.MonkeyLoader.Breadcrumb": "Paramètres",
+    "Settings.SaveConfig.Breadcrumb": "Sauvegarde de la configuration",
+    "Settings.ResetConfig.Breadcrumb": "Réinitialisation de la configuration",
+    "Settings.ExportLocaleFile.Loaded.Breadcrumb": "Exportation des données de langue par default chargées",
+    "Settings.ExportLocaleFile.Raw.Breadcrumb": "Exportation des données de langue par default brutes",
+    "Settings.ConfigSections.Breadcrumb": "Paramètres",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Value": "{available, plural, =0{Aucun Monkeys} other{<b>{active}</b> {active, plural, one{Monkey} other{Monkeys}} actifs sur <b>{available}</b> disponibles}}.",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Name": "Monkeys initiaux",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.EarlyMonkeyCount.Value": "{available, plural, =0{Aucun Monkey initial} other{<b>{active}</b> {active, plural, one{Monkey initial} other{Monkeys initiaux}} actifs sur <b>{available}</b> disponibles}}.",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Name": "Ouvrir les paramètres de MonkeyLoader",
+    "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Ouvre les paramètres du chargeur de mods lui-même.",
+
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile": "Exportation de langue",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Chemin de sortie",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Loaded": "Exporter les données de langue de default chargées",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Raw": "Exporter les données de langue par default brutes",
+
+    "MonkeyLoader.GamePacks.Resonite.GamePacks": "Packs de jeu",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "Métadonnées",
+    "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Affiche un aperçu du mod.",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenSettings": "Ouvrir les paramètres du mod",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Description": "Déscription",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "{count, plural, one{Auteur} other{Auteurs}",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Projet",
+    "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>Aucun projet</i>",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Ouvrir les paramètres disponibles",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "Ouvrir les Monkeys disponibles",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Sauvegarder la configuration",
+    "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Réinitialiser la configuration par défaut",
+    "MonkeyLoader.GamePacks.Resonite.Warning": "Avertissement",
+    "MonkeyLoader.GamePacks.Resonite.UnsavableWarning": "Au moins une section de la configuration de ce mod a été marquée comme non enregistrable. Cela arrive généralement si la section enregistrée a une version plus récente que celle chargée.<br/>Pour résoudre ce problème, assurez-vous que la version du mod installée est à jour — si cela ne suffit pas, modifiez manuellement les versions dans le fichier à <b>0.0.0.0</b> pour les rendre anciennes.",
+    "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Active/désactive le flag <i>{FlagName}</i> de l’énumération <i>{EnumName}</i>.",
+    "MonkeyLoader.GamePacks.Resonite.EnumFlags.Name": "Flags {KeyId}",
+    "MonkeyLoader.GamePacks.Resonite.NullableEnumHasValue.Name": "A une valeur",
+
+    "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "Cette catégorie est uniquement accessible dans l’espace utilisateur.",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeysToggleable.Name": "Monkeys activables",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysNonToggleable.Name": "Monkeys non-activables",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Liste les détails de tous les singes disponibles de ce mod et permet de les activer/désactiver.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Nombre",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysToggleable.Count.Name": "Nombre",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysNonToggleable.Count.Name": "Nombre",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "Le nombre de singes de ce mod.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Name": "Activé",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Enabled.Description": "Active ou désactive ce Monkey.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.AlwaysEnabled": "Toujours activé",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Name": "Déscription",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Description.Description": "La description de ce monkey.",
+    "MonkeyLoader.GamePacks.Resonite.Monkeys.Type.Description": "Affiche le type de base de ce Monkey.",
+
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Name": "Monkeys initiaux",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Description": "Liste les détails de tous les Monkeys initiaux (pré-patchers) disponibles pour ce mod et permet de les activer/désactiver.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Name": "Nombre",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "Le nombre de Monkey initiaux de ce mod.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Activé",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Active ou désactive ce Monkey initial.<size=50%><br/><br/></size>Attention : les changements peuvent ne prendre effet qu'après un redémarrage.",
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Toujours activé"
+  }
+}
