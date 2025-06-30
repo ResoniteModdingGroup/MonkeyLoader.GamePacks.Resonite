@@ -2,32 +2,106 @@
   "localeCode": "de",
   "authors": [ "Banane9" ],
   "messages": {
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Name": "Unity-Hook",
     "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Ruft Unity Monkeys auf nachdem die erste Szene geladen wurde.",
 
-    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Sorgt dafür, dass der Mod-Ladefortschritt auf dem Ladebildschirm der Unity Version von Resonite erscheint.",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Name": "Engine-Initialisierungs-Hook",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Ruft die Resonite Monkeys am Anfang und Ende der Initialisierung von FrooxEngine, sowie wenn es beendet wird auf.",
 
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Name": "Brotli Fix",
     "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Sorgt dafür, dass die Brotli Bibliothek ihre native DLL am richtigen Ort sucht.",
-    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Versendet die Build Inspector Body / Header Events, um die Worker Inspector UI-Generierung modular zu machen.",
-    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Description": "Sorgt für die Erstellung der standard UI-Elemente des Worker Inspector Headers.",
-    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Ruft die Resonite Monkeys auf nachdem FrooxEngine bereit ist und wenn es beendet wird.",
-    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Versendet die Fallback Locale Generation Events, damit Monkeys programmatisch (englische) Übersetzungsnachrichten für notwendige Schlüssel generieren können, die noch nicht abgedeckt waren.",
-    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Läd automatisch die Übersetzungsdateien aus den Dateisystemen der Mods.",
-    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Versendet das Locale Generation Event, damit Monkeys Übersetzungsnachrichten laden können.",
-    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Erlaubt es auch Sprachen auszuwählen, die nicht direkt einen bekannten Kulturcode angeben, solange sie trotzdem auf einem bekannten Code basieren.",
-    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "Fügt einen Button zur Metadaten Sektion der Mods hinzu, welcher es erlaubt, deren programmatisch generierte Übersetzungsnachrichten zu exportieren.<br/>Da dies nur für Entwicklungszwecke gebraucht wird, ist es standardmäßig deaktiviert.",
-    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Sorgt dafür, dass die Übersetzungsnachrichten von Mods für Benutzer ohne die Mod auf Englisch angezeigt werden.",
-    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Erlaubt es funktionierende alleinstehende Facets der MonkeyLoader Mod Optionen zu erstellen.",
-    "MonkeyLoader.GamePacks.Resonite.SettingsDataFeedInjector.Description": "Fügt die MonkeyLoader Kategorie zu den Optionen hinzu.",
-    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Versendet die verschiedenen Build Member Editor Events, damit Monkeys die Generierung dieser überschreiben können.",
-    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generiert die standard Member Editoren für Inspektoren.",
-    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Wandelt das SyncDelegate Ziel eines Buttons in den Schlüsser für eine Übersetzungsnachricht um, damit diese als Tooltip angezeigt werden kann.",
-    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Fügt Tooltip Auflösungsanfragen für UIX Buttons hinzu.",
-    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons auf, indem es nach einer Comment Komponente sucht, deren Text mit 'TooltipperyLabel:' anfängt.",
-    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Versendet die Tooltip Auflösungsanfragen aus verschiedenen Quellen. Das Tooltipsystem basiert auf dem Tooltippery Mod, der ursprünglich von Psychpsyo erstellt wurde.",
+
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Name": "Einstellungsabschnitt Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "Generiert die Datafeedelemente für die Einstellungsabschnitte der Mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Name": "Mod-Metadaten Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Description": "Generiert die Datafeedelemente für die Metadaten der Mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Name": "Mod-Einstellungen als alleinständige Facets",
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Erlaubt es funktionierende alleinstehende Facets aus den Mod-Einstellungen in der MonkeyLoader-Oberkategorie zu erstellen.",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "Oberkategorie Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "Generiert die Datafeedelemente für die MonkeyLoader-Oberkategorie.",
+
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "Nicht-Umschaltbare Monkeys Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "Generiert die Datafeedelemente für die nicht-umschaltbaren Monkeys.",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Name": "Einstellungen Speichern Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Generiert die Datafeedelemente für das Speichern und Zurücksetzen der Einstellungsabschnitte der Mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Name": "Mod-Einstellungen Fallback Lokalisierungsdaten-Generator",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Generiert die programmatischen Übersetzungsnachrichten für die Mod-Einstellungen.",
+
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "Umschaltbare Monkeys Einstellungselemente",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generiert die Datafeedelemente für die umschaltbaren Monkeys.",
+
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Sofortige Resonite-Protokollierung",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Steuert die Einstellung dafür, jede Nachricht im Resonite Log sofort zu schreiben, indem es den eigenen Aktivierungszustand damit synchronisiert.",
+
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "Fallback Lokalisierungsdaten-Generator",
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Versendet die Fallback Locale Generation Events, damit Monkeys programmatisch (englische) Übersetzungsnachrichten für notwendige Schlüssel generieren können, die noch nicht abgedeckt waren.",
+
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Name": "Dateisystem Lokalisierungsdaten-Lader",
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Läd automatisch die Übersetzungsdateien aus den Dateisystemen der Mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Name": "Lokalisierungsdaten-Injektor",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Versendet das Locale Generation Event, damit Monkeys Übersetzungsnachrichten laden können.",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Name": "Lokalisierungsdaten-Lade-Fix",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Erlaubt es auch Sprachen auszuwählen, die nicht direkt einen bekannten Kulturcode angeben, solange sie trotzdem auf einem bekannten Code basieren.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Name": "Mod Fallback-Lokalisierungsdatei-Exporter",
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "Fügt einen Button zur Metadaten Sektion der Mods hinzu, welcher es erlaubt, deren programmatisch generierte Übersetzungsnachrichten zu exportieren.<br/>Da dies nur für Entwicklungszwecke gebraucht wird, ist es standardmäßig deaktiviert.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Name": "Mod Fallback-Lokalisierungs-Driver",
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Sorgt dafür, dass die Übersetzungsnachrichten von Mods für Benutzer ohne die Mod auf Englisch angezeigt werden.",
+
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Name": "Plugin Lade-Fix",
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Description": "Korrigiert ein Problem bei der Auflösung von Assemblyabhängigkeiten beim Laden von Plugins.",
+
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Name": "Resonite Protokollierung in Konsole",
     "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Sendet die FrooxEngine UniLog Nachrichten an die MonkeyLoader Konsole, falls diese verfügbar ist.",
-    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "Sorgt dafür, dass Elemente in den SettingsDataFeed injiziert werden können.<br/>Dieser Injektor kann nicht deaktiviert werden, um sicherzustellen, dass die MonkeyLoader Einstellungen verfügbar bleiben.",
+
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Name": "Kontext-Menü-Injektor",
     "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "Versendet die Context Menu Items Generation Events, wenn es durch die Erweiterungsmethoden auf Usern geöffnet wird (also für Buttons, Drag und Drop, etc.).",
-    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Versendet die Context Menu Items Generation Events, wenn es durch den Interaction Handler geöffnet wird (also mittels Controller, Tastatur oder Maus).<br/>Falls Einträge in einem Update hinzugefügt werden, kann dieser Monkey deaktiviert werden, um Zugriff zu erhalten - dies verhindert dann allerdings, dass die extra Einstellungen für das Kontextmenü sowie die Events funktionieren."
+
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Name": "Interaction Handler Kontext-Menü-Injektor",
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Versendet die Context Menu Items Generation Events, wenn es durch den Interaction Handler geöffnet wird (also mittels Controller, Tastatur oder Maus).<br/>Falls Einträge in einem Update hinzugefügt werden, kann dieser Monkey deaktiviert werden, um Zugriff zu erhalten - dies verhindert dann allerdings, dass die extra Einstellungen für das Kontextmenü sowie die Events funktionieren.",
+
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Name": "Modularer Inspektor-Injektor",
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Versendet die Build Inspector Body / Header Events, um die Worker Inspector UI-Generierung modular zu machen.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Name": "Standard Member Editoren Generator",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Generiert die standard Member Editoren für Inspektoren.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Name": "Standard Inspector Header Generator",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Description": "Sorgt für die Erstellung der standard UI-Elemente des Worker Inspector Headers.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Name": "Standard Inspektorkopfzeilentext Auflöser",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Description": "Fügt den standard Kopfzeilentext zu Worker Inspector Headern hinzu.",
+
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Name": "Sync Member Editor Builder Injektor",
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Versendet die verschiedenen Build Member Editor Events, damit Monkeys die Generierung dieser überschreiben können.",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Name": "Button Delegate Tooltip Auflöser",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Wandelt das SyncDelegate Ziel eines Buttons in den Schlüssel für eine Übersetzungsnachricht um, damit diese als Tooltip angezeigt werden kann.",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Name": "Button Tooltips",
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Fügt Tooltip Auflösungsanfragen für UIX Buttons hinzu.",
+
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Name": "Comment Tooltip Auflöser",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons auf, indem es nach einer Comment-Komponente sucht, deren Text mit 'TooltipperyLabel:' anfängt.",
+
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Name": "Hyperlink Tooltip Auflöser",
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "Löst die Anfrage für den Tooltip eines Buttons basierend dem Grund und der URL einer Hyperlink-Komponente auf.<br/>Diese können zu einem weiteren Tooltip für den Button hinzugefügt werden.",
+
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Name": "Tooltip Manager",
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Versendet die Tooltip Auflösungsanfragen aus verschiedenen Quellen. Das Tooltipsystem basiert auf dem Tooltippery Mod, der ursprünglich von Psychpsyo erstellt wurde.",
+
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Name": "Test",
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Description": "Keine Beschreibung",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Name": "Unity Ladefortschrittsanzeige",
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Sorgt dafür, dass der Mod-Ladefortschritt auf dem Ladebildschirm der Unity Version von Resonite erscheint."
   }
 }

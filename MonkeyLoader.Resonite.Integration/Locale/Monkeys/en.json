@@ -2,6 +2,9 @@
   "localeCode": "en",
   "authors": [ "Banane9", "Nytra" ],
   "messages": {
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Name": "Unity Hook",
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Calls Unity Monkeys after the first scene has been loaded.",
+
     "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Name": "Engine Init Hook",
     "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Calls Resonite Monkeys after FrooxEngine is ready and when it gets shut down.",
 
@@ -9,7 +12,7 @@
     "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Makes the Brotli library look for its native DLL in the right place.",
 
     "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Name": "Config Section Settings Items",
-    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "Generates data feed items for the monkey config sections.",
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "Generates the data feed items for the config sections of the mods.",
 
     "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Name": "Mod Metadata Settings Items",
     "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Description": "Generates data feed items for the mod metadata.",
@@ -20,11 +23,11 @@
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "Root Category Settings Items",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "Generates data feed items for the root MonkeyLoader category.",
 
-    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "Non-Toggleable Settings Items",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "Non-Toggleable Monkey Settings Items",
     "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "Generates data feed items for the non-toggleable monkeys.",
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Name": "Save Config Settings Items",
-    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Generates data feed items to save and reset the config sections.",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Generates data feed items to save and reset the config sections of the mods.",
 
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Name": "Settings Fallback Locale Generator",
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Generates fallback locale messages for the mod settings.",
@@ -76,9 +79,6 @@
 
     "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Name": "Default Inspector Header Text Resolver",
     "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Description": "Adds the default inspector header text to worker inspectors.",
-
-    "MonkeyLoader.GamePacks.Resonite.SlotComponentReceiverMenuInjector.Name": "Slot Component Receiver Menu Injector",
-    "MonkeyLoader.GamePacks.Resonite.SlotComponentReceiverMenuInjector.Description": "No Description",
 
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Name": "Sync Member Editor Builder Injector",
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Sends out the various Build Member Editor events to allow monkeys to override the generation of them.",

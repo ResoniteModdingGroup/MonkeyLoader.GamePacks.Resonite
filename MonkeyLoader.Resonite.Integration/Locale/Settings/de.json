@@ -5,7 +5,8 @@
     "Settings.MonkeyLoader.Breadcrumb": "Einstellungen",
     "Settings.SaveConfig.Breadcrumb": "Speichere Einstellungen",
     "Settings.ResetConfig.Breadcrumb": "Stelle Standardeinstellungen wieder her",
-    "Settings.ExportLocaleFile.Breadcrumb": "Exportiere Fallback Lokalisierungsdaten",
+    "Settings.ExportLocaleFile.Loaded.Breadcrumb": "Exportiere geladene Fallback Lokalisierungsdaten",
+    "Settings.ExportLocaleFile.Raw.Breadcrumb": "Exportiere rohe Fallback Lokalisierungsdaten",
     "Settings.ConfigSections.Breadcrumb": "Einstellungen",
 
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoader.MonkeyCount.Value": "{available, plural, =0{Keine Monkeys} other{<b>{active}</b> {active, plural, one{aktiver Monkey} other{aktive Monkeys}} von <b>{available}</b> verfügbaren}}.",
@@ -14,8 +15,9 @@
     "MonkeyLoader.GamePacks.Resonite.OpenMonkeyLoader.Description": "Öffnet die Einstellungen für den Modloader selbst.",
 
     "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile": "Lokalisierungsexport",
-    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Label": "Fallback Lokalisierungsdaten Exportieren",
-    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Ausgabe Pfad",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Path": "Ausgabepfad",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Loaded": "Geladene Fallback Lokalisierungsdaten Exportieren",
+    "MonkeyLoader.GamePacks.Resonite.ExportLocaleFile.Raw": "Rohe Fallback Lokalisierungsdaten Exportieren",
 
     "MonkeyLoader.GamePacks.Resonite.Mod.Metadata": "Metadaten",
     "MonkeyLoader.GamePacks.Resonite.Mod.GroupDescription": "Zeigt eine Übersicht über die Mod.",
@@ -24,19 +26,20 @@
     "MonkeyLoader.GamePacks.Resonite.Mod.Authors": "{count, plural, one{Autor} other{Autoren}}",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project": "Projekt",
     "MonkeyLoader.GamePacks.Resonite.Mod.Project.None": "<i>Kein Projekt</i>",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Verfügbare Einstellungen Öffnen",
+    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "Verfügbare Monkeys Öffnen",
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfig": "Einstellungen Speichern",
     "MonkeyLoader.GamePacks.Resonite.ResetConfig": "Standardeinstellungen Wiederherstellen",
     "MonkeyLoader.GamePacks.Resonite.Warning": "Warnung",
     "MonkeyLoader.GamePacks.Resonite.UnsavableWarning": "Mindestens einer der Abschnitte der Einstellungen dieser Mod wurden als nicht speicherbar markiert. Dies passiert meistens, wenn der gespeicherte Abschnitt eine höhere Version hat, als das wofür er geladen wird.<br/>Um dies zu beheben, stelle sicher, dass die neueste Version der Mod installiert ist - falls dies nicht hilft, ändere manuell die Versionen in der Datei auf <b>0.0.0.0</b>, um sie wieder alt zu machen.",
     "MonkeyLoader.GamePacks.Resonite.EnumToggle.Description": "Schaltet das <i>{FlagName}</i>-Flag der <i>{EnumName}</i> Enumeration um.",
+    "MonkeyLoader.GamePacks.Resonite.NullableEnumHasValue.Name": "Hat Wert",
 
     "MonkeyLoader.GamePacks.Resonite.WorldNotUserspace": "Diese Kategorie ist nur im Userspace verfügbar.",
 
-    "MonkeyLoader.GamePacks.Resonite.Mod.OpenConfigSections": "Verfügbare Einstellungen Öffnen",
-
-    "MonkeyLoader.GamePacks.Resonite.Mod.OpenMonkeyToggles": "Verfügbare Monkeys Öffnen",
-
+    "MonkeyLoader.GamePacks.Resonite.MonkeysToggleable.Name": "Deaktivierbare Monkeys",
+    "MonkeyLoader.GamePacks.Resonite.MonkeysNonToggleable.Name": "Immer aktive Monkeys",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Description": "Listet die Details aller verfügbaren Monkeys dieses Mods auf und erlaubt es sie zu (de)aktivieren.",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Name": "Anzahl",
     "MonkeyLoader.GamePacks.Resonite.Monkeys.Count.Description": "Anzahl der Monkeys in dieser Mod.",
@@ -53,11 +56,6 @@
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Count.Description": "Die Anzahl der Early Monkeys in dieser Mod.",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Name": "Aktiv",
     "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.Enabled.Description": "Schaltet um, ob dieser Early Monkey aktiv ist.<size=50%><br/><br/></size>Achtung: Änderungen werden eventuell erst nach einem Neustart aktiv.",
-    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv",
-
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DestroyOffset.Description": "Das Order Offset des Löschen-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DuplicateOffset.Description": "Das Order Offset des Duplizieren-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.OpenContainerOffset.Description": "Das Order Offset des Container-Öffnen-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts.",
-    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.NameOffset.Description": "Das Order Offset des Worker-Name-Knopfs bei Inspektor-Kopfzeilen. Erlaubter Wert: 0-16 - Höher ist weiter rechts."
+    "MonkeyLoader.GamePacks.Resonite.EarlyMonkeys.AlwaysEnabled": "Immer Aktiv"
   }
 }
