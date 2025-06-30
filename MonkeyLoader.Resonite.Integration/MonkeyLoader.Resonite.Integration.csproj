@@ -10,7 +10,8 @@
     <Authors>Banane9, Nytra</Authors>
     <Version>0.23.1-beta</Version>
     <Description>This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite, which uses FrooxEngine.
-It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.</Description>
+It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.
+Additionally it contains many useful features for Users and Developers alike.</Description>
     <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>

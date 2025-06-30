@@ -3,10 +3,13 @@
   "authors": [ "Banane9", "Nytra" ],
   "messages": {
     "MonkeyLoader.GamePacks.Resonite.Name": "Resonite Game Pack",
-    "MonkeyLoader.GamePacks.Resonite.Description": "This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite, which uses FrooxEngine.<br/>It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.",
+    "MonkeyLoader.GamePacks.Resonite.Description": "This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite, which uses FrooxEngine.<br/>It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.<br/>Additionally it contains many useful features for Users and Developers alike.",
 
     "MonkeyLoader.GamePacks.Resonite.Unity.Name": "Resonite (Unity) Game Pack",
     "MonkeyLoader.GamePacks.Resonite.Unity.Description": "This Game Pack for MonkeyLoader provides additional hooks for the Unity version of Resonite (as opposed to the Headless server).",
+
+    "MonkeyLoader.GamePacks.Unity.Name": "Unity Game Pack",
+    "MonkeyLoader.GamePacks.Unity.Description": "This Game Pack for MonkeyLoader provides basic hooks for Unity modding, such as when the first scene has been loaded, to prevent the dynamic Unity bindings from gettings messed up.",
 
     "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "Additional Information",
 
