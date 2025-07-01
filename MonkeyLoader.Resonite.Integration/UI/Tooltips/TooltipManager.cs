@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
@@ -19,6 +20,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
           ICancelableEventSource<ResolveTooltipLabelEvent>
     {
         private static readonly Dictionary<IButton, LocaleString> _labelsByButton = [];
+        private static readonly Dictionary<IButton, CancellationTokenSource> _openDelaysByButton = [];
         private static readonly Dictionary<IButton, Tooltip> _openTooltips = [];
 
         private static CancelableEventDispatching<ResolveTooltipLabelEvent>? _resolveTooltipLabel;
@@ -36,6 +38,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <returns><c>true</c> if the tooltip was closed; <c>false</c> if there was no tooltip.</returns>
         public static bool CloseTooltip(IButton button)
         {
+            TryCancelOpenDelay(button);
+
             if (!TryGetTooltip(button, out var tooltip))
                 return false;
 
@@ -133,11 +137,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         public static bool TryGetTooltip(IButton button, [NotNullWhen(true)] out Tooltip? tooltip)
             => _openTooltips.TryGetValue(button, out tooltip);
 
-        /// <inheritdoc cref="TryOpenTooltip(IButton, ButtonEventData, Slot, out Tooltip?, in float3, float)"/>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent,
-            [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default)
-            => TryOpenTooltip(button, buttonEventData, tooltipParent, out tooltip, globalOffset);
-
         /// <summary>
         /// Tries to open a tooltip for the given button details,
         /// optionally returning the already open or newly created tooltip.
@@ -149,13 +148,15 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <param name="button">The button the tooltip is attached to.</param>
         /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
         /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
-        /// <param name="tooltip">The tooltip if one was already open or newly opened; otherwise, <c>null</c>.</param>
+        /// <param name="tooltip">The tooltip if one was already open or newly opened; otherwise, <see langword="null"/>.</param>
         /// <param name="globalOffset">The offset from the button hitpoint at which the tooltip should be opened in global space.</param>
         /// <param name="localScale">The local scale of the tooltip to be opened inside the <paramref name="tooltipParent"/>.</param>
-        /// <returns><c>true</c> if a tooltip was already open or newly opened; otherwise, <c>false</c>.</returns>
+        /// <returns><see langword="true"/> if a tooltip was already open or newly opened; otherwise, <see langword="false"/>.</returns>
         public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent,
             [NotNullWhen(true)] out Tooltip? tooltip, in float3 globalOffset = default, float localScale = 1)
         {
+            TryCancelOpenDelay(button);
+
             if (_openTooltips.TryGetValue(button, out tooltip))
                 return true;
 
@@ -163,17 +164,13 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 return false;
 
             var position = buttonEventData.globalPoint + globalOffset;
+            var localPosition = tooltipParent.GlobalPointToLocal(position);
 
             tooltip = MakeTooltip(button, tooltipParent,
-                tooltipParent.GlobalPointToLocal(position),
-                localScale, label.Value);
+                localPosition, localScale, label.Value);
 
             return true;
         }
-
-        /// <inheritdoc cref="TryOpenTooltip(IButton, ButtonEventData, Slot, in float3, float)"/>
-        public static bool TryOpenTooltip(IButton button, ButtonEventData buttonEventData, Slot tooltipParent, in float3 globalOffset = default)
-            => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset, 1);
 
         /// <summary>
         /// Tries to open a tooltip for the given button details.
@@ -183,15 +180,90 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             => TryOpenTooltip(button, buttonEventData, tooltipParent, out _, in globalOffset, localScale);
 
         /// <summary>
+        /// Tries to open a tooltip for the given button details after the specified <paramref name="delay"/>.
+        /// </summary>
+        /// <inheritdoc cref="TryOpenTooltipWithDelay(IButton, float?, ButtonEventData, Slot, out Tooltip?, in float3, float)"/>
+        public static bool TryOpenTooltipWithDelay(IButton button, float? delay, ButtonEventData buttonEventData, Slot tooltipParent,
+            in float3 globalOffset = default, float localScale = 1)
+            => TryOpenTooltipWithDelay(button, delay, buttonEventData, tooltipParent, out _, in globalOffset, localScale);
+
+        /// <summary>
+        /// Tries to open a tooltip for the given button details after the specified <paramref name="delay"/>,
+        /// optionally returning the already open or instantly newly created tooltip.
+        /// </summary>
+        /// <remarks>
+        /// If the label for the tooltip fails to <see cref="TryResolveTooltipLabel">resolve</see>
+        /// or it's a locale key missing a message, no tooltip will be created.<br/>
+        /// When another tooltip is (attempted to be) opened or
+        /// <c><see cref="CloseTooltip(IButton)">CloseTooltip</see>(<paramref name="button"/>)</c>
+        /// is called before the <paramref name="delay"/> time has passed, no (new) tooltip will be created.
+        /// </remarks>
+        /// <param name="button">The button the tooltip is attached to.</param>
+        /// <param name="delay">
+        /// The time in seconds to wait before opening the tooltip.
+        /// Defaults to <see cref="TooltipConfig.HoverTime"/> when passed <see langword="null"/>.
+        /// Values <c>&lt;= 0</c> open it instantly.<br/>
+        /// When another tooltip is (attempted to be) opened or
+        /// <c><see cref="CloseTooltip(IButton)">CloseTooltip</see>(<paramref name="button"/>)</c>
+        /// is called before the time has passed, no (new) tooltip will be created.
+        /// </param>
+        /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
+        /// <param name="tooltipParent">The slot the tooltip will be parented to.</param>
+        /// <param name="tooltip">The tooltip if one was already open or instantly newly opened; otherwise, <see langword="null"/>.</param>
+        /// <param name="globalOffset">The offset from the button hitpoint at which the tooltip should be opened in global space.</param>
+        /// <param name="localScale">The local scale of the tooltip to be opened inside the <paramref name="tooltipParent"/>.</param>
+        /// <returns><see langword="true"/> if a tooltip was already open or was / will be newly opened; otherwise, <see langword="false"/>.</returns>
+        public static bool TryOpenTooltipWithDelay(IButton button, float? delay, ButtonEventData buttonEventData, Slot tooltipParent,
+            out Tooltip? tooltip, in float3 globalOffset = default, float localScale = 1)
+        {
+            if (_openTooltips.TryGetValue(button, out tooltip))
+                return true;
+
+            if (!TryResolveTooltipLabel(button, buttonEventData, out var label))
+                return false;
+
+            var trueDelay = delay ?? ConfigSection.HoverTime;
+            var position = buttonEventData.globalPoint + globalOffset;
+            var localPosition = tooltipParent.GlobalPointToLocal(position);
+
+            if (trueDelay <= 0)
+            {
+                tooltip = MakeTooltip(button, tooltipParent,
+                    localPosition, localScale, label.Value);
+
+                return true;
+            }
+
+            // Close tooltip handles resetting any previous delays
+            CloseTooltip(button);
+
+            var tokenSource = new CancellationTokenSource();
+            var cancellationToken = tokenSource.Token;
+            _openDelaysByButton.Add(button, tokenSource);
+
+            button.RunInSeconds(trueDelay, () =>
+            {
+                if (cancellationToken.IsCancellationRequested || button.FilterWorldElement() is null || HasTooltip(button))
+                    return;
+
+                MakeTooltip(button, tooltipParent,
+                    localPosition, localScale, label.Value);
+            });
+
+            tooltip = null;
+            return true;
+        }
+
+        /// <summary>
         /// Tries to resolve the tooltip label for the given button details.
         /// </summary>
         /// <remarks>
-        /// If the label for the tooltip is locale key missing a message, it's treated as an unsuccessfully resolved.
+        /// If the label for the tooltip is locale key missing a message, it's treated as unsuccessfully resolved.
         /// </remarks>
         /// <param name="button">The button the tooltip is attached to.</param>
         /// <param name="buttonEventData">The button event triggering opening the tooltip.</param>
-        /// <param name="label">The label if it was successfully resolved; otherwise, <c>null</c>.</param>
-        /// <returns><c>true</c> if the label was successfully resolved; otherwise, <c>false</c>.</returns>
+        /// <param name="label">The label if it was successfully resolved; otherwise, <see langword="null"/>.</param>
+        /// <returns><c>true</c> if the label was successfully resolved; otherwise, <see langword="false"/>.</returns>
         public static bool TryResolveTooltipLabel(IButton button, ButtonEventData buttonEventData, [NotNullWhen(true)] out LocaleString? label)
         {
             var eventData = new ResolveTooltipLabelEvent(button, buttonEventData);
@@ -216,7 +288,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <see cref="LocaleString">label</see> for the given button.
         /// </summary>
         /// <param name="button">The button to remove the registered label of.</param>
-        /// <returns><c>true</c> if there was a label to remove; otherwise, <c>false</c>.</returns>
+        /// <returns><c>true</c> if there was a label to remove; otherwise, <see langword="false"/>.</returns>
         public static bool UnregisterLabelForButton(IButton button)
         {
             if (!_labelsByButton.Remove(button))
@@ -253,6 +325,15 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         private static void OnLabeledButtonDestroyed(IDestroyable destroyable)
             => UnregisterLabelForButton((IButton)destroyable);
+
+        private static void TryCancelOpenDelay(IButton button)
+        {
+            if (!_openDelaysByButton.TryGetValue(button, out var tokenSource))
+                return;
+
+            tokenSource.Cancel();
+            _openDelaysByButton.Remove(button);
+        }
 
         event CancelableEventDispatching<ResolveTooltipLabelEvent>? ICancelableEventSource<ResolveTooltipLabelEvent>.Dispatching
         {
