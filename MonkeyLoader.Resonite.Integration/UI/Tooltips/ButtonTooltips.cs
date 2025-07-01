@@ -22,8 +22,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     {
         public override bool CanBeDisabled => true;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
-
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Button.OnDispose))]
         private static void OnDisposePostfix(Button __instance)
@@ -45,11 +43,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             var localOffset = canvasBounds.Center.x_ + canvasBounds.Min._y - canvasHitPoint.xy;
             var offset = tooltipParent.LocalVectorToGlobal(localOffset.xy_) + (0.01f * tooltipParent.Backward);
 
-            __instance.World.RunInSeconds(TooltipConfig.Instance.HoverTime, () =>
-            {
-                if (!TooltipManager.HasTooltip(__instance) && __instance.IsHovering)
-                    TooltipManager.TryOpenTooltip(__instance, eventData, tooltipParent, in offset, 1f / buttonRect.Canvas.UnitScale);
-            });
+            TooltipManager.TryOpenTooltipWithDelay(__instance, null, eventData, tooltipParent, in offset, 1f / buttonRect.Canvas.UnitScale);
         }
 
         [HarmonyPostfix]
