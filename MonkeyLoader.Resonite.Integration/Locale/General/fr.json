@@ -1,0 +1,19 @@
+{
+  "localeCode": "fr",
+  "authors": [ "Brodokk" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.Name": "Pack de Jeu Resonite",
+    "MonkeyLoader.GamePacks.Resonite.Description": "Ce pack de jeu pour MonkeyLoader fournit des hooks de base pour modder le jeu Resonite, qui utilise FrooxEngine.<br/>Il fournit des hooks au début de l’initialisation, lorsque l’initialisation est terminée, et à la fermeture du jeu.<br/>Il contient également de nombreuses fonctionnalités utiles pour les utilisateurs comme pour les développeurs.",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.Name": "Pack de Jeu Resonite (Unity)",
+    "MonkeyLoader.GamePacks.Resonite.Unity.Description": "Ce pack de jeu pour MonkeyLoader fournit des hooks supplémentaires pour la version Unity de Resonite (par opposition au serveur Headless).",
+
+    "MonkeyLoader.GamePacks.Unity.Name": "Pack de Jeu Unity",
+    "MonkeyLoader.GamePacks.Unity.Description": "Ce pack de jeu pour MonkeyLoader fournit des hooks de base pour le modding Unity, comme lors du chargement de la première scène, afin d’éviter que les liaisons Unity dynamiques ne soient perturbées.",
+
+    "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "Informations Supplémentaires",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Tente d’ouvrir un hyperlien.<size=50%><br/><br/></size><b>Raison :</b> <i>{reason}</i><br/><b>URL :</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Raison :</b> <i>{reason}</i><br/><b>URL :</b> <i>{url}</i>"
+  }
+}
