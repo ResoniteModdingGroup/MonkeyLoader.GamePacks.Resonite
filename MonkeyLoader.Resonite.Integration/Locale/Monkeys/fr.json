@@ -1,0 +1,107 @@
+{
+  "localeCode": "fr",
+  "authors": [ "Brodokk" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Name": "Hook Unity",
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "Appelle les Monkeys Unity après le chargement de la première scène.",
+
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Name": "Hook d'Initialisation du Moteur",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "Appelle les Monkeys Resonite une fois que FrooxEngine est prêt et lors de son arrêt.",
+
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Name": "Correctif Brotli",
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "Permet à la bibliothèque Brotli de rechercher sa DLL native au bon endroit.",
+
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Name": "Éléments de Configuration des Sections",
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "Génère les éléments du flux de données pour les sections de configuration des mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Name": "Éléments de Configuration des Métadonnées du Mod",
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Description": "Génère les éléments du flux de données pour les métadonnées des mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Name": "Volet Indépendant de Paramètre de Mod",
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "Permet de créer des volets indépendants fonctionnels à partir des éléments de paramètres de MonkeyLoader.",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "Éléments de Configuration de la Catégorie Racine",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "Génère les éléments du flux de données pour la catégorie racine de MonkeyLoader.",
+
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "Paramètres des Monkeys Non-activables",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "Génère les éléments du flux de données pour les monkeys non modifiables (non-basculables).",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Name": "Éléments de Configuration de Sauvegarde",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "Génère les éléments du flux de données pour sauvegarder et réinitialiser les sections de configuration des mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Name": "Générateur de Locale de Secours pour Paramètres",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "Génère les messages de localisation de secours pour les paramètres de mod.",
+
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "Paramètres des Monkeys Activables",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Génère les éléments du flux de données pour les monkeys activables (toggleables).",
+
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Journal Instantané de Resonite",
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Permet de vider immédiatement chaque message dans le journal de Resonite en synchronisant son état activé.",
+
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "Générateur de Locale de Secours",
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Envoie un événement de génération de locale de secours pour que les monkeys créent automatiquement (en anglais) les messages nécessaires non couverts.",
+
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Name": "Chargeur de Locale du Système de Fichiers",
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "Charge automatiquement les fichiers de localisation du système de fichiers des mods.",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Name": "Injecteur de Données de Locale",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "Envoie un événement de génération de locale pour que les monkeys chargent les messages localisés.",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Name": "Correctif de Chargement de Données de Locale",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "Permet de sélectionner des locales ne correspondant pas directement à un code de culture connu, tant qu’elles en dérivent.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Name": "Exportateur de Fichier de Locale de Secours du Mod",
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "Ajoute un bouton aux pages de paramètres des mods pour exporter leurs messages de localisation générés automatiquement.<br/>Désactivé par défaut car uniquement à des fins de développement.",
+
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Name": "Pilote de Locale de Secours du Mod",
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "Assure que les messages de localisation des mods apparaissent comme valeur de secours (en anglais) pour les utilisateurs qui ne les ont pas activés.",
+
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Name": "Correctif de Chargement des Plugins",
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Description": "Corrige un problème de résolution d’assembly lors du chargement de plugins.",
+
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Name": "Journal Resonite vers Console",
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "Envoie les messages UniLog de FrooxEngine vers la console de MonkeyLoader lorsqu’elle est disponible.",
+
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Name": "Injecteur de Menu Contextuel",
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "Envoie un événement de génération d’éléments de menu contextuel lorsqu’il est ouvert via les méthodes d’extension sur les utilisateurs (boutons, glisser-déposer, etc.).",
+
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Name": "Injecteur de Menu Contextuel du Gestionnaire d’Interaction",
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Envoie un événement de génération d’éléments de menu contextuel lorsqu’il est ouvert par le gestionnaire d’interactions (controller, clavier, souris).<br/>S’il y a des entrées ajoutées lors d’une mise à jour, ce monkey peut être désactivé pour y accéder – mais cela empêchera le fonctionnement des paramètres et événements contextuels supplémentaires.",
+
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Name": "Injecteur d’Inspecteur Personnalisé",
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Envoie les événements Build Inspector Body/Header pour rendre la génération de l’UI de l’inspecteur modulaire.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Name": "Gestionnaires d’Édition de Membres par Défaut",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "Génère les éditeurs de membres par défaut pour les inspecteurs.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Name": "Gestionnaire d’En-tête d’Inspecteur par Défaut",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Description": "Gère la création des éléments UI par défaut de l’en-tête de l’inspecteur de travailleurs.",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Name": "Résolveur de Texte d’En-tête d’Inspecteur",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Description": "Ajoute le texte d’en-tête par défaut des inspecteurs de travailleurs.",
+
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Name": "Injecteur de Construction d’Éditeur de Membres Synchronisés",
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Envoie les différents événements Build Member Editor pour permettre aux monkeys de les surcharger.",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Name": "Résolveur d’Infobulle pour Délégations de Bouton",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Transforme la SyncDelegate ciblée par un bouton en clé de locale à afficher comme infobulle.",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Name": "Infobulles de Boutons",
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "Ajoute des résolutions d’infobulle aux boutons UIX.",
+
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Name": "Résolveur d’Infobulle de Commentaire",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "Résout l’infobulle d’un bouton à partir du texte d’un composant Comment commençant par “TooltipperyLabel:”.",
+
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Name": "Résolveur d’Infobulle pour Hyperliens",
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "Résout l’infobulle d’un bouton basée sur l’URL et la raison d’un composant Hyperlink.<br/>Peut être ajouté à une infobulle déjà existante du bouton.",
+
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Name": "Gestionnaire d’Infobulles",
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Envoie les demandes de résolution d’infobulle provenant de différentes sources. Le système d’infobules s’appuie sur le mod Tooltippery initialement créé par Psychpsyo.",
+
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Name": "Test",
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Description": "Sans description",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Name": "Indicateur de Chargement Unity",
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "Affiche le processus de chargement des mods sur l’écran de chargement dans la version Unity de Resonite."
+  }
+}
