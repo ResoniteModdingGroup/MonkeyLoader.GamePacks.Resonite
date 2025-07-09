@@ -28,16 +28,22 @@ namespace MonkeyLoader.Resonite.Locale
             }
         }
 
+        private static void FakeOnLoadStateChanged(Asset asset)
+        {
+            // do nothing
+        }
+
         [HarmonyTranspiler]
         [HarmonyPatch(MethodType.Async)]
         private static IEnumerable<CodeInstruction> LoadTargetVariantMoveNextTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var onLoadStateChangeMethod = AccessTools.Method(typeof(Asset), nameof(Asset.OnLoadStateChanged));
+            var fakeOnLoadStateChangeMethod = AccessTools.Method(typeof(LocaleDataInjector), nameof(LocaleDataInjector.FakeOnLoadStateChanged));
 
             foreach (var instruction in instructions)
             {
                 if (instruction.Calls(onLoadStateChangeMethod))
-                    yield return new CodeInstruction(OpCodes.Nop);
+                    yield return new CodeInstruction(OpCodes.Call, fakeOnLoadStateChangeMethod);
                 else
                     yield return instruction;
             }

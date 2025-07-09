@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
+Console.Beep();
+
 var monkeyLoaderPath = new FileInfo(Path.Combine("MonkeyLoader", "MonkeyLoader.dll")); 
 var resonitePath = new FileInfo("Resonite.dll");
 
