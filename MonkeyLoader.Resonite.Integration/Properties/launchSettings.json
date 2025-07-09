@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "MonkeyLoader.Resonite.Integration": {
+      "commandName": "Project"
+    },
+    "Resonite": {
+      "commandName": "Executable",
+      "executablePath": "$(ResonitePath)/Resonite.exe",
+      "commandLineArgs": "-donotautoloadhome",
+      "workingDirectory": "$(ResonitePath)"
+    },
+    "Resonite (Override Cache)": {
+      "commandName": "Executable",
+      "executablePath": "$(ResonitePath)/Resonite.exe",
+      "commandLineArgs": "-donotautoloadhome -CachePath \"$(ResoniteCachePath)\"",
+      "workingDirectory": "$(ResonitePath)"
+    }
+  }
+}

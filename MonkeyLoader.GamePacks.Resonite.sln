@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Data", "MonkeyLoader.Resonite.Data\MonkeyLoader.Resonite.Data.csproj", "{0B2654DA-F027-4B3A-9C96-9ACEFB3B27E0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonkeyLoader.Resonite.Integration", "MonkeyLoader.Resonite.Integration\MonkeyLoader.Resonite.Integration.csproj", "{40835522-1978-431B-A395-0870583B80F5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FE8D398D-D028-4478-87FC-43E9A6D75C7C} = {FE8D398D-D028-4478-87FC-43E9A6D75C7C}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2B75D50A-95BF-42EF-94FA-99464A307B9B}"
 	ProjectSection(SolutionItems) = preProject
