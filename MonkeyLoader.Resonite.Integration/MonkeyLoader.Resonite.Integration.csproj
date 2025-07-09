@@ -41,7 +41,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroUtils.HarmonyAnalyzers" Version="1.6.0-beta1744347465">
+    <PackageReference Include="MicroUtils.HarmonyAnalyzers" Version="1.6.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
