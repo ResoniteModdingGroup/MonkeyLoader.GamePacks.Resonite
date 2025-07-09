@@ -43,7 +43,7 @@ jobs:
     - name: Setup Dotnet
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.x
+        dotnet-version: 9.x
         source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
     
     - name: Add MonkeyLoader NuGet Source
@@ -98,7 +98,7 @@ jobs:
     - name: Setup Dotnet
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.x
+        dotnet-version: 9.x
         source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
 
     - name: Add MonkeyLoader NuGet Source
