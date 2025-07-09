@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
-    internal sealed class TestPrePatcher : EarlyMonkey<TestPrePatcher>
+    // .NET Core enforces access checks, so this needs to be public for HelloMethod() to be callable from FrooxEngine
+    public sealed class TestPrePatcher : EarlyMonkey<TestPrePatcher>
     {
         public override string Name { get; } = "Test";
 

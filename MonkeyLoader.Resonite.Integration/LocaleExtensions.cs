@@ -318,6 +318,7 @@ namespace MonkeyLoader.Resonite
         {
             var locale = new LocaleResourceData();
 
+            /*
             try
             {
                 if (Engine.Current.Platform is Platform.Android)
@@ -339,6 +340,7 @@ namespace MonkeyLoader.Resonite
             {
                 UniLog.Error($"Error trying to load vanilla locale: {locale}\n{arg}", stackTrace: false);
             }
+            */
 
             await LocaleDataInjector.LoadLocalesAsync(locale, [FallbackLocaleCode]);
 
