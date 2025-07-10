@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using static MonkeyLoader.Resonite.UI.Slices;
+using Half = MonkeyLoader.Resonite.UI.Slices.Half;
 
 namespace MonkeyLoader.Resonite.UI
 {
