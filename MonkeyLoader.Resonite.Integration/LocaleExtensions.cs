@@ -367,7 +367,7 @@ namespace MonkeyLoader.Resonite
             return arguments;
         }
 
-        private static Mod GetMod(this IIdentifiable identifiable)
-            => identifiable.TryFindNearestParent<Mod>(out var mod) ? mod : EngineInitHook.Mod;
+        private static string GetMod(this IIdentifiable identifiable)
+            => (identifiable.TryFindNearestParent<Mod>(out var mod) ? mod : EngineInitHook.Mod).Id;
     }
 }
