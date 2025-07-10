@@ -37,7 +37,7 @@ namespace MonkeyLoader.Resonite.Locale
             foreach (var instruction in instructions)
             {
                 if (instruction.Calls(onLoadStateChangeMethod))
-                    yield return new CodeInstruction(OpCodes.Nop);
+                    yield return new CodeInstruction(OpCodes.Pop);
                 else
                     yield return instruction;
             }
