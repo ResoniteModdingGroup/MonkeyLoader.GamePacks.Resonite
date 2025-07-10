@@ -4,12 +4,12 @@
   </PropertyGroup>
   
   <PropertyGroup>
-	<TargetFramework>net9</TargetFramework>
+  <TargetFramework>net9</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
     <Title>Resonite Game Pack</Title>
     <Authors>Banane9, Nytra</Authors>
-    <Version>0.23.1-beta</Version>
+    <Version>0.24.0-beta</Version>
     <Description>This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite, which uses FrooxEngine.
 It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.
 Additionally it contains many useful features for Users and Developers alike.</Description>
