@@ -9,9 +9,7 @@ internal class Program
 {
     private static readonly FileInfo _monkeyLoaderPath = new(Path.Combine("MonkeyLoader", "MonkeyLoader.dll"));
 
-    private static readonly FileInfo _resonitePath = new FileInfo("Resonite.dll");
-
-    private static object? _monkeyLoader;
+    private static readonly FileInfo _resonitePath = new("Resonite.dll");
 
     static Program()
     {
@@ -31,7 +29,6 @@ internal class Program
     private static async Task Main(string[] args)
     {
         var monkeyLoader = new MonkeyLoader.MonkeyLoader();
-        _monkeyLoader = monkeyLoader;
         monkeyLoader.FullLoad();
 
         var resoniteAssembly = Assembly.LoadFile(_resonitePath.FullName);
@@ -41,7 +38,8 @@ internal class Program
         NativeLibrary.SetDllImportResolver(AppDomain.CurrentDomain.GetAssemblies().First(x => x.FullName!.Contains("SteamAudio.NET")), ResolveNativeLibrary);
 
         var resoniteProgramType = resoniteAssembly.GetType("Program");
-        var mainResult = Traverse.Create(resoniteProgramType).Method(nameof(Main), args).GetValue();
+        //var mainMethod = AccessTools.FirstMethod(resoniteProgramType, method => method.Name.Contains("Main"));
+        var mainResult = Traverse.Create(resoniteProgramType).Method("<Main>$", [args]).GetValue();
 
         if (mainResult is Task task)
             await task;
