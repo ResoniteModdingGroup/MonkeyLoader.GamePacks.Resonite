@@ -38,8 +38,7 @@ internal class Program
         NativeLibrary.SetDllImportResolver(AppDomain.CurrentDomain.GetAssemblies().First(x => x.FullName!.Contains("SteamAudio.NET")), ResolveNativeLibrary);
 
         var resoniteProgramType = resoniteAssembly.GetType("Program");
-        //var mainMethod = AccessTools.FirstMethod(resoniteProgramType, method => method.Name.Contains("Main"));
-        var mainResult = Traverse.Create(resoniteProgramType).Method("<Main>$", [args]).GetValue();
+        var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
         if (mainResult is Task task)
             await task;
