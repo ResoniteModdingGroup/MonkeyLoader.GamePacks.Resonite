@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.27.0-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.27.1-beta" />
     <PackageReference Include="System.Management" Version="9.0.6" />
   </ItemGroup>
 
