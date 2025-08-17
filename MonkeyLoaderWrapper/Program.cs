@@ -7,7 +7,7 @@ internal class Program
 {
     private static readonly FileInfo _monkeyLoaderPath = new(Path.Combine("MonkeyLoader", "MonkeyLoader.dll"));
 
-    private static readonly FileInfo _resonitePath = new("Resonite.dll");
+    private static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
     
     private static object? _monkeyLoaderInstance = null;
     private static MethodInfo? _monkeyLoaderResolveAssemblyMethod = null;
