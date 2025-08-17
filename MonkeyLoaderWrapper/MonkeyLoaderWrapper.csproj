@@ -4,16 +4,15 @@
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.27.1-beta" />
     <PackageReference Include="System.Management" Version="9.0.6" />
   </ItemGroup>
-
+    
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
     <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)/$(TargetFileName)" />
     <Message Text="Copied $(TargetFileName) to $(ResonitePath)/$(AssemblyFileName)" Importance="high" />
