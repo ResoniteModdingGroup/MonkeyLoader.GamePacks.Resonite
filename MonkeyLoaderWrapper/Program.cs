@@ -33,6 +33,10 @@ internal class Program
             => throw new Exception("This should never happen, we need to know about all assemblies ahead of time through ML");
         
         var monkeyLoaderAssembly = loadContext.LoadFromAssemblyPath(_monkeyLoaderPath.FullName);
+
+        // this is a hack
+        var systemManagementPath = new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", $"System.Management.dll"));
+        var systemManagementAssembly = loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
         
         var monkeyLoaderType = monkeyLoaderAssembly.GetType("MonkeyLoader.MonkeyLoader");
         var loggingLevelType = monkeyLoaderAssembly.GetType("MonkeyLoader.Logging.LoggingLevel");
@@ -81,6 +85,7 @@ internal class MonkeyLoaderAssemblyLoadContext(
     protected override Assembly? Load(AssemblyName assemblyName)
     {
         Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
+
         if (_assemblyResolveEventHandler != null)
         {
             var resolvedAssembly = _assemblyResolveEventHandler(assemblyName);
