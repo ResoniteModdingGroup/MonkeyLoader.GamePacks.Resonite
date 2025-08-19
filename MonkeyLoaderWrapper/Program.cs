@@ -35,8 +35,10 @@ internal class Program
         var monkeyLoaderAssembly = loadContext.LoadFromAssemblyPath(_monkeyLoaderPath.FullName);
 
         // this is a hack
-        var systemManagementPath = new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", $"System.Management.dll"));
-        var systemManagementAssembly = loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
+        var runtimeIdentifierFixed = RuntimeInformation.RuntimeIdentifier.StartsWith("win") ? "win" : RuntimeInformation.RuntimeIdentifier;
+        var systemManagementPath = new FileInfo(Path.Combine("runtimes", runtimeIdentifierFixed, "lib", "net9.0", "System.Management.dll"));
+        if (systemManagementPath.Exists) 
+            loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
         
         var monkeyLoaderType = monkeyLoaderAssembly.GetType("MonkeyLoader.MonkeyLoader");
         var loggingLevelType = monkeyLoaderAssembly.GetType("MonkeyLoader.Logging.LoggingLevel");
