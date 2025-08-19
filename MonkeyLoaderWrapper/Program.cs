@@ -31,6 +31,9 @@ internal class Program
         });
         loadContext.Resolving += (context, assembly)
             => throw new Exception("This should never happen, we need to know about all assemblies ahead of time through ML");
+
+        // https://github.com/dotnet/runtime/blob/main/docs/design/features/AssemblyLoadContext.ContextualReflection.md
+        using var contextualReflection = loadContext.EnterContextualReflection();
         
         var monkeyLoaderAssembly = loadContext.LoadFromAssemblyPath(_monkeyLoaderPath.FullName);
         
