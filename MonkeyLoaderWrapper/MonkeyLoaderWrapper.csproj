@@ -9,10 +9,6 @@
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Management" Version="9.0.6" />
-  </ItemGroup>
     
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
     <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)/$(TargetFileName)" />
