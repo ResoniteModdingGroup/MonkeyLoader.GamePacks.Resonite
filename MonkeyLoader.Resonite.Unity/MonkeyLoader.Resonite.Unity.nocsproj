@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>MonkeyLoader.GamePacks.Resonite.Unity</PackageId>
     <Title>Resonite (Unity) Game Pack</Title>
     <Authors>Banane9</Authors>
