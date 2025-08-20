@@ -1,19 +1,26 @@
 {
   "profiles": {
-    "MonkeyLoader.Resonite.Integration": {
-      "commandName": "Project"
-    },
     "Resonite": {
       "commandName": "Executable",
-      "executablePath": "$(ResonitePath)/Resonite.exe",
+      "executablePath": "$(ResonitePath)/Renderite.Host.exe",
       "commandLineArgs": "-donotautoloadhome",
-      "workingDirectory": "$(ResonitePath)"
+      "workingDirectory": "$(ResonitePath)",
+      "environmentVariables": {
+        "COREHOST_TRACE": "1",
+        "COREHOST_TRACEFILE": "trace.log"
+      },
+      "nativeDebugging": false
     },
     "Resonite (Override Cache)": {
       "commandName": "Executable",
-      "executablePath": "$(ResonitePath)/Resonite.exe",
+      "executablePath": "$(ResonitePath)/Renderite.Host.exe",
       "commandLineArgs": "-donotautoloadhome -CachePath \"$(ResoniteCachePath)\"",
-      "workingDirectory": "$(ResonitePath)"
+      "workingDirectory": "$(ResonitePath)",
+      "environmentVariables": {
+        "COREHOST_TRACE": "1",
+        "COREHOST_TRACEFILE": "trace.log"
+      },
+      "nativeDebugging": false
     }
   }
 }
