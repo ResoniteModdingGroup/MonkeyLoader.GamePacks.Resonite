@@ -15,13 +15,12 @@ and when the game shuts down.
 
 ### Linux
 
-- Native: Change the steam launch options to `./run_monkeyloader.sh %command%`
-- Wine / Proton: Using winetricks / protontricks, add `winhttp` to the native libraries
+- Currently not working on Linux
 
 ### How to disable
 
-- Use the Steam launch argument `--doorstop-enabled false`
-- Alternatively, rename or remove the `winhttp.dll` file in the Resonite folder
+- Use the Steam launch argument `--hookfxr-disable`
+- Alternatively, rename or remove the `hostfxr.dll` file in the Resonite folder
 
 ## Feature Overview
 
