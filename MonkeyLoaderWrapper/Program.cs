@@ -41,6 +41,36 @@ internal class Program
     private static object? _monkeyLoaderInstance = null;
     private static MethodInfo? _monkeyLoaderResolveAssemblyMethod = null;
 
+    private static IEnumerable<string> LibraryExtensions
+    {
+        get
+        {
+            yield return ".dll";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                yield break;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                yield return ".so";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                yield return ".dylib";
+        }
+    }
+
+    private static IEnumerable<string> LibraryPrefixes
+    {
+        get
+        {
+            yield return string.Empty;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                yield break;
+
+            yield return "lib";
+        }
+    }
+
     private static async Task Main(string[] args)
     {
         var loadContext = new MonkeyLoaderAssemblyLoadContext(_monkeyLoaderPath.DirectoryName!, (assemblyName) =>
@@ -86,8 +116,8 @@ internal class Program
         var resoniteAssembly = loadContext.LoadFromAssemblyPath(_resonitePath.FullName);
 
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
-        NativeLibrary.SetDllImportResolver(resoniteAssembly, ResolveNativeLibrary);
-        NativeLibrary.SetDllImportResolver(AppDomain.CurrentDomain.GetAssemblies().First(x => x.FullName!.Contains("SteamAudio.NET")), ResolveNativeLibrary);
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
 
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
@@ -97,13 +127,22 @@ internal class Program
 
     private static IntPtr ResolveNativeLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
+        if (libraryName == "rnnoise")
+            return IntPtr.Zero;
+
         var runtimesPath = Path.Combine(_resonitePath.DirectoryName!, "runtimes",
             RuntimeInformation.RuntimeIdentifier, "native");
 
-        var libraryPath = Path.Combine(runtimesPath, $"{libraryName}.dll");
+        foreach (var libraryPrefix in LibraryPrefixes)
+        {
+            foreach (var libraryExtension in LibraryExtensions)
+            {
+                var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
 
-        if (File.Exists(libraryPath))
-            return NativeLibrary.Load(libraryPath);
+                if (File.Exists(libraryPath))
+                    return NativeLibrary.Load(libraryPath);
+            }
+        }
 
         return IntPtr.Zero;
     }
