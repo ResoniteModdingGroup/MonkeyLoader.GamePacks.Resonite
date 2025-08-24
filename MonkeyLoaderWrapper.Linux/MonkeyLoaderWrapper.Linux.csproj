@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishSingleFile>false</PublishSingleFile>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
   </PropertyGroup>
-    
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
     <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)/$(TargetFileName)" />
     <Message Text="Copied $(TargetFileName) to $(ResonitePath)/$(AssemblyFileName)" Importance="high" />
@@ -21,5 +20,16 @@
 
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
+    
+    <Copy SourceFiles="LinuxBootstrap.sh" DestinationFiles="$(ResonitePath)/LinuxBootstrap.sh" />
+    <Message Text="Copied LinuxBootstrap.sh to $(ResonitePath)/LinuxBootstrap.sh" Importance="high" />
   </Target>
+
+  <ItemGroup>
+    <None Update="LinuxBootstrap.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    
+    <Compile Include="../MonkeyLoaderWrapper/**/*.cs" Exclude="../MonkeyLoaderWrapper/obj/**" />
+  </ItemGroup>
 </Project>
