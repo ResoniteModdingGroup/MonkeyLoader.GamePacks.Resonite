@@ -1,5 +1,5 @@
 {
-  "localeCode": "zh-CN",
+  "localeCode": "zh-cn",
   "authors": [ "modimobeikete" ],
   "messages": {
     "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Name": "{typeName}-注入器",
