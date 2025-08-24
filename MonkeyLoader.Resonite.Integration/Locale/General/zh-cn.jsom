@@ -1,0 +1,19 @@
+{
+  "localeCode": "zh-cn",
+  "authors": [ "modimobeikete" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Resonite.Name": "Resonite 游戏包",
+    "MonkeyLoader.GamePacks.Resonite.Description": "此 MonkeyLoader 游戏包为修改使用 FrooxEngine 的游戏 Resonite 提供了基础钩子。<br/>它提供了初始化开始、初始化完成以及游戏关闭时的钩子。<br/>此外，它还包含许多对用户和开发者都很有用的功能。",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.Name": "Resonite (Unity) 游戏包",
+    "MonkeyLoader.GamePacks.Resonite.Unity.Description": "此 MonkeyLoader 游戏包为 Resonite 的 Unity 版本（相对于无云端头服务器）提供了额外的钩子。",
+
+    "MonkeyLoader.GamePacks.Unity.Name": "Unity 游戏包",
+    "MonkeyLoader.GamePacks.Unity.Description": "此 MonkeyLoader 游戏包为 Unity 模组提供了基础钩子，例如在第一个场景加载完成时，以防止动态 Unity 绑定出现问题。",
+
+    "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "附加信息",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "尝试打开超链接。<size=50%><br/><br/></size><b>原因：</b> <i>{reason}</i><br/><b>URL：</b> <i>{url}</i>",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>原因：</b> <i>{reason}</i><br/><b>URL：</b> <i>{url}</i>"
+  }
+}
