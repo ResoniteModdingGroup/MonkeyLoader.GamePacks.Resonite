@@ -21,7 +21,7 @@
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
     
-    <Copy SourceFiles="LinuxBootstrap.sh" DestinationFiles="$(ResonitePath)/LinuxBootstrap.sh" />
+    <Copy SourceFiles="$(TargetDir)LinuxBootstrap.sh" DestinationFiles="$(ResonitePath)/LinuxBootstrap.sh" />
     <Message Text="Copied LinuxBootstrap.sh to $(ResonitePath)/LinuxBootstrap.sh" Importance="high" />
   </Target>
 
