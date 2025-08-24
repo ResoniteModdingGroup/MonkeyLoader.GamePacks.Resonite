@@ -1,6 +1,6 @@
 {
   "localeCode": "zh-CN",
-  "authors": [ "Banane9", "Nytra" ],
+  "authors": [ "modimobeikete" ],
   "messages": {
     "MonkeyLoader.Config.Logging.Name": "日志记录",
     "MonkeyLoader.Config.Logging.DirectoryPath.Name": "目录",
