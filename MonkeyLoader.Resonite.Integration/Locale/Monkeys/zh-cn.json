@@ -1,0 +1,107 @@
+{
+  "localeCode": "zh-cn",
+  "authors": [ "modimobeikete" ],
+  "messages": {
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Name": "Unity 钩子",
+    "MonkeyLoader.GamePacks.Unity.UnityHook.Description": "在第一个场景加载完成后调用 Unity Monkeys。",
+
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Name": "引擎初始化钩子",
+    "MonkeyLoader.GamePacks.Resonite.EngineInitHook.Description": "在 FrooxEngine 准备就绪时以及关闭时调用 Resonite Monkeys。",
+
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Name": "Brotli 修复",
+    "MonkeyLoader.GamePacks.Resonite.BrotliPatcher.Description": "使 Brotli 库在正确的位置查找其原生 DLL。",
+
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Name": "配置分区设置项",
+    "MonkeyLoader.GamePacks.Resonite.ConfigSectionSettingsItems.Description": "为模组的配置分区生成数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Name": "模组元数据设置项",
+    "MonkeyLoader.GamePacks.Resonite.ModMetadataSettingsItems.Description": "为模组元数据生成数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Name": "模组设置独立 Facet",
+    "MonkeyLoader.GamePacks.Resonite.ModSettingStandaloneFacet.Description": "允许从 MonkeyLoader 模组设置项创建可工作的独立 Facet。",
+
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "根分类设置项",
+    "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "为 MonkeyLoader 根分类生成数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "不可切换 Monkey 设置项",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "为不可切换的 monkeys 生成数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Name": "保存配置设置项",
+    "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Description": "生成用于保存和重置模组配置分区的数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Name": "设置回退区域生成器",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "为模组设置生成回退区域消息。",
+
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "可切换 Monkey 设置项",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "为可切换的 monkeys 生成数据源项。",
+
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "实时 Resonite 日志",
+    "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "通过将其启用状态代理给 Resonite 日志，来控制立即刷新其中每条消息的选项。",
+
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "回退区域生成器",
+    "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "发出回退区域生成事件，以便 monkeys 为尚未覆盖的必要键以编程方式生成（英文）区域消息。",
+
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Name": "文件系统区域加载器",
+    "MonkeyLoader.GamePacks.Resonite.FileSystemLocaleLoader.Description": "自动从模组的文件系统加载区域文件。",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Name": "区域数据注入器",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataInjector.Description": "发出区域生成事件，以便 Monkeys 加载区域消息。",
+
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Name": "区域数据加载修复",
+    "MonkeyLoader.GamePacks.Resonite.LocaleDataLoadingFix.Description": "允许选择不直接映射到已知区域性代码的区域设置，只要它们仍然基于已知代码即可。",
+
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Name": "模组回退区域文件导出器",
+    "MonkeyLoader.GamePacks.Resonite.ModFallbackLocaleFileExporter.Description": "在模组的设置页面添加一个按钮，允许导出其以编程方式生成的区域消息。<br/>由于此功能仅用于开发目的，默认情况下是禁用的。",
+
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Name": "模组区域回退驱动器",
+    "MonkeyLoader.GamePacks.Resonite.ModLocaleFallbackDriver.Description": "确保对于没有安装相应模组的用户，模组的区域消息会显示为（英文）回退值。",
+
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Name": "插件加载修复",
+    "MonkeyLoader.GamePacks.Resonite.PluginLoadingFix.Description": "修复插件加载中的程序集解析问题。",
+
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Name": "Resonite 日志输出到控制台",
+    "MonkeyLoader.GamePacks.Resonite.ResoniteLogToConsole.Description": "在可用时，将 FrooxEngine UniLog 消息发送到 MonkeyLoader 控制台。",
+
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Name": "上下文菜单注入器",
+    "MonkeyLoader.GamePacks.Resonite.ContextMenuInjector.Description": "当通过 User 上的扩展方法（例如，用于按钮、拖放等）打开上下文菜单时，发出上下文菜单项生成事件。",
+
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Name": "交互处理器上下文菜单注入器",
+    "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "当由交互处理器（即使用控制器、键盘或鼠标）打开上下文菜单时，发出上下文菜单项生成事件。<br/>如果在更新中添加了任何条目，可以禁用此 monkey 以获得访问权限——但这将阻止额外的上下文菜单设置和事件工作。",
+
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Name": "自定义检查器注入器",
+    "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "发出构建检查器主体/标题事件，使 Worker 检查器 UI 生成模块化。",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Name": "默认成员编辑器处理器",
+    "MonkeyLoader.GamePacks.Resonite.DefaultBuildMemberEditorHandlers.Description": "为检查器生成默认的成员编辑器。",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Name": "默认检查器标题处理器",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderHandler.Description": "处理创建 Worker 检查器标题的默认 UI 元素。",
+
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Name": "默认检查器标题文本解析器",
+    "MonkeyLoader.GamePacks.Resonite.DefaultInspectorHeaderTextResolver.Description": "将默认的检查器标题文本添加到 Worker 检查器中。",
+
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Name": "同步成员编辑器构建器注入器",
+    "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "发出各种构建成员编辑器事件，以允许 monkeys 覆盖它们的生成。",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Name": "按钮委托工具提示解析器",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "将按钮目标的 SyncDelegate 转换为区域键以显示为工具提示。",
+
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Name": "按钮工具提示",
+    "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "向 UIX 按钮添加工具提示解析请求。",
+
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Name": "注释工具提示解析器",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "根据 Comment 组件文本以 'TooltipperyLabel:' 开头来解析按钮的工具提示。",
+
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Name": "超链接工具提示解析器",
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "根据 Hyperlink 组件的 URL 和原因解析按钮的工具提示。<br/>它们可能会附加到按钮的另一个工具提示上。",
+
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Name": "工具提示管理器",
+    "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "发送来自不同来源的工具提示解析请求。该工具提示系统基于最初由 Psychpsyo 创建的 Tooltippery 模组。",
+
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Name": "测试",
+    "MonkeyLoader.GamePacks.Resonite.TestPrePatcher.Description": "无描述",
+
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Name": "Unity 加载进度指示器",
+    "MonkeyLoader.GamePacks.Resonite.Unity.UnityLoadProgressIndicator.Description": "使模组加载过程显示在 Resonite Unity 版本的加载屏幕上。"
+  }
+}
