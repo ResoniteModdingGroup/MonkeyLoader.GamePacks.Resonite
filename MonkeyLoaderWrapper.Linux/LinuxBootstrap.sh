@@ -93,7 +93,7 @@ main()
 
 	# ~ Launch Resonite! :) ~
 
-	dotnet Renderite.Host.dll "$@"
+	dotnet MonkeyLoaderWrapper.Linux.dll "$@"
 }
 
 main "$@"
