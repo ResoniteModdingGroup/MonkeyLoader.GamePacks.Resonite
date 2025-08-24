@@ -1,5 +1,5 @@
 {
-  "localeCode": "zh-CN",
+  "localeCode": "zh-cn",
   "authors": [ "modimobeikete" ],
   "messages": {
     "MonkeyLoader.Config.Logging.Name": "日志记录",
