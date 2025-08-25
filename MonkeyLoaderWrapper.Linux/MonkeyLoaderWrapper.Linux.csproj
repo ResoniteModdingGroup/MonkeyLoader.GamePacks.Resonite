@@ -20,16 +20,16 @@
 
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
-    
-    <Copy SourceFiles="$(TargetDir)LinuxBootstrap.sh" DestinationFiles="$(ResonitePath)/LinuxBootstrap.sh" />
-    <Message Text="Copied LinuxBootstrap.sh to $(ResonitePath)/LinuxBootstrap.sh" Importance="high" />
+
+    <Copy SourceFiles="$(TargetDir)run_monkeyloader.sh" DestinationFiles="$(ResonitePath)/run_monkeyloader.sh" />
+    <Message Text="Copied run_monkeyloader.sh to $(ResonitePath)/run_monkeyloader.sh" Importance="high" />
   </Target>
 
   <ItemGroup>
-    <None Update="LinuxBootstrap.sh">
+    <None Update="run_monkeyloader.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    
+
     <Compile Include="../MonkeyLoaderWrapper/**/*.cs" Exclude="../MonkeyLoaderWrapper/obj/**" />
   </ItemGroup>
 </Project>
