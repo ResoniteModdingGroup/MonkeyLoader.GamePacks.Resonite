@@ -41,6 +41,54 @@ internal class Program
     private static object? _monkeyLoaderInstance = null;
     private static MethodInfo? _monkeyLoaderResolveAssemblyMethod = null;
 
+    internal static string resoDir = string.Empty;
+    internal static AssemblyLoadContext alc = null!;
+    static void BepisMain(string[] args)
+    {
+#if DEBUG
+        File.WriteAllText("BepisLoader.log", "BepisLoader started\n");
+#endif
+        resoDir = Directory.GetCurrentDirectory();
+
+        alc = new BepisLoader.BepisLoader.BepisLoadContext();
+
+        // TODO: removing this breaks stuff, idk why
+        AppDomain.CurrentDomain.AssemblyResolve += BepisLoader.BepisLoader.ResolveGameDll;
+
+        var bepinPath = Path.Combine(resoDir, "BepInEx");
+        var bepinArg = Array.IndexOf(args.Select(x => x?.ToLowerInvariant()).ToArray(), "--bepinex-target");
+        if (bepinArg != -1 && args.Length > bepinArg + 1)
+        {
+            bepinPath = args[bepinArg + 1];
+        }
+        BepisLoader.BepisLoader.Log("Loading BepInEx from " + bepinPath);
+
+        var asm = alc.LoadFromAssemblyPath(Path.Combine(bepinPath, "core", "BepInEx.NET.CoreCLR.dll"));
+
+        var resoDllPath = Path.Combine(resoDir, "Renderite.Host.dll");
+        if (!File.Exists(resoDllPath)) resoDllPath = Path.Combine(resoDir, "Resonite.dll");
+
+        var t = asm.GetType("StartupHook");
+        var m = t.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static, [typeof(string), typeof(string), typeof(AssemblyLoadContext)]);
+        m.Invoke(null, [resoDllPath, bepinPath, alc]);
+
+        // Find and load Resonite
+        var resoAsm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "Resonite");
+        if (resoAsm == null)
+        {
+            resoAsm = alc.LoadFromAssemblyPath(resoDllPath);
+        }
+        //try
+        //{
+        //    var result = resoAsm.EntryPoint!.Invoke(null, [args]);
+        //    if (result is Task task) task.Wait();
+        //}
+        //catch (Exception e)
+        //{
+        //    File.WriteAllLines("BepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
+        //}
+    }
+
     private static IEnumerable<string> LibraryExtensions
     {
         get
@@ -118,6 +166,8 @@ internal class Program
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
+
+        BepisMain(args);
 
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 

@@ -32,4 +32,21 @@
 
     <Compile Include="../MonkeyLoaderWrapper/**/*.cs" Exclude="../MonkeyLoaderWrapper/obj/**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepisLoader">
+      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\BepisLoader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Publicize Include="BepisLoader" />
+  </ItemGroup>
 </Project>
