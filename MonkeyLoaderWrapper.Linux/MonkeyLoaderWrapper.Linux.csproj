@@ -32,5 +32,4 @@
 
     <Compile Include="../MonkeyLoaderWrapper/**/*.cs" Exclude="../MonkeyLoaderWrapper/obj/**" />
   </ItemGroup>
-  
 </Project>
