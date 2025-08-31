@@ -65,26 +65,11 @@ internal class Program
         }
 
         var asm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "BepInEx.NET.CoreCLR");
+        //var asm = alc.LoadFromAssemblyPath(Path.Combine(bepinPath, "core", "BepInEx.NET.CoreCLR.dll"));
 
         var t = asm.GetType("StartupHook");
         var m = t.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static, [typeof(string), typeof(string), typeof(AssemblyLoadContext)]);
         m.Invoke(null, [resoPath, bepinPath, alc]);
-
-        // Find and load Resonite
-        var resoAsm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "Renderite.Host");
-        if (resoAsm == null)
-        {
-            resoAsm = alc.LoadFromAssemblyPath(resoPath);
-        }
-        try
-        {
-            var result = resoAsm.EntryPoint!.Invoke(null, [args]);
-            if (result is Task task) task.Wait();
-        }
-        catch (Exception e)
-        {
-            File.WriteAllLines("BepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
-        }
     }
 
     private static IEnumerable<string> LibraryExtensions
@@ -162,13 +147,33 @@ internal class Program
         _monkeyLoaderInstance = Activator.CreateInstance(monkeyLoaderType!, traceLogLevel, "MonkeyLoader/MonkeyLoader.json");
         _monkeyLoaderResolveAssemblyMethod = monkeyLoaderType!.GetMethod("ResolveAssemblyFromPoolsAndMods", BindingFlags.Public | BindingFlags.Instance);
         var fullLoadMethod = monkeyLoaderType!.GetMethod("FullLoad", BindingFlags.Public | BindingFlags.Instance);
+
         fullLoadMethod!.Invoke(_monkeyLoaderInstance!, null);
+
+        BepisMain(args, loadContext, _resonitePath.FullName);
 
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
 
-        BepisMain(args, loadContext, _resonitePath.FullName);
+        // Find and load Resonite
+        var resoAsm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "Renderite.Host");
+        if (resoAsm == null)
+        {
+            resoAsm = alc.LoadFromAssemblyPath(_resonitePath.FullName);
+        }
+
+        try
+        {
+            var result = resoAsm.EntryPoint!.Invoke(null, [args]);
+            if (result is Task task) task.Wait();
+        }
+        catch (Exception e)
+        {
+            File.WriteAllLines("BepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
+        }
+
+        
     }
 
     private static IntPtr ResolveNativeLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
