@@ -14,6 +14,11 @@ internal class MonkeyLoaderAssemblyLoadContext(
     {
         Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
 
+        if (assemblyName.Name == "0Harmony")
+        {
+            return LoadFromAssemblyPath(Path.Combine("BepInEx", "core", "0Harmony.dll"));
+        }
+
         if (_assemblyResolveEventHandler != null)
         {
             var resolvedAssembly = _assemblyResolveEventHandler(assemblyName);
