@@ -23,22 +23,5 @@
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
   </Target>
-    
-  <ItemGroup>
-    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-    
-  <ItemGroup>
-    <Reference Include="BepisLoader">
-      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\BepisLoader.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Publicize Include="BepisLoader" />
-  </ItemGroup>
 
 </Project>
