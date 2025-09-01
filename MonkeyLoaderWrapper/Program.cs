@@ -10,7 +10,7 @@ internal class MonkeyLoaderAssemblyLoadContext(
 {
     private readonly AssemblyResolveEventHandler? _assemblyResolveEventHandler = handler;
 
-    internal Assembly? MyLoad(object? sender, ResolveEventArgs args)
+    internal Assembly? ExternalLoad(object? sender, ResolveEventArgs args)
     {
         var name = new AssemblyName(args.Name);
         return Load(name);
@@ -22,13 +22,27 @@ internal class MonkeyLoaderAssemblyLoadContext(
         {
             Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
 
-            if (assemblyName.Name == "0Harmony")
-                return Program.harmAsm;
-
             var found = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == assemblyName.Name);
             if (found != null)
             {
                 return found;
+            }
+
+            //if (assemblyName.Name == "0Harmony") // Only needed if loading MonkeyLoader first (because ML uses normal Harmony)
+            //{
+            //    var fi = new FileInfo(Path.Combine("BepInEx", "core", "0Harmony.dll"));
+            //    if (fi.Exists)
+            //        return LoadFromAssemblyPath(fi.FullName);
+            //}
+
+            if (assemblyName.Name == "System.Management")
+            {
+                var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
+                    ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
+                    : new FileInfo("System.Management.dll");
+
+                if (systemManagementPath.Exists)
+                    return LoadFromAssemblyPath(systemManagementPath.FullName);
             }
 
             if (_assemblyResolveEventHandler != null)
@@ -145,48 +159,9 @@ internal class BepisLoader
     internal static string resoDir = string.Empty;
     internal static AssemblyLoadContext alc = null!;
 
-    //static void LoadGameAssemblies(string gameRootDir)
-    //{
-    //    var loadedAsms = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name);
-    //    foreach (var file in Directory.GetFiles(gameRootDir).Where(f => f.EndsWith(".dll")))
-    //    {
-    //        var filename = Path.GetFileNameWithoutExtension(file);
-    //        if (!loadedAsms.Contains(filename))
-    //        {
-    //            try
-    //            {
-    //                if (filename == "System.Management")
-    //                {
-    //                    // this is a hack
-    //                    var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
-    //                        ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
-    //                        : new FileInfo("System.Management.dll");
-
-    //                    if (systemManagementPath.Exists)
-    //                        alc.LoadFromAssemblyPath(systemManagementPath.FullName);
-    //                }
-    //                else if (filename == "SemanticVersioning")
-    //                {
-    //                    // don't load
-    //                }
-    //                else
-    //                {
-    //                    alc.LoadFromAssemblyPath(file);
-    //                }
-
-    //            }
-    //            catch (Exception e)
-    //            {
-    //                Debug.WriteLine("Failed to load assembly: " + filename);
-    //            }
-    //        }
-    //    }
-    //}
-
     static Assembly? BepisResolveGameDll(object? sender, ResolveEventArgs args)
     {
         var assemblyName = new AssemblyName(args.Name);
-
         return BepisResolveInternal(assemblyName);
     }
 
@@ -195,9 +170,6 @@ internal class BepisLoader
         try
         {
             BepisLoader.Log($"Resolving {assemblyName.FullName}");
-
-            if (assemblyName.Name == "0Harmony")
-                return Program.harmAsm;
 
             var found = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == assemblyName.Name);
             if (found != null)
@@ -235,17 +207,7 @@ internal class BepisLoader
     {
         resoDir = Path.GetDirectoryName(resoPath)!;
 
-        
-
         alc = new BepisLoadContext();
-
-        //LoadGameAssemblies(resoDir);
-
-        var harm = Directory.GetFiles(_bepisPath.DirectoryName!).FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == "0Harmony");
-        if (harm != null)
-            Program.harmAsm = alc.LoadFromAssemblyPath(harm);
-        else
-            throw new Exception("Could not find Harmony!");
 
         // TODO: removing this breaks stuff, idk why
         AppDomain.CurrentDomain.AssemblyResolve += BepisLoader.BepisResolveGameDll;
@@ -257,8 +219,6 @@ internal class BepisLoader
             bepinPath = args[bepinArg + 1];
         }
 
-        //var asm = monkeyLoadContext.Assemblies.FirstOrDefault(x => x.GetName().Name == "BepInEx.NET.CoreCLR");
-        //var asm = alc.LoadFromAssemblyPath(Path.Combine(bepinPath, "core", "BepInEx.NET.CoreCLR.dll"));
         var asm = alc.LoadFromAssemblyPath(_bepisPath.FullName);
 
         var t = asm.GetType("StartupHook");
@@ -304,27 +264,27 @@ internal class MonkeyLoaderLoader
 
             return null;
         });
+
+        // This causes problems
         //loadContext.Resolving += (context, assembly)
         //=> throw new Exception("This should never happen, we need to know about all assemblies ahead of time through ML");
 
         // https://github.com/dotnet/runtime/blob/main/docs/design/features/AssemblyLoadContext.ContextualReflection.md
         //using var contextualReflection = loadContext.EnterContextualReflection();
 
-        AppDomain.CurrentDomain.AssemblyResolve += loadContext.MyLoad;
+        AppDomain.CurrentDomain.AssemblyResolve += loadContext.ExternalLoad;
 
         var monkeyLoaderAssembly = loadContext.LoadFromAssemblyPath(_monkeyLoaderPath.FullName);
 
-        //if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "System.Management"))
-        //{
-        //    // this is a hack
-        //    var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
-        //        ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
-        //        : new FileInfo("System.Management.dll");
+        if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "System.Management"))
+        {
+            var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
+                    ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
+                    : new FileInfo("System.Management.dll");
 
-        //    if (systemManagementPath.Exists)
-        //        loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
-        //}
-        
+            if (systemManagementPath.Exists)
+                loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
+        }
 
         var monkeyLoaderType = monkeyLoaderAssembly.GetType("MonkeyLoader.MonkeyLoader");
         var loggingLevelType = monkeyLoaderAssembly.GetType("MonkeyLoader.Logging.LoggingLevel");
@@ -332,21 +292,18 @@ internal class MonkeyLoaderLoader
 
         _monkeyLoaderInstance = Activator.CreateInstance(monkeyLoaderType!, traceLogLevel, "MonkeyLoader/MonkeyLoader.json");
         _monkeyLoaderResolveAssemblyMethod = monkeyLoaderType!.GetMethod("ResolveAssemblyFromPoolsAndMods", BindingFlags.Public | BindingFlags.Instance);
-        var fullLoadMethod = monkeyLoaderType!.GetMethod("PartialLoad", BindingFlags.NonPublic | BindingFlags.Instance);
+        var loadMethod = monkeyLoaderType!.GetMethod("FullLoad", BindingFlags.Public | BindingFlags.Instance);
 
-        fullLoadMethod!.Invoke(_monkeyLoaderInstance!, null);
+        loadMethod!.Invoke(_monkeyLoaderInstance!, null);
     }
 }
 
 internal class Program
 {
     internal static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
-    internal static Assembly harmAsm = null;
 
     private static async Task Main(string[] args)
     {
-        
-
         try
         {
             BepisLoader.Load(args, _resonitePath.FullName);
@@ -367,30 +324,6 @@ internal class Program
             throw;
         }
 
-        //AppDomain.CurrentDomain.AssemblyResolve += loadContext.MyLoad;
-
-        //foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-        //{
-        //    if (asm.GetName().Name == "0Harmony")
-        //    {
-        //        Debug.WriteLine("Found Harmony: " + asm.Location + "\n" + asm.GetName().FullName);
-        //    }
-        //    if (asm.GetName().Name == "System.Management")
-        //    {
-        //        Debug.WriteLine("Found System.Management: " + asm.Location + "\n" + asm.GetName().FullName);
-        //    }
-        //}
-
-        //Console.ReadLine();
-
-        //foreach (var file in Directory.GetFiles(_bepisPath.DirectoryName!).Where(f => f.EndsWith(".dll")))
-        //{
-        //    loadContext.LoadFromAssemblyPath(file);
-        //}
-
-        //BepisMain(args, loadContext, _resonitePath.FullName);
-
-
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
@@ -400,8 +333,6 @@ internal class Program
         if (resoAsm == null)
         {
             resoAsm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_resonitePath.FullName);
-            //File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Could not find Renderite.Host"]);
-            //throw new Exception("Could not find Renderite.Host");
         }
         try
         {
@@ -413,7 +344,6 @@ internal class Program
             File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
             throw;
         }
-        //throw new Exception("BAD");
     }
 
     private static IEnumerable<string> LibraryExtensions
