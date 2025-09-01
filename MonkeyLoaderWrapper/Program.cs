@@ -22,29 +22,6 @@ internal class MonkeyLoaderAssemblyLoadContext(
         {
             Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
 
-            var found = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == assemblyName.Name);
-            if (found != null)
-            {
-                return found;
-            }
-
-            //if (assemblyName.Name == "0Harmony") // Only needed if loading MonkeyLoader first (because ML uses normal Harmony)
-            //{
-            //    var fi = new FileInfo(Path.Combine("BepInEx", "core", "0Harmony.dll"));
-            //    if (fi.Exists)
-            //        return LoadFromAssemblyPath(fi.FullName);
-            //}
-
-            if (assemblyName.Name == "System.Management")
-            {
-                var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
-                    ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
-                    : new FileInfo("System.Management.dll");
-
-                if (systemManagementPath.Exists)
-                    return LoadFromAssemblyPath(systemManagementPath.FullName);
-            }
-
             if (_assemblyResolveEventHandler != null)
             {
                 var resolvedAssembly = _assemblyResolveEventHandler(assemblyName);
@@ -178,14 +155,7 @@ internal class BepisLoader
             }
 
             if (assemblyName.Name == "System.Management")
-            {
-                var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
-                    ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
-                    : new FileInfo("System.Management.dll");
-
-                if (systemManagementPath.Exists)
-                    return alc.LoadFromAssemblyPath(systemManagementPath.FullName);
-            }
+                return null;
 
             var targetPath = Path.Combine(resoDir, assemblyName.Name + ".dll");
             if (File.Exists(targetPath))
@@ -276,15 +246,12 @@ internal class MonkeyLoaderLoader
 
         var monkeyLoaderAssembly = loadContext.LoadFromAssemblyPath(_monkeyLoaderPath.FullName);
 
-        if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "System.Management"))
-        {
-            var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
+        var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
                     ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
                     : new FileInfo("System.Management.dll");
 
-            if (systemManagementPath.Exists)
-                loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
-        }
+        if (systemManagementPath.Exists)
+            loadContext.LoadFromAssemblyPath(systemManagementPath.FullName);
 
         var monkeyLoaderType = monkeyLoaderAssembly.GetType("MonkeyLoader.MonkeyLoader");
         var loggingLevelType = monkeyLoaderAssembly.GetType("MonkeyLoader.Logging.LoggingLevel");
@@ -306,21 +273,21 @@ internal class Program
     {
         try
         {
-            BepisLoader.Load(args, _resonitePath.FullName);
-        }
-        catch (Exception e)
-        {
-            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - BepisLoader crashed", e.ToString()]);
-            throw;
-        }
-
-        try
-        {
             MonkeyLoaderLoader.Load();
         }
         catch (Exception e)
         {
             File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - MonkeyLoaderLoader crashed", e.ToString()]);
+            throw;
+        }
+
+        try
+        {
+            BepisLoader.Load(args, _resonitePath.FullName);
+        }
+        catch (Exception e)
+        {
+            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - BepisLoader crashed", e.ToString()]);
             throw;
         }
 
