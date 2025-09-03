@@ -1,6 +1,7 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
+using MonkeyLoader.Meta;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +22,7 @@ namespace MonkeyLoader.Resonite
         /// Gets or sets the concrete <see cref="IEngineInitProgress"/>
         /// implementation used to report the load progress of mods and their monkeys.
         /// </summary>
-        public static IEngineInitProgress? LoadProgressIndicator { get; set; }
+        private static IEngineInitProgress? LoadProgressIndicator => Engine.Current?.InitProgress;
 
         /// <summary>
         /// Gets whether the progress indicator is available,
@@ -31,7 +32,7 @@ namespace MonkeyLoader.Resonite
         {
             get
             {
-                if (LoadProgressIndicator == null)
+                if (LoadProgressIndicator == null || !LoadingConfig.Instance.HijackLoadProgressIndicator)
                 {
                     return false;
                 }
@@ -48,14 +49,14 @@ namespace MonkeyLoader.Resonite
         /// <param name="subphase">The name of the subphase.</param>
         /// <param name="alwaysShow">Should the subphase be always shown to the user.</param>
         /// <returns><c>true</c> if the subphase was changed successfully, otherwise <c>false</c>.</returns>
-        public static bool SetSubphase(string subphase, bool alwaysShow=true)
+        public static bool SetSubphase(string subphase)
         {
             if (!Available)
                 return false;
 
             try
             {
-                LoadProgressIndicator!.SetSubphase(subphase, alwaysShow);
+                LoadProgressIndicator!.SetSubphase(subphase, true);
                 return true;
             }
             catch
