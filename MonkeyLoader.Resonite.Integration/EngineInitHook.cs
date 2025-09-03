@@ -43,6 +43,7 @@ namespace MonkeyLoader.Resonite
         {
             await RunEngineInitHooksAsync();
             await __result;
+
             SharedConfig.Initialize();
             await RunEngineReadyHooksAsync();
 
