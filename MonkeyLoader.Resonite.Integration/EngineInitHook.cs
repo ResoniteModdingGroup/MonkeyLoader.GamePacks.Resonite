@@ -58,10 +58,6 @@ namespace MonkeyLoader.Resonite
 
             __instance.OnShutdownRequest += OnEngineShutdownRequested;
             __instance.OnShutdown += OnEngineShutdown;
-
-            // Have to add 6 phases because the indicator
-            // will immediately disappear upon entering the last one
-            LoadProgressReporter.AddFixedPhases(6);
         }
 
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)
@@ -145,7 +141,7 @@ namespace MonkeyLoader.Resonite
             Logger.Trace(() => "Running EngineInit hooks in this order:");
             Logger.Trace(resoniteMonkeys);
 
-            LoadProgressReporter.AdvanceFixedPhase("Executing EngineInit Hooks...");
+            LoadProgressReporter.SetSubphase("Executing EngineInit Hooks...");
 
             var sw = Stopwatch.StartNew();
 
@@ -153,7 +149,6 @@ namespace MonkeyLoader.Resonite
             {
                 LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
                 await LoadProgressReporter.RunForPrettySplashAsync(50, resoniteMonkey.EngineInit);
-                LoadProgressReporter.ExitSubphase();
             }
 
             Logger.Info(() => $"Done executing EngineInit hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
@@ -167,28 +162,27 @@ namespace MonkeyLoader.Resonite
             Logger.Trace(() => "Running EngineReady hooks in this order:");
             Logger.Trace(resoniteMonkeys);
 
-            LoadProgressReporter.AdvanceFixedPhase("Executing EngineReady Hooks...");
+            LoadProgressReporter.SetSubphase("Executing EngineReady Hooks...");
             var sw = Stopwatch.StartNew();
 
             foreach (var resoniteMonkey in resoniteMonkeys)
             {
                 LoadProgressReporter.SetSubphase(resoniteMonkey.Name);
                 await LoadProgressReporter.RunForPrettySplashAsync(50, resoniteMonkey.EngineReady);
-                LoadProgressReporter.ExitSubphase();
             }
 
-            LoadProgressReporter.AdvanceFixedPhase("Determining potential Mod conflicts...");
+            LoadProgressReporter.SetSubphase("Determining potential Mod conflicts...");
             await LoadProgressReporter.RunForPrettySplashAsync(200, Mod.Loader.LogPotentialConflicts);
 
             Logger.Info(() => $"Done executing EngineReady hooks on ResoniteMonkeys in {sw.ElapsedMilliseconds}ms!");
 
-            LoadProgressReporter.AdvanceFixedPhase("Loading Fallback Locale Data for Mods...");
+            LoadProgressReporter.SetSubphase("Loading Fallback Locale Data for Mods...");
             sw.Restart();
 
             await LoadProgressReporter.RunForPrettySplashAsync(200, LocaleExtensions.LoadFallbackLocaleAsync);
             Logger.Info(() => $"Done loading fallback locale data for mods in {sw.ElapsedMilliseconds}ms!");
 
-            LoadProgressReporter.AdvanceFixedPhase("Mods Fully Loaded");
+            LoadProgressReporter.SetSubphase("Mods Fully Loaded");
         }
     }
 }
