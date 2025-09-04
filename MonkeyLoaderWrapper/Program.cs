@@ -256,55 +256,10 @@ internal class MonkeyLoaderLoader
         var loadMethod = monkeyLoaderType!.GetMethod("FullLoad", BindingFlags.Public | BindingFlags.Instance);
 
         loadMethod!.Invoke(_monkeyLoaderInstance!, null);
-    }
-}
-
-internal class Program
-{
-    internal static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
-
-    private static async Task Main(string[] args)
-    {
-        try
-        {
-            MonkeyLoaderLoader.Load();
-        }
-        catch (Exception e)
-        {
-            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - MonkeyLoaderLoader crashed", e.ToString()]);
-            throw;
-        }
-
-        try
-        {
-            BepisLoader.Load(args, _resonitePath.FullName);
-        }
-        catch (Exception e)
-        {
-            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - BepisLoader crashed", e.ToString()]);
-            throw;
-        }
 
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
-
-        // Find and load Resonite
-        var resoAsm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "Renderite.Host");
-        if (resoAsm == null)
-        {
-            resoAsm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_resonitePath.FullName);
-        }
-        try
-        {
-            var result = resoAsm.EntryPoint!.Invoke(null, [args]);
-            if (result is Task task) task.Wait();
-        }
-        catch (Exception e)
-        {
-            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
-            throw;
-        }
     }
 
     private static IEnumerable<string> LibraryExtensions
@@ -342,14 +297,14 @@ internal class Program
         if (libraryName == "rnnoise")
             return IntPtr.Zero;
 
-        var runtimesPath = Path.Combine(_resonitePath.DirectoryName!, "runtimes",
-            RuntimeInformation.RuntimeIdentifier, "native");
+        var nativeDir = new DirectoryInfo(Path.Combine("runtimes", RuntimeInformation.RuntimeIdentifier, "native"));
+        var nativeDirFullPath = nativeDir.FullName;
 
         foreach (var libraryPrefix in LibraryPrefixes)
         {
             foreach (var libraryExtension in LibraryExtensions)
             {
-                var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+                var libraryPath = Path.Combine(nativeDirFullPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
 
                 if (File.Exists(libraryPath))
                     return NativeLibrary.Load(libraryPath);
@@ -357,5 +312,51 @@ internal class Program
         }
 
         return IntPtr.Zero;
+    }
+}
+
+internal class Program
+{
+    internal static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
+    internal static readonly FileInfo _bepisPath = new("BepisLoader.dll");
+
+    private static async Task Main(string[] args)
+    {
+        try
+        {
+            MonkeyLoaderLoader.Load();
+        }
+        catch (Exception e)
+        {
+            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - MonkeyLoaderLoader crashed", e.ToString()]);
+            throw;
+        }
+
+        try
+        {
+            BepisLoader.Load(args, _resonitePath.FullName);
+        }
+        catch (Exception e)
+        {
+            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - BepisLoader crashed", e.ToString()]);
+            throw;
+        }
+
+        // Find and load Resonite
+        var resoAsm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.GetName().Name == "Renderite.Host");
+        if (resoAsm == null)
+        {
+            resoAsm = Assembly.LoadFrom(_resonitePath.FullName);
+        }
+        try
+        {
+            var result = resoAsm.EntryPoint!.Invoke(null, [args]);
+            if (result is Task task) task.Wait();
+        }
+        catch (Exception e)
+        {
+            File.WriteAllLines("0MonkeyBepisCrash.log", [DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - Resonite crashed", e.ToString()]);
+            throw;
+        }
     }
 }
