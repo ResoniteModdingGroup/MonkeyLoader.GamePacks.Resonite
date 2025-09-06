@@ -38,8 +38,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
 
-                if (ui.Root != vertical.Slot)
-                    ui.NestInto(vertical.Slot);
+                ui.NestOut();
             }
 
             OnBuildInspectorHeaderText(ui, worker);
@@ -74,43 +73,27 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var root = ui.Root;
-
             var eventData = new BuildInspectorBodyEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
-
-            if (ui.Root != root)
-                ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var root = ui.Root;
-
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
-
-            if (ui.Root != root)
-                ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
         {
-            var root = ui.Root;
-
             var eventData = new ResolveInspectorHeaderTextEvent(worker);
 
             Dispatch(eventData);
 
             if (eventData.ItemCount is 0)
-            {
-                if (ui.Root != root)
-                    ui.NestInto(root);
                 return;
-            }
 
             // The expander code is based on SlotInspector.OnChanges
 
@@ -164,9 +147,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             }
 
             ui.PopStyle();
-
-            if (ui.Root != root)
-                ui.NestInto(root);
+            ui.NestOut(); // nest out of textLayout, into childrenLayout
+            ui.NestOut(); // nest out of childrenLayout, into whatever it was before this method was called
         }
     }
 }
