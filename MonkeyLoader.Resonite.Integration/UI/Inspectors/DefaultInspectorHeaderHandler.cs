@@ -32,31 +32,34 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 eventData.WorkerNameButton = button;
             }
 
-            ui.Style.FlexibleWidth = 0;
-            ui.Style.MinWidth = 40;
-
-            if (eventData.CreateOpenContainerButton)
+            if (eventData.AllowDestroy || eventData.AllowDuplicate || eventData.AllowContainer) // match vanilla
             {
-                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
-                ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot._orderOffset);
+                ui.Style.FlexibleWidth = 0;
+                ui.Style.MinWidth = 40;
 
-                eventData.OpenContainerButton = button;
-            }
+                if (eventData.CreateOpenContainerButton)
+                {
+                    var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
+                    ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot._orderOffset);
 
-            if (eventData.CreateDuplicateButton)
-            {
-                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
-                ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot._orderOffset);
+                    eventData.OpenContainerButton = button;
+                }
 
-                eventData.DuplicateButton = button;
-            }
+                if (eventData.CreateDuplicateButton)
+                {
+                    var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
+                    ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot._orderOffset);
 
-            if (eventData.CreateDestroyButton)
-            {
-                var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
-                ConfigSection.DestroyOffset.DriveFromVariable(button.Slot._orderOffset);
+                    eventData.DuplicateButton = button;
+                }
 
-                eventData.DestroyButton = button;
+                if (eventData.CreateDestroyButton)
+                {
+                    var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
+                    ConfigSection.DestroyOffset.DriveFromVariable(button.Slot._orderOffset);
+
+                    eventData.DestroyButton = button;
+                }
             }
         }
     }
