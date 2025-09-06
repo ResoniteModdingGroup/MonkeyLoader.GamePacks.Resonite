@@ -38,7 +38,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
 
-                ui.NestInto(vertical.Slot);
+                if (ui.Root != vertical.Slot)
+                    ui.NestInto(vertical.Slot);
             }
 
             OnBuildInspectorHeaderText(ui, worker);
@@ -79,7 +80,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             Dispatch(eventData);
 
-            ui.NestInto(root);
+            if (ui.Root != root)
+                ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
@@ -91,21 +93,26 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             Dispatch(eventData);
 
-            ui.NestInto(root);
+            if (ui.Root != root)
+                ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
         {
+            var root = ui.Root;
+
             var eventData = new ResolveInspectorHeaderTextEvent(worker);
 
             Dispatch(eventData);
 
             if (eventData.ItemCount is 0)
+            {
+                if (ui.Root != root)
+                    ui.NestInto(root);
                 return;
+            }
 
             // The expander code is based on SlotInspector.OnChanges
-
-            var root = ui.Root;
 
             ui.PushStyle();
             ui.Style.MinHeight = 32;
@@ -157,7 +164,9 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             }
 
             ui.PopStyle();
-            ui.NestInto(root);
+
+            if (ui.Root != root)
+                ui.NestInto(root);
         }
     }
 }

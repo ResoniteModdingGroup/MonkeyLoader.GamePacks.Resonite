@@ -32,7 +32,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 eventData.WorkerNameButton = button;
             }
 
-            ui.PushStyle();
             ui.Style.FlexibleWidth = 0;
             ui.Style.MinWidth = 40;
 
@@ -59,8 +58,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 eventData.DestroyButton = button;
             }
-
-            ui.PopStyle();
         }
     }
 }
