@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     [HarmonyPatch(typeof(SettingsFacetPreset), nameof(SettingsFacetPreset.Version), MethodType.Getter)]
     internal sealed class ForceUpdateSettingsFacet : ResoniteMonkey<ForceUpdateSettingsFacet>
     {
-        private static int Postfix(int __result) => 6;
+        private static int Postfix(int __result)
+            => MathX.Max(__result, 6);
     }
 }
