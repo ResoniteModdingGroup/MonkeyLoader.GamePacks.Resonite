@@ -3,6 +3,7 @@ using Elements.Core;
 using Elements.Quantity;
 using EnumerableToolkit;
 using FrooxEngine;
+using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
@@ -58,8 +59,20 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         {
             foreach (var configSection in config.Sections.Where(section => !section.InternalAccessOnly && section.Keys.Any(key => !key.InternalAccessOnly)))
             {
-                var sectionGroup = new DataFeedGroup();
+                var sectionGroup = new DataFeedResettableGroup();
                 sectionGroup.InitBase(configSection.Id, parameters.Path, parameters.GroupKeys, configSection.GetLocaleString("Name"));
+                sectionGroup.InitResetAction(syncDelegate =>
+                {
+                    if (syncDelegate.Parent is not ButtonActionTrigger actionTrigger
+                     || syncDelegate.Slot.GetComponent<Button>() is not Button button)
+                        return;
+
+                    button.LocalPressed += (_, _) =>
+                    {
+                        if (actionTrigger.Enabled)
+                            configSection.Reset();
+                    };
+                });
                 yield return sectionGroup;
 
                 var sectionGrouping = parameters.GroupKeys.Concat(configSection.Id).ToArray();

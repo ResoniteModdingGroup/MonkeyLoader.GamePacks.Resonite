@@ -35,6 +35,9 @@
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "Umschaltbare Monkeys Einstellungselemente",
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generiert die Datafeedelemente für die umschaltbaren Monkeys.",
 
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Name": "Erzwinge Update der Einstellungsfacet",
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Description": "Korrigiert die Versionsnummer der SettingsFacetPreset-Komponente, damit diese tatsächlich updated.<br/>Dies stellt sicher, dass Benutzer tatsächlich das Template für zurücksetzbare Gruppen haben.",
+
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Sofortige Resonite-Protokollierung",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Steuert die Einstellung dafür, jede Nachricht im Resonite Log sofort zu schreiben, indem es den eigenen Aktivierungszustand damit synchronisiert.",
 
