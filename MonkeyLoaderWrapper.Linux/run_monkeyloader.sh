@@ -4,5 +4,5 @@ sed -i '/^# ~ Launch Resonite! :) ~$/c\
 if [[ "$*" != *"--hookfxr-disable"* ]]; then\
     dotnet MonkeyLoaderWrapper.Linux.dll "$@"\
     exit 0\
-fi' ./testing.sh
+fi' ./LinuxBootstrap.sh
 "$@"
