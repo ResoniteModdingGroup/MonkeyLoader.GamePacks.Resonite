@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
 
-sed -i '0,/dotnet Renderite.Host.dll "$@"/s//dotnet MonkeyLoaderWrapper.Linux.dll "$@"/' ./LinuxBootstrap.sh
+sed -i '/^	# ~ Launch Resonite! :) ~$/c\
+if [[ "$*" != *"--hookfxr-disable"* ]]; then\
+    dotnet MonkeyLoaderWrapper.Linux.dll "$@"\
+    exit 0\
+fi' ./LinuxBootstrap.sh
 "$@"
