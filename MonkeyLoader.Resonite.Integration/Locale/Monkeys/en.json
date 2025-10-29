@@ -35,6 +35,9 @@
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "Toggleable Monkey Settings Items",
     "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "Generates data feed items for the toggleable monkeys.",
 
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Name": "Force Update of Settings Facet",
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Description": "Fixes the version number of the SettingsFacetPreset component to actually make it update.<br/>This ensures that users will actually have the template for resettable groups.",
+
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Instant Resonite Log",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Controls the option to immediately flush every message in Resonite's log by proxying its enabled state to it.",
 
