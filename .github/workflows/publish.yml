@@ -77,7 +77,7 @@ jobs:
           source-url: https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
 
       - name: Add MonkeyLoader NuGet Source
-        run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
+        run: dotnet nuget add source https://nuget.pkg.github.com/MonkeyModdingTroop/index.json
       
       # Publish all NuGet packages to the GitHub feed
       # Use --skip-duplicate to prevent errors if a package with the same version already exists.

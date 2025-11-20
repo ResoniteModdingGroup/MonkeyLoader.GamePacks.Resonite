@@ -37,7 +37,7 @@ jobs:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Add MonkeyLoader NuGet source
-      run: dotnet nuget add source https://pkg.munally.com/MonkeyModdingTroop/index.json
+      run: dotnet nuget add source https://nuget.pkg.github.com/MonkeyModdingTroop/index.json
 
     - run: dotnet tool update -g docfx
     - run: docfx ./docfx.json
