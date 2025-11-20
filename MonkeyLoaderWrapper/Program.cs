@@ -117,7 +117,10 @@ internal class Program
 
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (assembly.GetName().Name == "SoundFlow") continue;
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
+        }
 
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
