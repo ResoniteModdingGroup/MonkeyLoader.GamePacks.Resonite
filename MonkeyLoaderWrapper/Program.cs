@@ -121,7 +121,6 @@ internal class Program
             if (assembly.GetName().Name == "SoundFlow") continue;
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
         }
-            
 
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
