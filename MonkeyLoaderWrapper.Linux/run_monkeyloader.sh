@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
+set -e
 
-# change shebang in LinuxBootstrap.sh to support bash syntax
-sed -i '1s|/usr/bin/env sh|/usr/bin/env bash|' ./LinuxBootstrap.sh
+BOOTSTRAP_SCRIPT="LinuxBootstrap.sh"
+SEARCH='Renderite.Host.dll'
+REPLACE='"$(./GetRenderite.sh "$@")"'
 
-sed -i '/^	# ~ Launch Resonite! :) ~$/c\
-if [[ "$*" != *"--hookfxr-disable"* ]]; then\
-    dotnet MonkeyLoaderWrapper.Linux.dll "$@"\
-    exit 0\
-fi' ./LinuxBootstrap.sh
+grep -q "$SEARCH" "$BOOTSTRAP_SCRIPT"\
+&& sed -i 's:\b'"$SEARCH"'\b:'"$REPLACE"':g' "$BOOTSTRAP_SCRIPT"
+
 "$@"
