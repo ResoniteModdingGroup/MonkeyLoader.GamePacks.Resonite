@@ -21,12 +21,16 @@
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
 
-    <Copy SourceFiles="$(TargetDir)run_monkeyloader.sh" DestinationFiles="$(ResonitePath)/run_monkeyloader.sh" />
-    <Message Text="Copied run_monkeyloader.sh to $(ResonitePath)/run_monkeyloader.sh" Importance="high" />
+    <ItemGroup>
+      <ShellScripts Include="$(TargetDir)*.sh" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ShellScripts)" DestinationFolder="$(ResonitePath)" SkipUnchangedFiles="true" />
+    <Message Text="Copied shell scripts to $(ResonitePath)" Importance="high" />
   </Target>
 
   <ItemGroup>
-    <None Update="run_monkeyloader.sh">
+    <None Update="*.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
