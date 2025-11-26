@@ -14,7 +14,7 @@ if ! grep -q "MonkeyLoader" "$BOOTSTRAP_SCRIPT"; then
             fi
         done
 
-        echo -n "$RENDERITE"
+        printf '%s' "$RENDERITE"
     )"'
     # Replace all occurences of SEARCH with REPLACE
     NEW="$(awk -v search="$SEARCH" -v repl="$REPLACE" '
@@ -32,7 +32,7 @@ if ! grep -q "MonkeyLoader" "$BOOTSTRAP_SCRIPT"; then
         print out
     }
     ' "$BOOTSTRAP_SCRIPT")"
-    echo -n "$NEW" > "$BOOTSTRAP_SCRIPT"
+    printf '%s' "$NEW" > "$BOOTSTRAP_SCRIPT"
 fi
 
 "$@"
