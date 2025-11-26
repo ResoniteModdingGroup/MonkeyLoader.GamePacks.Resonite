@@ -14,25 +14,20 @@ if ! grep -q "MonkeyLoader" "$BOOTSTRAP_SCRIPT"; then
             fi
         done
 
-        printf '%s' "$RENDERITE"
+        printf %s "$RENDERITE"
     )"'
     # Replace all occurences of SEARCH with REPLACE
+    # See https://pubs.opengroup.org/onlinepubs/9799919799/utilities/awk.html
     NEW="$(awk -v search="$SEARCH" -v repl="$REPLACE" '
     {
-        # Search with word-boundary separation
-        pattern = "\\<" search "\\>"
-        out = ""
-        start = 1
-        while ( match(substr($0, start), pattern) ) {
-            before = substr($0, start, RSTART - 1)
-            out = out before repl
-            start += RSTART + RLENGTH - 1
-        }
-        out = out substr($0, start)
-        print out
+        # Escape \ and &
+        gsub(/[\\&]/, "\\\\&", repl)
+        # Replace all occurences of search (word boundary aware)
+        gsub("\\<" search "\\>", repl)
+        print $0
     }
     ' "$BOOTSTRAP_SCRIPT")"
-    printf '%s' "$NEW" > "$BOOTSTRAP_SCRIPT"
+    printf %s "$NEW" > "$BOOTSTRAP_SCRIPT"
 fi
 
 "$@"
