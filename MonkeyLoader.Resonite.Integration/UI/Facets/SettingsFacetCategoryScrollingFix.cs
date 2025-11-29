@@ -17,6 +17,8 @@ namespace MonkeyLoader.Resonite.UI.Facets
         /// </summary>
         private const string FixedMarker = "Category Scrolling Fixed";
 
+        public override bool CanBeDisabled => true;
+
         public override int Priority => HarmonyLib.Priority.Normal;
 
         protected override bool AppliesTo(FacetPresetLoadedEvent eventData)
