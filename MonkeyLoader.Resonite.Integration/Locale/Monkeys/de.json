@@ -71,6 +71,9 @@
     "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset-Geladen-Hook",
     "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Versendet die FacetPreset Loaded Events, damit Monkeys Systemfacets modifizieren können.",
 
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateFacet.Name": "Erzwinge Update von Facets",
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateFacet.Description": "Erlaubt es, eine Systemfacet auf den neuesten Stand zu bringen. Danach stellt sich dieser Monkey selbstständig wieder aus.<size=50%><br/><br/></size>Insbesondere ist dies für die Einstellungen-Facet gedacht, damit das Template für zurücksetzbare Gruppen tatsächlich verfügbar ist.",
+
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Name": "Scrollbare Einstellungskategorien",
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Description": "Sorgt dafür, dass die Kategorienliste der Einstellungen-Facet scrollbar ist.",
 

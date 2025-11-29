@@ -13,6 +13,8 @@
 
     "MonkeyLoader.GamePacks.Resonite.Inspector.HeaderTextLabel": "Additional Information",
 
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.RefreshFacet": "Refreshes this facet to the latest version.",
+
     "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.Direct": "Attempts to open a hyperlink.<size=50%><br/><br/></size><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
     "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Reason:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>"
   }

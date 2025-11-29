@@ -71,6 +71,9 @@
     "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset Loaded Hook",
     "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Sends out the FacetPreset loaded events for monkeys to inject into system facets.",
 
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Name": "Force Update Facets",
+    "MonkeyLoader.GamePacks.Resonite.ForceUpdateSettingsFacet.Description": "Allows updating a system facet to the latest version. Afterwards, this monkey will automatically disable itself again.<size=50%><br/><br/></size>This is intended for the Settings facet in particular, so that the template for resettable groups is actually available.",
+
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Name": "Settings Category Scrolling Fix",
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Description": "Fixes the root category list of the settings facet not being scrollable.",
 
