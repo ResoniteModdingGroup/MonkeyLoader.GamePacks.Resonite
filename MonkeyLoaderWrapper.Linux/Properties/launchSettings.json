@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "MonkeyLoaderWrapper.Linux": {
+      "commandName": "Project"
+    },
+    "Resonite": {
+      "commandName": "Executable",
+      "workingDirectory": "$(ResonitePath)",
+      "executablePath": "$(ResonitePath)/Resonite.dll",
+      "commandLineArgs": "-Screen -DoNotAutoLoadHome"
+    },
+    "Resonite (Override Cache)": {
+      "commandName": "Executable",
+      "workingDirectory": "$(ResonitePath)",
+      "executablePath": "$(ResonitePath)/Resonite.dll",
+      "commandLineArgs": "-Screen -DoNotAutoLoadHome -DataPath \"$(ResoniteDataPath)\" -CachePath \"$(ResoniteCachePath)\""
+    }
+  }
+}
