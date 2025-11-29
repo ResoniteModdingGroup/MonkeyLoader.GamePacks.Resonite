@@ -38,6 +38,9 @@
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Sofortige Resonite-Protokollierung",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Steuert die Einstellung dafür, jede Nachricht im Resonite Log sofort zu schreiben, indem es den eigenen Aktivierungszustand damit synchronisiert.",
 
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset-Geladen-Hook",
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Versendet die FacetPreset Loaded Events, damit Monkeys Systemfacets modifizieren können.",
+
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "Fallback Lokalisierungsdaten-Generator",
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Versendet die Fallback Locale Generation Events, damit Monkeys programmatisch (englische) Übersetzungsnachrichten für notwendige Schlüssel generieren können, die noch nicht abgedeckt waren.",
 

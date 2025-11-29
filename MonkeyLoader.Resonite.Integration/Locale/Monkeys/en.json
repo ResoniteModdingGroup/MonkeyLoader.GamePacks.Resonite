@@ -38,6 +38,9 @@
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Instant Resonite Log",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Controls the option to immediately flush every message in Resonite's log by proxying its enabled state to it.",
 
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset Loaded Hook",
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Sends out the FacetPreset loaded events for monkeys to inject into system facets.",
+
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "Fallback Locale Generator",
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Sends out the Fallback Locale Generation event for monkeys to programmatically generate (English) locale messages for necessary keys that weren't covered already.",
 
