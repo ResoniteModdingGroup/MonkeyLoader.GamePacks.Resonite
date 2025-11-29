@@ -38,9 +38,6 @@
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "Instant Resonite Log",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "Controls the option to immediately flush every message in Resonite's log by proxying its enabled state to it.",
 
-    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset Loaded Hook",
-    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Sends out the FacetPreset loaded events for monkeys to inject into system facets.",
-
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Name": "Fallback Locale Generator",
     "MonkeyLoader.GamePacks.Resonite.FallbackLocaleGenerator.Description": "Sends out the Fallback Locale Generation event for monkeys to programmatically generate (English) locale messages for necessary keys that weren't covered already.",
 
@@ -70,6 +67,12 @@
 
     "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Name": "Interaction Handler Context Menu Injector",
     "MonkeyLoader.GamePacks.Resonite.InteractionHandlerContextMenuInjector.Description": "Sends out the Context Menu Items Generation event when it is opened by the Interaction Handler (i.e. using with the controller, keyboard, or mouse).<br/>If any entries are added in an update, this monkey can be disabled to get access - though it will prevent the extra Context Menu settings and events from working.",
+
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Name": "FacetPreset Loaded Hook",
+    "MonkeyLoader.GamePacks.Resonite.FacetPresetLoadedHook.Description": "Sends out the FacetPreset loaded events for monkeys to inject into system facets.",
+
+    "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Name": "Settings Category Scrolling Fix",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Description": "Fixes the root category list of the settings facet not being scrollable.",
 
     "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Name": "Custom Inspector Injector",
     "MonkeyLoader.GamePacks.Resonite.CustomInspectorInjector.Description": "Sends out the Build Inspector Body / Header events to make the Worker Inspector UI generation modular.",
