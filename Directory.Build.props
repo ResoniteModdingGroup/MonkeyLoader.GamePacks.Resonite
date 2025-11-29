@@ -51,6 +51,11 @@
 
   <PropertyGroup Condition="'$(ResoniteCachePath)' == ''">
     <ResoniteCachePath Condition="Exists('S:/Resonite/')">S:/Resonite/</ResoniteCachePath>
+    <ResoniteCachePath Condition="Exists('D:/TempFiles/Resonite/')">D:/TempFiles/Resonite/</ResoniteCachePath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(ResoniteDataPath)'==''">
+    <ResoniteDataPath Condition="Exists('S:/Resonite/')">S:/Resonite/</ResoniteDataPath>
+    <ResoniteDataPath Condition="Exists('D:/TempFiles/Resonite/Data')">D:/TempFiles/Resonite/Data</ResoniteDataPath>
+  </PropertyGroup>
 </Project>
