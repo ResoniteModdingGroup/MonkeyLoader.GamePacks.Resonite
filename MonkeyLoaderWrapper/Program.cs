@@ -98,7 +98,7 @@ internal class Program
 
         // this is a hack
         var systemManagementPath = RuntimeInformation.RuntimeIdentifier.StartsWith("win")
-            ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net9.0", "System.Management.dll"))
+            ? new FileInfo(Path.Combine("runtimes", "win", "lib", "net10.0", "System.Management.dll"))
             : new FileInfo("System.Management.dll");
 
         if (systemManagementPath.Exists)
