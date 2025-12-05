@@ -298,7 +298,14 @@ namespace MonkeyLoader.Resonite
             var subPhaseNewLines = ___subPhase?.Split(Environment.NewLine).Length - 1 ?? 0;
             var prefixNewLines = Enumerable.Repeat(Environment.NewLine, subPhaseNewLines).Join(delimiter: "");
 
-            ___subPhase = $"{prefixNewLines}{___fixedPhase} {___subPhase}";
+            var replacementSubphase = $"{prefixNewLines}{___fixedPhase}";
+
+            // Add subphase only when it's actually present
+            // Careful: those aren't spaces but em-boxes
+            if (!string.IsNullOrWhiteSpace(___subPhase))
+                replacementSubphase += $" {___subPhase}";
+
+            ___subPhase = replacementSubphase;
             ___forceShow |= LoadingConfig.Instance.AlwaysShowLoadingPhases;
         }
 

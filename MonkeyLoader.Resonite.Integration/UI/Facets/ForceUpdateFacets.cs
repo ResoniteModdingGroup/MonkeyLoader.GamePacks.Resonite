@@ -17,15 +17,20 @@ namespace MonkeyLoader.Resonite.UI.Facets
     {
         private readonly ConfigKeySessionShare<bool> _enabledSessionShare = new();
 
+        private bool _wasEnabledFromDefault;
+
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.Normal;
 
         protected override bool AppliesTo(TemplateFacetPresetLoadedEvent eventData)
-            => true; // Always need to add the button so it shows up when enabled
+            => true;
 
         protected override void Handle(TemplateFacetPresetLoadedEvent eventData)
         {
+            if (_wasEnabledFromDefault && eventData.FacetPreset is SettingsFacetPreset && eventData.Facet.Slot.GetComponentInChildren<FeedResettableGroupInterface>() is not null)
+                Enabled = false;
+
             var ui = new UIBuilder(eventData.Canvas).WithButtonStyle();
 
             var button = ui.Button(OfficialAssets.Common.Icons.Reload, colorX.White.SetA(0), colorX.White)
@@ -58,6 +63,13 @@ namespace MonkeyLoader.Resonite.UI.Facets
             button.ColorDrivers.Add().ColorDrive.Target = button.Slot[0].GetComponent<Image>().Tint;
         }
 
+        protected override bool OnComputeDefaultEnabledState()
+        {
+            _wasEnabledFromDefault = true;
+            return true;
+        }
+
+        // Always need to add the button so it shows up when enabled
         protected override bool OnEngineReady()
         {
             EnabledToggle!.Add(_enabledSessionShare);
