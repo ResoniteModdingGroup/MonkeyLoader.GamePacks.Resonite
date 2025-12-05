@@ -24,6 +24,7 @@ namespace MonkeyLoader.Resonite
     {
         private const string RendererProgressWrapperTypeName = "FrooxEngine.RendererInitProgressWrapper, FrooxEngine";
         private static bool _advancedToReady;
+        private static bool _overrideProceedToReady;
         private static int? _totalFixedPhaseCount;
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace MonkeyLoader.Resonite
             private set => _totalFixedPhaseCount = value;
         }
 
-        private static bool? CanProgressToReady => !Available ? null : FixedPhaseIndex >= TotalFixedPhaseCount;
+        private static bool? CanProgressToReady => !Available ? null : FixedPhaseIndex >= TotalFixedPhaseCount || _overrideProceedToReady;
         private static float InternalTotalFixedPhaseCount => _totalFixedPhaseCount!.Value;
 
         /// <summary>
@@ -258,7 +259,9 @@ namespace MonkeyLoader.Resonite
             if (!CanProgressToReady.Value)
                 Logger.Warn(() => $"Proceeding to Engine Ready while fixed phase progress is too low. Current: {FixedPhaseIndex} / {TotalFixedPhaseCount}");
 
+            _overrideProceedToReady = true;
             LoadProgressIndicator.EngineReady();
+
             return true;
         }
 
