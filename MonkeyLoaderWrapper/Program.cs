@@ -128,22 +128,30 @@ internal class Program
             await task;
     }
 
-    private static IntPtr ResolveNativeLibrary(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    private static IntPtr ResolveNativeLibrary(string nativeLibraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        if (libraryName == "rnnoise")
+        if (nativeLibraryName == "rnnoise")
             return IntPtr.Zero;
 
         var runtimesPath = Path.Combine(_resonitePath.DirectoryName!, "runtimes",
             RuntimeInformation.RuntimeIdentifier, "native");
 
-        foreach (var libraryPrefix in LibraryPrefixes)
-        {
-            foreach (var libraryExtension in LibraryExtensions)
-            {
-                var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+        IEnumerable<string> libraryNames = [nativeLibraryName];
 
-                if (File.Exists(libraryPath))
-                    return NativeLibrary.Load(libraryPath);
+        if (nativeLibraryName.EndsWith("64") || nativeLibraryName.EndsWith("32"))
+            libraryNames = libraryNames.Concat([nativeLibraryName[..^2]]);
+
+        foreach (var libraryName in libraryNames)
+        {
+            foreach (var libraryPrefix in LibraryPrefixes)
+            {
+                foreach (var libraryExtension in LibraryExtensions)
+                {
+                    var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+
+                    if (File.Exists(libraryPath))
+                        return NativeLibrary.Load(libraryPath);
+                }
             }
         }
 
