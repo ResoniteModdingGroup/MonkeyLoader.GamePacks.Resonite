@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <Version>0.26.0-beta</Version>
+    <Version>0.26.1-beta</Version>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
     <LangVersion>13.0</LangVersion>
     <Nullable>enable</Nullable>
