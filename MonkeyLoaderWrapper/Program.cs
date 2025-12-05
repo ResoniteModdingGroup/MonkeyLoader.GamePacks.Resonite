@@ -136,6 +136,8 @@ internal class Program
         var runtimesPath = Path.Combine(_resonitePath.DirectoryName!, "runtimes",
             RuntimeInformation.RuntimeIdentifier, "native");
 
+        if (libraryName == "steam_api64") libraryName = "libsteam_api";
+
         foreach (var libraryPrefix in LibraryPrefixes)
         {
             foreach (var libraryExtension in LibraryExtensions)
