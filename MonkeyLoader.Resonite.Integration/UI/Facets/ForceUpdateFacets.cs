@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite.UI.Facets
         public override int Priority => HarmonyLib.Priority.Normal;
 
         protected override bool AppliesTo(TemplateFacetPresetLoadedEvent eventData)
-            => true;
+            => true; // Always need to add the button so it shows up when enabled
 
         protected override void Handle(TemplateFacetPresetLoadedEvent eventData)
         {
@@ -56,8 +56,9 @@ namespace MonkeyLoader.Resonite.UI.Facets
 
             // Place into upper-right corner with fixed size
             button.RectTransform.AnchorMin.Value = float2.One;
-            button.RectTransform.AnchorMin.Value = float2.One;
-            button.RectTransform.OffsetMin.Value = new(-32, -32);
+            button.RectTransform.AnchorMax.Value = float2.One;
+            button.RectTransform.OffsetMin.Value = -34 * float2.One;
+            button.RectTransform.OffsetMax.Value = -2 * float2.One;
 
             button.ColorDrivers.Clear();
             button.ColorDrivers.Add().ColorDrive.Target = button.Slot[0].GetComponent<Image>().Tint;
@@ -66,10 +67,10 @@ namespace MonkeyLoader.Resonite.UI.Facets
         protected override bool OnComputeDefaultEnabledState()
         {
             _wasEnabledFromDefault = true;
+
             return true;
         }
 
-        // Always need to add the button so it shows up when enabled
         protected override bool OnEngineReady()
         {
             EnabledToggle!.Add(_enabledSessionShare);
