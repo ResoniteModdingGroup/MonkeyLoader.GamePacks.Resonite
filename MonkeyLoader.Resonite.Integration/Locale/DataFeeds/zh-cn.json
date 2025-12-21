@@ -2,13 +2,13 @@
   "localeCode": "zh-cn",
   "authors": [ "modimobeikete" ],
   "messages": {
-    "Monkey模组Loader.GamePacks.Resonite.DataFeeds.Template.Name": "{typeName}-注入器",
-    "Monkey模组Loader.GamePacks.Resonite.DataFeeds.Template.Description": "处理向 {typeName} 中注入元素。<br/>注意：禁用此功能将阻止所有依赖此注入器的其他 Monkey模组 功能生效。",
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Name": "{typeName}-注入器",
+    "MonkeyLoader.GamePacks.Resonite.DataFeeds.Template.Description": "处理向 {typeName} 中注入元素。<br/>注意：禁用此功能将阻止所有依赖此注入器的其他 Monkey模组 功能生效。",
 
-    "Monkey模组Loader.GamePacks.Resonite.DataFeedInjectors.Name": "数据源注入器",
-    "Monkey模组Loader.GamePacks.Resonite.DataFeedInjectors.Description": "包含动态收集的 Monkey模组 内容，用于处理向各自数据源中注入元素。",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Name": "数据源注入器",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.Description": "包含动态收集的 Monkey模组 内容，用于处理向各自数据源中注入元素。",
 
-    "Monkey模组Loader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Name": "设置-注入器",
-    "Monkey模组Loader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "处理向 SettingsDataFeed（即设置选项卡）中注入元素。<br/>此注入器无法禁用，否则 Monkey模组的加载器设置分类将无法正常工作。"
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Name": "设置-注入器",
+    "MonkeyLoader.GamePacks.Resonite.DataFeedInjectors.SettingsDataFeed.Description": "处理向 SettingsDataFeed（即设置选项卡）中注入元素。<br/>此注入器无法禁用，否则 Monkey模组的加载器设置分类将无法正常工作。"
   }
 }
