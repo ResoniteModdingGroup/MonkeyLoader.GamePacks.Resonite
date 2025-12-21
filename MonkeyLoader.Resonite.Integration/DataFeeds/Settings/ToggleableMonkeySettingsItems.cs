@@ -42,7 +42,5 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             return current.Concat(SettingsHelpers.EnumerateMonkeysAsync(parameters, mod, SettingsHelpers.Monkeys, Mod, forceCheck: true, canBeDisabled: true));
         }
-
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
     }
 }

@@ -15,7 +15,7 @@ and when the game shuts down.
 
 ### Linux
 
-- Currently not working on Linux
+Change the steam launch options to `./run_monkeyloader.sh %command%`
 
 ### How to disable
 

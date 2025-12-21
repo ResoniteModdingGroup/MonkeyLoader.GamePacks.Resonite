@@ -1,9 +1,13 @@
-﻿using MonkeyLoader.Configuration;
+﻿using FrooxEngine;
+using HarmonyLib;
+using MonkeyLoader.Patching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,36 +17,22 @@ namespace MonkeyLoader.Resonite
     /// <summary>
     /// Contains methods to update Resonite's loading progress indicator with custom phases.
     /// </summary>
-    public static class LoadProgressReporter
+    // This class should not directly reference the RendererInitProgressWrapper type in code to not make issues on headlesses
+    [HarmonyPatch]
+    [HarmonyPatchCategory(nameof(LoadProgressReporter))]
+    public sealed class LoadProgressReporter : Monkey<LoadProgressReporter>
     {
-        /// <summary>
-        /// Gets or sets the concrete <see cref="ILoadProgressIndicator"/>
-        /// implementation used to report the load progress of mods and their monkeys.
-        /// </summary>
-        public static ILoadProgressIndicator? LoadProgressIndicator { get; set; }
+        private const string RendererProgressWrapperTypeName = "FrooxEngine.RendererInitProgressWrapper, FrooxEngine";
+        private static bool _advancedToReady;
+        private static bool _overrideProceedToReady;
+        private static int? _totalFixedPhaseCount;
 
         /// <summary>
         /// Gets whether the progress indicator is available,
         /// determining the availability of the methods and properties of this class.
         /// </summary>
-        [MemberNotNullWhen(true, nameof(LoadProgressIndicator),
-            nameof(FixedPhaseIndex), nameof(TotalFixedPhaseCount))]
-        public static bool Available
-        {
-            get
-            {
-                if (LoadProgressIndicator == null || !LoadProgressIndicator.Available)
-                {
-                    // Clear reference to indicator when it compares as null
-                    LoadProgressIndicator = null;
-                    return false;
-                }
-
-#pragma warning disable CS8775 // Member must have a non-null value when exiting in some condition.
-                return true;
-#pragma warning restore CS8775 // Member must have a non-null value when exiting in some condition.
-            }
-        }
+        [MemberNotNullWhen(true, nameof(LoadProgressIndicator), nameof(FixedPhaseIndex), nameof(CanProgressToReady))]
+        public static bool Available => IsActive && !_advancedToReady && LoadProgressIndicator is not null;
 
         /// <summary>
         /// Gets the index of the current fixed phase, if the progress indicator is <see cref="Available">available</see>.
@@ -50,9 +40,44 @@ namespace MonkeyLoader.Resonite
         public static int? FixedPhaseIndex => LoadProgressIndicator?.FixedPhaseIndex;
 
         /// <summary>
-        /// Gets the number of fixed phases, if the progress indicator is <see cref="Available">available</see>.
+        /// Gets whether the load progress reporter will be active for the current launch.
         /// </summary>
-        public static int? TotalFixedPhaseCount => LoadProgressIndicator?.TotalFixedPhaseCount;
+        /// <remarks>
+        /// This isolates it against changes of the <see cref="LoadingConfig.HijackLoadProgressIndicator"/>
+        /// setting during the launch.
+        /// </remarks>
+        public static bool IsActive { get; private set; }
+
+        /// <summary>
+        /// Gets whether the renderer's progressbar style init progress is available.<br/>
+        /// If not, there is no "done" maximum progress to set.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(OriginalTotalFixedPhaseCount), nameof(TotalFixedPhaseCount))]
+        public static bool IsRendererInitProgressWrapperAvailable => OriginalTotalFixedPhaseCount.HasValue;
+
+        /// <summary>
+        /// Gets the original total fixed phase count of the <see cref="RendererInitProgressWrapper"/>,
+        /// if it is <see cref="IsRendererInitProgressWrapperAvailable">available</see>.
+        /// </summary>
+        public static int? OriginalTotalFixedPhaseCount { get; set; }
+
+        /// <summary>
+        /// Gets the number of fixed phases, if the <see cref="RendererInitProgressWrapper"/> is available.
+        /// </summary>
+        public static int? TotalFixedPhaseCount
+        {
+            get => IsActive ? _totalFixedPhaseCount : OriginalTotalFixedPhaseCount;
+            private set => _totalFixedPhaseCount = value;
+        }
+
+        private static bool? CanProgressToReady => !Available ? null : FixedPhaseIndex >= TotalFixedPhaseCount || _overrideProceedToReady;
+        private static float InternalTotalFixedPhaseCount => _totalFixedPhaseCount!.Value;
+
+        /// <summary>
+        /// Gets the <see cref="IEngineInitProgress"/> implementation used by the <see cref="Engine"/>.<br/>
+        /// Used in this class to report the load progress of mods and their monkeys.
+        /// </summary>
+        private static IEngineInitProgress? LoadProgressIndicator => Engine.Current?.InitProgress;
 
         /// <summary>
         /// Increments the <see cref="TotalFixedPhaseCount"/> to make space for an additional phase,
@@ -63,16 +88,11 @@ namespace MonkeyLoader.Resonite
         /// </remarks>
         /// <returns><c>true</c> if the count was incremented successfully, otherwise <c>false</c>.</returns>
         public static bool AddFixedPhase()
-        {
-            if (!Available)
-                return false;
-
-            return LoadProgressIndicator.AddFixedPhases(1);
-        }
+            => AddFixedPhases(1);
 
         /// <summary>
-        /// Increments the <see cref="TotalFixedPhaseCount"/> by <paramref name="count"/> to make space for additional phases,
-        /// if the progress indicator is <see cref="Available">available</see>.
+        /// Increments the <see cref="TotalFixedPhaseCount"/> by <paramref name="count"/>
+        /// to make space for additional phases, if the count has a value.
         /// </summary>
         /// <remarks>
         /// Should be used as early as possible, to make sure the progress bar doesn't go backwards.
@@ -80,10 +100,11 @@ namespace MonkeyLoader.Resonite
         /// <returns><c>true</c> if the count was incremented successfully, otherwise <c>false</c>.</returns>
         public static bool AddFixedPhases(int count)
         {
-            if (!Available)
+            if (!IsActive || !IsRendererInitProgressWrapperAvailable)
                 return false;
 
-            return LoadProgressIndicator.AddFixedPhases(count);
+            TotalFixedPhaseCount += count;
+            return true;
         }
 
         /// <summary>
@@ -95,34 +116,34 @@ namespace MonkeyLoader.Resonite
         public static bool AdvanceFixedPhase(string phase)
         {
             if (!Available)
-                return false;
+            {
+                if (_advancedToReady)
+                    Logger.Warn(() => $"Tried to set fixed phase [{phase}] after engine was ready!{Environment.NewLine}{Environment.StackTrace}");
 
-            return LoadProgressIndicator.SetFixedPhase(phase);
+                return false;
+            }
+
+            LoadProgressIndicator.SetFixedPhase(phase);
+            return true;
         }
 
         /// <summary>
         /// Unsets the subphase, if the progress indicator is <see cref="Available">available</see>.
         /// </summary>
         /// <returns><c>true</c> if the subphase was changed successfully, otherwise <c>false</c>.</returns>
+        [Obsolete("Do not exit subphases, just set the next one.")]
         public static bool ExitSubphase()
         {
             if (!Available)
+            {
+                if (_advancedToReady)
+                    Logger.Warn(() => $"Tried to exit subphase after engine was ready!{Environment.NewLine}{Environment.StackTrace}");
+
                 return false;
+            }
 
-            return LoadProgressIndicator.SetSubphase(null);
-        }
-
-        /// <summary>
-        /// Sets the subphase, if the progress indicator is <see cref="Available">available</see>.
-        /// </summary>
-        /// <param name="subphase">The name of the subphase.</param>
-        /// <returns><c>true</c> if the subphase was changed successfully, otherwise <c>false</c>.</returns>
-        public static bool SetSubphase(string subphase)
-        {
-            if (!Available)
-                return false;
-
-            return LoadProgressIndicator.SetSubphase(subphase);
+            LoadProgressIndicator.SetSubphase(null!);
+            return true;
         }
 
         /// <summary>
@@ -189,7 +210,7 @@ namespace MonkeyLoader.Resonite
         /// <returns>A task that represents the completion of the <paramref name="task"/> and optional <paramref name="milliseconds"/>-long wait.</returns>
         public static async Task RunForPrettySplashAsync(int milliseconds, Task task, CancellationToken cancellationToken = default)
         {
-            if (Available && LoadingConfig.Instance.PrettySplashProgress)
+            if (Available && LoadingConfig.Instance.PrettySplashProgress && LoadingConfig.Instance.AlwaysShowLoadingPhases)
                 await Task.WhenAll(Task.Delay(milliseconds, cancellationToken), task).ConfigureAwait(false);
             else
                 await task.ConfigureAwait(false);
@@ -201,6 +222,129 @@ namespace MonkeyLoader.Resonite
             await RunForPrettySplashAsync(milliseconds, (Task)task, cancellationToken).ConfigureAwait(false);
 
             return task.Result;
+        }
+
+        /// <summary>
+        /// Sets the subphase, if the progress indicator is <see cref="Available">available</see>.
+        /// </summary>
+        /// <param name="subphase">The name of the subphase.</param>
+        /// <param name="alwaysShow">Should the subphase be always shown to the user.</param>
+        /// <returns><see langword="true"/> if the subphase was changed successfully; otherwise, <see langword="false"/>.</returns>
+        public static bool SetSubphase(string subphase, bool alwaysShow = false)
+        {
+            if (!Available)
+            {
+                if (_advancedToReady)
+                    Logger.Warn(() => $"Tried to set subphase [{subphase}] after engine was ready!{Environment.NewLine}{Environment.StackTrace}");
+
+                return false;
+            }
+
+            LoadProgressIndicator.SetSubphase(subphase, alwaysShow);
+            return true;
+        }
+
+        /// <remarks>
+        /// Calls <c><see cref="SetSubphase(string, bool)">SetSubphase</see>(<paramref name="subphase"/>, <see langword="false"/>)</c>.
+        /// </remarks>
+        /// <inheritdoc cref="SetSubphase(string, bool)"/>
+        public static bool SetSubphase(string subphase)
+            => SetSubphase(subphase, false);
+
+        internal static bool EngineReady()
+        {
+            if (!Available)
+                return false;
+
+            if (!CanProgressToReady.Value)
+                Logger.Warn(() => $"Proceeding to Engine Ready while fixed phase progress is too low. Current: {FixedPhaseIndex} / {TotalFixedPhaseCount}");
+
+            _overrideProceedToReady = true;
+            LoadProgressIndicator.EngineReady();
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        protected override bool OnLoaded()
+        {
+            OriginalTotalFixedPhaseCount = (int?)AccessTools.DeclaredField($"{RendererProgressWrapperTypeName}:TOTAL_FIXED_PHASE_COUNT")?.GetValue(null);
+            TotalFixedPhaseCount = OriginalTotalFixedPhaseCount;
+
+            var success = base.OnLoaded();
+
+            IsActive = LoadingConfig.Instance.HijackLoadProgressIndicator && OriginalTotalFixedPhaseCount.HasValue;
+
+            return success;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(RendererProgressWrapperTypeName, nameof(RendererInitProgressWrapper.EngineReady))]
+        private static bool EngineReadyPrefix()
+        {
+            if (!Available || CanProgressToReady!.Value)
+                _advancedToReady = true;
+
+            return !Available || CanProgressToReady!.Value;
+        }
+
+        private static bool Prepare() => IsRendererInitProgressWrapperAvailable;
+
+        [HarmonyPrefix]
+        [HarmonyPatch(RendererProgressWrapperTypeName, nameof(RendererInitProgressWrapper.SendToRenderer))]
+        private static void SendToRendererPrefix(string? ___fixedPhase, ref string? ___subPhase, ref bool ___forceShow)
+        {
+            if (!LoadingConfig.Instance.HijackLoadProgressIndicator)
+                return;
+
+            // To center the line when the subPhase has new lines in it
+            var subPhaseNewLines = ___subPhase?.Split(Environment.NewLine).Length - 1 ?? 0;
+            var prefixNewLines = Enumerable.Repeat(Environment.NewLine, subPhaseNewLines).Join(delimiter: "");
+
+            var replacementSubphase = $"{prefixNewLines}{___fixedPhase}";
+
+            // Add subphase only when it's actually present
+            // Careful: those aren't spaces but em-boxes
+            if (!string.IsNullOrWhiteSpace(___subPhase))
+                replacementSubphase += $" {___subPhase}";
+
+            ___subPhase = replacementSubphase;
+            ___forceShow |= LoadingConfig.Instance.AlwaysShowLoadingPhases;
+        }
+
+        [HarmonyPatch]
+        [HarmonyPatchCategory(nameof(LoadProgressReporter))]
+        private static class FixedPhaseCountReplacementPatch
+        {
+            private static bool Prepare() => IsRendererInitProgressWrapperAvailable;
+
+            private static IEnumerable<MethodBase> TargetMethods()
+            {
+                // Using nameof is fine as it gets compiled to loading a constant string
+                yield return AccessTools.DeclaredMethod($"{RendererProgressWrapperTypeName}:{nameof(RendererInitProgressWrapper.EngineReady)}");
+                yield return AccessTools.DeclaredMethod($"{RendererProgressWrapperTypeName}:{nameof(RendererInitProgressWrapper.SendToRenderer)}");
+            }
+
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
+            {
+                var isSendToRenderer = __originalMethod.Name == nameof(RendererInitProgressWrapper.SendToRenderer);
+                var totalFixedPhaseCountGetter = AccessTools.DeclaredPropertyGetter(typeof(LoadProgressReporter), nameof(InternalTotalFixedPhaseCount));
+
+                foreach (var instruction in instructions)
+                {
+                    if (!instruction.LoadsConstant(OriginalTotalFixedPhaseCount!.Value))
+                    {
+                        yield return instruction;
+                        continue;
+                    }
+
+                    if (isSendToRenderer)
+                        yield return new CodeInstruction(OpCodes.Conv_R4);
+
+                    // Replace references to the constant TotalFixedPhaseCount with a call to our modified value
+                    yield return new CodeInstruction(OpCodes.Call, totalFixedPhaseCountGetter);
+                }
+            }
         }
     }
 }

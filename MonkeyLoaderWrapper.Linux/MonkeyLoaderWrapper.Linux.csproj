@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishSingleFile>false</PublishSingleFile>
     <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
   </PropertyGroup>
-    
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
     <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)/$(TargetFileName)" />
     <Message Text="Copied $(TargetFileName) to $(ResonitePath)/$(AssemblyFileName)" Importance="high" />
@@ -22,5 +20,20 @@
 
     <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
     <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
+
+    <ItemGroup>
+      <ShellScripts Include="$(TargetDir)*.sh" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ShellScripts)" DestinationFolder="$(ResonitePath)" SkipUnchangedFiles="true" />
+    <Message Text="Copied shell scripts to $(ResonitePath)" Importance="high" />
   </Target>
+
+  <ItemGroup>
+    <None Update="*.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <Compile Include="../MonkeyLoaderWrapper/**/*.cs" Exclude="../MonkeyLoaderWrapper/obj/**" />
+  </ItemGroup>
 </Project>

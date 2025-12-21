@@ -38,7 +38,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 OnBuildInspectorHeader(ui, __instance, worker, allowContainer, allowDuplicate, allowRemove, memberFilter);
 
-                ui.NestInto(vertical.Slot);
+                ui.NestOut();
             }
 
             OnBuildInspectorHeaderText(ui, worker);
@@ -73,25 +73,17 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private static void OnBuildInspectorBody(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var root = ui.Root;
-
             var eventData = new BuildInspectorBodyEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
-
-            ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeader(UIBuilder ui, WorkerInspector inspector, Worker worker,
             bool allowContainer, bool allowDuplicate, bool allowDestroy, Predicate<ISyncMember> memberFilter)
         {
-            var root = ui.Root;
-
             var eventData = new BuildInspectorHeaderEvent(ui, inspector, worker, allowContainer, allowDuplicate, allowDestroy, memberFilter);
 
             Dispatch(eventData);
-
-            ui.NestInto(root);
         }
 
         private static void OnBuildInspectorHeaderText(UIBuilder ui, Worker worker)
@@ -104,8 +96,6 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 return;
 
             // The expander code is based on SlotInspector.OnChanges
-
-            var root = ui.Root;
 
             ui.PushStyle();
             ui.Style.MinHeight = 32;
@@ -157,7 +147,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             }
 
             ui.PopStyle();
-            ui.NestInto(root);
+            ui.NestOut(); // nest out of textLayout, into childrenLayout
+            ui.NestOut(); // nest out of childrenLayout, into whatever it was before this method was called
         }
     }
 }

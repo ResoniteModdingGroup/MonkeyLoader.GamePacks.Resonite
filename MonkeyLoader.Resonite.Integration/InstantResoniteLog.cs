@@ -13,7 +13,7 @@ namespace MonkeyLoader.Resonite
     {
         public override bool CanBeDisabled => true;
 
-        public override string Name { get; } = "Instant Resonite Log";
+        public override string Name => "Instant Resonite Log";
 
         protected override bool OnComputeDefaultEnabledState()
             => false;
@@ -25,6 +25,9 @@ namespace MonkeyLoader.Resonite
             => UniLog.FlushEveryMessage = true;
 
         protected override bool OnLoaded()
-            => UniLog.FlushEveryMessage = Enabled;
+        {
+            UniLog.FlushEveryMessage = Enabled;
+            return true;
+        }
     }
 }
