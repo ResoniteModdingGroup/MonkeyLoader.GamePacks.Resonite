@@ -23,7 +23,7 @@
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Name": "根分类设置项",
     "MonkeyLoader.GamePacks.Resonite.MonkeyLoaderRootCategorySettingsItems.Description": "为 MonkeyLoader 根分类生成数据源项。",
 
-    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "不可切换 Monkey 设置项",
+    "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Name": "不可切换的 Monkey模组 设置项",
     "MonkeyLoader.GamePacks.Resonite.NonToggleableMonkeySettingsItems.Description": "为不可切换的 monkeys 生成数据源项。",
 
     "MonkeyLoader.GamePacks.Resonite.SaveConfigSettingsItems.Name": "保存配置设置项",
@@ -32,8 +32,8 @@
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Name": "设置回退区域生成器",
     "MonkeyLoader.GamePacks.Resonite.SettingsFallbackLocaleGenerator.Description": "为模组设置生成回退区域消息。",
 
-    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "可切换 Monkey 设置项",
-    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "为可切换的 monkeys 生成数据源项。",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Name": "可切换的 Monkey模组 设置项",
+    "MonkeyLoader.GamePacks.Resonite.ToggleableMonkeySettingsItems.Description": "为可切换的 monkeys模组 生成数据源项。",
 
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Name": "实时 Resonite 日志",
     "MonkeyLoader.GamePacks.Resonite.InstantResoniteLog.Description": "通过将其启用状态代理给 Resonite 日志，来控制立即刷新其中每条消息的选项。",
@@ -90,10 +90,10 @@
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Description": "向 UIX 按钮添加工具提示解析请求。",
 
     "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Name": "注释工具提示解析器",
-    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "根据 Comment 组件文本以 'TooltipperyLabel:' 开头来解析按钮的工具提示。",
+    "MonkeyLoader.GamePacks.Resonite.CommentTooltipResolver.Description": "根据评论组件文本以 'TooltipperyLabel:' 开头来解析按钮的工具提示。",
 
     "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Name": "超链接工具提示解析器",
-    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "根据 Hyperlink 组件的 URL 和原因解析按钮的工具提示。<br/>它们可能会附加到按钮的另一个工具提示上。",
+    "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "根据超链接组件的链接和原因解析按钮的工具提示。<br/>它们可能会附加到按钮的另一个工具提示上。",
 
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Name": "工具提示管理器",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "发送来自不同来源的工具提示解析请求。该工具提示系统基于最初由 Psychpsyo 创建的 Tooltippery 模组。",
