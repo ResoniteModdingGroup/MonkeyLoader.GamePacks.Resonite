@@ -23,7 +23,7 @@ if ! grep -q "MonkeyLoader" "$BOOTSTRAP_SCRIPT"; then
         # Escape \ and &
         gsub(/[\\&]/, "\\\\&", repl)
         # Replace all occurences of search (word boundary aware)
-        gsub("\\<" search "\\>", repl)
+        gsub("[ 	]" search "[ 	]", " " repl " ")
         print $0
     }
     ' "$BOOTSTRAP_SCRIPT")"
