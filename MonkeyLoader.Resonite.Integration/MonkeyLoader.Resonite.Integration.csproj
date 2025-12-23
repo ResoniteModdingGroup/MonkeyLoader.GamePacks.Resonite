@@ -60,6 +60,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
     <PackageReference Include="Renderite.Renderer.Renderite.Shared" Version="1.1.4" PrivateAssets="all" />
     <PackageReference Include="Resonite.ProtoFlux.Core" Version="1.3.3" PrivateAssets="all" />
     <PackageReference Include="Resonite.ProtoFlux.Nodes.Core" Version="1.3.3" PrivateAssets="all" />
+    <PackageReference Include="Resonite.ProtoFlux.Nodes.FrooxEngine" Version="2025.11.27.1340" />
     <PackageReference Include="Resonite.ProtoFluxBindings" Version="2025.11.27.1340" PrivateAssets="all" />
     <PackageReference Include="Resonite.SkyFrost.Base" Version="2.1.0" PrivateAssets="all" />
     <PackageReference Include="Resonite.SkyFrost.Base.Models" Version="2.1.5" PrivateAssets="all" />
