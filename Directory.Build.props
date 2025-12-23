@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Version>0.28.1-beta</Version>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <Deterministic>true</Deterministic>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
