@@ -1,25 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Remora.Resonite.Sdk/2.0.1">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <ResoniteProjectType>standalone</ResoniteProjectType>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <PublishSingleFile>false</PublishSingleFile>
-    <AssemblyFileName>$(AssemblyTitle).dll</AssemblyFileName>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(CopyToLibraries)'=='true'">
-    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFiles="$(ResonitePath)/$(TargetFileName)" />
-    <Message Text="Copied $(TargetFileName) to $(ResonitePath)/$(AssemblyFileName)" Importance="high" />
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(ResoniteInstallOnBuild)'=='true'">
+    <Copy SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFiles="$(ResonitePath)$(TargetName).dll" />
+    <Message Text="Copied $(TargetName).dll to $(ResonitePath)$(AssemblyFileName)" Importance="high" />
 
-    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFiles="$(ResonitePath)/$(TargetName).pdb" />
-    <Message Text="Copied $(TargetName).pdb to $(ResonitePath)/$(TargetName).pdb" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFiles="$(ResonitePath)$(TargetName).pdb" />
+    <Message Text="Copied $(TargetName).pdb to $(ResonitePath)$(TargetName).pdb" Importance="high" />
 
-    <Copy SourceFiles="$(TargetDir)$(TargetName).runtimeconfig.json" DestinationFiles="$(ResonitePath)/$(TargetName).runtimeconfig.json" />
-    <Message Text="Copied $(TargetName).runtimeconfig.json to $(ResonitePath)/$(TargetName).runtimeconfig.json" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).runtimeconfig.json" DestinationFiles="$(ResonitePath)$(TargetName).runtimeconfig.json" />
+    <Message Text="Copied $(TargetName).runtimeconfig.json to $(ResonitePath)$(TargetName).runtimeconfig.json" Importance="high" />
 
-    <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)/$(TargetName).deps.json" />
-    <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)/$(TargetName).deps.json" Importance="high" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFiles="$(ResonitePath)$(TargetName).deps.json" />
+    <Message Text="Copied $(TargetName).deps.json to $(ResonitePath)$(TargetName).deps.json" Importance="high" />
 
     <ItemGroup>
       <ShellScripts Include="$(TargetDir)*.sh" />
