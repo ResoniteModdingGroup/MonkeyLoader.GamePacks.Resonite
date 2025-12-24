@@ -1,21 +1,10 @@
 <Project>
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
     <Version>0.28.1-beta</Version>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
-    <LangVersion>14.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <Deterministic>true</Deterministic>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <DebugType>portable</DebugType>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     
     <ResoniteInstallOnBuild>true</ResoniteInstallOnBuild>
-        
-    <RestoreAdditionalProjectSources>
-      https://nuget.pkg.github.com/ResoniteModdingGroup/index.json
-    </RestoreAdditionalProjectSources>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,16 +13,9 @@
     
     <PackageProjectUrl>https://github.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite</PackageProjectUrl>
     <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     
     <PackageIconUrl>https://raw.githubusercontent.com/ResoniteModdingGroup/MonkeyLoader.GamePacks.Resonite/master/Icon.png</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
-    
-    <IncludeSymbols>False</IncludeSymbols>
-    <EmbedAllSources>True</EmbedAllSources>
-    <EmbedUntrackedSources>True</EmbedUntrackedSources>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
