@@ -6,11 +6,12 @@ namespace MonkeyLoader.Resonite
 {
     [HarmonyPatchCategory(nameof(FrooxEngineInitHook))]
     [HarmonyPatch(typeof(Assembly), nameof(Assembly.LoadFrom), typeof(string))]
-    public class FrooxEngineInitHook : Monkey<FrooxEngineInitHook>
+    internal sealed class FrooxEngineInitHook : Monkey<FrooxEngineInitHook>
     {
+        /// <inheritdoc/>
         public override string Name { get; } = "Init Fix";
-        
-        static bool Prefix(ref Assembly __result, string assemblyFile)
+
+        private static bool Prefix(string assemblyFile)
         {
             if (assemblyFile.EndsWith("ProtoFlux.Nodes.FrooxEngine.dll"))
                 return false;

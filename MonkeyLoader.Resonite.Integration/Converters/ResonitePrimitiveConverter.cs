@@ -13,14 +13,14 @@ namespace MonkeyLoader.Resonite.Converters
     /// </summary>
     public sealed class ResonitePrimitiveConverter : JsonConverter
     {
-        private static readonly Dictionary<Type, CoderMethods> _coderMethods = new();
+        private static readonly Dictionary<Type, CoderMethods> _coderMethods = [];
         private static readonly Assembly _primitivesAssembly = typeof(colorX).Assembly;
 
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
             if (objectType.IsNullable())
-                objectType = Nullable.GetUnderlyingType(objectType);
+                objectType = Nullable.GetUnderlyingType(objectType)!;
 
             // handle all non-enum Resonite Primitives
             return !objectType.IsEnum && _primitivesAssembly.Equals(objectType.Assembly)
@@ -81,16 +81,16 @@ namespace MonkeyLoader.Resonite.Converters
             {
                 var specificCoder = _coderType.MakeGenericType(type);
 
-                _encode = specificCoder.GetMethod(_encodeToString);
-                _decode = specificCoder.GetMethod(_decodeFromString);
-                SupportsStringCoding = (bool)specificCoder.GetProperty(_supportsStringCodingString).GetValue(null);
+                _encode = specificCoder.GetMethod(_encodeToString)!;
+                _decode = specificCoder.GetMethod(_decodeFromString)!;
+                SupportsStringCoding = (bool)specificCoder.GetProperty(_supportsStringCodingString)!.GetValue(null)!;
             }
 
             public object Decode(string serialized)
-                => _decode.Invoke(null, [serialized]);
+                => _decode.Invoke(null, [serialized])!;
 
             public string Encode(object? value)
-                => (string)_encode.Invoke(null, [value]);
+                => (string)_encode.Invoke(null, [value])!;
         }
     }
 }

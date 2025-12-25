@@ -76,7 +76,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 return true;
             }
 
-            return MatchesGenericBaseType(type.BaseType, out concreteBaseType);
+            return MatchesGenericBaseType(type.BaseType!, out concreteBaseType);
         }
     }
 

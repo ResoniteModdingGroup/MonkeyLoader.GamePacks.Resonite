@@ -183,7 +183,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="cancellationToken">The cancellation token that will be checked prior to completing the returned task.</param>
         /// <returns>A task that represents the completion of the <paramref name="taskFunc"/> and optional <paramref name="milliseconds"/>-long wait.</returns>
         public static Task RunForPrettySplashAsync(int milliseconds, Func<Task> taskFunc, CancellationToken cancellationToken = default)
-            => RunForPrettySplashAsync(milliseconds, Task.Run(taskFunc), cancellationToken);
+            => RunForPrettySplashAsync(milliseconds, Task.Run(taskFunc, cancellationToken), cancellationToken);
 
         /// <summary>
         /// <see cref="Task.Run{TResult}(Func{Task{TResult}}, CancellationToken)">Runs</see> the given <paramref name="taskFunc"/>

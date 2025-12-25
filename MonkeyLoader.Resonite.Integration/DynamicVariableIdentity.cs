@@ -74,7 +74,7 @@ namespace MonkeyLoader.Resonite
             => ReferenceEquals(Space, other.Space) && Type == other.Type && Name == other.Name;
 
         /// <inheritdoc/>
-        public override readonly bool Equals(object obj)
+        public override readonly bool Equals(object? obj)
             => obj is DynamicVariableIdentity other && Equals(other);
 
         /// <inheritdoc/>

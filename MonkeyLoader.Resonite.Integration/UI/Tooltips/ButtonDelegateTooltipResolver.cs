@@ -47,7 +47,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 return;
             }
 
-            var targetType = pressed.Method.GetMethodInfo().DeclaringType;
+            var targetType = pressed.Method.GetMethodInfo().DeclaringType!;
             var localeKey = $"Tooltip.{targetType.Name}.{pressed.MethodName}";
 
             if (!TooltipConfig.Instance.EnableDebugButtonData && !localeKey.HasMessageInCurrent())
@@ -58,7 +58,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             // Should always be an instance method for SyncDelegates, but who knows
             if (!pressed.IsStaticReference)
             {
-                var target = ((IWorldElement)pressed.Method.Target).FindNearestParent<Worker>();
+                var target = ((IWorldElement)pressed.Method.Target!).FindNearestParent<Worker>();
 
                 foreach (var syncMemberName in WorkerInitializer.GetInitInfo(targetType).syncMemberNames)
                 {
