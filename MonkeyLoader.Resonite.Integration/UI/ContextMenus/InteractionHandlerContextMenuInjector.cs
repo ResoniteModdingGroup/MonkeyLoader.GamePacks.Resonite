@@ -258,7 +258,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                         break;
 
                     case MenuOptions.HandGrab:
-                        foreach (var grabType in Enum.GetValues(typeof(HandGrabType)).OfType<HandGrabType>())
+                        foreach (var grabType in Enum.GetValues<HandGrabType>())
                         {
                             var isCurrent = grabType == __instance._handGrabType.Value;
                             menu.AddItem(("Interaction.Grab." + grabType).AsLocaleKey(isCurrent ? "<b>{0}</b>" : ""), GetIcon(grabType)!, GetColor(grabType))

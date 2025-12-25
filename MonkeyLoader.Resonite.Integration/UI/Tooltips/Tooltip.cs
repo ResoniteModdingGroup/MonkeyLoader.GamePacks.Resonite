@@ -3,6 +3,7 @@ using FrooxEngine;
 using FrooxEngine.UIX;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -73,6 +74,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
             if (ui.Canvas.Slot.FindChild("Content", false, false) is Slot contentSlot)
                 contentSlot.Destroy();
+
+            Text = null!;
 
             foreach (var text in ui.Canvas.Slot.GetComponentsInChildren<Text>())
             {

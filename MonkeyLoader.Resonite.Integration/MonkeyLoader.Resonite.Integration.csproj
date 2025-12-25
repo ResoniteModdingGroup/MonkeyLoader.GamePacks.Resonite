@@ -1,4 +1,4 @@
-﻿<Project Sdk="Remora.Resonite.Sdk/2.0.1">
+﻿<Project Sdk="Remora.Resonite.Sdk">
   <PropertyGroup>
     <IsResoniteGamePack>true</IsResoniteGamePack>
   </PropertyGroup>
@@ -34,7 +34,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.28.2-beta" />
+    <PackageReference Include="MonkeyLoader" Version="0.29.0" />
     
     <ResoniteReference Include="Elements.Assets" />
     <ResoniteReference Include="Elements.Core" />

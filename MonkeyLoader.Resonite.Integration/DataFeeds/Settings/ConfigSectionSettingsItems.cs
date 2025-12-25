@@ -24,7 +24,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     {
         private static readonly Type _dummyType = typeof(dummy);
         private static readonly MethodInfo _generateEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateEnumItemsAsync));
-        private static readonly MethodInfo _generateFlagsEnumItems = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFields));
+        private static readonly MethodInfo _generateFlagsEnumFieldsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateFlagsEnumFieldsAsync));
         private static readonly MethodInfo _generateItemsForConfigKey = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateItemsForConfigKey));
         private static readonly MethodInfo _generateNullableEnumItemsAsync = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateNullableEnumItemsAsync));
         private static readonly MethodInfo _generateQuantityField = AccessTools.Method(typeof(ConfigSectionSettingsItems), nameof(GenerateQuantityField));
@@ -88,7 +88,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     {
                         var configKeyItems = (IAsyncEnumerable<DataFeedItem>)_generateItemsForConfigKey
                             .MakeGenericMethod(configKey.ValueType)
-                            .Invoke(null, [parameters, sectionGrouping, configKey]);
+                            .Invoke(null, [parameters, sectionGrouping, configKey])!;
 
                         await foreach (var item in configKeyItems)
                             yield return item;
@@ -112,15 +112,15 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield break;
             }
 
-            var items = (IAsyncEnumerable<DataFeedItem>)_generateFlagsEnumItems
+            var items = (IAsyncEnumerable<DataFeedItem>)_generateFlagsEnumFieldsAsync
                     .MakeGenericMethod(typeof(T))
-                    .Invoke(null, [path, groupKeys, configKey]);
+                    .Invoke(null, [path, groupKeys, configKey])!;
 
             await foreach (var item in items)
                 yield return item;
         }
 
-        private static async IAsyncEnumerable<DataFeedItem> GenerateFlagsEnumFields<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
+        private static async IAsyncEnumerable<DataFeedItem> GenerateFlagsEnumFieldsAsync<T>(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, IDefiningConfigKey configKey)
             where T : unmanaged, Enum
         {
             await Task.CompletedTask;
@@ -199,7 +199,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             {
                 var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
                     .MakeGenericMethod(configKey.ValueType)
-                    .Invoke(null, [path, groupKeys, configKey]);
+                    .Invoke(null, [path, groupKeys, configKey])!;
 
                 return enumItems;
             }
@@ -211,7 +211,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 {
                     var nullableEnumItems = (IAsyncEnumerable<DataFeedItem>)_generateNullableEnumItemsAsync
                     .MakeGenericMethod(nullableType)
-                    .Invoke(null, [path, groupKeys, configKey]);
+                    .Invoke(null, [path, groupKeys, configKey])!;
 
                     return nullableEnumItems;
                 }
@@ -223,7 +223,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 {
                     var quantityField = (DataFeedItem)_generateQuantityField
                         .MakeGenericMethod(configKey.ValueType, quantity.QuantityType)
-                        .Invoke(null, [parameters.Path, groupKeys, configKey, quantity]);
+                        .Invoke(null, [parameters.Path, groupKeys, configKey, quantity])!;
 
                     return quantityField.YieldAsync();
                 }
@@ -268,7 +268,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             var enumItems = (IAsyncEnumerable<DataFeedItem>)_generateEnumItemsAsync
                     .MakeGenericMethod(typeof(T))
-                    .Invoke(null, [path, nullableGroupKeys, configKey]);
+                    .Invoke(null, [path, nullableGroupKeys, configKey])!;
 
             await foreach (var item in enumItems)
                 yield return item;

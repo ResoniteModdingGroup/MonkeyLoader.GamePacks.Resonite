@@ -85,15 +85,15 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             var path = parameters.Path;
 
-            var monkeys = monkeyType switch
+            IMonkey[] monkeys = monkeyType switch
             {
-                SettingsHelpers.Monkeys => mod.Monkeys.ToArray(),
-                SettingsHelpers.EarlyMonkeys => mod.EarlyMonkeys.ToArray(),
+                Monkeys => [.. mod.Monkeys],
+                EarlyMonkeys => [.. mod.EarlyMonkeys],
                 _ => []
             };
 
             if (forceCheck)
-                monkeys = monkeys.Where(monkey => monkey.CanBeDisabled == canBeDisabled).ToArray();
+                monkeys = [.. monkeys.Where(monkey => monkey.CanBeDisabled == canBeDisabled)];
 
             if (monkeys.Length == 0)
                 yield break;
@@ -106,18 +106,10 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 return left.GetMessageInCurrent("Name").CompareTo(right.GetMessageInCurrent("Name"));
             });
 
-            string id = monkeyType;
+            var id = monkeyType;
+
             if (forceCheck)
-            {
-                if (canBeDisabled)
-                {
-                    id += "Toggleable";
-                }
-                else
-                {
-                    id += "NonToggleable";
-                }
-            }
+                id += canBeDisabled ? "Toggleable" : "NonToggleable";
 
             var group = new DataFeedGroup();
             group.InitBase(id, path, parameters.GroupKeys, localeMod.GetLocaleString($"{id}.Name"), localeMod.GetLocaleString($"{id}.Description"));
@@ -132,7 +124,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
             foreach (var monkey in monkeys)
             {
-                if (forceCheck && monkey.CanBeDisabled != canBeDisabled) continue;
+                if (forceCheck && monkey.CanBeDisabled != canBeDisabled)
+                    continue;
 
                 if (monkey is ICustomDataFeedItems customItems)
                 {

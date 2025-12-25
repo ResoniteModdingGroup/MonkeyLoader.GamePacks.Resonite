@@ -13,6 +13,7 @@ namespace MonkeyLoader.Resonite.Events
     /// </summary>
     /// <typeparam name="T">The type of the items.</typeparam>
     public abstract class CancelableSortedItemsEvent<T> : CancelableSyncEvent
+        where T : notnull
     {
         /// <summary>
         /// The items that have been added to the event.

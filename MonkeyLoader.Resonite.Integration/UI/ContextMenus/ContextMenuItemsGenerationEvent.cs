@@ -53,7 +53,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// Internal implementation for <see cref="Summoner"/>.
         /// </summary>
         // Make sure this stays private protected
-        private protected abstract IWorldElement SummonerInternal { get; }
+        protected abstract IWorldElement SummonerInternal { get; }
 
         /// <summary>
         /// Creates a new <see cref="FrooxEngine.ContextMenu"/> items generation event with the given
@@ -61,7 +61,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// </summary>
         /// <inheritdoc cref="CreateFor(ContextMenu)"/>
         // Make sure this stays private protected
-        private protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
+        protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
         {
             ContextMenu = contextMenu ?? throw new ArgumentNullException(nameof(contextMenu));
             SummoningUser = contextMenu.Slot.ActiveUser ?? throw new ArgumentException($"Active User was missing for Context Menu: {contextMenu.ParentHierarchyToString()}", nameof(contextMenu));
@@ -193,8 +193,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <exception cref="ArgumentException">When the <paramref name="summoningUser"/>'s <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <see langword="null"/>.</exception>
         internal static ContextMenuItemsGenerationEvent CreateFor(User summoningUser)
         {
-            if (summoningUser is null)
-                throw new ArgumentNullException(nameof(summoningUser));
+            ArgumentNullException.ThrowIfNull(summoningUser);
 
             var contextMenu = summoningUser.GetUserContextMenu()
                 ?? throw new ArgumentException($"Context Menu was missing for User: {summoningUser}!", nameof(summoningUser));
@@ -216,8 +215,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <exception cref="ArgumentException">When the <paramref name="contextMenu"/>'s <see cref="Slot.ActiveUser">active</see> <see cref="User"/> is <see langword="null"/>.</exception>
         internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu contextMenu)
         {
-            if (contextMenu is null)
-                throw new ArgumentNullException(nameof(contextMenu));
+            ArgumentNullException.ThrowIfNull(contextMenu);
 
             if (contextMenu.CurrentSummoner is null)
                 throw new ArgumentException($"Summoner was missing for Context Menu: {contextMenu.ParentHierarchyToString()}");
@@ -227,13 +225,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
             while (summonerType != _objectType)
             {
-                if (_contextMenuConstructorsBySummonerType.TryGetValue(summonerType, out var customContextMenuConstructor))
+                if (_contextMenuConstructorsBySummonerType.TryGetValue(summonerType!, out var customContextMenuConstructor))
                 {
                     contextMenuConstructor = customContextMenuConstructor;
                     break;
                 }
 
-                summonerType = summonerType.BaseType;
+                summonerType = summonerType!.BaseType;
             }
 
             return contextMenuConstructor(contextMenu);
@@ -276,7 +274,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         public new T Summoner { get; }
 
         /// <inheritdoc/>
-        private protected override sealed IWorldElement SummonerInternal => Summoner;
+        protected override sealed IWorldElement SummonerInternal => Summoner;
 
         /// <inheritdoc/>
         public ContextMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
