@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace MonkeyLoader.Resonite
     /// Contains extension methods related to <see cref="DynamicVariableSpace"/>s
     /// and their <see cref="IDynamicVariable">variables</see>.
     /// </summary>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public static class DynamicVariableExtensions
     {
         //public static DynamicReference<T> CreateReferenceVariable<T>(this SyncRef<T> syncRef, string name, bool overrideOnLink = false, bool persistent = true)
@@ -121,7 +123,7 @@ namespace MonkeyLoader.Resonite
         /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that the given <see cref="Type"/> can be assigned to.</returns>
         /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
         public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot, Type type)
-            => slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(type)).ToArray();
+            => [.. slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(type))];
 
         /// <summary>
         /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
@@ -133,7 +135,7 @@ namespace MonkeyLoader.Resonite
         /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that have the given <paramref name="name"/>.</returns>
         /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
         public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot, string name)
-            => slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(name)).ToArray();
+            => [.. slot.GetAvailableSpaces().SelectMany(space => space.GetVariableIdentities(name))];
 
         /// <summary>
         /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
@@ -144,7 +146,7 @@ namespace MonkeyLoader.Resonite
         /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/> that <typeparamref name="T"/> can be assigned to.</returns>
         /// <inheritdoc cref="GetAvailableVariableIdentities(Slot)"/>
         public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities<T>(this Slot slot)
-            => slot.GetAvailableSpaces().SelectMany(GetVariableIdentities<T>).ToArray();
+            => [.. slot.GetAvailableSpaces().SelectMany(GetVariableIdentities<T>)];
 
         /// <summary>
         /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable
@@ -161,7 +163,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="slot">The <see cref="Slot"/> to find all applicable full Dynamic Variable identities for.</param>
         /// <returns>All full Dynamic Variable identities that apply to this <see cref="Slot"/>.</returns>
         public static IEnumerable<DynamicVariableIdentity> GetAvailableVariableIdentities(this Slot slot)
-            => slot.GetAvailableSpaces().SelectMany(GetVariableIdentities).ToArray();
+            => [.. slot.GetAvailableSpaces().SelectMany(GetVariableIdentities)];
 
         /// <summary>
         /// Gets the <see cref="DynamicVariableHandler{T}"/> of this
@@ -337,7 +339,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="type">The type that must be assignable to the variables.</param>
         /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/> that the given <see cref="Type"/> can be assigned to.</returns>
         public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space, Type type)
-            => space.GetVariableIdentities().Where(id => id.Type.IsAssignableFrom(type)).ToArray();
+            => [.. space.GetVariableIdentities().Where(id => id.Type.IsAssignableFrom(type))];
 
         /// <summary>
         /// Gets all <see cref="DynamicVariableIdentity">full Dynamic Variable identities</see>
@@ -348,7 +350,7 @@ namespace MonkeyLoader.Resonite
         /// <param name="name">The name that the variable identities must have.</param>
         /// <returns>All full Dynamic Variable identities associated with this <paramref name="space"/> that have the given <paramref name="name"/>.</returns>
         public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space, string name)
-            => space.GetVariableIdentities().Where(id => id.Name == name).ToArray();
+            => [.. space.GetVariableIdentities().Where(id => id.Name == name)];
 
         //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
         //{

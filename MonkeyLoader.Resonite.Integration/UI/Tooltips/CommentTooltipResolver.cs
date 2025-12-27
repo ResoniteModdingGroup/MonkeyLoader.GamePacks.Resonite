@@ -21,7 +21,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <summary>
         /// The prefix that a <see cref="Comment"/>'s text must have to define a tooltip label.
         /// </summary>
-        public const string CommentTextPrefix = "TooltipperyLabel:";
+        public const string CommentTextPrefix = LocalActionButtonExtensions.CommentTextPrefix;
 
         /// <inheritdoc/>
         public override bool CanBeDisabled => true;

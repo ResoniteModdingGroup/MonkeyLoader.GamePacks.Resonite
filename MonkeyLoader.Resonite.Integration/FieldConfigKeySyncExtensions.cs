@@ -1,20 +1,15 @@
-﻿using Elements.Core;
-using FrooxEngine;
+﻿using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
     /// Contains extension methods for <see cref="IField{T}">fields</see>
-    /// and other <see cref="IWorldElement">world elements</see>
+    /// that allow syncing them with <see cref="IDefiningConfigKey{T}"/>s.
     /// </summary>
-    public static class FieldExtensions
+    public static class FieldConfigKeySyncExtensions
     {
         /// <summary>
         /// The prefix for the <see cref="IDefiningConfigKey{T}.SetValue(T, string?)">SetValue</see>
@@ -25,26 +20,6 @@ namespace MonkeyLoader.Resonite
         /// <c>$"{<see cref="WriteBackPrefix"/>}.{<see cref="ValueField{T}">field</see>.<see cref="World"/>.<see cref="SharedConfig.GetIdentifier">GetIdentifier</see>()}"</c>
         /// </remarks>
         public const string WriteBackPrefix = "SyncedField.WriteBack";
-
-        /// <summary>
-        /// Creates a label describing the <paramref name="target"/> reference as a <see cref="RefEditor"/> would.
-        /// </summary>
-        /// <param name="target">The reference to label.</param>
-        /// <returns>A label for the <paramref name="target"/> reference if it is not <c>null</c>; otherwise, <c>&lt;i&gt;null&lt;/i&gt;</c>.</returns>
-        public static string GetReferenceLabel(this IWorldElement? target)
-        {
-            if (target is null)
-                return "<i>null</i>";
-
-            if (target is Slot targetSlot)
-                return $"{targetSlot.Name} ({target.ReferenceID})";
-
-            var component = target.FindNearestParent<Component>();
-            var slot = component?.Slot ?? target.FindNearestParent<Slot>();
-
-            var arg = (component is not null && component != target) ? ("on " + component.Name + " on " + slot.Name) : ((slot is null) ? "" : ("on " + slot.Name));
-            return (target is not SyncElement syncElement) ? $"{target.Name ?? target.GetType().Name} {arg} ({target.ReferenceID})" : $"{syncElement.NameWithPath} {arg} ({target.ReferenceID})";
-        }
 
         /// <summary>
         /// Synchronizes the <paramref name="field"/>'s <see cref="IValue{T}.Value">Value</see> with that of the <paramref name="configKey"/>.

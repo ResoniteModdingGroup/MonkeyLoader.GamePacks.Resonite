@@ -19,8 +19,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private const string ModSettingStandaloneFacetTag = "MonkeyLoaderStandaloneFacet";
 
         private static readonly MethodInfo _syncWithConfigKeyWrapperMethod = AccessTools.Method(typeof(ModSettingStandaloneFacet), nameof(SyncWithConfigKeyWrapper));
-        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithConfigKeyEnumFlagUntyped));
-        private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldExtensions), nameof(FieldExtensions.SyncWithNullableConfigKeyHasValue));
+        private static readonly MethodInfo _syncWithEnumFlagMethod = AccessTools.Method(typeof(FieldConfigKeySyncExtensions), nameof(FieldConfigKeySyncExtensions.SyncWithConfigKeyEnumFlagUntyped));
+        private static readonly MethodInfo _syncWithNullableConfigKeyHasValueMethod = AccessTools.Method(typeof(FieldConfigKeySyncExtensions), nameof(FieldConfigKeySyncExtensions.SyncWithNullableConfigKeyHasValue));
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
 

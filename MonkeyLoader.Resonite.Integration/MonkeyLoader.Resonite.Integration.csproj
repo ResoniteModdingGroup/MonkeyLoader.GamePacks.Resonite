@@ -6,11 +6,11 @@
   <PropertyGroup>
     <PackageId>MonkeyLoader.GamePacks.Resonite</PackageId>
     <Title>Resonite Game Pack</Title>
-    <Authors>Banane9, Nytra</Authors>
+    <Authors>Banane9;Nytra</Authors>
     <Description>This Game Pack for MonkeyLoader provides basic hooks for modding the game Resonite, which uses FrooxEngine.
 It provides hooks for the beginning of initialization, when initialization is done, and when the game shuts down.
 Additionally it contains many useful features for Users and Developers alike.</Description>
-    <PackageTags>mod; mods; modding; mod; loader; monkeyloader; resonite; integration</PackageTags>
+    <PackageTags>mod;mods;modding;mod;loader;monkeyloader;resonite;integration;tools;tool;toolkit;helper;helpers</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddExtraFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
   
@@ -23,6 +23,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
 
   <Target Name="AddExtraFilesToPackage">
     <ItemGroup>
+      <TfmSpecificPackageFile Include="$(ProjectDir)../MonkeyLoader.Resonite.Toolkit/bin/$(Configuration)/$(TargetFramework)/MonkeyLoader.Resonite.Toolkit.*" Exclude="../**/*.deps.json" PackagePath="lib/$(TargetFramework)/" />
       <TfmSpecificPackageFile Include="$(ProjectDir)../MonkeyLoader.Resonite.Data/bin/$(Configuration)/$(TargetFramework)/MonkeyLoader.Resonite.Data.*" Exclude="../**/*.deps.json" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
     </ItemGroup>
   </Target>
@@ -51,6 +52,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../MonkeyLoader.Resonite.Data/MonkeyLoader.Resonite.Data.csproj" PrivateAssets="All" />
+    <ProjectReference Include="../MonkeyLoader.Resonite.Data/MonkeyLoader.Resonite.Data.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../MonkeyLoader.Resonite.Core/MonkeyLoader.Resonite.Core.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>
