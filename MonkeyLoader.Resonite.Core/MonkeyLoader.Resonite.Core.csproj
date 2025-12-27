@@ -1,0 +1,39 @@
+﻿<Project Sdk="Remora.Resonite.Sdk">
+  <PropertyGroup>
+    <ResoniteProjectType>library</ResoniteProjectType>
+    <ResoniteInstallOnBuild>false</ResoniteInstallOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>MonkeyLoader.GamePacks.Resonite.Core</PackageId>
+    <Title>Resonite Game Pack Core</Title>
+    <Authors>Banane9</Authors>
+    <Description>This package provides the non-ML specific helpers for modding the game Resonite, which uses FrooxEngine.
+It contains many useful features for the Developers of mods and their Users alike.
+
+This package is only intended for use with non-ML mods.
+For mods targetting ML, this library is part of the Resonite Game Pack.</Description>
+    <PackageTags>mod;mods;modding;mod;loader;monkeyloader;resonite;tools;tool;toolkit;helper;helpers;standalone</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="../Icon.png" Pack="true" PackagePath="" />
+    <None Include="Locale/**/*.json" Pack="true" PackagePath="content/Locale" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MonkeyLoader.Resonite.Integration"  />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony.Thin" Version="2.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResoniteReference Include="FrooxEngine" UsePublicized="true" />
+    <ResoniteReference Include="Elements.Core" />
+    <ResoniteReference Include="Renderite.Shared" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Allows getting the <see cref="Rect"/> and <see cref="float4">Borders</see>
     /// for each of the ways to further divide it.
     /// </summary>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public readonly struct NineSlice
     {
         /// <summary>
