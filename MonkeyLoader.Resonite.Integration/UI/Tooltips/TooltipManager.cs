@@ -96,9 +96,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// Registers a <see cref="LocaleString">label</see> for the given undestroyed button,
         /// if it doesn't already <see cref="HasLabelForButton">have</see> one.
         /// </summary>
-        /// <param name="button">The undestroyed button to register a label for.</param>
-        /// <param name="label">The label to register for the button.</param>
-        /// <returns><c>true</c> if the label was registered for the button; otherwise, <c>false</c>.</returns>
+        /// <inheritdoc cref="LocalActionButtonExtensions.RegisterLabelForButtonFunc"/>
         public static bool RegisterLabelForButton(IButton button, in LocaleString label)
         {
             if (button.FilterWorldElement() is null || _labelsByButton.ContainsKey(button))
@@ -310,6 +308,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         protected override bool OnEngineReady()
         {
             Mod.RegisterEventSource(this);
+            LocalActionButtonExtensions.RegisterLabelForButton = RegisterLabelForButton;
 
             return base.OnEngineReady();
         }

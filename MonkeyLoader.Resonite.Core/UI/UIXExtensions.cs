@@ -1,6 +1,7 @@
 ﻿using FrooxEngine.UIX;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MonkeyLoader.Resonite.UI
@@ -8,6 +9,7 @@ namespace MonkeyLoader.Resonite.UI
     /// <summary>
     /// Contains miscellaneous extension methods for UIX types that couldn't be categorized further.
     /// </summary>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public static class UIXExtensions
     {
         /// <summary>

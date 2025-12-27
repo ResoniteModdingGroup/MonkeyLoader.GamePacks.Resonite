@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MonkeyLoader.Resonite
 {
@@ -7,6 +8,7 @@ namespace MonkeyLoader.Resonite
     /// Contains an extension method to add <see cref="DestroyOnUserLeave"/> components targeting
     /// the <see cref="World.LocalUser">local user</see> to mod additions that rely on the local user being there to work.
     /// </summary>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public static class DestroyOnUserLeaveExtensions
     {
         /// <summary>

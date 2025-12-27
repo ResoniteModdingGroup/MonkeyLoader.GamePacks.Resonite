@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,8 +13,39 @@ namespace MonkeyLoader.Resonite.UI
     /// <remarks>
     /// Use with: <c>using static MonkeyLoader.Resonite.UI.Slices;</c>
     /// </remarks>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public static class Slices
     {
+        /// <summary>
+        /// Alias for <see cref="Vertical.Bottom"/>.
+        /// </summary>
+        public const Vertical Bottom = Vertical.Bottom;
+
+        /// <summary>
+        /// Alias for <see cref="Horizontal.Center"/>.
+        /// </summary>
+        public const Horizontal Center = Horizontal.Center;
+
+        /// <summary>
+        /// Alias for <see cref="Horizontal.Left"/>.
+        /// </summary>
+        public const Horizontal Left = Horizontal.Left;
+
+        /// <summary>
+        /// Alias for <see cref="Vertical.Middle"/>.
+        /// </summary>
+        public const Vertical Middle = Vertical.Middle;
+
+        /// <summary>
+        /// Alias for <see cref="Horizontal.Right"/>.
+        /// </summary>
+        public const Horizontal Right = Horizontal.Right;
+
+        /// <summary>
+        /// Alias for <see cref="Vertical.Top"/>.
+        /// </summary>
+        public const Vertical Top = Vertical.Top;
+
         /// <summary>
         /// Contains more "fluent" definitions for first half / third.
         /// </summary>
@@ -47,36 +79,6 @@ namespace MonkeyLoader.Resonite.UI
         }
 
         /// <summary>
-        /// Alias for <see cref="Vertical.Top"/>.
-        /// </summary>
-        public const Vertical Top = Vertical.Top;
-
-        /// <summary>
-        /// Alias for <see cref="Vertical.Bottom"/>.
-        /// </summary>
-        public const Vertical Bottom = Vertical.Bottom;
-
-        /// <summary>
-        /// Alias for <see cref="Vertical.Middle"/>.
-        /// </summary>
-        public const Vertical Middle = Vertical.Middle;
-
-        /// <summary>
-        /// Alias for <see cref="Horizontal.Left"/>.
-        /// </summary>
-        public const Horizontal Left = Horizontal.Left;
-
-        /// <summary>
-        /// Alias for <see cref="Horizontal.Right"/>.
-        /// </summary>
-        public const Horizontal Right = Horizontal.Right;
-
-        /// <summary>
-        /// Alias for <see cref="Horizontal.Center"/>.
-        /// </summary>
-        public const Horizontal Center = Horizontal.Center;
-
-        /// <summary>
         /// Distinguishes halfs.
         /// </summary>
         public enum Half
@@ -90,6 +92,27 @@ namespace MonkeyLoader.Resonite.UI
             /// The 2nd half.
             /// </summary>
             Second
+        }
+
+        /// <summary>
+        /// Distinguishes horizontal slices.
+        /// </summary>
+        public enum Horizontal
+        {
+            /// <summary>
+            /// The 1st horizontal slice.
+            /// </summary>
+            Left,
+
+            /// <summary>
+            /// The 2nd horizontal slice.
+            /// </summary>
+            Center,
+
+            /// <summary>
+            /// The 3rd horizontal slice.
+            /// </summary>
+            Right
         }
 
         /// <summary>
@@ -132,27 +155,6 @@ namespace MonkeyLoader.Resonite.UI
             /// The 3rd vertical slice.
             /// </summary>
             Top
-        }
-
-        /// <summary>
-        /// Distinguishes horizontal slices.
-        /// </summary>
-        public enum Horizontal
-        {
-            /// <summary>
-            /// The 1st horizontal slice.
-            /// </summary>
-            Left,
-
-            /// <summary>
-            /// The 2nd horizontal slice.
-            /// </summary>
-            Center,
-
-            /// <summary>
-            /// The 3rd horizontal slice.
-            /// </summary>
-            Right
         }
     }
 }

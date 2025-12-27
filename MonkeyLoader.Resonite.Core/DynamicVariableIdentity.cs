@@ -1,14 +1,17 @@
 ﻿using FrooxEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MonkeyLoader.Resonite
 {
     /// <summary>
-    /// Fully describes the identity of a Dynamic Variable based on itsn <see cref="Type">Type</see>,
+    /// Fully describes the identity of a Dynamic Variable based on its <see cref="Type">Type</see>,
     /// <see cref="Name">Name</see>, and the <see cref="Space">Space</see> it's a part of.
     /// </summary>
+    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public readonly struct DynamicVariableIdentity : IEquatable<DynamicVariableIdentity>
     {
         /// <summary>
@@ -83,6 +86,22 @@ namespace MonkeyLoader.Resonite
 
         /// <inheritdoc/>
         public override readonly string ToString()
-            => $"Dynamic Variable {Name} of Type {Type.CompactDescription()} on {Space.GetReferenceLabel()}";
+            => $"Dynamic Variable {Name} of Type {CompactDescription(Type)} on {Space.GetReferenceLabel()}";
+
+        /// <summary>
+        /// Gets a compact, human-readable description of a type.
+        /// </summary>
+        /// <param name="type">The type to format.</param>
+        /// <returns>The human-readable description of the type.</returns>
+        private static string CompactDescription(Type type)
+        {
+            if (type is null)
+                return "null";
+
+            if (type.IsGenericType)
+                return $"{type.Name}<{string.Join(", ", type.GetGenericArguments().Select(CompactDescription))}>";
+
+            return type.Name;
+        }
     }
 }
