@@ -27,7 +27,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 button.Slot.AttachComponent<ReferenceProxySource>().Reference.Target = worker;
                 button.Label.Color.Value = RadiantUI_Constants.LABEL_COLOR;
 
-                ConfigSection.WorkerNameOffset.DriveFromVariable(button.Slot._orderOffset);
+                ConfigSection.WorkerNameOffset.DriveFromVariable(button.Slot.OrderOffset_Field);
 
                 eventData.WorkerNameButton = button;
             }
@@ -40,7 +40,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (eventData.CreateOpenContainerButton)
                 {
                     var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.RootUp, RadiantUI_Constants.Sub.PURPLE, eventData.Inspector.OnOpenContainerPressed, worker);
-                    ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot._orderOffset);
+                    ConfigSection.OpenContainerOffset.DriveFromVariable(button.Slot.OrderOffset_Field);
 
                     eventData.OpenContainerButton = button;
                 }
@@ -48,7 +48,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (eventData.CreateDuplicateButton)
                 {
                     var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
-                    ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot._orderOffset);
+                    ConfigSection.DuplicateOffset.DriveFromVariable(button.Slot.OrderOffset_Field);
 
                     eventData.DuplicateButton = button;
                 }
@@ -56,7 +56,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                 if (eventData.CreateDestroyButton)
                 {
                     var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Destroy, RadiantUI_Constants.Sub.RED, eventData.Inspector.OnRemoveComponentPressed, worker);
-                    ConfigSection.DestroyOffset.DriveFromVariable(button.Slot._orderOffset);
+                    ConfigSection.DestroyOffset.DriveFromVariable(button.Slot.OrderOffset_Field);
 
                     eventData.DestroyButton = button;
                 }
