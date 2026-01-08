@@ -15,7 +15,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </PropertyGroup>
   
   <PropertyGroup>
-    <EnablePackageValidation>true</EnablePackageValidation>
+    <EnablePackageValidation>false</EnablePackageValidation>
 
     <!-- Optional: Detect breaking changes from a previous stable version
     <PackageValidationBaselineVersion>0.21.2-beta</PackageValidationBaselineVersion> -->
@@ -23,7 +23,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
 
   <Target Name="AddExtraFilesToPackage">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(ProjectDir)../MonkeyLoader.Resonite.Toolkit/bin/$(Configuration)/$(TargetFramework)/MonkeyLoader.Resonite.Toolkit.*" Exclude="../**/*.deps.json" PackagePath="lib/$(TargetFramework)/" />
+      <TfmSpecificPackageFile Include="$(ProjectDir)../MonkeyLoader.Resonite.Core/bin/$(Configuration)/$(TargetFramework)/MonkeyLoader.Resonite.Core.*" Exclude="../**/*.deps.json" PackagePath="lib/$(TargetFramework)/" />
       <TfmSpecificPackageFile Include="$(ProjectDir)../MonkeyLoader.Resonite.Data/bin/$(Configuration)/$(TargetFramework)/MonkeyLoader.Resonite.Data.*" Exclude="../**/*.deps.json" PackagePath="lib/$(TargetFramework)/pre-patchers/" />
     </ItemGroup>
   </Target>

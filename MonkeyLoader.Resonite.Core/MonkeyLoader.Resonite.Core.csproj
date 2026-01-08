@@ -24,7 +24,7 @@ For mods targetting ML, this library is part of the Resonite Game Pack.</Descrip
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="MonkeyLoader.Resonite.Integration"  />
+    <InternalsVisibleTo Include="MonkeyLoader.Resonite.Integration" />
   </ItemGroup>
 
   <ItemGroup>
