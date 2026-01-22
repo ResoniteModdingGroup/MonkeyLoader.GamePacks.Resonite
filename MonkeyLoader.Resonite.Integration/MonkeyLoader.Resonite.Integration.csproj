@@ -52,7 +52,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../MonkeyLoader.Resonite.Data/MonkeyLoader.Resonite.Data.csproj" PrivateAssets="all" />
-    <ProjectReference Include="../MonkeyLoader.Resonite.Core/MonkeyLoader.Resonite.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../MonkeyLoader.Resonite.Data/MonkeyLoader.Resonite.Data.csproj" PrivateAssets="all" Private="false" />
+    <ProjectReference Include="../MonkeyLoader.Resonite.Core/MonkeyLoader.Resonite.Core.csproj" PrivateAssets="all" Private="false" />
   </ItemGroup>
 </Project>
