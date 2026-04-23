@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="FrooxEngine" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Publiciser.cs" />
     <Compile Remove="PubliciserSettings.cs" />
     <None Include="Publiciser.cs" />
@@ -14,5 +18,4 @@
   <ItemGroup>
     <PackageReference Include="MonkeyLoader" Version="0.29.0" />
   </ItemGroup>
-
 </Project>

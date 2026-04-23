@@ -3,18 +3,15 @@ using MonkeyLoader.Resonite.Features.FrooxEngine;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using MonoMod.Utils;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
-    // .NET Core enforces access checks, so this needs to be public for HelloMethod() to be callable from FrooxEngine
-    public sealed class TestPrePatcher : EarlyMonkey<TestPrePatcher>
+    // .NET Core enforces access checks, so this requires FrooxEngine to be included as InternalsVisibleTo to be callable from it
+    internal sealed class TestPrePatcher : EarlyMonkey<TestPrePatcher>
     {
-        public override string Name { get; } = "Test";
+        public override string Name => "Test";
 
         public static void HelloMethod()
             => Logger.Info(() => $"Hello from pre-patched-in FrooxEngine.Engine static constructor!");
