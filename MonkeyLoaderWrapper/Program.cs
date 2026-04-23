@@ -3,43 +3,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
-internal class MonkeyLoaderAssemblyLoadContext(
-    string monkeyLoaderPath,
-    MonkeyLoaderAssemblyLoadContext.AssemblyResolveEventHandler handler)
+internal sealed class MonkeyLoaderAssemblyLoadContext(
+        string monkeyLoaderPath,
+        MonkeyLoaderAssemblyLoadContext.AssemblyResolveEventHandler handler)
     : AssemblyLoadContext("MonkeyLoader")
 {
-    private readonly AssemblyResolveEventHandler? _assemblyResolveEventHandler = handler;
-
-    protected override Assembly? Load(AssemblyName assemblyName)
-    {
-        Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
-
-        if (_assemblyResolveEventHandler != null)
-        {
-            var resolvedAssembly = _assemblyResolveEventHandler(assemblyName);
-            if (resolvedAssembly != null)
-            {
-                Debug.WriteLine($"=> Resolved assembly: {resolvedAssembly.FullName}");
-                return resolvedAssembly;
-            }
-        }
-
-        var name = assemblyName.Name;
-        var mlPath = Path.Combine(monkeyLoaderPath, $"{name}.dll");
-        return File.Exists(mlPath) ? LoadFromAssemblyPath(mlPath) : null;
-    }
-
-    public delegate Assembly? AssemblyResolveEventHandler(AssemblyName assemblyName);
-}
-
-internal class Program
-{
-    private static readonly FileInfo _monkeyLoaderPath = new(Path.Combine("MonkeyLoader", "MonkeyLoader.dll"));
-
     private static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
-
-    private static object? _monkeyLoaderInstance = null;
-    private static MethodInfo? _monkeyLoaderResolveAssemblyMethod = null;
+    private readonly AssemblyResolveEventHandler? _assemblyResolveEventHandler = handler;
 
     private static IEnumerable<string> LibraryExtensions
     {
@@ -81,6 +51,69 @@ internal class Program
                 yield return RuntimeInformation.RuntimeIdentifier[..index];
         }
     }
+
+    protected override Assembly? Load(AssemblyName assemblyName)
+    {
+        Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving {assemblyName.FullName}");
+
+        if (_assemblyResolveEventHandler != null)
+        {
+            var resolvedAssembly = _assemblyResolveEventHandler(assemblyName);
+            if (resolvedAssembly != null)
+            {
+                Debug.WriteLine($"=> Resolved assembly: {resolvedAssembly.FullName}");
+                return resolvedAssembly;
+            }
+        }
+
+        var name = assemblyName.Name;
+        var mlPath = Path.Combine(monkeyLoaderPath, $"{name}.dll");
+        return File.Exists(mlPath) ? LoadFromAssemblyPath(mlPath) : null;
+    }
+
+    // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
+    protected override nint LoadUnmanagedDll(string unmanagedDllName)
+    {
+        var runtimesBasePath = Path.Combine(_resonitePath.DirectoryName!, "runtimes");
+
+        IEnumerable<string> libraryNames = [unmanagedDllName];
+
+        if (unmanagedDllName.EndsWith("64") || unmanagedDllName.EndsWith("32"))
+            libraryNames = libraryNames.Concat([unmanagedDllName[..^2]]);
+
+        foreach (var libraryName in libraryNames)
+        {
+            foreach (var runtimeIdentifier in RuntimeIdentifiers)
+            {
+                var runtimesPath = Path.Combine(runtimesBasePath, runtimeIdentifier, "native");
+
+                foreach (var libraryPrefix in LibraryPrefixes)
+                {
+                    foreach (var libraryExtension in LibraryExtensions)
+                    {
+                        var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+
+                        if (File.Exists(libraryPath))
+                            return NativeLibrary.Load(libraryPath);
+                    }
+                }
+            }
+        }
+
+        return IntPtr.Zero;
+    }
+
+    public delegate Assembly? AssemblyResolveEventHandler(AssemblyName assemblyName);
+}
+
+internal class Program
+{
+    private static readonly FileInfo _monkeyLoaderPath = new(Path.Combine("MonkeyLoader", "MonkeyLoader.dll"));
+
+    private static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
+
+    private static object? _monkeyLoaderInstance = null;
+    private static MethodInfo? _monkeyLoaderResolveAssemblyMethod = null;
 
     private static async Task Main(string[] args)
     {
@@ -126,44 +159,9 @@ internal class Program
 
         var resoniteAssembly = loadContext.LoadFromAssemblyPath(_resonitePath.FullName);
 
-        // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
-
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
         if (mainResult is Task task)
             await task;
-    }
-
-    private static IntPtr ResolveNativeLibrary(string nativeLibraryName, Assembly assembly, DllImportSearchPath? searchPath)
-    {
-        var runtimesBasePath = Path.Combine(_resonitePath.DirectoryName!, "runtimes");
-
-        IEnumerable<string> libraryNames = [nativeLibraryName];
-
-        if (nativeLibraryName.EndsWith("64") || nativeLibraryName.EndsWith("32"))
-            libraryNames = libraryNames.Concat([nativeLibraryName[..^2]]);
-
-        foreach (var libraryName in libraryNames)
-        {
-            foreach (var runtimeIdentifier in RuntimeIdentifiers)
-            {
-                var runtimesPath = Path.Combine(runtimesBasePath, runtimeIdentifier, "native");
-
-                foreach (var libraryPrefix in LibraryPrefixes)
-                {
-                    foreach (var libraryExtension in LibraryExtensions)
-                    {
-                        var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
-
-                        if (File.Exists(libraryPath))
-                            return NativeLibrary.Load(libraryPath);
-                    }
-                }
-            }
-        }
-
-        return IntPtr.Zero;
     }
 }
