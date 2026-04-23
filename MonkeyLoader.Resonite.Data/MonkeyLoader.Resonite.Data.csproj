@@ -9,10 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="NativeLibraryResolverRemover.cs" />
     <Compile Remove="Publiciser.cs" />
     <Compile Remove="PubliciserSettings.cs" />
     <None Include="Publiciser.cs" />
     <None Include="PubliciserSettings.cs" />
+    <None Include="NativeLibraryResolverRemover.cs" />
   </ItemGroup>
 
   <ItemGroup>
