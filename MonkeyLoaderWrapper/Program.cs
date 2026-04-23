@@ -71,6 +71,17 @@ internal class Program
         }
     }
 
+    private static IEnumerable<string> RuntimeIdentifiers
+    {
+        get
+        {
+            yield return RuntimeInformation.RuntimeIdentifier;
+
+            if (RuntimeInformation.RuntimeIdentifier.IndexOf('-') is int index and > 0)
+                yield return RuntimeInformation.RuntimeIdentifier[..index];
+        }
+    }
+
     private static async Task Main(string[] args)
     {
         var loadContext = new MonkeyLoaderAssemblyLoadContext(_monkeyLoaderPath.DirectoryName!, (assemblyName) =>
@@ -117,12 +128,7 @@ internal class Program
 
         // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            if (assembly.GetName().Name is "SoundFlow" or "SharpFont")
-                continue;
-
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeLibrary);
-        }
 
         var mainResult = resoniteAssembly.EntryPoint!.Invoke(null, [args]);
 
@@ -132,11 +138,7 @@ internal class Program
 
     private static IntPtr ResolveNativeLibrary(string nativeLibraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        if (nativeLibraryName == "rnnoise")
-            return IntPtr.Zero;
-
-        var runtimesPath = Path.Combine(_resonitePath.DirectoryName!, "runtimes",
-            RuntimeInformation.RuntimeIdentifier, "native");
+        var runtimesBasePath = Path.Combine(_resonitePath.DirectoryName!, "runtimes");
 
         IEnumerable<string> libraryNames = [nativeLibraryName];
 
@@ -145,14 +147,19 @@ internal class Program
 
         foreach (var libraryName in libraryNames)
         {
-            foreach (var libraryPrefix in LibraryPrefixes)
+            foreach (var runtimeIdentifier in RuntimeIdentifiers)
             {
-                foreach (var libraryExtension in LibraryExtensions)
-                {
-                    var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+                var runtimesPath = Path.Combine(runtimesBasePath, runtimeIdentifier, "native");
 
-                    if (File.Exists(libraryPath))
-                        return NativeLibrary.Load(libraryPath);
+                foreach (var libraryPrefix in LibraryPrefixes)
+                {
+                    foreach (var libraryExtension in LibraryExtensions)
+                    {
+                        var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
+
+                        if (File.Exists(libraryPath))
+                            return NativeLibrary.Load(libraryPath);
+                    }
                 }
             }
         }
