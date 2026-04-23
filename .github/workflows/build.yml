@@ -67,6 +67,14 @@ jobs:
     - name: Move NuGet Packages
       run: mv (Get-ChildItem -Recurse ./ -Include *.nupkg) ./
     
+    # Mark packages without version number in the name
+    - name: Mark unversioned NuGet Packages
+      run: Get-ChildItem -Include *.nupkg -Path ./* | Rename-Item -NewName { $_.Name -Replace '.*\D+\.nupkg','delete.nupkg' }
+
+    # Remove duplicate packages
+    - name: Delete marked Packages
+      run: Get-ChildItem -Include *delete.nupkg -Path ./* | Remove-Item
+      
     # Removes the version number from the package name
     - name: Rename NuGet Packages
       run: Get-ChildItem -Include *.nupkg -Path ./* | Rename-Item -NewName { $_.Name -Replace '\.\d+\.\d+\.\d+.*$','.nupkg' }
