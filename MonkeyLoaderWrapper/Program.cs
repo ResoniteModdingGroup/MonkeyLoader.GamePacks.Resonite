@@ -4,53 +4,13 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
 internal sealed class MonkeyLoaderAssemblyLoadContext(
+        string resonitePath,
         string monkeyLoaderPath,
         MonkeyLoaderAssemblyLoadContext.AssemblyResolveEventHandler handler)
     : AssemblyLoadContext("MonkeyLoader")
 {
-    private static readonly FileInfo _resonitePath = new("Renderite.Host.dll");
     private readonly AssemblyResolveEventHandler? _assemblyResolveEventHandler = handler;
-
-    private static IEnumerable<string> LibraryExtensions
-    {
-        get
-        {
-            yield return ".dll";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                yield break;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                yield return ".so";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                yield return ".dylib";
-        }
-    }
-
-    private static IEnumerable<string> LibraryPrefixes
-    {
-        get
-        {
-            yield return string.Empty;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                yield break;
-
-            yield return "lib";
-        }
-    }
-
-    private static IEnumerable<string> RuntimeIdentifiers
-    {
-        get
-        {
-            yield return RuntimeInformation.RuntimeIdentifier;
-
-            if (RuntimeInformation.RuntimeIdentifier.IndexOf('-') is int index and > 0)
-                yield return RuntimeInformation.RuntimeIdentifier[..index];
-        }
-    }
+    private readonly AssemblyDependencyResolver _dependencyResolver = new(resonitePath);
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
@@ -68,39 +28,24 @@ internal sealed class MonkeyLoaderAssemblyLoadContext(
 
         var name = assemblyName.Name;
         var mlPath = Path.Combine(monkeyLoaderPath, $"{name}.dll");
-        return File.Exists(mlPath) ? LoadFromAssemblyPath(mlPath) : null;
+        if (File.Exists(mlPath))
+            return LoadFromAssemblyPath(mlPath);
+
+        if (_dependencyResolver.ResolveAssemblyToPath(assemblyName) is null)
+            return null;
+
+        return LoadFromAssemblyPath(mlPath);
     }
 
-    // TODO: Should not be necessary anymore with the hookfxr changes. Either way, should be done by the load context
+    // TODO: Should not be necessary anymore with the hookfxr changes.
     protected override nint LoadUnmanagedDll(string unmanagedDllName)
     {
-        var runtimesBasePath = Path.Combine(_resonitePath.DirectoryName!, "runtimes");
+        Debug.WriteLine($"MonkeyLoaderAssemblyLoadContext: Resolving unmanaged {unmanagedDllName}");
 
-        IEnumerable<string> libraryNames = [unmanagedDllName];
+        if (_dependencyResolver.ResolveUnmanagedDllToPath(unmanagedDllName) is not string resolvedPath)
+            return nint.Zero;
 
-        if (unmanagedDllName.EndsWith("64") || unmanagedDllName.EndsWith("32"))
-            libraryNames = libraryNames.Concat([unmanagedDllName[..^2]]);
-
-        foreach (var libraryName in libraryNames)
-        {
-            foreach (var runtimeIdentifier in RuntimeIdentifiers)
-            {
-                var runtimesPath = Path.Combine(runtimesBasePath, runtimeIdentifier, "native");
-
-                foreach (var libraryPrefix in LibraryPrefixes)
-                {
-                    foreach (var libraryExtension in LibraryExtensions)
-                    {
-                        var libraryPath = Path.Combine(runtimesPath, $"{libraryPrefix}{libraryName}{libraryExtension}");
-
-                        if (File.Exists(libraryPath))
-                            return NativeLibrary.Load(libraryPath);
-                    }
-                }
-            }
-        }
-
-        return IntPtr.Zero;
+        return LoadUnmanagedDllFromPath(resolvedPath);
     }
 
     public delegate Assembly? AssemblyResolveEventHandler(AssemblyName assemblyName);
@@ -117,7 +62,7 @@ internal class Program
 
     private static async Task Main(string[] args)
     {
-        var loadContext = new MonkeyLoaderAssemblyLoadContext(_monkeyLoaderPath.DirectoryName!, (assemblyName) =>
+        var loadContext = new MonkeyLoaderAssemblyLoadContext(_resonitePath.FullName!, _monkeyLoaderPath.DirectoryName!, (assemblyName) =>
         {
             if (_monkeyLoaderInstance == null || _monkeyLoaderResolveAssemblyMethod == null)
                 return null;

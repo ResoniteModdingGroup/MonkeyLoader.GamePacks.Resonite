@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace MonkeyLoader.Resonite
 {
-    internal sealed class SharpFontNativeLoadFix : EarlyMonkey<SharpFontNativeLoadFix>
+    internal sealed class NativeLibraryResolverRemover : EarlyMonkey<NativeLibraryResolverRemover>
     {
         protected override IEnumerable<PrePatchTarget> GetPrePatchTargets()
         {
