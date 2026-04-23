@@ -74,6 +74,9 @@
     "MonkeyLoader.GamePacks.Resonite.ForceUpdateFacets.Name": "Erzwinge Update von Facets",
     "MonkeyLoader.GamePacks.Resonite.ForceUpdateFacets.Description": "Erlaubt es, eine Systemfacet auf den neuesten Stand zu bringen. Danach stellt sich dieser Monkey selbstständig wieder aus.<size=50%><br/><br/></size>Insbesondere ist dies für die Einstellungen-Facet gedacht, damit das Template für zurücksetzbare Gruppen tatsächlich verfügbar ist.<size=50%><br/><br/></size>Er kann auch genutzt werden, um zu überprüfen ob irgendwelchen der Systemfacets ihre FacetPreset-Komponente fehlt.",
 
+    "MonkeyLoader.GamePacks.Resonite.SettingsFacetMemberEditorFix.Name": "Fix für Vektoreditoren der Einstellungen",
+    "MonkeyLoader.GamePacks.Resonite.SettingsFacetMemberEditorFix.Description": "Korrigiert das Verhalten der Eingabefelder von Vektoreditoren in der Einstellungen-Facet, damit diese nicht das Dezimaltrennzeichen löschen.",
+
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Name": "Scrollbare Einstellungskategorien",
     "MonkeyLoader.GamePacks.Resonite.SettingsFacetCategoryScrollingFix.Description": "Sorgt dafür, dass die Kategorienliste der Einstellungen-Facet scrollbar ist.",
 

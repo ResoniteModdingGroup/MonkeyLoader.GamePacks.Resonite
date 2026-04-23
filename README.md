@@ -73,14 +73,4 @@ Additional built-in features for users:
 Issues can and should be opened here instead of the mods' issue trackers if they're designed for RML, and work with it, but not with this gamepack.
 The GitHub issues can also be used for feature requests.
 
-For code contributions, getting started is a bit involved due to [Resonite-Issues#456](https://github.com/Yellow-Dog-Man/Resonite-Issues/issues/456).
-The short summary of it is:
-
-1. [Setup a private nuget feed](https://github.com/MonkeyModdingTroop/ReferencePackageGenerator).
-2. [Generate the game's reference assemblies](https://github.com/MonkeyModdingTroop/ReferencePackageGenerator).
-3. Add the nuget feeds (`nuget sources Add -Name ... -Source ...`, local and either <https://pkg.munally.com/MonkeyModdingTroop/index.json> & <https://pkg.munally.com/ResoniteModdingGroup/index.json>)
-4. Run `dotnet build`, or build with your IDE of preference.
-
-The long version is that you'll probably want to set it up privately on GitHub NuGet packages.
-Though this isn't legal advice and you should check that [Resonite's TOS](https://resonite.com/policies/TermsOfService.html) allows it.
-The feeds can also be directly used from GitHub, though that requires authentication using a PAT.
+For code or content contributions, just fork the repository and get going!
