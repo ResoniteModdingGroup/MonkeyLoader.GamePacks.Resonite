@@ -2,12 +2,7 @@
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
@@ -25,7 +20,7 @@ namespace MonkeyLoader.Resonite.Configuration
         /// The name of the <see cref="GetSharedConfigSlot(World)">shared config slot</see>
         /// in a <see cref="World"/>'s <see cref="World.AssetsSlot">Assets</see> <see cref="Slot"/>.
         /// </summary>
-        public const string Identifier = "MonkeyLoader.SharedConfig";
+        public const string Identifier = DynamicVariableExtensions.SharedConfigIdentifier;
 
         /// <summary>
         /// The prefix for the <see cref="IDefiningConfigKey{T}.SetValue(T, string?)">SetValue</see>
