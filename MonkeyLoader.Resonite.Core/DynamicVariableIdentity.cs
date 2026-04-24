@@ -1,9 +1,5 @@
 ﻿using FrooxEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MonkeyLoader.Resonite
 {
@@ -15,9 +11,30 @@ namespace MonkeyLoader.Resonite
     public readonly struct DynamicVariableIdentity : IEquatable<DynamicVariableIdentity>
     {
         /// <summary>
-        /// Gets the <see cref="IDynamicVariable.VariableName">name</see> of this Dynamic Variable.
+        /// Gets the <see cref="DynamicVariableSpace.VariableIdentity.name">name</see> of this Dynamic Variable.
         /// </summary>
         public readonly string Name { get; }
+
+        /// <summary>
+        /// Gets the qualified name of the this Dynamic Variable
+        /// that will always link to its <see cref="Space">Space</see>.
+        /// </summary>
+        /// <remarks>
+        /// Because of <see cref="DynamicVariableHelper.ProcessName(string)">processing</see>,
+        /// this may use a different space prefix than the <see cref="DynamicVariableSpace.SpaceName"/>.<br/>
+        /// If the processed space name <see cref="string.IsNullOrWhiteSpace(string?)">is null or white space</see>
+        /// then it can only have variables bind to it when <see cref="DynamicVariableSpace.OnlyDirectBinding">OnlyDirectBinding</see> is disabled.
+        /// </remarks>
+        /// <value>
+        /// <c>$"{<see cref="Space">Space</see>.<see cref="DynamicVariableSpace.CurrentName">CurrentName</see>}/{<see cref="Name">Name</see>}"</c>
+        /// if the <see cref="DynamicVariableSpace.CurrentName">current space name</see>
+        /// <see cref="string.IsNullOrWhiteSpace(string?)">is null or white space</see>;
+        /// otherwise, just the <see cref="Name">Name</see>.
+        /// </value>
+        public readonly string QualifiedName
+            => !string.IsNullOrWhiteSpace(Space.CurrentName)
+                ? $"{Space.CurrentName}/{Name}"
+                : Name;
 
         /// <summary>
         /// Gets the <see cref="DynamicVariableSpace"/> that this Dynamic Variable is a part of.
@@ -34,7 +51,7 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <param name="space">The <see cref="DynamicVariableSpace"/> that this Dynamic Variable is a part of.</param>
         /// <param name="type">The <see cref="System.Type"/> of this Dynamic Variable.</param>
-        /// <param name="name">The <see cref="IDynamicVariable.VariableName">name</see> of this Dynamic Variable.</param>
+        /// <param name="name">The <see cref="DynamicVariableSpace.VariableIdentity.name">name</see> of this Dynamic Variable.</param>
         public DynamicVariableIdentity(DynamicVariableSpace space, Type type, string name)
         {
             Space = space;
@@ -48,11 +65,8 @@ namespace MonkeyLoader.Resonite
         /// <param name="space">The <see cref="DynamicVariableSpace"/> that this Dynamic Variable is a part of.</param>
         /// <param name="variableIdentity">The Dynamic Variable's identity within the given <paramref name="space"/>.</param>
         public DynamicVariableIdentity(DynamicVariableSpace space, DynamicVariableSpace.VariableIdentity variableIdentity)
-        {
-            Space = space;
-            Type = variableIdentity.type;
-            Name = variableIdentity.name;
-        }
+            : this(space, variableIdentity.type, variableIdentity.name)
+        { }
 
         /// <summary>
         /// Determines whether two Dynamic Variable identities refer to different ones.

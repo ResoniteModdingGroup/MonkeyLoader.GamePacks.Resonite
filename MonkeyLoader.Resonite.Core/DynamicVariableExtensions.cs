@@ -1,14 +1,8 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
@@ -19,6 +13,12 @@ namespace MonkeyLoader.Resonite
     [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
     public static class DynamicVariableExtensions
     {
+        /// <summary>
+        /// The name of the shared config slot in a <see cref="World"/>'s
+        /// <see cref="World.AssetsSlot">Assets</see> <see cref="Slot"/>.
+        /// </summary>
+        public const string SharedConfigIdentifier = "MonkeyLoader.SharedConfig";
+
         //public static DynamicReference<T> CreateReferenceVariable<T>(this SyncRef<T> syncRef, string name, bool overrideOnLink = false, bool persistent = true)
         //    where T : class, IWorldElement
         //{
@@ -70,11 +70,11 @@ namespace MonkeyLoader.Resonite
         /// </summary>
         /// <remarks>
         /// This function is different from a regular
-        /// <c><see cref="Slot"/>.<see cref="Slot.GetComponentInParents{T}(Predicate{T}, bool, bool)">GetComponentsInParents</see>&lt;<see cref="DynamicVariableSpace"/>&gt;()</c>
-        /// call,<br/> as it considers that <see cref="DynamicVariableSpace"/>s deeper in the hierarchy
-        /// hide ones higher up with the same <see cref="DynamicVariableSpace.SpaceName">name</see>.<br/>
+        /// <c><see cref="Slot"/>.<see cref="Slot.GetComponentsInParents{T}(Predicate{T})">GetComponentsInParents</see>&lt;<see cref="DynamicVariableSpace"/>&gt;()</c> call,<br/>
+        /// as it considers that <see cref="DynamicVariableSpace"/>s deeper in the hierarchy
+        /// hide ones higher up with the same <see cref="DynamicVariableSpace.CurrentName">name</see>.<br/>
         /// If a <see cref="DynamicVariableSpace"/> deeper in the hierarchy doesn't pass the <paramref name="filter"/>,<br/>
-        /// it will still hide any higher up ones with the same <see cref="DynamicVariableSpace.SpaceName">name</see>
+        /// it will still hide any higher up ones with the same <see cref="DynamicVariableSpace.CurrentName">name</see>
         /// that might pass it, because they don't apply to this <see cref="Slot"/>.
         /// </remarks>
         /// <param name="slot">The <see cref="Slot"/> to find all applicable <see cref="DynamicVariableSpace"/>s for.</param>
@@ -92,17 +92,14 @@ namespace MonkeyLoader.Resonite
 
                 foreach (var currentSpace in currentSpaces)
                 {
-                    if (!filter(currentSpace))
-                    {
-                        presentNames.Add(currentSpace.SpaceName);
+                    // Use CurrentName because it includes the processing of the SpaceName
+                    if (!presentNames.Add(currentSpace.CurrentName))
                         continue;
-                    }
 
-                    if (presentNames.Contains(currentSpace.SpaceName))
+                    if (!filter(currentSpace))
                         continue;
 
                     result.Add(currentSpace);
-                    presentNames.Add(currentSpace.SpaceName.Value);
                 }
 
                 slot = slot.Parent;
@@ -352,40 +349,6 @@ namespace MonkeyLoader.Resonite
         public static IEnumerable<DynamicVariableIdentity> GetVariableIdentities(this DynamicVariableSpace space, string name)
             => [.. space.GetVariableIdentities().Where(id => id.Name == name)];
 
-        //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
-        //{
-        //    var variable = field.FindNearestParent<Slot>().AttachComponent<DynamicField<T>>();
-        //    variable.TargetField.Target = field;
-        //    variable.VariableName.Value = name;
-        //    variable.OverrideOnLink.Value = overrideOnLink;
-        //    variable.Persistent = persistent;
-
-        //    return variable;
-        //}
-
-        //public static DynamicReferenceVariableDriver<T> DriveReferenceFromVariable<T>(this SyncRef<T> syncRef, string name, T? defaultTarget = default, bool persistent = true)
-        //    where T : class, IWorldElement
-        //{
-        //    var driver = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReferenceVariableDriver<T>>();
-        //    driver.Target.Target = syncRef;
-        //    driver.VariableName.Value = name;
-        //    driver.DefaultTarget.Target = defaultTarget!;
-        //    driver.Persistent = persistent;
-
-        //    return driver;
-        //}
-
-        //public static DynamicValueVariableDriver<T> DriveValueFromVariable<T>(this IField<T> field, string name, T? defaultValue = default, bool persistent = true)
-        //{
-        //    var driver = field.FindNearestParent<Slot>().AttachComponent<DynamicValueVariableDriver<T>>();
-        //    driver.Target.Target = field;
-        //    driver.VariableName.Value = name;
-        //    driver.DefaultValue.Value = defaultValue!;
-        //    driver.Persistent = persistent;
-
-        //    return driver;
-        //}
-
         /// <summary>
         /// Determines whether this <see cref="IDynamicVariable">dynamic variable</see>
         /// is linked against a <see cref="DynamicVariableSpace"/>.
@@ -412,6 +375,40 @@ namespace MonkeyLoader.Resonite
             => dynamicVariable.TryGetLinkedSpace(out var linkedSpace) && linkedSpace == space;
 
         /// <summary>
+        /// Determines whether this dynamic variable is part of
+        /// the <see cref="SharedConfigIdentifier">shared config</see>.
+        /// </summary>
+        /// <param name="dynamicVariable">The dynamic variable to check.</param>
+        /// <returns>
+        /// <see langword="false"/> if this dynamic variable is part of
+        /// the <see cref="SharedConfigIdentifier">shared config</see>; otherwise, <see langword="true"/>.
+        /// </returns>
+        public static bool IsNotSharedConfigVariable(this IDynamicVariable dynamicVariable)
+            => !dynamicVariable.VariableName.StartsWith(SharedConfigIdentifier) || dynamicVariable.GetLinkedSpace().CurrentName is not "World";
+
+        /// <summary>
+        /// Determines whether this dynamic variable identity is part of
+        /// the <see cref="SharedConfigIdentifier">shared config</see>.
+        /// </summary>
+        /// <param name="identity">The dynamic variable identity to check.</param>
+        /// <returns>
+        /// <see langword="false"/> if this dynamic variable identity is part of
+        /// the <see cref="SharedConfigIdentifier">shared config</see>; otherwise, <see langword="true"/>.
+        /// </returns>
+        public static bool IsNotSharedConfigVariable(this DynamicVariableIdentity identity)
+            => identity.Space.CurrentName is not "World" || !identity.Name.StartsWith(SharedConfigIdentifier);
+
+        //public static DynamicValueVariableDriver<T> DriveValueFromVariable<T>(this IField<T> field, string name, T? defaultValue = default, bool persistent = true)
+        //{
+        //    var driver = field.FindNearestParent<Slot>().AttachComponent<DynamicValueVariableDriver<T>>();
+        //    driver.Target.Target = field;
+        //    driver.VariableName.Value = name;
+        //    driver.DefaultValue.Value = defaultValue!;
+        //    driver.Persistent = persistent;
+        //    return driver;
+        //}
+
+        /// <summary>
         /// Tests whether this string is a <see cref="DynamicVariableHelper.IsValidName">valid dynamic variable name</see>.
         /// </summary>
         /// <param name="variableName">The string to test.</param>
@@ -429,6 +426,17 @@ namespace MonkeyLoader.Resonite
         public static void ParseAsPath(this string? path, out string? spaceName, out string? variableName)
             => DynamicVariableHelper.ParsePath(path!, out spaceName, out variableName);
 
+        //public static DynamicReferenceVariableDriver<T> DriveReferenceFromVariable<T>(this SyncRef<T> syncRef, string name, T? defaultTarget = default, bool persistent = true)
+        //    where T : class, IWorldElement
+        //{
+        //    var driver = syncRef.FindNearestParent<Slot>().AttachComponent<DynamicReferenceVariableDriver<T>>();
+        //    driver.Target.Target = syncRef;
+        //    driver.VariableName.Value = name;
+        //    driver.DefaultTarget.Target = defaultTarget!;
+        //    driver.Persistent = persistent;
+        //    return driver;
+        //}
+
         /// <summary>
         /// <see cref="DynamicVariableHelper.ProcessName">Processes</see>
         /// this string to a <see cref="string.Trim()">trimmed</see>
@@ -438,6 +446,34 @@ namespace MonkeyLoader.Resonite
         /// <returns>The <see cref="string.Trim()">trimmed</see> name if <see cref="IsValidName">valid</see>; otherwise, <c>null</c>.</returns>
         public static string? ProcessName(this string? variableName)
             => DynamicVariableHelper.ProcessName(variableName!);
+
+        /// <summary>
+        /// Removes all dynamic variables from this sequence that are
+        /// <see cref="IsNotSharedConfigVariable(IDynamicVariable)">part of the shared config</see>.
+        /// </summary>
+        /// <param name="dynamicVariables">The sequence to remove <see cref="SharedConfigIdentifier">shared config</see> variables from.</param>
+        /// <returns>The sequence without any <see cref="SharedConfigIdentifier">shared config</see> variables.</returns>
+        public static IEnumerable<IDynamicVariable> RemoveSharedConfigVariables(this IEnumerable<IDynamicVariable> dynamicVariables)
+            => dynamicVariables.Where(IsNotSharedConfigVariable);
+
+        /// <summary>
+        /// Removes all dynamic variables identities from this sequence that are
+        /// <see cref="IsNotSharedConfigVariable(DynamicVariableIdentity)">part of the shared config</see>.
+        /// </summary>
+        /// <param name="identities">The sequence to remove the identities of <see cref="SharedConfigIdentifier">shared config</see> variables from.</param>
+        /// <returns>The sequence without any identities of <see cref="SharedConfigIdentifier">shared config</see> variables.</returns>
+        public static IEnumerable<DynamicVariableIdentity> RemoveSharedConfigVariables(this IEnumerable<DynamicVariableIdentity> identities)
+            => identities.Where(IsNotSharedConfigVariable);
+
+        //public static DynamicField<T>? CreateVariable<T>(this IField<T> field, string name, bool overrideOnLink = false, bool persistent = true)
+        //{
+        //    var variable = field.FindNearestParent<Slot>().AttachComponent<DynamicField<T>>();
+        //    variable.TargetField.Target = field;
+        //    variable.VariableName.Value = name;
+        //    variable.OverrideOnLink.Value = overrideOnLink;
+        //    variable.Persistent = persistent;
+        //    return variable;
+        //}
 
         /// <summary>
         /// Tries to get the <see cref="DynamicVariableHandler{T}"/> of this
