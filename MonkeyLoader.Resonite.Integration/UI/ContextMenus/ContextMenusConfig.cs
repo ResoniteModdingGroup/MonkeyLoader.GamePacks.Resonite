@@ -2,10 +2,6 @@
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
 using MonkeyLoader.Resonite.DataFeeds.Settings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
 {

@@ -172,7 +172,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         protected override sealed User? UserCore { get; }
 
         /// <inheritdoc/>
-        public FieldDriveReceiverMenuItemsGenerationEvent(ContextMenu contextMenu)
+        internal FieldDriveReceiverMenuItemsGenerationEvent(ContextMenu contextMenu)
             : base(contextMenu)
         {
             Summoner = ContextMenu.CurrentSummoner as FieldDriveReceiver<T>
@@ -239,7 +239,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         protected override sealed User? UserCore { get; }
 
         /// <inheritdoc/>
-        public ReferenceDriveReceiverMenuItemsGenerationEvent(ContextMenu contextMenu)
+        internal ReferenceDriveReceiverMenuItemsGenerationEvent(ContextMenu contextMenu)
             : base(contextMenu)
         {
             Summoner = ContextMenu.CurrentSummoner as ReferenceDriveReceiver<T>
