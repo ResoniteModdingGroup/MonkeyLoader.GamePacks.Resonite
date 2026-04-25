@@ -1,14 +1,6 @@
-﻿using Elements.Core;
-using FrooxEngine;
-using FrooxEngine.CommonAvatar;
-using FrooxEngine.UIX;
+﻿using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Resonite.UI.Inspectors;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
 {
@@ -19,6 +11,9 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         protected override bool OnLoaded()
         {
             ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(static contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
+
+            ContextMenuItemsGenerationEvent.AddConcreteEvent(typeof(FieldDriveReceiver<>), DriveReceiverMenuItemsGenerationEvent.CreateForDriveReceiver);
+            ContextMenuItemsGenerationEvent.AddConcreteEvent(typeof(ReferenceDriveReceiver<>), DriveReceiverMenuItemsGenerationEvent.CreateForDriveReceiver);
 
             return base.OnLoaded();
         }
@@ -35,6 +30,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             __instance.RunSynchronouslyAsync(async () =>
             {
                 var eventData = ContextMenuItemsGenerationEvent.CreateFor(__instance);
+                Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
                 await DispatchAsync(eventData);

@@ -251,7 +251,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                 {
                     var currentGenericType = currentType.GetGenericTypeDefinition();
 
-                    if (_contextMenuConstructorsBySummonerType.TryGetValue(currentType, out customContextMenuConstructor))
+                    if (_contextMenuConstructorsBySummonerType.TryGetValue(currentGenericType, out customContextMenuConstructor))
                     {
                         contextMenuConstructor = customContextMenuConstructor;
                         break;
