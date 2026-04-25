@@ -1,17 +1,14 @@
 ﻿using FrooxEngine;
 using MonkeyLoader;
 using MonkeyLoader.Resonite.UI.ContextMenus;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
     /// <summary>
     /// Represents the event data for the <see cref="InspectorMemberActions"/> <see cref="ContextMenu"/> items generation event.
     /// </summary>
-    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>
+    public sealed class InspectorMemberActionsMenuItemsGenerationEvent : ContextMenuItemsGenerationEvent<InspectorMemberActions>, ITargetSyncMemberEvent
     {
         /// <summary>
         /// Gets the index of the <see cref="Target">Target</see> in the
@@ -55,12 +52,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </summary>
         public SkinnedMeshRenderer? SkinnedMesh { get; }
 
-        /// <summary>
-        /// Gets the <see cref="Target">Target</see>'s parent <see cref="FrooxEngine.Slot"/>.
-        /// </summary>
-        /// <remarks>
-        /// This may be <c>null</c> if <see cref="Target">Target</see>'s parent is a <see cref="UserComponent"/>.
-        /// </remarks>
+        /// <inheritdoc/>
         public Slot? Slot { get; }
 
         /// <summary>
@@ -69,16 +61,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// </summary>
         public ISyncMember Target { get; }
 
-        /// <summary>
-        /// Gets the <see cref="Target">Target</see>'s <see cref="Slot">Slot</see>'s
-        /// <see cref="Slot.ActiveUser">ActiveUser</see>, or its parent <see cref="FrooxEngine.User"/>
-        /// if it belongs to a <see cref="UserComponent"/>.
-        /// </summary>
-        /// <remarks>
-        /// When the <see cref="Target">Target</see>'s parent is a <see cref="Component"/>
-        /// and its <see cref="Slot">Slot</see> does not have an <see cref="Slot.ActiveUser">ActiveUser</see>,
-        /// this will be <c>null</c>.
-        /// </remarks>
+        /// <inheritdoc/>
         public User? User { get; }
 
         /// <inheritdoc/>
