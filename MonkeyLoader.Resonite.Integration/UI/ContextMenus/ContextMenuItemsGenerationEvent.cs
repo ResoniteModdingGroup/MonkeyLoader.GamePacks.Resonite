@@ -37,6 +37,13 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         public ContextMenu ContextMenu { get; }
 
         /// <summary>
+        /// Gets the <see cref="FrooxEngine.InteractionHandler"/> that the <see cref="ContextMenu">ContextMenu</see> may be being summoned for.
+        /// </summary>
+        /// <value><see langword="null"/> if the <see cref="ContextMenu">ContextMenu</see> isn't being summoned by an
+        /// <see cref="FrooxEngine.InteractionHandler"/>; otherwise, the summoning handler.
+        public InteractionHandler? InteractionHandler => Summoner as InteractionHandler;
+
+        /// <summary>
         /// Gets whether the <see cref="ContextMenu">ContextMenu</see> is open.
         /// </summary>
         /// <value><see langword="true"/> if the <see cref="ContextMenu">ContextMenu</see> is open; otherwise, <see langword="false"/>.</value>

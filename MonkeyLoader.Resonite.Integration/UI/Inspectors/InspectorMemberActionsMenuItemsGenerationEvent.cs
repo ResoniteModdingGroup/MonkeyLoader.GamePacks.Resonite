@@ -65,7 +65,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public User? User { get; }
 
         /// <inheritdoc/>
-        public InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
+        internal InspectorMemberActionsMenuItemsGenerationEvent(ContextMenu contextMenu) : base(contextMenu)
         {
             Target = Summoner.Member.Target;
             SkinnedMesh = Summoner.SkinnedMesh;
