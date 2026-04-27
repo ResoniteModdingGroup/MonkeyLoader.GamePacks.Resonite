@@ -1,12 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+
 using EngineLocaleHelper = FrooxEngine.LocaleHelper;
 
 namespace MonkeyLoader.Resonite.Locale
@@ -32,7 +27,10 @@ namespace MonkeyLoader.Resonite.Locale
         [HarmonyPatch(nameof(EngineLocaleHelper.DriveLocalized), [typeof(IField<string>), typeof(string), typeof(string), typeof(Dictionary<string, object>)])]
         private static void DriveLocalizedPostfix(IField<string> field, string key, string? format, Dictionary<string, object>? arguments, LocaleStringDriver __result)
         {
-            if (arguments is not null && arguments.ContainsKey(LocaleExtensions.ModLocaleStringIndicatorArgumentName))
+            if (arguments is null || field.World.IsUserspace())
+                return;
+
+            if (arguments.ContainsKey(LocaleExtensions.ModLocaleStringIndicatorArgumentName))
                 AddFallbackMessage(field, __result, string.Format(format ?? "{0}", key), key.AsLocaleKey(format, arguments: arguments).FormatWithFallback()!);
         }
 
@@ -40,7 +38,10 @@ namespace MonkeyLoader.Resonite.Locale
         [HarmonyPatch(nameof(EngineLocaleHelper.DriveLocalized), [typeof(IField<string>), typeof(string), typeof(string), typeof((string, object)[])])]
         private static void DriveLocalizedPostfix(IField<string> field, string key, string? format, (string, object)[]? args, LocaleStringDriver __result)
         {
-            if (args is not null && args.Any(arg => arg.Item1 == LocaleExtensions.ModLocaleStringIndicatorArgumentName))
+            if (args is null || field.World.IsUserspace())
+                return;
+
+            if (args.Any(arg => arg.Item1 == LocaleExtensions.ModLocaleStringIndicatorArgumentName))
                 AddFallbackMessage(field, __result, string.Format(format ?? "{0}", key), key.AsLocaleKey(format, args).FormatWithFallback()!);
         }
     }
