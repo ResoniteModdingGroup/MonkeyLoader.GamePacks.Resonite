@@ -1,12 +1,6 @@
 ﻿using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
+using MonkeyLoader.Resonite.Configuration;
 using MonkeyLoader.Resonite.Locale;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
@@ -57,6 +51,19 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     {
                         eventData.AddMessage(configKey.GetLocaleKey("Name"), configKey.Id);
                         eventData.AddMessage(configKey.GetLocaleKey("Description"), configKey.Description ?? "No Description");
+
+                        if (configKey.Components.TryGet<IConfigKeySubgroup>(out var subgroup))
+                        {
+                            var subgroupKey = configSection.FullId;
+
+                            foreach (var pathElement in subgroup.SubgroupPath)
+                            {
+                                subgroupKey = $"{subgroupKey}.{pathElement}";
+
+                                eventData.AddMessage($"{subgroupKey}.Name", pathElement);
+                                eventData.AddMessage($"{subgroupKey}.Description", "No Description");
+                            }
+                        }
                     }
                 }
             }

@@ -2,9 +2,6 @@
 using MonkeyLoader.Components;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.DataFeeds;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
