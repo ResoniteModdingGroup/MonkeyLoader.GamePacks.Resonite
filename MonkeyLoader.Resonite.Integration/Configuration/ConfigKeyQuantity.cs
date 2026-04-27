@@ -1,12 +1,7 @@
 ﻿using Elements.Quantity;
 using FrooxEngine;
 using MonkeyLoader.Configuration;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Configuration
 {
@@ -50,7 +45,7 @@ namespace MonkeyLoader.Resonite.Configuration
         }
     }
 
-    /// <summary>su
+    /// <summary>
     /// Defines the typed definition for a quantified config item.
     /// </summary>
     /// <typeparam name="T">The type of the config item's value.</typeparam>
