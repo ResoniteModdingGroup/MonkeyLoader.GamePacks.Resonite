@@ -37,6 +37,9 @@
     "MonkeyLoader.Config.NuGet.NuGetModSources.Description": "NuGet feeds to check for mods.",
 
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.Name": "Context Menus",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ItemLimit.Name": "Item Limit",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.Scaling.Name": "Scaling",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ToolEquipped.Name": "Tool Equipped",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysAllowScaleToggle.Name": "Always allow Scale Toggle",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysAllowScaleToggle.Description": "Shows the scaling toggle even when not at the default scale for the avatar.",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysShowLocomotion.Name": "Always show Locomotion Selection",
@@ -47,6 +50,10 @@
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowResetScaleWithToggle.Description": "Shows the reset scale action alongside the scaling toggle when it is always allowed.",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowSaveLocation.Name": "Show Save Location",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowSaveLocation.Description": "Shows the current inventory path for saving.",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.LimitContextMenuItems.Name": "Limit Context Menu Items",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.LimitContextMenuItems.Description": "Limit the number of items shown in the context menu. If the configured number is exceeded, the menu will get paginated.",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ContextMenuItemLimit.Name": "Context Menu Item Limit",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ContextMenuItemLimit.Description": "Limit the number of items shown in the context menu. If this number is exceeded, the menu will get paginated.",
 
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.Name": "Inspector Header",
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DestroyOffset.Name": "Destroy Offset",

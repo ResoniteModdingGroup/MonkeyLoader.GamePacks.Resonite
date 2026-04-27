@@ -36,7 +36,10 @@
     "MonkeyLoader.Config.NuGet.NuGetModSources.Name": "Quellen für Mods",
     "MonkeyLoader.Config.NuGet.NuGetModSources.Description": "NuGet-Feeds, die nach Mods durchsucht werden.",
 
-    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.Name": "Kontext-Menüs",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.Name": "Kontextmenüs",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ItemLimit.Name": "Elementlimit",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.Scaling.Name": "Skalierung",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ToolEquipped.Name": "Werkzeug Ausgerüstet",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysAllowScaleToggle.Name": "Umschalten des Skalierens immer erlauben",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysAllowScaleToggle.Description": "Zeigt die Option zum Umschalten des Skalierens an, auch wenn diese nicht gerade der Standardskalierung des Avatars entspricht.",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.AlwaysShowLocomotion.Name": "Fortbewegung immer anzeigen",
@@ -47,6 +50,10 @@
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowResetScaleWithToggle.Description": "Zeigt die Skalierung-Zurücksetzen-Aktion zusammen mit der Option zum Umschalten des Skalierens an, wenn diese immer angezeigt wird.",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowSaveLocation.Name": "Speicherort anzeigen",
     "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ShowSaveLocation.Description": "Zeigt den aktuellen Inventarpfad für das Speichern an.",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.LimitContextMenuItems.Name": "Kontextmenü-Elemente Limitieren",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.LimitContextMenuItems.Description": "Limitiere die Anzahl der Elemente die im Kontextmenü angezeigt werden. Wenn die konfigurierte Anzahl überschritten wird, wird das Menü in mehrere Seiten unterteilt.",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ContextMenuItemLimit.Name": "Limit für Kontextmenü-Elemente",
+    "MonkeyLoader.GamePacks.Resonite.Config.ContextMenus.ContextMenuItemLimit.Description": "Limitiere die Anzahl der Elemente die im Kontextmenü angezeigt werden. Wenn diese Anzahl überschritten wird, wird das Menü in mehrere Seiten unterteilt.",
 
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.Name": "Inspektor-Kopfzeile",
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.DestroyOffset.Name": "Löschen Offset",
