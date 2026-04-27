@@ -10,16 +10,51 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     /// </summary>
     public sealed class ContextMenusConfig : SingletonConfigSection<ContextMenusConfig>
     {
-        private static readonly DefiningConfigKey<bool> _alwaysAllowScaleToggle = new("AlwaysAllowScaleToggle", "Show the scaling toggle even when not at the default scale for the avatar.", () => false);
-        private static readonly DefiningConfigKey<bool> _alwaysShowLocomotion = new("AlwaysShowLocomotion", "Show the locomotion selection even when a tool is equipped.", () => false);
-        private static readonly DefiningConfigKey<bool> _alwaysShowScaling = new("AlwaysShowScaling", "Show the scaling toggle and/or reset scale action even when a tool is equipped.", () => false);
+        private static readonly ConfigKeySubgroup _itemLimitSubgroup = new(9, "ItemLimit");
+        private static readonly ConfigKeySubgroup _scalingSubgroup = new(7, "Scaling");
+        private static readonly ConfigKeySubgroup _toolEquippedSubgroup = new("ToolEquipped");
 
-        private static readonly DefiningConfigKey<bool> _showResetScaleWithToggle = new("ShowResetScaleWithToggle", "Show the reset scale action alongside the scaling toggle when it is always allowed.", () => true)
+        private readonly DefiningConfigKey<bool> _alwaysAllowScaleToggle = new("AlwaysAllowScaleToggle", "Show the scaling toggle even when not at the default scale for the avatar.", () => false)
         {
+           _scalingSubgroup,
+            new ConfigKeyPriority(7)
+        };
+
+        private readonly DefiningConfigKey<bool> _alwaysShowLocomotion = new("AlwaysShowLocomotion", "Show the locomotion selection even when a tool is equipped.", () => false)
+        {
+            _toolEquippedSubgroup
+        };
+
+        private readonly DefiningConfigKey<bool> _alwaysShowScaling = new("AlwaysShowScaling", "Show the scaling toggle and/or reset scale action even when a tool is equipped.", () => false)
+        {
+            _toolEquippedSubgroup
+        };
+
+        private readonly DefiningConfigKey<int> _contextMenuItemLimit = new("ContextMenuItemLimit", "Limit the number of items shown in the context menu. If this number is exceeded, the menu will get paginated.", () => 16)
+        {
+            _itemLimitSubgroup,
+            new ConfigKeyPriority(8),
+            new ConfigKeyRange<int>(3, 32),
+            new LimitContextMenuItemsToggleLink()
+        };
+
+        private readonly DefiningConfigKey<bool> _limitContextMenuItems = new("LimitContextMenuItems", "Limit the number of items shown in the context menu. If the configured number is exceeded, the menu will get paginated.", () => true)
+        {
+            _itemLimitSubgroup,
+            new ConfigKeyPriority(9)
+        };
+
+        private readonly DefiningConfigKey<bool> _showResetScaleWithToggle = new("ShowResetScaleWithToggle", "Show the reset scale action alongside the scaling toggle when it is always allowed.", () => true)
+        {
+            _scalingSubgroup,
+            new ConfigKeyPriority(6),
             new AlwaysAllowScaleToggleLink()
         };
 
-        private static readonly DefiningConfigKey<bool> _showSaveLocation = new("ShowSaveLocation", "Show the current inventory path when trying to save something.", () => true);
+        private readonly DefiningConfigKey<bool> _showSaveLocation = new("ShowSaveLocation", "Show the current inventory path when trying to save something.", () => true)
+        {
+            new ConfigKeyPriority(10)
+        };
 
         /// <summary>
         /// Gets whether to show the scaling toggle even when not at the default scale for the avatar.
@@ -42,11 +77,23 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// </summary>
         public bool AlwaysShowScaling => _alwaysShowScaling;
 
+        /// <summary>
+        /// Gets the limit for the number of non-pagination items shown in the context menu.<br/>
+        /// If this number is exceeded, the menu will get paginated.
+        /// </summary>
+        public int ContextMenuItemLimit => _contextMenuItemLimit - 2;
+
         /// <inheritdoc/>
         public override string Description => "Contains settings for the generation of Context Menus.";
 
         /// <inheritdoc/>
         public override string Id => "ContextMenus";
+
+        /// <summary>
+        /// Limit the number of items shown in the context menu.<br/>
+        /// If the <see cref="ContextMenuItemLimit">configured number</see> is exceeded, the menu will get paginated.
+        /// </summary>
+        public bool LimitContextMenuItems => _limitContextMenuItems;
 
         /// <summary>
         /// Gets whether to show the reset scale action alongside the scaling toggle when it is always allowed.
@@ -59,18 +106,29 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         public bool ShowSaveLocation => _showSaveLocation;
 
         /// <inheritdoc/>
-        public override Version Version { get; } = new(1, 0, 0);
+        public override Version Version { get; } = new(1, 1, 0);
 
         private sealed class AlwaysAllowScaleToggleLink : ConfigKeyCustomDataFeedItems<bool>
         {
-            public override IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
+            public override async IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
             {
-                var toggle = new DataFeedToggle();
-                toggle.InitBase(path, groupKeys, ConfigKey);
-                toggle.InitSetupValue(field => field.SetupConfigKeyField(ConfigKey));
-                toggle.InitEnabled(field => field.SetupConfigKeyField(_alwaysAllowScaleToggle));
+                await foreach (var item in ConfigKey.EnumerateDefaultItemsAsync(path, [.. groupKeys]))
+                {
+                    item.InitEnabled(field => field.SetupConfigKeyField(Instance._alwaysAllowScaleToggle));
+                    yield return item;
+                }
+            }
+        }
 
-                return new[] { toggle }.ToAsyncEnumerable();
+        private sealed class LimitContextMenuItemsToggleLink : ConfigKeyCustomDataFeedItems<int>
+        {
+            public override async IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
+            {
+                await foreach (var item in ConfigKey.EnumerateDefaultItemsAsync(path, groupKeys))
+                {
+                    item.InitEnabled(field => field.SetupConfigKeyField(Instance._limitContextMenuItems));
+                    yield return item;
+                }
             }
         }
     }

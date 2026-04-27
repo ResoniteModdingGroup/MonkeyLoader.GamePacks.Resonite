@@ -3,7 +3,6 @@ using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using FrooxEngine.UIX;
 using HarmonyLib;
-
 using static FrooxEngine.InteractionHandler;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
@@ -267,13 +266,17 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                         break;
                 }
 
-                await __instance.PositionContextMenu(menu);
-
                 var eventData = ContextMenuItemsGenerationEvent.CreateFor(menu);
                 Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
                 await DispatchAsync(eventData);
+
+                if (ConfigSection.LimitContextMenuItems)
+                    menu.TryAddPagination(ConfigSection.ContextMenuItemLimit);
+
+                // This must happen at the end, otherwise the context menu items will flicker when items are added
+                await __instance.PositionContextMenu(menu);
             });
 
             return false;
