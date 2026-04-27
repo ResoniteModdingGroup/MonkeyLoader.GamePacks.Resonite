@@ -4,13 +4,6 @@ using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MonkeyLoader.Patching;
-using Elements.Assets;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
@@ -18,7 +11,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     /// Contains helper methods and constants for dynamically creating
     /// the MonkeyLoader category in the <see cref="SettingsDataFeed"/>.
     /// </summary>
-    public static class SettingsHelpers
+    public static partial class SettingsHelpers
     {
         /// <summary>
         /// The <see cref="ConfigKeyChangedEventArgs{T}.Label">label</see> used when
@@ -78,6 +71,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static readonly Dictionary<SettingsDataFeed, SettingsViewData> _settingsViewsByFeed = [];
 
         private static Logger Logger => MonkeyLoaderRootCategorySettingsItems.Logger;
+        private static Mod Mod => MonkeyLoaderRootCategorySettingsItems.Mod;
 
         public static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, Mod mod, string monkeyType, Mod localeMod, bool forceCheck = false, bool canBeDisabled = true)
         {
