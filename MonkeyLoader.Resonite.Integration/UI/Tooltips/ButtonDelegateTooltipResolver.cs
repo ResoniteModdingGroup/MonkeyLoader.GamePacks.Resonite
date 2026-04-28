@@ -2,20 +2,19 @@
 using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {
     internal sealed class ButtonDelegateTooltipResolver : ResoniteCancelableEventHandlerMonkey<ButtonDelegateTooltipResolver, ResolveTooltipLabelEvent>
     {
         public override bool CanBeDisabled => true;
+
         public override int Priority => HarmonyLib.Priority.HigherThanNormal;
+
         public override bool SkipCanceled => true;
+
+        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
 
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {

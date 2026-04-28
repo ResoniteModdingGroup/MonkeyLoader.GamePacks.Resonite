@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Resonite.UI.Inspectors;
 
@@ -8,6 +9,10 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     [HarmonyPatch(typeof(ContextMenuExtensions), nameof(ContextMenuExtensions.OpenContextMenu))]
     internal sealed class ContextMenuInjector : ResoniteAsyncEventSourceMonkey<ContextMenuInjector, ContextMenuItemsGenerationEvent>
     {
+        public static Sequence<string> SubgroupPathDefinition = new string[] { "ContextMenu" };
+
+        public override Sequence<string> SubgroupPath => SubgroupPathDefinition;
+
         protected override bool OnLoaded()
         {
             ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(static contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);

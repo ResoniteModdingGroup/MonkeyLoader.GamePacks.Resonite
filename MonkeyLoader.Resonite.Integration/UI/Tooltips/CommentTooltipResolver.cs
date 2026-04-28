@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -31,6 +32,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         /// <inheritdoc/>
         public override bool SkipCanceled => true;
+
+        /// <inheritdoc/>
+        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
 
         /// <summary>
         /// Tries to find a <see cref="Comment"/> on the <paramref name="button"/>'s <see cref="Slot"/>

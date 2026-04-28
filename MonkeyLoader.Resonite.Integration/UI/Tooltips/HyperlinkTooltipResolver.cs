@@ -1,4 +1,5 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         /// <inheritdoc/>
         public override bool SkipCanceled => !TooltipConfig.Instance.ShowExtendedTooltipForHyperlinks;
+
+        /// <inheritdoc/>
+        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
 
         /// <summary>
         /// Tries to find a <see cref="Hyperlink"/> on the <paramref name="button"/>'s <see cref="Slot"/>

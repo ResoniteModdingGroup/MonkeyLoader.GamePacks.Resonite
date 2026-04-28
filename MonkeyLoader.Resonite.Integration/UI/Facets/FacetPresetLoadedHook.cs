@@ -1,17 +1,15 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Facets
 {
     internal sealed class FacetPresetLoadedHook : ResoniteEventSourceMonkey<FacetPresetLoadedHook, FacetPresetLoadedEvent>
     {
         public override bool CanBeDisabled => true;
+
+        public override Sequence<string> SubgroupPath => FacetPresetHelper.SubgroupPath;
 
         [HarmonyPatch(typeof(FacetPreset))]
         [HarmonyPatchCategory(nameof(FacetPresetLoadedHook))]
