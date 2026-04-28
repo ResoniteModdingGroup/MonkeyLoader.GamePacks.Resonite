@@ -71,7 +71,6 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         private static readonly Dictionary<SettingsDataFeed, SettingsViewData> _settingsViewsByFeed = [];
 
         private static Logger Logger => MonkeyLoaderRootCategorySettingsItems.Logger;
-        private static Mod Mod => MonkeyLoaderRootCategorySettingsItems.Mod;
 
         public static async IAsyncEnumerable<DataFeedItem> EnumerateMonkeysAsync(EnumerateDataFeedParameters<SettingsDataFeed> parameters, Mod mod, string monkeyType, Mod localeMod, bool forceCheck = false, bool canBeDisabled = true)
         {
@@ -190,7 +189,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
         /// </summary>
         /// <typeparam name="T">The type to check.</typeparam>
         /// <returns><c>true</c> if <typeparamref name="T"/> is suitable for a template; otherwise, <c>false</c>.</returns>
-        public static bool IsInjectableEditorType<T>() => IsInjectableEditorType(typeof(T));
+        public static bool IsInjectableEditorType<T>()
+            => IsInjectableEditorType(typeof(T));
 
         /// <summary>
         /// Move up one element from the current path of the <see cref="EnumerateDataFeedParameters{TDataFeed}.DataFeed">DataFeed</see>.
