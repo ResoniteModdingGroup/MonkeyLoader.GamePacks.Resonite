@@ -9,12 +9,18 @@ namespace MonkeyLoader.Resonite.Configuration
     /// Represents a basic config key component which generate <see cref="DataFeedItem"/>s
     /// for the config key to represent themselves, rather than requiring default handling.
     /// </summary>
+    /// <inheritdoc cref="IConfigKeyCustomDataFeedItems{T}"/>
     public abstract class ConfigKeyCustomDataFeedItems<T> : IConfigKeyCustomDataFeedItems<T>
     {
-        /// <summary>
-        /// Gets the config item that <see cref="DataFeedItem"/>s will be generated for.
-        /// </summary>
+        /// <inheritdoc/>
         public IDefiningConfigKey<T> ConfigKey { get; private set; } = null!;
+
+        /// <summary>
+        /// Creates a new instance of this component in derived classes.
+        /// </summary>
+        /// <inheritdoc cref="ConfigKeyCustomDataFeedItems{T}"/>
+        protected ConfigKeyCustomDataFeedItems()
+        { }
 
         /// <inheritdoc/>
         public abstract IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData);
@@ -44,6 +50,17 @@ namespace MonkeyLoader.Resonite.Configuration
     /// Defines the interface for config key components which generate <see cref="DataFeedItem"/>s
     /// for the config key to represent themselves, rather than requiring default handling.
     /// </summary>
+    /// <remarks>
+    /// Beware, that only the first of these components will be used,
+    /// should a <see cref="IDefiningConfigKey{T}">config key</see> have multiple.
+    /// </remarks>
+    /// <typeparam name="T">The type of the config item's value.</typeparam>
     public interface IConfigKeyCustomDataFeedItems<T> : IConfigKeyComponent<IDefiningConfigKey<T>>, ICustomDataFeedItems
-    { }
+    {
+        /// <summary>
+        /// Gets the config item that <see cref="DataFeedItem"/>s will be
+        /// <see cref="ICustomDataFeedItems.Enumerate">enumerated</see> for.
+        /// </summary>
+        public IDefiningConfigKey<T> ConfigKey { get; }
+    }
 }

@@ -3,6 +3,7 @@ using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using FrooxEngine.UIX;
 using HarmonyLib;
+
 using static FrooxEngine.InteractionHandler;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
