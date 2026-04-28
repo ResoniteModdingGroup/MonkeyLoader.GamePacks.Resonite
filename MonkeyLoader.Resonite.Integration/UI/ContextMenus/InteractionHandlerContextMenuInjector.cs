@@ -15,6 +15,8 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     {
         public override bool CanBeDisabled => true;
 
+        public override EnumerableToolkit.Sequence<string> SubgroupPath => ContextMenuInjector.SubgroupPathDefinition;
+
         private static LocaleString AsMenuLocaleKey(string key)
             => key.AsLocaleKey(continuous: false, null);
 

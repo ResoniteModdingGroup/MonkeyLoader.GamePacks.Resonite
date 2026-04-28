@@ -1,4 +1,5 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 
 namespace MonkeyLoader.Resonite.UI.Facets
 {
@@ -13,6 +14,8 @@ namespace MonkeyLoader.Resonite.UI.Facets
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        public override Sequence<string> SubgroupPath => FacetPresetHelper.SubgroupPath;
 
         protected override bool AppliesTo(FacetPresetLoadedEvent eventData)
             => base.AppliesTo(eventData)

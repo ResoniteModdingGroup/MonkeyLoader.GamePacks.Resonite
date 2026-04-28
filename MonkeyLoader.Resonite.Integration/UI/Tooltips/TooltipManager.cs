@@ -31,6 +31,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         public override bool SkipCanceled => true;
 
+        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
+
         /// <summary>
         /// Closes the tooltip for the given button.
         /// </summary>

@@ -1,13 +1,9 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using MonkeyLoader.Components;
 using MonkeyLoader.Resonite.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Facets
 {
@@ -16,12 +12,13 @@ namespace MonkeyLoader.Resonite.UI.Facets
     internal sealed class ForceUpdateFacets : ResoniteEventHandlerMonkey<ForceUpdateFacets, TemplateFacetPresetLoadedEvent>
     {
         private readonly ConfigKeySessionShare<bool> _enabledSessionShare = new();
-
         private bool _wasEnabledFromDefault;
 
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        public override Sequence<string> SubgroupPath => FacetPresetHelper.SubgroupPath;
 
         protected override bool AppliesTo(TemplateFacetPresetLoadedEvent eventData)
             => true; // Always need to add the button so it shows up when enabled

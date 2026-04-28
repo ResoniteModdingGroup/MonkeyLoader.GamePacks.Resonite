@@ -1,13 +1,7 @@
-﻿using Elements.Core;
+﻿using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {
@@ -21,6 +15,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     internal sealed class ButtonTooltips : ResoniteMonkey<ButtonTooltips>
     {
         public override bool CanBeDisabled => true;
+
+        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Button.OnDispose))]

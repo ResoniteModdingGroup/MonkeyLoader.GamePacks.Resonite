@@ -1,9 +1,6 @@
-﻿using FrooxEngine;
-using System;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.Facets
 {
@@ -37,6 +34,8 @@ namespace MonkeyLoader.Resonite.UI.Facets
         /// Gets a set containing all concrete <see cref="TemplateFacetPreset"/> <see cref="Type"/>s.
         /// </summary>
         public static FrozenSet<Type> TemplateFacetPresetTypes { get; }
+
+        internal static Sequence<string> SubgroupPath { get; } = new string[] { "Facets" };
 
         static FacetPresetHelper()
         {
