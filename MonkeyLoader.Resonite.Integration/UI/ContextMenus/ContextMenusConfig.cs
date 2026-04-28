@@ -34,8 +34,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         {
             _itemLimitSubgroup,
             new ConfigKeyPriority(8),
-            new ConfigKeyRange<int>(3, 32),
-            new LimitContextMenuItemsToggleLink()
+            new ConfigKeyRange<int>(3, 32)
         };
 
         private readonly DefiningConfigKey<bool> _limitContextMenuItems = new("LimitContextMenuItems", "Limit the number of items shown in the context menu. If the configured number is exceeded, the menu will get paginated.", () => true)
@@ -47,8 +46,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         private readonly DefiningConfigKey<bool> _showResetScaleWithToggle = new("ShowResetScaleWithToggle", "Show the reset scale action alongside the scaling toggle when it is always allowed.", () => true)
         {
             _scalingSubgroup,
-            new ConfigKeyPriority(6),
-            new AlwaysAllowScaleToggleLink()
+            new ConfigKeyPriority(6)
         };
 
         private readonly DefiningConfigKey<bool> _showSaveLocation = new("ShowSaveLocation", "Show the current inventory path when trying to save something.", () => true)
@@ -108,28 +106,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <inheritdoc/>
         public override Version Version { get; } = new(1, 1, 0);
 
-        private sealed class AlwaysAllowScaleToggleLink : ConfigKeyCustomDataFeedItems<bool>
+        /// <inheritdoc/>
+        public ContextMenusConfig()
         {
-            public override async IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
-            {
-                await foreach (var item in ConfigKey.EnumerateDefaultItemsAsync(path, [.. groupKeys]))
-                {
-                    item.InitEnabled(field => field.SetupConfigKeyField(Instance._alwaysAllowScaleToggle));
-                    yield return item;
-                }
-            }
-        }
-
-        private sealed class LimitContextMenuItemsToggleLink : ConfigKeyCustomDataFeedItems<int>
-        {
-            public override async IAsyncEnumerable<DataFeedItem> Enumerate(IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase, object? viewData)
-            {
-                await foreach (var item in ConfigKey.EnumerateDefaultItemsAsync(path, groupKeys))
-                {
-                    item.InitEnabled(field => field.SetupConfigKeyField(Instance._limitContextMenuItems));
-                    yield return item;
-                }
-            }
+            _contextMenuItemLimit.Components.Add(new ConfigKeyEnabledSource<int>(_limitContextMenuItems));
+            _showResetScaleWithToggle.Components.Add(new ConfigKeyEnabledSource<bool>(_alwaysAllowScaleToggle));
         }
     }
 }
