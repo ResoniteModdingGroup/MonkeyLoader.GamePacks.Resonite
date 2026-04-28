@@ -13,15 +13,75 @@ using System.Reflection;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
-    public static partial class SettingsHelpers
+    /// <summary>
+    /// Contains extension methods to generate <see cref="DataFeedItem">data feed items</see>
+    /// that represent <see cref="IDefiningConfigKey{T}">config keys</see>
+    /// in <see cref="IDataFeed">data feeds</see> - in particular, for the <see cref="SettingsDataFeed"/>.
+    /// </summary>
+    public static class ConfigToSettingsExtensions
     {
         private static readonly Type _dummyType = typeof(dummy);
 
-        private static readonly MethodInfo _enumerateConfigKeyItemsAsyncMethod = AccessTools.Method(typeof(SettingsHelpers), nameof(EnumerateConfigKeyItemsAsync));
-        private static readonly MethodInfo _enumerateEnumDefaultItemsAsyncMethod = AccessTools.Method(typeof(SettingsHelpers), nameof(EnumerateEnumDefaultItemsAsync));
-        private static readonly MethodInfo _enumerateNullableEnumDefaultItemsAsyncMethod = AccessTools.Method(typeof(SettingsHelpers), nameof(EnumerateNullableEnumDefaultItemsAsync));
+        private static readonly MethodInfo _enumerateConfigKeyItemsAsyncMethod = AccessTools.FirstMethod(typeof(ConfigToSettingsExtensions), method => method.IsGenericMethod && method.Name is nameof(EnumerateItemsAsync));
+        private static readonly MethodInfo _enumerateEnumDefaultItemsAsyncMethod = AccessTools.Method(typeof(ConfigToSettingsExtensions), nameof(EnumerateEnumDefaultItemsAsync));
+        private static readonly MethodInfo _enumerateNullableEnumDefaultItemsAsyncMethod = AccessTools.Method(typeof(ConfigToSettingsExtensions), nameof(EnumerateNullableEnumDefaultItemsAsync));
 
-        private static readonly MethodInfo _makeQuantityFieldMethod = AccessTools.FirstMethod(typeof(SettingsHelpers), method => method.GetParameters().Length is 4 && method.Name is nameof(MakeQuantityField));
+        private static readonly MethodInfo _makeQuantityFieldMethod = AccessTools.FirstMethod(typeof(ConfigToSettingsExtensions), method => method.GetParameters().Length is 4 && method.Name is nameof(MakeQuantityField));
+
+        private static Mod Mod => MonkeyLoaderRootCategorySettingsItems.Mod;
+
+        /// <summary>
+        /// Gets the data feed items that represent this config key.
+        /// </summary>
+        /// <remarks>
+        /// <b>Do not</b> use this method on the config section that you are implementing a
+        /// <see cref="ICustomDataFeedItems">custom items</see> for.<br/>
+        /// Use <c><paramref name="configSection"/>.<see cref="EnumerateDefaultItemsAsync(ConfigSection,
+        /// IReadOnlyList{string}, IReadOnlyList{string}, string?, object?)">EnumerateDefaultItemsAsync</see>(<paramref name="path"/>, <paramref name="groupKeys"/>,
+        /// <paramref name="searchPhrase"/>, <paramref name="viewData"/>)</c> instead
+        /// to avoid infinite recursion and a <see cref="StackOverflowException">stack overflow</see>.
+        /// </remarks>
+        /// <param name="configSection">The config section to enumerate the default or custom items for.</param>
+        /// <returns>
+        /// The <see cref="ICustomDataFeedItems">custom items</see> for this config section
+        /// if it has a <see cref="ICustomDataFeedItems">custom items</see> implementation;
+        /// otherwise, the <see cref="EnumerateDefaultItemsAsync(ConfigSection,
+        /// IReadOnlyList{string}, IReadOnlyList{string}, string?, object?)">default items</see>.
+        /// </returns>
+        /// <inheritdoc cref="EnumerateDefaultItemsAsync(ConfigSection, IReadOnlyList{string}, IReadOnlyList{string}, string?, object?)"/>
+        public static IAsyncEnumerable<DataFeedItem> EnumerateItemsAsync(this ConfigSection configSection, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase = null, object? viewData = null)
+            => (configSection as ICustomDataFeedItems)?.Enumerate(path, groupKeys, searchPhrase, viewData)
+                ?? configSection.EnumerateDefaultItemsAsync(path, groupKeys, searchPhrase, viewData);
+
+        /// <summary>
+        /// Gets the data feed items that represent this config key.
+        /// </summary>
+        /// <remarks>
+        /// <b>Do not</b> use this method on the config key that you are implementing a
+        /// <see cref="IConfigKeyCustomDataFeedItems{T}">custom items component</see> for.<br/>
+        /// Use <c><paramref name="configKey"/>.<see cref="EnumerateDefaultItemsAsync{T}(IDefiningConfigKey{T},
+        /// IReadOnlyList{string}, IReadOnlyList{string})">EnumerateDefaultItemsAsync</see>(<paramref name="path"/>, <paramref name="groupKeys"/>)</c>
+        /// instead to avoid infinite recursion and a <see cref="StackOverflowException">stack overflow</see>.
+        /// </remarks>
+        /// <param name="configKey">The config key to enumerate the default or custom items for.</param>
+        /// <returns>
+        /// The <see cref="ICustomDataFeedItems">custom items</see> for this config key
+        /// if it has a <see cref="IConfigKeyCustomDataFeedItems{T}">custom items component</see>;
+        /// otherwise, the <see cref="EnumerateDefaultItemsAsync{T}(IDefiningConfigKey{T},
+        /// IReadOnlyList{string}, IReadOnlyList{string})">default items</see>.
+        /// </returns>
+        /// <inheritdoc cref="EnumerateDefaultItemsAsync{T}(IDefiningConfigKey{T}, IReadOnlyList{string}, IReadOnlyList{string})"/>
+        public static IAsyncEnumerable<DataFeedItem> EnumerateItemsAsync<T>(this IDefiningConfigKey<T> configKey, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase = null, object? viewData = null)
+        {
+            IEntity<IDefiningConfigKey<T>> configKeyEntity = configKey;
+
+            // If the config key has a custom items component, it has priority.
+            if (configKeyEntity.Components.TryGet<IConfigKeyCustomDataFeedItems<T>>(out var customItems))
+                return customItems.Enumerate(path, groupKeys, searchPhrase, viewData);
+
+            // Otherwise, use the default items.
+            return configKey.EnumerateDefaultItemsAsync(path, groupKeys);
+        }
 
         /// <summary>
         /// Enumerates the default data feed items - as opposed to the
@@ -80,6 +140,9 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             //    return (DataFeedItem)_generateIndicator.MakeGenericMethod(type).Invoke(null, new object[4] { identity, setting, path, grouping });
             //}
 
+            // If the config key is a dummy value, it's a spacer from an RML mod
+            // ResoniteModSettings displays the description instead of the name,
+            // so we do the same for spacers that have one, as they're used to indicate sections.
             if (configKey.ValueType == _dummyType)
             {
                 var dummyField = new DataFeedValueField<dummy>();
@@ -88,9 +151,11 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 return dummyField.YieldAsync();
             }
 
+            // If the config key is a boolean value, create a toggle item.
             if (configKey.ValueType == typeof(bool))
                 return ((IDefiningConfigKey<bool>)configKey).MakeToggle(path, groupKeys).YieldAsync();
 
+            // If the config key is an enum value, create an enum selector.
             if (configKey.ValueType.IsEnum)
             {
                 var enumItems = (IAsyncEnumerable<DataFeedItem>)_enumerateEnumDefaultItemsAsyncMethod
@@ -100,10 +165,12 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 return enumItems;
             }
 
+            // If the config key is a nullable ...
             if (configKey.ValueType.IsNullable())
             {
                 var nullableType = configKey.ValueType.GetGenericArguments()[0];
 
+                // ... enum value, create a selector for nullable enums.
                 if (nullableType.IsEnum)
                 {
                     var nullableEnumItems = (IAsyncEnumerable<DataFeedItem>)_enumerateNullableEnumDefaultItemsAsyncMethod
@@ -114,8 +181,10 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 }
             }
 
+            // If the config key has a range component ...
             if (configKeyEntity.Components.TryGet<IConfigKeyRange<T>>(out var range))
             {
+                // ... and that is also a quantity component, create a quantity item.
                 if (configKeyEntity.Components.TryGet<IConfigKeyQuantity<T>>(out var quantity))
                 {
                     var quantityField = (DataFeedItem)_makeQuantityFieldMethod
@@ -125,10 +194,13 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                     return quantityField.YieldAsync();
                 }
 
+                // Otherwise, create a normal slider item.
                 var slider = configKey.MakeSlider(range, path, groupKeys);
                 return slider.YieldAsync();
             }
 
+            // Finally, fall back to generic value field item.
+            // It's the callers responsibility to ensure that there's a suitable item template.
             var valueField = configKey.MakeValueField(path, groupKeys);
             return valueField.YieldAsync();
         }
@@ -289,14 +361,35 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             return valueField;
         }
 
-        private static IAsyncEnumerable<DataFeedItem> EnumerateConfigKeyItemsAsync<T>(IDefiningConfigKey<T> configKey, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys, string? searchPhrase = null, object? viewData = null)
+        /// <summary>
+        /// <see cref="DataFeedItem.InitEnabled">Initializes the enabled field</see> of this data feed item by
+        /// <see cref="FieldConfigKeySyncExtensions.SyncWithConfigKey{T}(IField{T}, IDefiningConfigKey{T}, string?,
+        /// bool)">synchronizing</see> it with the given boolean config key.
+        /// </summary>
+        /// <typeparam name="TDataFeedItem">The type of the data feed item being initialized.</typeparam>
+        /// <param name="feedItem">The data feed item being initialized.</param>
+        /// <param name="enabledSource">The boolean config key to synchronize this data feed item's enabled field with.</param>
+        /// <returns>This data feed item.</returns>
+        public static TDataFeedItem WithEnabledSource<TDataFeedItem>(this TDataFeedItem feedItem, IDefiningConfigKey<bool> enabledSource)
+            where TDataFeedItem : DataFeedItem
         {
-            IEntity<IDefiningConfigKey<T>> configKeyEntity = configKey;
+            feedItem.InitEnabled(enabledField => enabledField.SyncWithConfigKey(enabledSource, allowWriteBack: false));
+            return feedItem;
+        }
 
-            if (configKeyEntity.Components.TryGet<IConfigKeyCustomDataFeedItems<T>>(out var customItems))
-                return customItems.Enumerate(path, groupKeys, searchPhrase, viewData);
-
-            return configKey.EnumerateDefaultItemsAsync(path, groupKeys);
+        /// <summary>
+        /// <see cref="DataFeedItem.InitEnabled">Initializes the enabled field</see>
+        /// of this data feed item by setting it to the given <paramref name="enabled"/> state.
+        /// </summary>
+        /// <typeparam name="TDataFeedItem">The type of the data feed item being initialized.</typeparam>
+        /// <param name="feedItem">The data feed item being initialized.</param>
+        /// <param name="enabled">The enabled state to set this data feed item's enabled field to.</param>
+        /// <returns>This data feed item.</returns>
+        public static TDataFeedItem WithEnabledState<TDataFeedItem>(this TDataFeedItem feedItem, bool enabled)
+            where TDataFeedItem : DataFeedItem
+        {
+            feedItem.InitEnabled(enabledField => enabledField.Value = enabled);
+            return feedItem;
         }
 
         private static IAsyncEnumerable<DataFeedItem> EnumerateEnumDefaultItemsAsync<T>(this IDefiningConfigKey configKey, IReadOnlyList<string> path, IReadOnlyList<string> groupKeys)

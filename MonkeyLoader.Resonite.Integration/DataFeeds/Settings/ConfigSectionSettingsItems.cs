@@ -63,10 +63,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
                 yield return sectionGroup;
 
                 var sectionGrouping = parameters.GroupKeys.Concat(configSection.Id).ToArray();
-
-                var sectionItems = configSection is ICustomDataFeedItems customItemsSection
-                    ? customItemsSection.Enumerate(parameters.Path, sectionGrouping, parameters.SearchPhrase, parameters.ViewData)
-                    : configSection.EnumerateDefaultItemsAsync(parameters.Path, sectionGrouping, parameters.SearchPhrase, parameters.ViewData);
+                var sectionItems = configSection.EnumerateItemsAsync(parameters.Path, sectionGrouping, parameters.SearchPhrase, parameters.ViewData);
 
                 await foreach (var item in sectionItems)
                     yield return item;
