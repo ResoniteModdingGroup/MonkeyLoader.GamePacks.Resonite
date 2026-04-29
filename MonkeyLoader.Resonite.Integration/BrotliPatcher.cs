@@ -1,20 +1,17 @@
-﻿using HarmonyLib;
+﻿using EnumerableToolkit;
+using HarmonyLib;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MonkeyLoader.Resonite.DataFeeds;
 
 namespace MonkeyLoader.Resonite
 {
     [HarmonyPatch]
     [HarmonyPatchCategory(nameof(BrotliPatcher))]
-    internal sealed class BrotliPatcher : Monkey<BrotliPatcher>
+    internal sealed class BrotliPatcher : Monkey<BrotliPatcher>, ISubgroupedDataFeedItem
     {
         public override string Name { get; } = "Brotli Fix";
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
+        public Sequence<string> SubgroupPath => SubgroupDefinitions.GamePack;
 
         [HarmonyPrefix]
         [HarmonyPatch("Brotli.NativeLibraryLoader, Brotli.Core", "GetPossibleRuntimeDirectories")]

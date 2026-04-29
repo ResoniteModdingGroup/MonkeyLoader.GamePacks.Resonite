@@ -1,13 +1,9 @@
+using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -18,6 +14,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         BuildPlaybackEditorEvent, BuildFieldEditorEvent, BuildObjectEditorEvent>
     {
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.InspectorDefaults;
 
         public override bool SkipCanceled => true;
 

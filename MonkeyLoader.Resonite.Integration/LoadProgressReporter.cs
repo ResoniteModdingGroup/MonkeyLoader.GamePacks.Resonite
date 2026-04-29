@@ -1,16 +1,11 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using MonkeyLoader.Resonite.DataFeeds;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
@@ -20,7 +15,7 @@ namespace MonkeyLoader.Resonite
     // This class should not directly reference the RendererInitProgressWrapper type in code to not make issues on headlesses
     [HarmonyPatch]
     [HarmonyPatchCategory(nameof(LoadProgressReporter))]
-    public sealed class LoadProgressReporter : Monkey<LoadProgressReporter>
+    public sealed class LoadProgressReporter : Monkey<LoadProgressReporter>, ISubgroupedDataFeedItem
     {
         private const string RendererProgressWrapperTypeName = "FrooxEngine.RendererInitProgressWrapper, FrooxEngine";
         private static bool _advancedToReady;
@@ -69,6 +64,8 @@ namespace MonkeyLoader.Resonite
             get => IsActive ? _totalFixedPhaseCount : OriginalTotalFixedPhaseCount;
             private set => _totalFixedPhaseCount = value;
         }
+
+        Sequence<string> ISubgroupedDataFeedItem.SubgroupPath => SubgroupDefinitions.GamePack;
 
         private static bool? CanProgressToReady => !Available ? null : FixedPhaseIndex >= TotalFixedPhaseCount || _overrideProceedToReady;
         private static float InternalTotalFixedPhaseCount => _totalFixedPhaseCount!.Value;

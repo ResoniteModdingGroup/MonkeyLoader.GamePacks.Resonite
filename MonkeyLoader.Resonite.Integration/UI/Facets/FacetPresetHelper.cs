@@ -35,8 +35,6 @@ namespace MonkeyLoader.Resonite.UI.Facets
         /// </summary>
         public static FrozenSet<Type> TemplateFacetPresetTypes { get; }
 
-        internal static Sequence<string> SubgroupPath { get; } = new string[] { "Facets" };
-
         static FacetPresetHelper()
         {
             AllFacetPresetTypes = GlobalTypeRegistry.DataModelAssemblies

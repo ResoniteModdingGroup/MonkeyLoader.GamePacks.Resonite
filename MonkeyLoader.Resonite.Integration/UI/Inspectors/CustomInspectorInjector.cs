@@ -1,11 +1,8 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -16,6 +13,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             BuildInspectorHeaderEvent, ResolveInspectorHeaderTextEvent, BuildInspectorBodyEvent>
     {
         public override bool CanBeDisabled => true;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Inspectors;
 
         [HarmonyPrefix]
         private static bool BuildUIForComponentPrefix(WorkerInspector __instance, Worker worker,

@@ -3,7 +3,6 @@ using Elements.Quantity;
 using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
-using System;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {

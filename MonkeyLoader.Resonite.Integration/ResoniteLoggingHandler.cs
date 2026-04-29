@@ -1,6 +1,5 @@
 ﻿using Elements.Core;
 using MonkeyLoader.Logging;
-using System;
 
 namespace MonkeyLoader.Resonite
 {
@@ -31,7 +30,7 @@ namespace MonkeyLoader.Resonite
 
         /// <inheritdoc/>
         public override void Flush()
-        { }
+            => UniLog.Flush();
 
         /// <inheritdoc/>
         public override void Info(Func<object> messageProducer) => UniLog.Log(messageProducer());

@@ -1,11 +1,6 @@
-﻿using MonkeyLoader.Events;
+﻿using EnumerableToolkit;
+using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
@@ -25,6 +20,9 @@ namespace MonkeyLoader.Resonite.Locale
 
         /// <inheritdoc/>
         public override int Priority => -4096;
+
+        /// <inheritdoc/>
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.LocaleFallback;
 
         /// <inheritdoc/>
         protected override bool AppliesTo(LocaleLoadingEvent eventData)

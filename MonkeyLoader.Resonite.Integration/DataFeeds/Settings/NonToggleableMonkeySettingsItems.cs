@@ -2,18 +2,14 @@
 using FrooxEngine;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class NonToggleableMonkeySettingsItems : DataFeedBuildingBlockMonkey<NonToggleableMonkeySettingsItems, SettingsDataFeed>
     {
         public override int Priority => 210;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Settings;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {

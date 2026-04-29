@@ -1,25 +1,22 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
 using MonkeyLoader.Resonite.Configuration;
 using MonkeyLoader.Resonite.DataFeeds;
 using MonkeyLoader.Resonite.Features.FrooxEngine;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite
 {
     // TODO: Add an event after InitializePostfixAsync is done?
     [HarmonyPatchCategory(nameof(EngineInitHook))]
     [HarmonyPatch(typeof(Engine), nameof(Engine.Initialize))]
-    internal sealed class EngineInitHook : ConfiguredMonkey<EngineInitHook, LoadingConfig>
+    internal sealed class EngineInitHook : ConfiguredMonkey<EngineInitHook, LoadingConfig>, ISubgroupedDataFeedItem
     {
+        public Sequence<string> SubgroupPath => SubgroupDefinitions.GamePack;
+
         private static IResoniteMonkeyInternal[] ResoniteMonkeys
         {
             get

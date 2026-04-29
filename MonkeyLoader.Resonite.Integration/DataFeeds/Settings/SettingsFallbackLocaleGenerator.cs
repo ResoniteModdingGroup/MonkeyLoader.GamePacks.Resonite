@@ -1,4 +1,5 @@
-﻿using MonkeyLoader.Meta;
+﻿using EnumerableToolkit;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Configuration;
 using MonkeyLoader.Resonite.Locale;
 
@@ -7,6 +8,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     internal sealed class SettingsFallbackLocaleGenerator : ResoniteAsyncEventHandlerMonkey<SettingsFallbackLocaleGenerator, FallbackLocaleGenerationEvent>
     {
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.LocaleFallback;
 
         protected override bool AppliesTo(FallbackLocaleGenerationEvent eventData) => true;
 

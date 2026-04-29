@@ -9,7 +9,7 @@ namespace MonkeyLoader.Resonite.UI.Facets
     {
         public override bool CanBeDisabled => true;
 
-        public override Sequence<string> SubgroupPath => FacetPresetHelper.SubgroupPath;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Facets;
 
         [HarmonyPatch(typeof(FacetPreset))]
         [HarmonyPatchCategory(nameof(FacetPresetLoadedHook))]

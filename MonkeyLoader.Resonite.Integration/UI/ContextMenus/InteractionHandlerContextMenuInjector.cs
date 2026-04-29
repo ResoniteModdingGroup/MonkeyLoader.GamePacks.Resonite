@@ -1,4 +1,5 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using FrooxEngine.UIX;
@@ -15,7 +16,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     {
         public override bool CanBeDisabled => true;
 
-        public override EnumerableToolkit.Sequence<string> SubgroupPath => ContextMenuInjector.SubgroupPathDefinition;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.ContextMenu;
 
         private static LocaleString AsMenuLocaleKey(string key)
             => key.AsLocaleKey(continuous: false, null);

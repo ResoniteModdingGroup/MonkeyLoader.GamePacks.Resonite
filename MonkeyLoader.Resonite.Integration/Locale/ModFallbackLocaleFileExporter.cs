@@ -1,17 +1,12 @@
 ﻿using Elements.Assets;
+using EnumerableToolkit;
 using FrooxEngine;
 using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.DataFeeds;
 using MonkeyLoader.Resonite.DataFeeds.Settings;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
@@ -27,10 +22,19 @@ namespace MonkeyLoader.Resonite.Locale
 
         private static readonly string _localeExportDirectory = Path.Combine("MonkeyLoader", "LocaleExport");
 
+        private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
         private static AsyncEventDispatching<FallbackLocaleGenerationEvent>? _eventDispatching;
+
         public override bool CanBeDisabled => true;
 
         public override int Priority => HarmonyLib.Priority.Low;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Development;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
@@ -87,13 +91,7 @@ namespace MonkeyLoader.Resonite.Locale
             var fileName = $"{exportId}-{FallbackLocaleGenerator.LocaleCode}.json";
             using var fileStream = File.Open(Path.Combine(_localeExportDirectory, fileName), FileMode.Create, FileAccess.Write);
 
-            JsonSerializerOptions serializerOptions = new()
-            {
-                WriteIndented = true,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-
-            await JsonSerializer.SerializeAsync(fileStream, localeData, options: serializerOptions);
+            await JsonSerializer.SerializeAsync(fileStream, localeData, _serializerOptions);
 
             Logger.Info(() => $"Exported locale file with {localeData.Messages.Count} messages to: {fileName}");
         }

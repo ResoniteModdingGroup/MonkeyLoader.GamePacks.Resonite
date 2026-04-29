@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="FrooxEngine" />
+    <InternalsVisibleTo Include="MonkeyLoader.Resonite.Integration" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,6 @@
 ﻿using Elements.Core;
-using EnumerableToolkit;
 using FrooxEngine;
 using FrooxEngine.UIX;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {
@@ -46,8 +39,6 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// the <see cref="Label">label</see> of this tooltip.
         /// </summary>
         public Text Text { get; }
-
-        internal static Sequence<string> SubgroupPath { get; } = new string[] { "Tooltips" };
 
         internal Tooltip(Slot parent, in float3 localPosition, float localScale, in LocaleString label)
         {
