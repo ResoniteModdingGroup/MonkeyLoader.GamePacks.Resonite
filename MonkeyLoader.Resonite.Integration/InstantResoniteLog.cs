@@ -1,19 +1,17 @@
 ﻿using Elements.Core;
-using HarmonyLib;
+using EnumerableToolkit;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MonkeyLoader.Resonite.DataFeeds;
 
 namespace MonkeyLoader.Resonite
 {
-    internal sealed class InstantResoniteLog : Monkey<InstantResoniteLog>
+    internal sealed class InstantResoniteLog : Monkey<InstantResoniteLog>, ISubgroupedDataFeedItem
     {
         public override bool CanBeDisabled => true;
 
         public override string Name => "Instant Resonite Log";
+
+        public Sequence<string> SubgroupPath => SubgroupDefinitions.Development;
 
         protected override bool OnComputeDefaultEnabledState()
             => false;

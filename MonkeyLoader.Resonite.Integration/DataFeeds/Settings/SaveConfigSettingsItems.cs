@@ -1,19 +1,15 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
     internal sealed class SaveConfigSettingsItems : DataFeedBuildingBlockMonkey<SaveConfigSettingsItems, SettingsDataFeed>
     {
         public override int Priority => HarmonyLib.Priority.LowerThanNormal;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Settings;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {

@@ -1,11 +1,6 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -13,6 +8,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         : ConfiguredResoniteEventHandlerMonkey<DefaultInspectorHeaderHandler, DefaultInspectorHeaderConfig, BuildInspectorHeaderEvent>
     {
         public override int Priority => HarmonyLib.Priority.Normal;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.InspectorDefaults;
 
         protected override void Handle(BuildInspectorHeaderEvent eventData)
         {

@@ -18,7 +18,7 @@ namespace MonkeyLoader.Resonite.UI.Facets
 
         public override int Priority => HarmonyLib.Priority.Normal;
 
-        public override Sequence<string> SubgroupPath => FacetPresetHelper.SubgroupPath;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Facets;
 
         protected override bool AppliesTo(TemplateFacetPresetLoadedEvent eventData)
             => true; // Always need to add the button so it shows up when enabled

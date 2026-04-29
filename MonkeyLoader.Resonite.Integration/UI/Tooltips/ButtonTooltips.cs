@@ -16,7 +16,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     {
         public override bool CanBeDisabled => true;
 
-        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Tooltips;
 
         [HarmonyPostfix]
         [HarmonyPatch(nameof(Button.OnDispose))]

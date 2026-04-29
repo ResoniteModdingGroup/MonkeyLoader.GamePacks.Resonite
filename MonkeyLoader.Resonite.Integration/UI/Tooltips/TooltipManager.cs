@@ -2,13 +2,7 @@
 using EnumerableToolkit;
 using FrooxEngine;
 using MonkeyLoader.Events;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Tooltips
 {
@@ -31,7 +25,8 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         public override bool SkipCanceled => true;
 
-        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
+        /// <inheritdoc/>
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Tooltips;
 
         /// <summary>
         /// Closes the tooltip for the given button.

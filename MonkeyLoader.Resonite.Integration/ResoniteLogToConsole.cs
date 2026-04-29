@@ -1,20 +1,18 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using MonkeyLoader.Resonite.DataFeeds;
 
 namespace MonkeyLoader.Resonite
 {
-    internal sealed class ResoniteLogToConsole : Monkey<ResoniteLogToConsole>
+    internal sealed class ResoniteLogToConsole : Monkey<ResoniteLogToConsole>, ISubgroupedDataFeedItem
     {
         private static Task _lastLogTask = Task.CompletedTask;
 
         public override bool CanBeDisabled => true;
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
+        public Sequence<string> SubgroupPath => SubgroupDefinitions.GamePack;
 
         protected override bool OnLoaded()
         {

@@ -9,9 +9,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     [HarmonyPatch(typeof(ContextMenuExtensions), nameof(ContextMenuExtensions.OpenContextMenu))]
     internal sealed class ContextMenuInjector : ResoniteAsyncEventSourceMonkey<ContextMenuInjector, ContextMenuItemsGenerationEvent>
     {
-        public static Sequence<string> SubgroupPathDefinition = new string[] { "ContextMenu" };
-
-        public override Sequence<string> SubgroupPath => SubgroupPathDefinition;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.ContextMenu;
 
         protected override bool OnLoaded()
         {

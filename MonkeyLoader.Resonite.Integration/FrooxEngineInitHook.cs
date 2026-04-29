@@ -1,15 +1,19 @@
-﻿using HarmonyLib;
+﻿using EnumerableToolkit;
+using HarmonyLib;
 using MonkeyLoader.Patching;
+using MonkeyLoader.Resonite.DataFeeds;
 using System.Reflection;
 
 namespace MonkeyLoader.Resonite
 {
     [HarmonyPatchCategory(nameof(FrooxEngineInitHook))]
     [HarmonyPatch(typeof(Assembly), nameof(Assembly.LoadFrom), typeof(string))]
-    internal sealed class FrooxEngineInitHook : Monkey<FrooxEngineInitHook>
+    internal sealed class FrooxEngineInitHook : Monkey<FrooxEngineInitHook>, ISubgroupedDataFeedItem
     {
         /// <inheritdoc/>
         public override string Name { get; } = "Init Fix";
+
+        public Sequence<string> SubgroupPath => SubgroupDefinitions.GamePack;
 
         private static bool Prefix(string assemblyFile)
         {

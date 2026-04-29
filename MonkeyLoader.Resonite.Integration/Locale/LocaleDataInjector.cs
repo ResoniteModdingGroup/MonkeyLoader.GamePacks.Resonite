@@ -1,15 +1,8 @@
 ﻿using Elements.Core;
+using EnumerableToolkit;
 using FrooxEngine;
 using HarmonyLib;
-using MonkeyLoader.Meta;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
@@ -18,6 +11,8 @@ namespace MonkeyLoader.Resonite.Locale
     internal sealed class LocaleDataInjector
         : ResoniteAsyncEventSourceMonkey<LocaleDataInjector, LocaleLoadingEvent>
     {
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Locale;
+
         internal static async Task LoadLocalesAsync(Elements.Assets.LocaleResource localeResource, IEnumerable<string> localeCodes)
         {
             foreach (var localeCode in localeCodes)

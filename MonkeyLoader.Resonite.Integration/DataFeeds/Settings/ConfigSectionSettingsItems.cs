@@ -11,6 +11,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     {
         public override int Priority => HarmonyLib.Priority.Normal;
 
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Settings;
+
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {
             var path = parameters.Path;

@@ -1,13 +1,7 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using MonkeyLoader.Events;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
@@ -20,6 +14,8 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
             BuildPlaybackEditorEvent, BuildFieldEditorEvent, BuildObjectEditorEvent>
     {
         public override bool CanBeDisabled => true;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Inspectors;
 
         [HarmonyPrefix]
         [HarmonyPatch(nameof(SyncMemberEditorBuilder.BuildArray))]

@@ -1,20 +1,15 @@
 ﻿using Elements.Assets;
+using EnumerableToolkit;
 using HarmonyLib;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.Locale
 {
     [HarmonyPatchCategory(nameof(LocaleDataLoadingFix))]
-    [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadDataAdditively), new[] { typeof(LocaleData) })]
+    [HarmonyPatch(typeof(LocaleResource), nameof(LocaleResource.LoadDataAdditively), [typeof(LocaleData)])]
     internal sealed class LocaleDataLoadingFix : ResoniteMonkey<LocaleDataLoadingFix>
     {
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => Enumerable.Empty<IFeaturePatch>();
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Locale;
 
         [HarmonyPostfix]
         private static void LoadDataAdditivelyPostfix(LocaleResource __instance)

@@ -1,18 +1,9 @@
-﻿using Elements.Assets;
-using Elements.Core;
-using Elements.Quantity;
+﻿using Elements.Core;
 using EnumerableToolkit;
 using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
 {
@@ -21,6 +12,8 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
     internal sealed class MonkeyLoaderRootCategorySettingsItems : DataFeedBuildingBlockMonkey<MonkeyLoaderRootCategorySettingsItems, SettingsDataFeed>
     {
         public override int Priority => HarmonyLib.Priority.Low;
+
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Settings;
 
         public override IAsyncEnumerable<DataFeedItem> Apply(IAsyncEnumerable<DataFeedItem> current, EnumerateDataFeedParameters<SettingsDataFeed> parameters)
         {

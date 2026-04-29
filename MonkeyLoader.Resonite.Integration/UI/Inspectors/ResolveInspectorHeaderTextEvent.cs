@@ -2,11 +2,8 @@
 using FrooxEngine;
 using FrooxEngine.UIX;
 using MonkeyLoader.Resonite.Events;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {

@@ -1,13 +1,10 @@
-﻿using FrooxEngine;
+﻿using EnumerableToolkit;
+using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Configuration;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Meta;
-using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace MonkeyLoader.Resonite.DataFeeds.Settings
@@ -24,7 +21,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
 
         public override IEnumerable<string> Authors { get; } = ["Nytra"];
 
-        protected override IEnumerable<IFeaturePatch> GetFeaturePatches() => [];
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Settings;
 
         private static IDefiningConfigKey? GetConfigKeyByFullId(string fullId)
         {

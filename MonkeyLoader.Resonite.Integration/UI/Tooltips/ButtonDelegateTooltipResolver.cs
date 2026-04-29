@@ -14,7 +14,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         public override bool SkipCanceled => true;
 
-        public override Sequence<string> SubgroupPath => Tooltip.SubgroupPath;
+        public override Sequence<string> SubgroupPath => SubgroupDefinitions.Tooltips;
 
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
