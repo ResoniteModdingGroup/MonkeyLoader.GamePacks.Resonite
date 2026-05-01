@@ -4,12 +4,6 @@ using MonkeyLoader.Configuration;
 using MonkeyLoader.Events;
 using MonkeyLoader.Meta;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {

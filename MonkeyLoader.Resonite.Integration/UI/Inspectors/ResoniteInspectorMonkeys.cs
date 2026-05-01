@@ -1,12 +1,7 @@
 ﻿using FrooxEngine;
 using MonkeyLoader.Events;
 using MonkeyLoader.Patching;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -23,27 +18,28 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private readonly Dictionary<Type, bool> _matchCache = [];
 
         /// <summary>
-        /// Gets the <see cref="Type.GetGenericTypeDefinition">generic type definition</see> of the base type.
+        /// Gets the base or interface type that matching workers must derive from or implement.
         /// </summary>
+        /// <remarks>
+        /// For <see cref="Type.IsGenericType">generic types</see>, this will be the
+        /// <see cref="Type.GetGenericTypeDefinition">open generic type definition</see>.
+        /// </remarks>
         public Type BaseType { get; }
 
         /// <summary>
         /// Allows creating only a single <typeparamref name="TMonkey"/> instance of this custom inspector segment
         /// that gets added to <see cref="WorkerInspector"/>s for a given (open) generic base type.
         /// </summary>
-        /// <param name="baseType">The (open) generic base type to check for.</param>
-        /// <exception cref="ArgumentException">When the <paramref name="baseType"/> isn't generic.</exception>
+        /// <param name="baseType">The (open) generic base type to check for. Can be an inheritance or interface implementation.</param>
         protected ResoniteInspectorMonkey(Type baseType)
         {
-            if (!baseType.IsGenericType)
-                throw new ArgumentException($"Type isn't generic: {baseType.FullName}", nameof(baseType));
-
-            BaseType = baseType.GetGenericTypeDefinition();
+            BaseType = !baseType.IsGenericType ? baseType
+                : baseType.GetGenericTypeDefinition();
         }
 
         /// <remarks>
         /// Ensures that this monkey is <see cref="MonkeyBase{T}.Enabled">enabled</see>
-        /// and that the worker given in the event derives from the <see cref="BaseType">base type</see>.
+        /// and that the worker given in the event derives from or implements the <see cref="BaseType">BaseType</see>.
         /// </remarks>
         /// <inheritdoc/>
         protected override bool AppliesTo(TEvent eventData)
@@ -55,7 +51,9 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
             if (!_matchCache.TryGetValue(type, out var matches))
             {
-                matches = MatchesGenericBaseType(type, out _);
+                matches = (!BaseType.IsGenericType && type.IsAssignableTo(BaseType))
+                    || MatchesGenericBaseType(type, out _);
+
                 _matchCache.Add(type, matches);
             }
 
@@ -64,19 +62,35 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
         private bool MatchesGenericBaseType(Type type, [NotNullWhen(true)] out Type? concreteBaseType)
         {
+            concreteBaseType = null;
+
             if (type is null)
-            {
-                concreteBaseType = null;
                 return false;
-            }
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == BaseType)
+            if (BaseType.IsInterface)
             {
-                concreteBaseType = type;
-                return true;
+                foreach (var implementedInterface in type.GetInterfaces())
+                {
+                    if (!implementedInterface.IsGenericType || implementedInterface.GetGenericTypeDefinition() != BaseType)
+                        continue;
+
+                    concreteBaseType = implementedInterface;
+                    return true;
+                }
             }
 
-            return MatchesGenericBaseType(type.BaseType!, out concreteBaseType);
+            while (type is not null)
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == BaseType)
+                {
+                    concreteBaseType = type;
+                    return true;
+                }
+
+                type = type.BaseType!;
+            }
+
+            return false;
         }
     }
 
