@@ -1,11 +1,5 @@
 ﻿using Elements.Core;
 using FrooxEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -45,6 +39,17 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     eventData.OpenContainerButton = button;
                 }
 
+                if (eventData.CreateWikiLinkButton)
+                {
+                    var button = Engine.IsAprilFools
+                        ? ui.Button(OfficialAssets.Graphics.Badges.Mentor)
+                        : ui.Button(OfficialAssets.Graphics.Icons.Inspector.Help, RadiantUI_Constants.Sub.CYAN).WithWikiLinkFor(worker);
+
+                    ConfigSection.WikiLinkOffset.DriveFromVariable(button.Slot.OrderOffset_Field);
+
+                    eventData.WikiLinkButton = button;
+                }
+
                 if (eventData.CreateDuplicateButton)
                 {
                     var button = ui.ButtonRef(OfficialAssets.Graphics.Icons.Inspector.Duplicate, RadiantUI_Constants.Sub.GREEN, eventData.Inspector.OnDuplicateComponentPressed, worker);
@@ -61,6 +66,14 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
                     eventData.DestroyButton = button;
                 }
             }
+        }
+
+        protected override bool OnLoaded()
+        {
+            WikiLinkButtonExtensions.ComponentLocale = Mod.GetLocaleString("Tooltip.WikiHyperlink.Component");
+            WikiLinkButtonExtensions.ProtoFluxLocale = Mod.GetLocaleString("Tooltip.WikiHyperlink.ProtoFlux");
+
+            return base.OnLoaded();
         }
     }
 }
