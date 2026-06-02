@@ -156,11 +156,11 @@ namespace MonkeyLoader.Resonite.UI
         public static TButton WithLocalAction<TButton>(this TButton button, Action<TButton> action)
             where TButton : IButton
         {
-            var valueField = button.Slot.AttachComponent<ValueField<bool>>().Value;
-            valueField.OnValueChange += field => action(button);
+            var valueTag = button.Slot.AttachComponent<ValueTag<bool>>().Value;
+            valueTag.OnValueChange += field => action(button);
 
             var toggle = button.Slot.AttachComponent<ButtonToggle>();
-            toggle.TargetValue.Target = valueField;
+            toggle.TargetValue.Target = valueTag;
 
             button.Slot.DestroyWhenLocalUserLeaves();
 
@@ -183,11 +183,11 @@ namespace MonkeyLoader.Resonite.UI
         public static TButton WithLocalAction<TButton, TArgument>(this TButton button, TArgument argument, Action<TButton, TArgument> action)
             where TButton : IButton
         {
-            var valueField = button.Slot.AttachComponent<ValueField<bool>>().Value;
-            valueField.OnValueChange += field => action(button, argument);
+            var valueTag = button.Slot.AttachComponent<ValueTag<bool>>().Value;
+            valueTag.OnValueChange += field => action(button, argument);
 
             var toggle = button.Slot.AttachComponent<ButtonToggle>();
-            toggle.TargetValue.Target = valueField;
+            toggle.TargetValue.Target = valueTag;
 
             button.Slot.DestroyWhenLocalUserLeaves();
 
