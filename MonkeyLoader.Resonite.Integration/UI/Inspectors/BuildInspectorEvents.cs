@@ -125,6 +125,11 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public const string OpenContainerButtonName = "OpenContainer";
 
         /// <summary>
+        /// The name for the <see cref="WikiLinkButton">Wiki Link button</see>.
+        /// </summary>
+        public const string WikiLinkButtonName = "WikiLink";
+
+        /// <summary>
         /// The name for the <see cref="WorkerNameButton">Worker Name button</see>.
         /// </summary>
         public const string WorkerNameButtonName = "WorkerName";
@@ -148,6 +153,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// still needs to and can have an <see cref="OpenContainerButton">Open Container button</see> created.
         /// </summary>
         public bool CreateOpenContainerButton => AllowContainer && !HasOpenContainerButton && Worker.FindNearestParent<Slot>() != null;
+
+        /// <summary>
+        /// Gets whether the inspector header that's currently being build
+        /// still needs to have a <see cref="WikiLinkButton">Wiki Link button</see> created.
+        /// </summary>
+        public bool CreateWikiLinkButton => !HasWikiLinkButton;
 
         /// <summary>
         /// Gets whether the inspector header that's currently being build
@@ -181,24 +192,35 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// Gets whether the inspector header that's currently being build
         /// already has a <see cref="DestroyButton">Destroy</see> button.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(DestroyButton))]
         public bool HasDestroyButton => HasButton(DestroyButtonName);
 
         /// <summary>
         /// Gets whether the inspector header that's currently being build
         /// already has a <see cref="DuplicateButton">Duplicate</see> button.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(DuplicateButton))]
         public bool HasDuplicateButton => HasButton(DuplicateButtonName);
 
         /// <summary>
         /// Gets whether the inspector header that's currently being build
         /// already has an <see cref="OpenContainerButton">Open Container</see> button.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(OpenContainerButton))]
         public bool HasOpenContainerButton => HasButton(OpenContainerButtonName);
+
+        /// <summary>
+        /// Gets whether the inspector header that's currently being build
+        /// already has a <see cref="WikiLinkButton">Wiki Link</see> button.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(WikiLinkButton))]
+        public bool HasWikiLinkButton => HasButton(WikiLinkButtonName);
 
         /// <summary>
         /// Gets whether the inspector header that's currently being build
         /// already has a <see cref="WorkerNameButton">Worker Name</see> button.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(WorkerNameButton))]
         public bool HasWorkerNameButton => HasButton(WorkerNameButtonName);
 
         /// <summary>
@@ -210,6 +232,17 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         {
             get => GetButton(OpenContainerButtonName);
             set => SetButton(OpenContainerButtonName, value);
+        }
+
+        /// <summary>
+        /// Gets the Wiki Link button of the inspector header that's currently being build.
+        /// </summary>
+        /// <value>The button or <c>null</c> if there is none yet.</value>
+        [MaybeNull]
+        public IButton WikiLinkButton
+        {
+            get => GetButton(WikiLinkButtonName);
+            set => SetButton(WikiLinkButtonName, value);
         }
 
         /// <summary>

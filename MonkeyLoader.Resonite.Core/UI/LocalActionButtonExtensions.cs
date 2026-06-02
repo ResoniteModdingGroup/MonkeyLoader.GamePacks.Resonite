@@ -1,17 +1,12 @@
 using FrooxEngine.UIX;
 using FrooxEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Elements.Core;
 using System.Runtime.CompilerServices;
 
 namespace MonkeyLoader.Resonite.UI
 {
     /// <summary>
-    /// Contains extension methods to setup locally defined actions for <see cref="IButton"/>s which are triggerable by anyone.
+    /// Contains extension methods to setup locally defined actions for <see cref="IButton"/>s, which are triggerable by anyone.
     /// </summary>
     /// <remarks>
     /// Due to their nature, they will only work while the <see cref="User"/> that creates them hasn't left the session.<br/>

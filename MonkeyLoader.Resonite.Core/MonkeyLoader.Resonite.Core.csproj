@@ -34,6 +34,8 @@ For mods targetting ML, this library is part of the Resonite Game Pack.</Descrip
   <ItemGroup>
     <ResoniteReference Include="FrooxEngine" UsePublicized="true" />
     <ResoniteReference Include="Elements.Core" />
+    <ResoniteReference Include="ProtoFlux.Core" />
     <ResoniteReference Include="Renderite.Shared" />
+    <ResoniteReference Include="SkyFrost.Base.Models" />
   </ItemGroup>
 </Project>

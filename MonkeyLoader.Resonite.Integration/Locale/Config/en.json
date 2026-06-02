@@ -66,6 +66,8 @@
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.StartHeaderTextExpanded.Description": "Shows the inspector header text by default.",
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.NameOffset.Name": "Name Offset",
     "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.NameOffset.Description": "The Order Offset of the Worker Name button on Inspector Headers. Higher is further right.",
+    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.WikiLinkOffset.Name": "Wiki Link Offset",
+    "MonkeyLoader.GamePacks.Resonite.Config.DefaultInspectorHeader.WikiLinkOffset.Description": "The Order Offset of the Wiki Link button on Inspector Headers. Higher is further right.<size=50%><br/><br/></size>Uses the configured value of the original Wiki Integration mod as a default, if available.",
 
     "MonkeyLoader.GamePacks.Resonite.Config.Loading.Name": "Loading",
     "MonkeyLoader.GamePacks.Resonite.Config.Loading.HijackLoadProgressIndicator.Name": "Hijack Load Progress Indicator",

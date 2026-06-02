@@ -1,7 +1,8 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using MonkeyLoader.Configuration;
+using MonkeyLoader.Meta;
 using MonkeyLoader.Resonite.Configuration;
-using System;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
 {
@@ -25,12 +26,18 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         private readonly DefiningConfigKey<int> _openContainerOffset = new("OpenContainerOffset", "The Order Offset of the Open Container button on Inspector Headers. Higher is further right.", () => 4)
         {
             OffsetRange,
-            MakeOffsetRangeShare(10)
+            MakeOffsetRangeShare(9)
         };
 
         private readonly DefiningConfigKey<bool> _startHeaderTextExpanded = new("StartHeaderTextExpanded", "Whether the inspector header text should be shown by default.", () => true)
         {
             new ConfigKeySessionShare<bool>(true)
+        };
+
+        private readonly DefiningConfigKey<int> _wikiLinkOffset = new("WikiLinkOffset", "The Order Offset of the Wiki Link button on Inspector Headers. Higher is further right.", GetWikiIntegrationOffsetOrDefault)
+        {
+            OffsetRange,
+            MakeOffsetRangeShare(10)
         };
 
         private readonly DefiningConfigKey<int> _workerNameOffset = new("NameOffset", "The Order Offset of the Worker Name button on Inspector Headers. Higher is further right.", () => 6)
@@ -71,7 +78,12 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         public ConfigKeySessionShare<bool> StartHeaderTextExpanded => _startHeaderTextExpanded.Components.Get<ConfigKeySessionShare<bool>>();
 
         /// <inheritdoc/>
-        public override Version Version { get; } = new Version(1, 0, 1);
+        public override Version Version { get; } = new Version(1, 1, 0);
+
+        /// <summary>
+        /// Gets the Order Offset share for the Wiki Link button on Inspector Headers.
+        /// </summary>
+        public ConfigKeySessionShare<int, long> WikiLinkOffset => _wikiLinkOffset.Components.Get<ConfigKeySessionShare<int, long>>();
 
         /// <summary>
         /// Gets the Order Offset share for the Worker Name button on Inspector Headers.
@@ -86,6 +98,15 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
         /// <returns>The newly created share component with the optional default.</returns>
         public static ConfigKeySessionShare<int, long> MakeOffsetRangeShare(int defaultValue = default)
             => new(IntToLong, LongToInt, defaultValue);
+
+        private static int GetWikiIntegrationOffsetOrDefault()
+        {
+            if (Instance.Config.Owner.Loader.TryGet<IDefiningConfigKey>().ByFullId("WikiIntegration.Config.Buttons.ComponentOffset", out var genericKey)
+                && genericKey is IDefiningConfigKey<int> offsetKey)
+                return offsetKey.GetValue();
+
+            return 10;
+        }
 
         private static long IntToLong(int value) => value;
 
