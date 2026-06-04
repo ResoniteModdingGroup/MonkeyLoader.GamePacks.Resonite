@@ -95,7 +95,7 @@
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Name": "Sync Member Editor Builder Injector",
     "MonkeyLoader.GamePacks.Resonite.SyncMemberEditorBuilderInjector.Description": "Sends out the various Build Member Editor events to allow monkeys to override the generation of them.",
 
-    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Name": "Button Delegate Tooltip Resolver",
+    "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Name": "Delegate Tooltip Resolver",
     "MonkeyLoader.GamePacks.Resonite.ButtonDelegateTooltipResolver.Description": "Turns the SyncDelegate targeted by a Button into a locale key to display as a tooltip.",
 
     "MonkeyLoader.GamePacks.Resonite.ButtonTooltips.Name": "Button Tooltips",
@@ -106,6 +106,9 @@
 
     "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Name": "Hyperlink Tooltip Resolver",
     "MonkeyLoader.GamePacks.Resonite.HyperlinkTooltipResolver.Description": "Resolves the tooltip for a button based on a Hyperlink component's URL and reason.<br/>They may be added on to another tooltip for the button.",
+
+    "MonkeyLoader.GamePacks.Resonite.ReferenceProxySourceTooltipResolver.Name": "Reference Proxy Tooltip Resolver",
+    "MonkeyLoader.GamePacks.Resonite.ReferenceProxySourceTooltipResolver.Description": "Resolves the tooltip for a button based on a ReferenceProxySource component's target reference.<br/>Used for components and fields in inspectors.",
 
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Name": "Tooltip Manager",
     "MonkeyLoader.GamePacks.Resonite.TooltipManager.Description": "Sends out tooltip resolve requests from different sources. The tooltip system is based on the Tooltippery mod originally created by Psychpsyo.",
