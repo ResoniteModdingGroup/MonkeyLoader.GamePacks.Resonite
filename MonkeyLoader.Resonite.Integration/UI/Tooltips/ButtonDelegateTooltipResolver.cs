@@ -9,7 +9,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
     internal sealed class ButtonDelegateTooltipResolver : ResoniteCancelableEventHandlerMonkey<ButtonDelegateTooltipResolver, ResolveTooltipLabelEvent>
     {
         public override bool CanBeDisabled => true;
+
         public override int Priority => HarmonyLib.Priority.HigherThanNormal;
+
         public override bool SkipCanceled => true;
 
         protected override void Handle(ResolveTooltipLabelEvent eventData)
@@ -71,7 +73,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             }
 
             arguments.Add(LocaleExtensions.ModLocaleStringIndicatorArgumentName, string.Empty);
-            eventData.Label = localeKey.AsLocaleKey(arguments: arguments);
+            eventData.Label = localeKey.AsModLocaleKey(Mod, arguments: arguments);
 
             if (TooltipConfig.Instance.EnableDebugButtonData)
                 Logger.Debug($"LocaleKey: {eventData.Label.Value.content}".Yield().Concat(eventData.Label.Value.arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));

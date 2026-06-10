@@ -52,7 +52,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             label = (nesting is 0
                 ? $"Tooltip.{string.Join('.', GetAllNestedNames(targetField.DeclaringType!).Reverse())}.{targetElement.Name}"
                 : $"Tooltip.{string.Join('.', GetAllNestedNames(targetField.DeclaringType!).Reverse())}.{targetElement.Name}.{string.Join('.', Enumerable.Repeat("Item", nesting))}"
-                ).AsLocaleKey();
+                ).AsModLocaleKey(Mod);
 
             return true;
         }
