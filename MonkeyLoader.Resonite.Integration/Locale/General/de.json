@@ -19,6 +19,11 @@
     "MonkeyLoader.GamePacks.Resonite.Tooltip.OpenHyperlink.WithLabel": "{label}<size=50%><br/><br/></size><b>Grund:</b> <i>{reason}</i><br/><b>URL:</b> <i>{url}</i>",
 
     "MonkeyLoader.GamePacks.Resonite.Tooltip.WikiHyperlink.Component": "Öffnet den Resonite Wiki Artikel über diese Komponente.",
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.WikiHyperlink.ProtoFlux": "Öffnet den Resonite Wiki Artikel über diese ProtoFlux Node."
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.WikiHyperlink.ProtoFlux": "Öffnet den Resonite Wiki Artikel über diese ProtoFlux Node.",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.ReferenceProxySource": "Greif eine Referenz zu {target}.",
+
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.SlotRecord.Generic": "Greif eine Referenz zu diesem Slot, oder ziehe andere Slots hierher, um sie unter diesem einzuhängen, wobei ihre globale Position erhalten bleibt.",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.SlotRecord.Inspector": "Öffnet diesen Slot im Inspektor, greif eine Referenz zu ihm, oder ziehe andere Slots hierher, um sie unter diesem einzuhängen, wobei ihre globale Position erhalten bleibt."
   }
 }

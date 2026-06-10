@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using FrooxEngine.UIX;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -20,15 +21,62 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (button.Slot.GetComponent<ReferenceProxySource>() is not ReferenceProxySource proxySource)
                 return false;
 
-            // Slots, Users, (User)Components, SyncObjects themselves
-            if (proxySource.Reference.Target is Worker targetWorker)
+            var parentDevInterface = (button as Button)?.RectTransform?.Canvas.Slot.GetComponent<IDeveloperInterface>();
+
+            switch (parentDevInterface)
             {
-                label = $"Tooltip.{string.Join('.', GetAllNestedNames(targetWorker.WorkerType).Reverse())}";
+                case UserInspector:
+                case SceneInspector:
+                case WorkerInspector:
+                    return TryGetInspectorTooltipLabel(proxySource.Reference.Target, out label);
+
+                default:
+                    label = Mod.GetLocaleString("Tooltip.ReferenceProxySource", "target", proxySource.Reference.Target.GetReferenceLabel());
+                    return true;
+            }
+        }
+
+        protected override void Handle(ResolveTooltipLabelEvent eventData)
+        {
+            if (!TryGetTooltipLabel(eventData.Button, out var label))
+                return;
+
+            if (!TooltipConfig.Instance.EnableDebugButtonData && !label.Value.HasMessageInCurrent())
+                return;
+
+            eventData.Label = label;
+
+            if (TooltipConfig.Instance.EnableDebugButtonData)
+                Logger.Debug(() => $"LocaleKey: {eventData.Label.Value.content}");
+        }
+
+        private static IEnumerable<string> GetAllNestedNames(Type type)
+        {
+            yield return type.Name;
+
+            while (type.IsNested)
+            {
+                type = type.DeclaringType!;
+                yield return type.Name;
+            }
+        }
+
+        private static bool TryGetInspectorTooltipLabel(IWorldElement? target, [NotNullWhen(true)] out LocaleString? label)
+        {
+            label = null;
+
+            if (target is null)
+                return false;
+
+            // Slot, Users, (User)Components, SyncObjects themselves
+            if (target is Worker targetWorker)
+            {
+                label = $"Tooltip.{string.Join('.', GetAllNestedNames(targetWorker.WorkerType).Reverse())}".AsModLocaleKey(Mod);
                 return true;
             }
 
             // Any synchronized data owned by Workers
-            if (proxySource.Reference.Target is not SyncElement targetElement)
+            if (target is not SyncElement targetElement)
                 return false;
 
             var nesting = 0;
@@ -49,29 +97,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (parentWorker.GetSyncMemberFieldInfo(targetElement.Name) is not FieldInfo targetField)
                 return false;
 
+            var typeIdentity = string.Join('.', GetAllNestedNames(targetField.DeclaringType!).Reverse());
+
             label = (nesting is 0
-                ? $"Tooltip.{string.Join('.', GetAllNestedNames(targetField.DeclaringType!).Reverse())}.{targetElement.Name}"
-                : $"Tooltip.{string.Join('.', GetAllNestedNames(targetField.DeclaringType!).Reverse())}.{targetElement.Name}.{string.Join('.', Enumerable.Repeat("Item", nesting))}"
+                ? $"Tooltip.{typeIdentity}.{targetElement.Name}"
+                : $"Tooltip.{typeIdentity}.{targetElement.Name}.{string.Join('.', Enumerable.Repeat("Item", nesting))}"
                 ).AsModLocaleKey(Mod);
 
             return true;
-        }
-
-        protected override void Handle(ResolveTooltipLabelEvent eventData)
-        {
-            if (TryGetTooltipLabel(eventData.Button, out var label))
-                eventData.Label = label;
-        }
-
-        private static IEnumerable<string> GetAllNestedNames(Type type)
-        {
-            yield return type.Name;
-
-            while (type.IsNested)
-            {
-                type = type.DeclaringType!;
-                yield return type.Name;
-            }
         }
     }
 }
