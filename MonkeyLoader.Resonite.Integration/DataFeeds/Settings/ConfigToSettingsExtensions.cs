@@ -409,7 +409,7 @@ namespace MonkeyLoader.Resonite.DataFeeds.Settings
             var flagsEnumGroup = new DataFeedGroup();
             flagsEnumGroup.InitBase(configKey.FullId + ".Flags", path, groupKeys, Mod.GetLocaleString("EnumFlags.Name", ("KeyId", configKey.Id)));
             flagsEnumGroup.InitSorting(-configKey.Priority);
-            flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsLocaleKey());
+            flagsEnumGroup.InitDescription(configKey.GetLocaleKey("Description").AsModLocaleKey(Mod));
             yield return flagsEnumGroup;
 
             var flagsGrouping = groupKeys.Concat([configKey.FullId + ".Flags"]).ToArray();

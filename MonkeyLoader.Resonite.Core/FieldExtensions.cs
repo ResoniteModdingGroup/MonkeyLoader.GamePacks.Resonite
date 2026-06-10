@@ -1,8 +1,5 @@
 ﻿using FrooxEngine;
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MonkeyLoader.Resonite
 {
@@ -14,10 +11,16 @@ namespace MonkeyLoader.Resonite
     public static class FieldExtensions
     {
         /// <summary>
-        /// Creates a label describing the <paramref name="target"/> reference as a <see cref="RefEditor"/> would.
+        /// Creates a label describing the <paramref name="target"/> reference almost as a <see cref="RefEditor"/> would.
         /// </summary>
+        /// <remarks>
+        /// For <see cref="Slot"/>s, their <see cref="Component"/>s, and the fields of those the behavior is the same.<br/>
+        /// For <see cref="User"/>s, this format is instead:
+        /// <c>$"&lt;noparse&gt;{<see cref="User">targetUser</see>.<see cref="User.UserName">UserName</see>}
+        /// ({<paramref name="target"/>.<see cref="IWorldElement.ReferenceID">ReferenceID</see>})&lt;/noparse&gt;"</c>
+        /// </remarks>
         /// <param name="target">The reference to label.</param>
-        /// <returns>A label for the <paramref name="target"/> reference if it is not <c>null</c>; otherwise, <c>&lt;i&gt;null&lt;/i&gt;</c>.</returns>
+        /// <returns>A label for the <paramref name="target"/> reference if it is not <c>null</c>; otherwise, <c>"&lt;i&gt;null&lt;/i&gt;"</c>.</returns>
         public static string GetReferenceLabel(this IWorldElement? target)
         {
             if (target is null)
@@ -25,6 +28,9 @@ namespace MonkeyLoader.Resonite
 
             if (target is Slot targetSlot)
                 return $"{targetSlot.Name} ({target.ReferenceID})";
+
+            if (target is User targetUser)
+                return $"<noparse>{targetUser.UserName} ({target.ReferenceID})</noparse>";
 
             var component = target.FindNearestParent<Component>();
             var slot = component?.Slot ?? target.FindNearestParent<Slot>();
