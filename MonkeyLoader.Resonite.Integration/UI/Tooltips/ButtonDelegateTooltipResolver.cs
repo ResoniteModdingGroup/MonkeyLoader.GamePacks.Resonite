@@ -72,11 +72,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                 }
             }
 
-            arguments.Add(LocaleExtensions.ModLocaleStringIndicatorArgumentName, string.Empty);
             eventData.Label = localeKey.AsModLocaleKey(Mod, arguments: arguments);
+            eventData.ShouldCacheLabel = false; // The provided arguments' values may change between invocations
 
             if (TooltipConfig.Instance.EnableDebugButtonData)
-                Logger.Debug($"LocaleKey: {eventData.Label.Value.content}".Yield().Concat(eventData.Label.Value.arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));
+                Logger.Debug($"LocaleKey: {localeKey}".Yield().Concat(arguments.Select(item => $"\"{item.Key}\" = \"{item.Value}\"")));
         }
     }
 }

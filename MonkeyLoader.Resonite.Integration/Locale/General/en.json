@@ -23,7 +23,7 @@
 
     "MonkeyLoader.GamePacks.Resonite.Tooltip.ReferenceProxySource": "Grab a reference to {target}.",
 
-    "MonkeyLoader.GamePacks.Resonite.Tooltip.SlotRecord.Generic": "Grab a reference to this slot, or drag'n'drop other slots onto here to parent them to it while preserving their global position.",
+    "MonkeyLoader.GamePacks.Resonite.Tooltip.SlotRecord.Generic": "Grab a reference to the slot {target}, or drag'n'drop other slots onto here to parent them to it while preserving their global position.",
     "MonkeyLoader.GamePacks.Resonite.Tooltip.SlotRecord.Inspector": "Opens this slot in the inspector, grab a reference to it, or drag'n'drop other slots onto here to parent them to this slot while preserving their global position."
   }
 }

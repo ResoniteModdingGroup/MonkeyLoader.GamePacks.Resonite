@@ -13,9 +13,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         public override bool SkipCanceled => true;
 
-        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out LocaleString? label)
+        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out LocaleString? label, out bool shouldCache)
         {
             label = null;
+            shouldCache = true;
 
             if (button.Slot.GetComponent<SlotRecord>() is not SlotRecord slotRecord)
                 return false;
@@ -33,17 +34,19 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                     return true;
 
                 default:
-                    label = Mod.GetLocaleString("Tooltip.SlotRecord.Generic");
+                    shouldCache = false;
+                    label = Mod.GetLocaleString("Tooltip.SlotRecord.Generic", "target", targetSlot.GetReferenceLabel());
                     return true;
             }
         }
 
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
-            if (!TryGetTooltipLabel(eventData.Button, out var label))
+            if (!TryGetTooltipLabel(eventData.Button, out var label, out var shouldCache))
                 return;
 
             eventData.Label = label;
+            eventData.ShouldCacheLabel = shouldCache;
         }
     }
 }

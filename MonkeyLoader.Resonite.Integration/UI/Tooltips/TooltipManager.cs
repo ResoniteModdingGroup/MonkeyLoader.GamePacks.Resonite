@@ -268,7 +268,9 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
             if (!label.Value.isLocaleKey || label.Value.HasMessageInCurrent())
             {
-                RegisterLabelForButton(button, label.Value);
+                if (eventData.ShouldCacheLabel)
+                    RegisterLabelForButton(button, label.Value);
+
                 return true;
             }
 
