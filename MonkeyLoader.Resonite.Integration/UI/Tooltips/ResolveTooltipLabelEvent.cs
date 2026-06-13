@@ -47,6 +47,16 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether the tooltip <see cref="Label">label</see> for this
+        /// <see cref="Button">button</see> should be cached by the <see cref="TooltipManager"/>.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the <see cref="Label">label</see> should be cached by
+        /// the <see cref="TooltipManager"/>; otherwise, <see langword="false"/>.
+        /// </value>
+        public bool ShouldCacheLabel { get; set; } = true;
+
         internal ResolveTooltipLabelEvent(IButton button, ButtonEventData buttonEventData)
         {
             Button = button;

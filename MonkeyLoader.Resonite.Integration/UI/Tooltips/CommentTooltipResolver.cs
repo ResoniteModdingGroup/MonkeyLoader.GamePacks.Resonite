@@ -47,8 +47,11 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
-            if (TryGetTooltipLabel(eventData.Button, out var label))
-                eventData.Label = label;
+            if (!TryGetTooltipLabel(eventData.Button, out var label))
+                return;
+
+            eventData.Label = label;
+            eventData.ShouldCacheLabel = true;
         }
 
         private static bool IsTooltipComment(Comment comment)

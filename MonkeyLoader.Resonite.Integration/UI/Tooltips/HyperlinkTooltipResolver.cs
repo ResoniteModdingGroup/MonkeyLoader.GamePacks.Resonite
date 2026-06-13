@@ -84,8 +84,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
         /// <inheritdoc/>
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
-            if (TryGetTooltipLabel(eventData.Button, out var label, eventData.Label))
-                eventData.Label = label;
+            if (!TryGetTooltipLabel(eventData.Button, out var label, eventData.Label))
+                return;
+
+            // Otherwise, keep prior caching
+            if (!eventData.HasLabel)
+                eventData.ShouldCacheLabel = true;
+
+            eventData.Label = label;
         }
     }
 }

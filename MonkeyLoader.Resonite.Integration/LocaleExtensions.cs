@@ -77,14 +77,20 @@ namespace MonkeyLoader.Resonite
             => key.AsLocaleKey(format, arguments.AddModIndicator(identifiable));
 
         /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
-        /// <param name="arguments">The arguments used to format the locale message.</param>
+        /// <param name="arguments">
+        /// The arguments used to format the locale message.<br/>
+        /// Note that <see cref="ModLocaleStringIndicatorArgumentName">mod indicator</see> will be added to this.
+        /// </param>
         /// <inheritdoc cref="AsModLocaleKey(string, IIdentifiable, string, object)"/>
         public static LocaleString AsModLocaleKey(this string key, IIdentifiable identifiable, bool continuous, Dictionary<string, object>? arguments = null)
             => key.AsLocaleKey(continuous, arguments.AddModIndicator(identifiable));
 
         /// <param name="format">An additional format string to insert the locale message into.</param>
         /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
-        /// <param name="arguments">The arguments used to format the locale message.</param>
+        /// <param name="arguments">
+        /// The arguments used to format the locale message.<br/>
+        /// Note that <see cref="ModLocaleStringIndicatorArgumentName">mod indicator</see> will be added to this.
+        /// </param>
         /// <inheritdoc cref="AsModLocaleKey(string, IIdentifiable, string, object)"/>
         public static LocaleString AsModLocaleKey(this string key, IIdentifiable identifiable, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
             => key.AsLocaleKey(format!, continuous, arguments.AddModIndicator(identifiable));
@@ -238,14 +244,20 @@ namespace MonkeyLoader.Resonite
             => identifiable.GetLocaleKey(key).AsModLocaleKey(identifiable, format, arguments);
 
         /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
-        /// <param name="arguments">The arguments used to format the locale message.</param>
+        /// <param name="arguments">
+        /// The arguments used to format the locale message.<br/>
+        /// Note that <see cref="ModLocaleStringIndicatorArgumentName">mod indicator</see> will be added to this.
+        /// </param>
         /// <inheritdoc cref="GetLocaleString(IIdentifiable, string, string, object)"/>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, bool continuous, Dictionary<string, object>? arguments = null)
             => identifiable.GetLocaleKey(key).AsModLocaleKey(identifiable, continuous, arguments);
 
         /// <param name="format">An additional format string to insert the locale message into.</param>
         /// <param name="continuous">Whether to assign the locale message once or continuously.</param>
-        /// <param name="arguments">The arguments used to format the locale message.</param>
+        /// <param name="arguments">
+        /// The arguments used to format the locale message.<br/>
+        /// Note that <see cref="ModLocaleStringIndicatorArgumentName">mod indicator</see> will be added to this.
+        /// </param>
         /// <inheritdoc cref="GetLocaleString(IIdentifiable, string, string, object)"/>
         public static LocaleString GetLocaleString(this IIdentifiable identifiable, string key, string? format = null, bool continuous = true, Dictionary<string, object>? arguments = null)
             => identifiable.GetLocaleKey(key).AsModLocaleKey(identifiable, format!, continuous, arguments);

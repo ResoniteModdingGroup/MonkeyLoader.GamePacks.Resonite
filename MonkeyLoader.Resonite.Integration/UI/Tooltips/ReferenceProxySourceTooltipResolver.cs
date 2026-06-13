@@ -14,9 +14,10 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         public override bool SkipCanceled => true;
 
-        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out LocaleString? label)
+        public static bool TryGetTooltipLabel(IButton button, [NotNullWhen(true)] out LocaleString? label, out bool shouldCache)
         {
             label = null;
+            shouldCache = true;
 
             if (button.Slot.GetComponent<ReferenceProxySource>() is not ReferenceProxySource proxySource)
                 return false;
@@ -31,6 +32,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
                     return TryGetInspectorTooltipLabel(proxySource.Reference.Target, out label);
 
                 default:
+                    shouldCache = false;
                     label = Mod.GetLocaleString("Tooltip.ReferenceProxySource", "target", proxySource.Reference.Target.GetReferenceLabel());
                     return true;
             }
@@ -38,13 +40,14 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
 
         protected override void Handle(ResolveTooltipLabelEvent eventData)
         {
-            if (!TryGetTooltipLabel(eventData.Button, out var label))
+            if (!TryGetTooltipLabel(eventData.Button, out var label, out var shouldCache))
                 return;
 
             if (!TooltipConfig.Instance.EnableDebugButtonData && !label.Value.HasMessageInCurrent())
                 return;
 
             eventData.Label = label;
+            eventData.ShouldCacheLabel = shouldCache;
 
             if (TooltipConfig.Instance.EnableDebugButtonData)
                 Logger.Debug(() => $"LocaleKey: {eventData.Label.Value.content}");
