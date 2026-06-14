@@ -3,20 +3,50 @@ using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using FrooxEngine.UIX;
 using HarmonyLib;
+using MonkeyLoader.Logging;
+using MonkeyLoader.Resonite.Events;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 using static FrooxEngine.InteractionHandler;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
 {
+    [HarmonyPatch(typeof(InteractionHandler))]
     [HarmonyPatchCategory(nameof(InteractionHandlerContextMenuInjector))]
-    [HarmonyPatch(typeof(InteractionHandler), nameof(InteractionHandler.OpenContextMenu))]
     internal sealed class InteractionHandlerContextMenuInjector
         : ConfiguredResoniteAsyncEventSourceMonkey<InteractionHandlerContextMenuInjector, ContextMenusConfig, ContextMenuItemsGenerationEvent>
     {
+        private static readonly ConditionalWeakTable<InteractionHandler, LastDroppedEntry> _lastDroppedGrabbablesByHandler = [];
+
         public override bool CanBeDisabled => true;
+
+        internal static InteractionHandler? LastDroppingHandler { get; private set; }
+
+        internal static GrabbableInfo GetLastDroppedGrabbables(TimeSpan? sinceDropped = default)
+            => LastDroppingHandler is null ? GrabbableInfo.Empty : GetLastDroppedGrabbablesFrom(LastDroppingHandler, sinceDropped);
+
+        internal static GrabbableInfo GetLastDroppedGrabbablesFrom(InteractionHandler handler, TimeSpan? sinceDropped = default)
+        {
+            if (!_lastDroppedGrabbablesByHandler.TryGetValue(handler, out var lastDroppedEntry))
+                return GrabbableInfo.Empty;
+
+            if (sinceDropped.HasValue && (DateTime.UtcNow - lastDroppedEntry.DroppedAt) > sinceDropped.Value)
+                return GrabbableInfo.Empty;
+
+            return lastDroppedEntry.GrabbableInfo;
+        }
 
         private static LocaleString AsMenuLocaleKey(string key)
             => key.AsLocaleKey(continuous: false, null);
+
+        [HarmonyPrefix]
+        [HarmonyPatch(nameof(InteractionHandler.EndGrab))]
+        private static void EndGrabPrefix(InteractionHandler __instance)
+        {
+            _lastDroppedGrabbablesByHandler.AddOrUpdate(__instance, new() { GrabbableInfo = new(__instance.Grabber.GrabbedObjects) });
+            LastDroppingHandler = __instance;
+        }
 
         private static string GetPrettyInventoryPath()
         {
@@ -38,6 +68,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                         ?? "Unknown";
 
         [HarmonyPrefix]
+        [HarmonyPatch(nameof(InteractionHandler.OpenContextMenu))]
         private static bool OpenContextMenuPrefix(InteractionHandler __instance, MenuOptions options, float? speedOverride)
         {
             // Sadly have to replace the whole implementation, as the juicy part is all inside an async lambda -
@@ -267,7 +298,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
                         break;
                 }
 
-                var eventData = ContextMenuItemsGenerationEvent.CreateFor(menu);
+                var eventData = ContextMenuItemsGenerationEvent.CreateFor(menu, GetLastDroppedGrabbablesFrom(__instance));
                 Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
@@ -278,9 +309,31 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
 
                 // This must happen at the end, otherwise the context menu items will flicker when items are added
                 await __instance.PositionContextMenu(menu);
+
+                if (!Logger.ShouldLog(LoggingLevel.Debug))
+                    return;
+
+                Logger.Debug(() => "Dropped grabbables:");
+                Logger.Debug(eventData.LastDroppedGrabbables.Grabbables.Select(item => item.ParentHierarchyToString()).ToArray());
+
+                Logger.Debug(() => "Dropped values:");
+                Logger.Debug(eventData.LastDroppedGrabbables.BoxedValues);
+
+                Logger.Debug(() => "Dropped references:");
+                Logger.Debug(eventData.LastDroppedGrabbables.UntypedReferences.Select(FieldExtensions.GetReferenceLabel));
+
+                Logger.Debug(() => "Dropped delegates:");
+                Logger.Debug(eventData.LastDroppedGrabbables.UntypedDelegates.Select(del => $"{del.Method.CompactDescription()} on {(del.Target as IWorldElement).GetReferenceLabel()}"));
             });
 
             return false;
+        }
+
+        private sealed class LastDroppedEntry
+        {
+            public DateTime DroppedAt { get; } = DateTime.UtcNow;
+
+            public GrabbableInfo GrabbableInfo { get; init; } = GrabbableInfo.Empty;
         }
     }
 }
