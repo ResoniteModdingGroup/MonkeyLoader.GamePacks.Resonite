@@ -1,7 +1,5 @@
-﻿using FrooxEngine;
-using MonkeyLoader.Configuration;
+﻿using MonkeyLoader.Configuration;
 using MonkeyLoader.Resonite.Configuration;
-using MonkeyLoader.Resonite.DataFeeds.Settings;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
 {

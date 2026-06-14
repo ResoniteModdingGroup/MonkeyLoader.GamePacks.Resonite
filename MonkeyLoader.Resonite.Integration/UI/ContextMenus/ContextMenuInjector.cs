@@ -11,6 +11,9 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
     {
         protected override bool OnLoaded()
         {
+            ContextMenuPaginationExtensions.GetDefaultMaxItems = static () => ContextMenusConfig.Instance.ContextMenuItemLimit;
+            ContextMenuPaginationExtensions.GetLimitContextMenuItems = static () => ContextMenusConfig.Instance.LimitContextMenuItems;
+
             ContextMenuItemsGenerationEvent.AddConcreteEvent<InspectorMemberActions>(static contextMenu => new InspectorMemberActionsMenuItemsGenerationEvent(contextMenu), true);
 
             ContextMenuItemsGenerationEvent.AddConcreteEvent(typeof(FieldDriveReceiver<>), DriveReceiverMenuItemsGenerationEvent.CreateForDriveReceiver);

@@ -14,6 +14,27 @@ namespace MonkeyLoader.Resonite.UI
     {
         private static readonly ConditionalWeakTable<ContextMenu, PaginationInfo> _paginationInfosByContextMenu = [];
 
+        internal static Func<int> GetDefaultMaxItems { get; set; } = static () => 14;
+
+        internal static Func<bool> GetLimitContextMenuItems { get; set; } = static () => true;
+
+        /// <summary>
+        /// Gets the current default maximum number of non-pagination items to show per page, not including the paging buttons.<br/>
+        /// This means that up to <c>value + 2</c> non-pagination items will be displayed without pagination.
+        /// </summary>
+        /// <remarks>
+        /// This value may change between calls.
+        /// </remarks>
+        public static int DefaultMaxItems => GetDefaultMaxItems();
+
+        /// <summary>
+        /// Gets whether the number of items in the context menu should be limited and pagination buttons added for anything beyond that.
+        /// </summary>
+        /// <remarks>
+        /// This value may change between calls.
+        /// </remarks>
+        public static bool LimitContextMenuItems => GetLimitContextMenuItems();
+
         /// <inheritdoc cref="AddPagination(ContextMenu, int, int, out ContextMenuItem, out ContextMenuItem)"/>
         public static void AddPagination(this ContextMenu contextMenu, int maxItems, int currentPage = 0)
             => contextMenu.AddPagination(maxItems, currentPage, out _, out _);
@@ -43,6 +64,75 @@ namespace MonkeyLoader.Resonite.UI
                 throw new InvalidOperationException("Failed to add pagination!");
         }
 
+        /// <remarks>
+        /// This version automatically uses the <see cref="DefaultMaxItems">DefaultMaxItems</see> for pagination, if wanted by the user.
+        /// </remarks>
+        /// <inheritdoc cref="AddPagination(ContextMenu, int, int, out ContextMenuItem, out ContextMenuItem)"/>
+        public static void AddDefaultPagination(this ContextMenu contextMenu, int currentPage = 0)
+        {
+            if (LimitContextMenuItems)
+                contextMenu.AddPagination(DefaultMaxItems, currentPage, out _, out _);
+        }
+
+        /// <remarks>
+        /// This version automatically uses the <see cref="DefaultMaxItems">DefaultMaxItems</see> for pagination, if wanted by the user.
+        /// </remarks>
+        /// <inheritdoc cref="AddPagination(ContextMenu, int, int, out ContextMenuItem, out ContextMenuItem)"/>
+        public static void AddDefaultPagination(this ContextMenu contextMenu, int currentPage,
+            out ContextMenuItem? back, out ContextMenuItem? forward)
+        {
+            back = null;
+            forward = null;
+
+            if (LimitContextMenuItems)
+                contextMenu.AddPagination(DefaultMaxItems, currentPage, out back, out forward);
+        }
+
+        /// <remarks>
+        /// This version automatically uses the <see cref="DefaultMaxItems">DefaultMaxItems</see> for pagination, if wanted by the user.
+        /// </remarks>
+        /// <inheritdoc cref="TryAddPagination(ContextMenu, int, int)"/>
+        public static bool TryAddDefaultPagination(this ContextMenu contextMenu, int currentPage = 0)
+        {
+            if (!LimitContextMenuItems)
+                return false;
+
+            return contextMenu.TryAddPagination(DefaultMaxItems, currentPage);
+        }
+
+        /// <remarks>
+        /// This version automatically uses the <see cref="DefaultMaxItems">DefaultMaxItems</see> for pagination, if wanted by the user.
+        /// </remarks>
+        /// <inheritdoc cref="TryAddPagination(ContextMenu, int, int, out ContextMenuItem?, out ContextMenuItem?)"/>
+        public static bool TryAddDefaultPagination(this ContextMenu contextMenu, int currentPage,
+                [NotNullWhen(true)] out ContextMenuItem? back, [NotNullWhen(true)] out ContextMenuItem? forward)
+        {
+            back = null;
+            forward = null;
+
+            if (!LimitContextMenuItems)
+                return false;
+
+            return contextMenu.TryAddPagination(DefaultMaxItems, currentPage, out back, out forward);
+        }
+
+        /// <remarks>
+        /// This version automatically uses the <see cref="DefaultMaxItems">DefaultMaxItems</see> for pagination, if wanted by the user.
+        /// </remarks>
+        /// <inheritdoc cref="TryAddPagination(ContextMenu, ref int, ref int, bool, out ContextMenuItem?, out ContextMenuItem?)"/>
+        public static bool TryAddDefaultPagination(this ContextMenu contextMenu, out int maxItems, ref int currentPage, bool forceNew,
+            [NotNullWhen(true)] out ContextMenuItem? back, [NotNullWhen(true)] out ContextMenuItem? forward)
+        {
+            back = null;
+            forward = null;
+            maxItems = DefaultMaxItems;
+
+            if (!LimitContextMenuItems)
+                return false;
+
+            return contextMenu.TryAddPagination(ref maxItems, ref currentPage, forceNew, out back, out forward);
+        }
+
         /// <summary>
         /// Tries to add pagination with the given configuration to this context menu.<br/>
         /// If there already is pagination, nothing happens.
@@ -60,7 +150,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <param name="currentPage">The page that should be shown from the start. Can be any integer value, even negative.</param>
         /// <inheritdoc cref="TryAddPagination(ContextMenu, ref int, ref int, bool, out ContextMenuItem?, out ContextMenuItem?)"/>
         public static bool TryAddPagination(this ContextMenu contextMenu, int maxItems, int currentPage,
-            [NotNullWhen(true)] out ContextMenuItem? back, [NotNullWhen(true)] out ContextMenuItem? forward)
+                [NotNullWhen(true)] out ContextMenuItem? back, [NotNullWhen(true)] out ContextMenuItem? forward)
             => contextMenu.TryAddPagination(ref maxItems, ref currentPage, false, out back, out forward);
 
         /// <summary>
