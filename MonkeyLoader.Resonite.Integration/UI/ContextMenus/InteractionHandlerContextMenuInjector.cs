@@ -5,7 +5,6 @@ using FrooxEngine.UIX;
 using HarmonyLib;
 using MonkeyLoader.Logging;
 using MonkeyLoader.Resonite.Events;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 using static FrooxEngine.InteractionHandler;

@@ -188,7 +188,10 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// </summary>
         /// <remarks>
         /// If <paramref name="options"/>.<see cref="ContextMenuOptions.keepPosition">keepPosition</see>
-        /// is <c>true</c> the last position will be kept instead.
+        /// is <c>true</c> the last position will be kept instead.<br/>
+        /// This will automatically <see cref="ContextMenuPaginationExtensions.TryAddPagination(ContextMenu, int, int)">
+        /// add pagination</see> to the opened ContextMenu if the user's
+        /// <see cref="ContextMenusConfig.LimitContextMenuItems">settings</see> call for it.
         /// </remarks>
         /// <param name="pointer">
         /// The slot that the <see cref="FrooxEngine.ContextMenu"/> will be centered at.<br/>
@@ -197,7 +200,15 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <param name="options">The additional options for opening the menu.</param>
         /// <returns>The opened <see cref="FrooxEngine.ContextMenu"/>, or <see langword="null"/> if it failed to open.</returns>
         public async Task<ContextMenu?> OpenContextMenuAsync(Slot pointer, ContextMenuOptions options = default)
-            => await ContextMenu.OpenMenu(Summoner, pointer, options) ? ContextMenu : null;
+        {
+            if (!await ContextMenu.OpenMenu(Summoner, pointer, options))
+                return null;
+
+            if (ContextMenusConfig.Instance.LimitContextMenuItems)
+                ContextMenu.TryAddPagination(ContextMenusConfig.Instance.ContextMenuItemLimit);
+
+            return ContextMenu;
+        }
 
         /// <summary>
         /// Opens the <see cref="SummoningUser">SummoningUser</see>'s <see cref="FrooxEngine.ContextMenu"/>
