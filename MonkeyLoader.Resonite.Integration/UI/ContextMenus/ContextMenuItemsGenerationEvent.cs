@@ -1,6 +1,8 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Events;
+using MonkeyLoader.Resonite.Events;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
@@ -50,6 +52,17 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         public bool IsContextMenuOpen => ContextMenu.MenuState != ContextMenu.State.Closed;
 
         /// <summary>
+        /// Gets the last dropped <see cref="IGrabbable">grabbables</see>
+        /// and the cached contents of their usually ephemeral elements.
+        /// </summary>
+        /// <remarks>
+        /// These are always the last <i>dropped</i> <see cref="IGrabbable">grabbables</see>.
+        /// If you want the items currently held by the summoning <see cref="FrooxEngine.InteractionHandler"/>, try accessing
+        /// <c><see cref="InteractionHandler">InteractionHandler</see>.<see cref="InteractionHandler.Grabber">Grabber</see>.<see cref="Grabber.GrabbedObjects">GrabbedObjects</see></c>.
+        /// </remarks>
+        public GrabbableInfo LastDroppedGrabbables { get; private set; } = GrabbableInfo.Empty;
+
+        /// <summary>
         /// Gets the <see cref="IWorldElement"/> that the <see cref="ContextMenu">ContextMenu</see> is being summoned by.
         /// </summary>
         public IWorldElement Summoner => SummonerCore;
@@ -73,8 +86,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <exception cref="ArgumentException">When the <paramref name="contextMenu"/>'s <see cref="Slot.ActiveUser">active</see> <see cref="User"/> is <see langword="null"/>.</exception>
         protected ContextMenuItemsGenerationEvent(ContextMenu contextMenu)
         {
-            ContextMenu = contextMenu ?? throw new ArgumentNullException(nameof(contextMenu));
-            SummoningUser = contextMenu.Slot.ActiveUser ?? throw new ArgumentException($"Active User was missing for Context Menu: {contextMenu.ParentHierarchyToString()}", nameof(contextMenu));
+            ContextMenu = contextMenu
+                ?? throw new ArgumentNullException(nameof(contextMenu));
+
+            SummoningUser = contextMenu.Slot.ActiveUser
+                ?? throw new ArgumentException($"Active User was missing for Context Menu: {contextMenu.ParentHierarchyToString()}", nameof(contextMenu));
         }
 
         /// <summary>
@@ -212,16 +228,17 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// <see cref="ContextMenu.CurrentSummoner"/>, falling back to the concrete <see cref="ContextMenuItemsGenerationEvent{T}"/>.
         /// </remarks>
         /// <param name="summoningUser">The <see cref="User"/> that the <see cref="FrooxEngine.ContextMenu"/> is being summoned for.</param>
+        /// <param name="grabbableInfo">The contextual last dropped grabbables.</param>
         /// <exception cref="ArgumentNullException">When the <paramref name="summoningUser"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">When the <paramref name="summoningUser"/>'s <see cref="ContextMenuExtensions.GetUserContextMenu">context menu</see> is <see langword="null"/>.</exception>
-        internal static ContextMenuItemsGenerationEvent CreateFor(User summoningUser)
+        internal static ContextMenuItemsGenerationEvent CreateFor(User summoningUser, GrabbableInfo grabbableInfo)
         {
             ArgumentNullException.ThrowIfNull(summoningUser);
 
             var contextMenu = summoningUser.GetUserContextMenu()
                 ?? throw new ArgumentException($"Context Menu was missing for User: {summoningUser}!", nameof(summoningUser));
 
-            return CreateFor(contextMenu);
+            return CreateFor(contextMenu, grabbableInfo);
         }
 
         /// <summary>
@@ -233,8 +250,10 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
         /// for the <c><paramref name="contextMenu"/>.<see cref="ContextMenu.CurrentSummoner">CurrentSummoner</see></c>,
         /// falling back to the concrete <see cref="ContextMenuItemsGenerationEvent{T}"/>.
         /// </remarks>
+        /// <param name="contextMenu">The <see cref="FrooxEngine.ContextMenu"/> being summoned.</param>
+        /// <param name="grabbableInfo">The contextual last dropped grabbables.</param>
         /// <inheritdoc cref="ContextMenuItemsGenerationEvent(ContextMenu)"/>
-        internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu contextMenu)
+        internal static ContextMenuItemsGenerationEvent CreateFor(ContextMenu contextMenu, GrabbableInfo grabbableInfo)
         {
             ArgumentNullException.ThrowIfNull(contextMenu);
 
@@ -270,7 +289,11 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             }
 
             contextMenuConstructor ??= GetDefaultContextMenuConstructor(summonerType);
-            return contextMenuConstructor(contextMenu);
+
+            var itemsGenerationEvent = contextMenuConstructor(contextMenu);
+            itemsGenerationEvent.LastDroppedGrabbables = grabbableInfo;
+
+            return itemsGenerationEvent;
         }
 
         private static Func<ContextMenu, ContextMenuItemsGenerationEvent> GetDefaultContextMenuConstructor(Type summonerType)
