@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Contains <see cref="UIBuilder"/> extension methods that simplify
     /// the creation of <see cref="Button"/>s with <see cref="ButtonRefRelay{T}"/>s.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.ButtonRefExtensions, MonkeyLoader.Resonite.Integration")]
     public static class ButtonRefExtensions
     {
         /// <inheritdoc cref="ButtonRef{T}(UIBuilder, in LocaleString, in colorX?, ButtonEventHandler{T}, T, float)"/>

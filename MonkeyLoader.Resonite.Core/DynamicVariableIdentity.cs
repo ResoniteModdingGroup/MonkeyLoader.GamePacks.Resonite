@@ -7,7 +7,7 @@ namespace MonkeyLoader.Resonite
     /// Fully describes the identity of a Dynamic Variable based on its <see cref="Type">Type</see>,
     /// <see cref="Name">Name</see>, and the <see cref="Space">Space</see> it's a part of.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.DynamicVariableIdentity, MonkeyLoader.Resonite.Integration")]
     public readonly struct DynamicVariableIdentity : IEquatable<DynamicVariableIdentity>
     {
         /// <summary>

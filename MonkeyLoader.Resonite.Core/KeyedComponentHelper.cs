@@ -1,5 +1,4 @@
 ﻿using FrooxEngine;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -9,7 +8,7 @@ namespace MonkeyLoader.Resonite
     /// Contains extension methods to deal with <see cref="World.Keys">keyed</see>
     /// <see cref="Component"/>s in <see cref="World"/>s.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.KeyedComponentHelper, MonkeyLoader.Resonite.Integration")]
     public static class KeyedComponentHelper
     {
         /// <summary>

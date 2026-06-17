@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace MonkeyLoader.Resonite.UI
 {
@@ -13,7 +8,7 @@ namespace MonkeyLoader.Resonite.UI
     /// <remarks>
     /// Use with: <c>using static MonkeyLoader.Resonite.UI.Slices;</c>
     /// </remarks>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices, MonkeyLoader.Resonite.Integration")]
     public static class Slices
     {
         /// <summary>
@@ -49,6 +44,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Contains more "fluent" definitions for first half / third.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+First, MonkeyLoader.Resonite.Integration")]
         public static class First
         {
             /// <summary>
@@ -65,6 +61,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Contains more "fluent" definitions for second half / third.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+Second, MonkeyLoader.Resonite.Integration")]
         public static class Second
         {
             /// <summary>
@@ -81,6 +78,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Distinguishes halfs.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+Half, MonkeyLoader.Resonite.Integration")]
         public enum Half
         {
             /// <summary>
@@ -97,6 +95,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Distinguishes horizontal slices.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+Horizontal, MonkeyLoader.Resonite.Integration")]
         public enum Horizontal
         {
             /// <summary>
@@ -118,6 +117,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Distinguishes thirds.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+Third, MonkeyLoader.Resonite.Integration")]
         public enum Third
         {
             /// <summary>
@@ -139,6 +139,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Distinguishes vertical slices.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.Slices+Vertical, MonkeyLoader.Resonite.Integration")]
         public enum Vertical
         {
             /// <summary>

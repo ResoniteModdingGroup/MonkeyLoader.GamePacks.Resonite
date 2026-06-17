@@ -1,10 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using FrooxEngine.UIX;
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI
 {
@@ -12,7 +9,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Contains helpful methods to deal with UIX <see cref="Canvas"/>es,
     /// their <see cref="RectTransform"/>s, and related types.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.CanvasExtensions, MonkeyLoader.Resonite.Integration")]
     public static class CanvasExtensions
     {
         /// <summary>

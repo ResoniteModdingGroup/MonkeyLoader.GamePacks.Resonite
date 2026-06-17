@@ -1,12 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 using static MonkeyLoader.Resonite.UI.Slices;
 using Half = MonkeyLoader.Resonite.UI.Slices.Half;
@@ -19,7 +14,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Allows getting the <see cref="Rect"/> and <see cref="float4">Borders</see>
     /// for each of the ways to further divide it.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.NineSlice, MonkeyLoader.Resonite.Integration")]
     public readonly struct NineSlice
     {
         /// <summary>
@@ -265,6 +260,7 @@ namespace MonkeyLoader.Resonite.UI
         /// <summary>
         /// Represents the thirds of one axis of a nine slice using a <see cref="float4"/>.
         /// </summary>
+        [TypeForwardedFrom("MonkeyLoader.Resonite.UI.NineSlice+Thirds, MonkeyLoader.Resonite.Integration")]
         public readonly struct Thirds
         {
             /// <summary>
