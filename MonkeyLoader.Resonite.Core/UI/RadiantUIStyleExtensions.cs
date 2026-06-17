@@ -1,16 +1,13 @@
 ﻿using FrooxEngine;
 using FrooxEngine.UIX;
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MonkeyLoader.Resonite.UI
 {
     /// <summary>
     /// Contains extension method versions of <see cref="RadiantUI_Constants"/> methods.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.RadiantUIStyleExtensions, MonkeyLoader.Resonite.Integration")]
     public static class RadiantUIStyleExtensions
     {
         /// <summary>

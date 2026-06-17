@@ -10,7 +10,7 @@ namespace MonkeyLoader.Resonite
     /// Contains extension methods related to <see cref="DynamicVariableSpace"/>s
     /// and their <see cref="IDynamicVariable">variables</see>.
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.DynamicVariableExtensions, MonkeyLoader.Resonite.Integration")]
     public static class DynamicVariableExtensions
     {
         /// <summary>

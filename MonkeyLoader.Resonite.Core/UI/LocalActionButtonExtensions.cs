@@ -12,7 +12,7 @@ namespace MonkeyLoader.Resonite.UI
     /// Due to their nature, they will only work while the <see cref="User"/> that creates them hasn't left the session.<br/>
     /// As such, they will be destroyed when the local user leaves, and won't be saved either (by marking them non-persistent).
     /// </remarks>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.UI.LocalActionButtonExtensions, MonkeyLoader.Resonite.Integration")]
     public static class LocalActionButtonExtensions
     {
         /// <summary>

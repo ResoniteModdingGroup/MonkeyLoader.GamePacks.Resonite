@@ -7,7 +7,7 @@ namespace MonkeyLoader.Resonite
     /// Contains extension methods for <see cref="IField{T}">fields</see>
     /// and other <see cref="IWorldElement">world elements</see>
     /// </summary>
-    [TypeForwardedFrom("MonkeyLoader.Resonite.Integration")]
+    [TypeForwardedFrom("MonkeyLoader.Resonite.FieldExtensions, MonkeyLoader.Resonite.Integration")]
     public static class FieldExtensions
     {
         /// <summary>
