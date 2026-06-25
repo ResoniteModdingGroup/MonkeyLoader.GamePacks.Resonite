@@ -22,7 +22,7 @@ namespace MonkeyLoader.Resonite.UI.Tooltips
             if (button.Slot.GetComponent<ReferenceProxySource>() is not ReferenceProxySource proxySource)
                 return false;
 
-            var parentDevInterface = (button as Button)?.RectTransform?.Canvas.Slot.GetComponent<IDeveloperInterface>();
+            var parentDevInterface = (button as Button)?.RectTransform?.Canvas.Slot.GetObjectRoot(false).GetComponent<IDeveloperInterface>();
 
             switch (parentDevInterface)
             {
