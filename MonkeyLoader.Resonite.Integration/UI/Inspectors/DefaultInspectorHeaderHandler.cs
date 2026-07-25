@@ -1,4 +1,4 @@
-﻿using Elements.Core;
+using Elements.Core;
 using FrooxEngine;
 
 namespace MonkeyLoader.Resonite.UI.Inspectors
@@ -41,8 +41,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 if (eventData.CreateWikiLinkButton)
                 {
-                    Engine currentEngine = Engine.Current;
-                    var button = currentEngine is not null && currentEngine.IsAprilFools
+                    Engine.Current.IsAprilFools
                         ? ui.Button(OfficialAssets.Graphics.Badges.Mentor)
                         : ui.Button(OfficialAssets.Graphics.Icons.Inspector.Help, RadiantUI_Constants.Sub.CYAN).WithWikiLinkFor(worker);
 
