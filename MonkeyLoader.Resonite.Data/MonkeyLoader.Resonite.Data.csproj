@@ -19,5 +19,8 @@
 
   <ItemGroup>
     <PackageReference Include="MonkeyLoader" Version="0.29.0" />
+    <PackageReference Include="NuGet.Packaging" Version="7.6.0" />
+    <PackageReference Include="NuGet.Protocol" Version="7.6.0" />
+    <PackageReference Include="Zio" Version="0.24.0" />
   </ItemGroup>
 </Project>
