@@ -41,7 +41,7 @@ namespace MonkeyLoader.Resonite.UI.Inspectors
 
                 if (eventData.CreateWikiLinkButton)
                 {
-                    Engine.Current.IsAprilFools
+                    var button = Engine.Current.IsAprilFools
                         ? ui.Button(OfficialAssets.Graphics.Badges.Mentor)
                         : ui.Button(OfficialAssets.Graphics.Icons.Inspector.Help, RadiantUI_Constants.Sub.CYAN).WithWikiLinkFor(worker);
 
