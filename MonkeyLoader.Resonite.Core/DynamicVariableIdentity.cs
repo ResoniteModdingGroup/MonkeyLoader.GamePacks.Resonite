@@ -56,7 +56,10 @@ namespace MonkeyLoader.Resonite
         {
             Space = space;
             Type = type;
-            Name = name;
+
+            name.ParseAsPath(out _, out var variableName);
+
+            Name = variableName ?? string.Empty;
         }
 
         /// <summary>
@@ -97,6 +100,19 @@ namespace MonkeyLoader.Resonite
         /// <inheritdoc/>
         public override readonly int GetHashCode()
             => HashCode.Combine(Space, Type, Name);
+
+        /// <summary>
+        /// Determines whether this Dynamic Variable identity's <see cref="Name">Name</see> matches the given one.
+        /// </summary>
+        /// <param name="name">The name to check.</param>
+        /// <returns><see langword="true"/> if the names match; otherwise, <see langword="false"/>.</returns>
+        public bool HasName(string name)
+        {
+            name.ParseAsPath(out _, out var variableName);
+
+            return Name == variableName
+                || (variableName is null && Name is "");
+        }
 
         /// <inheritdoc/>
         public override readonly string ToString()
