@@ -26,7 +26,11 @@ namespace MonkeyLoader.Resonite.Configuration
         /// <see cref="ConfigToSettingsExtensions.WithEnabledSource{TDataFeedItem}(TDataFeedItem, IDefiningConfigKey{bool})">enabled source</see>
         /// for the default items generated for the <see cref="ConfigKeyCustomDataFeedItems{T}.ConfigKey">ConfigKey</see>.
         /// </summary>
-        /// <param name="enabledSource"></param>
+        /// <param name="enabledSource">
+        /// The config item that will be used as the
+        /// <see cref="ConfigToSettingsExtensions.WithEnabledSource{TDataFeedItem}(TDataFeedItem, IDefiningConfigKey{bool})">enabled source</see>
+        /// for the default items generated for the <see cref="ConfigKeyCustomDataFeedItems{T}.ConfigKey">ConfigKey</see>.
+        /// </param>
         /// <inheritdoc cref="ConfigKeyCustomDataFeedItems{T}"/>
         public ConfigKeyEnabledSource(IDefiningConfigKey<bool> enabledSource)
         {
