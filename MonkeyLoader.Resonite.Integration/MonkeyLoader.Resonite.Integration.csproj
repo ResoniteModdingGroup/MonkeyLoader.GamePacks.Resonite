@@ -35,7 +35,7 @@ Additionally it contains many useful features for Users and Developers alike.</D
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonkeyLoader" Version="0.29.0" />
+    <PackageReference Include="MonkeyLoader" Version="0.30.0" />
     
     <ResoniteReference Include="Elements.Assets" />
     <ResoniteReference Include="Elements.Core" />

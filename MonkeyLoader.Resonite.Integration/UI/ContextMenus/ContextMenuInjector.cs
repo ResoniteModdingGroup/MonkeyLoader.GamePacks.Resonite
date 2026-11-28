@@ -1,6 +1,7 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
 using MonkeyLoader.Logging;
+using MonkeyLoader.Resonite.Events;
 using MonkeyLoader.Resonite.UI.Inspectors;
 
 namespace MonkeyLoader.Resonite.UI.ContextMenus
@@ -22,20 +23,22 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             return base.OnLoaded();
         }
 
-        [HarmonyPostfix]
-        private static async Task<ContextMenu?> OpenContextMenuPostfixAsync(Task<ContextMenu?> __result)
-        {
-            var lastDroppedGrabbables = InteractionHandlerContextMenuInjector.GetLastDroppedGrabbables(TimeSpan.FromMilliseconds(250));
+        [HarmonyPrefix]
+        private static void OpenContextMenuPrefix(out GrabbableInfo __state)
+            => __state = InteractionHandlerContextMenuInjector.GetLastDroppedGrabbables(TimeSpan.FromMilliseconds(250));
 
-            if (await __result.ConfigureAwait(false) is not ContextMenu __instance)
+        [HarmonyPostfix]
+        private static async Task<ContextMenu?> OpenContextMenuPostfixAsync(ContextMenu? __result, GrabbableInfo __state)
+        {
+            if (__result is null)
                 return null;
 
             // RunSynchronously to add items after the vanilla implementation
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            __instance.RunSynchronouslyAsync(async () =>
+            __result.RunSynchronouslyAsync(async () =>
             {
-                var eventData = ContextMenuItemsGenerationEvent.CreateFor(__instance, lastDroppedGrabbables);
+                var eventData = ContextMenuItemsGenerationEvent.CreateFor(__result, __state);
                 Logger.Info(() => $"Dispatching CM event: {eventData.GetType().CompactDescription()}");
 
                 // ContextMenuItemsGenerationEvent is a SubscribableBaseEvent and will trigger derived handlers
@@ -61,7 +64,7 @@ namespace MonkeyLoader.Resonite.UI.ContextMenus
             });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-            return __instance;
+            return __result;
         }
     }
 }

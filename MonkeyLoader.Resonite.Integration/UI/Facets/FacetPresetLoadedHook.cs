@@ -64,10 +64,8 @@ namespace MonkeyLoader.Resonite.UI.Facets
         private static class TemplateBuildFallbackPatch
         {
             [HarmonyPostfix]
-            private static async Task BuildFallbackPostfixAsync(Task __result, TemplateFacetPreset __instance)
+            private static void BuildFallbackPostfixAsync(TemplateFacetPreset __instance)
             {
-                await __result;
-
                 if (!Enabled)
                     return;
 
@@ -92,10 +90,8 @@ namespace MonkeyLoader.Resonite.UI.Facets
         private static class TemplateOnLoadedPatch
         {
             [HarmonyPostfix]
-            private static async Task OnLoadedPostfixAsync(Task __result, TemplateFacetPreset __instance)
+            private static void OnLoadedPostfixAsync(TemplateFacetPreset __instance)
             {
-                await __result;
-
                 if (!Enabled)
                     return;
 

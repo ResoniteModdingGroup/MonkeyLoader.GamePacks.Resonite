@@ -39,14 +39,8 @@ namespace MonkeyLoader.Resonite
         }
 
         [HarmonyPostfix]
-        private static async Task InitializePostfixAsync(Task __result)
+        private static async Task InitializePostfixAsync()
         {
-            // Run OnEngineInit hooks of ResoniteMonkeys
-            await RunEngineInitHooksAsync();
-
-            // Let the Engine initialize
-            await __result;
-
             // Run OnEngineReady hooks of ResoniteMonkeys
             SharedConfig.Initialize();
             await RunEngineReadyHooksAsync();
@@ -59,7 +53,7 @@ namespace MonkeyLoader.Resonite
         }
 
         [HarmonyPrefix]
-        private static void InitializePrefix(Engine __instance)
+        private static async Task InitializePrefix(Engine __instance)
         {
             Logger.Info(() => "Engine started initializing! Adding shutdown hooks and executing EngineInit hooks on ResoniteMonkeys!");
 
@@ -70,6 +64,9 @@ namespace MonkeyLoader.Resonite
 
             // We add a total of 5 phases - this must match the real count
             LoadProgressReporter.AddFixedPhases(5);
+
+            // Run OnEngineInit hooks of ResoniteMonkeys
+            await RunEngineInitHooksAsync();
         }
 
         private static void LateRunEngineHooks(MonkeyLoader loader, IEnumerable<Mod> mods)

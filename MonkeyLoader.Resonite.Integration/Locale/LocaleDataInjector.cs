@@ -29,7 +29,6 @@ namespace MonkeyLoader.Resonite.Locale
         }
 
         [HarmonyTranspiler]
-        [HarmonyPatch(MethodType.Async)]
         private static IEnumerable<CodeInstruction> LoadTargetVariantMoveNextTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var onLoadStateChangeMethod = AccessTools.Method(typeof(Asset), nameof(Asset.OnLoadStateChanged));
@@ -44,10 +43,8 @@ namespace MonkeyLoader.Resonite.Locale
         }
 
         [HarmonyPostfix]
-        private static async Task LoadTargetVariantPostfixAsync(Task __result, LocaleResource __instance, LocaleVariantDescriptor variant, bool __state)
+        private static async Task LoadTargetVariantPostfixAsync(LocaleResource __instance, LocaleVariantDescriptor variant, bool __state)
         {
-            await __result;
-
             var localeCodes = new List<string>();
             localeCodes.AddUnique(variant.LocaleCode);
             localeCodes.AddUnique(Elements.Assets.LocaleResource.GetMainLanguage(variant.LocaleCode));

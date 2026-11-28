@@ -1,8 +1,10 @@
 <Project>
   <PropertyGroup>
-    <Version>0.33.0</Version>
+    <Version>0.34.0</Version>
+    <TargetFramework>net11.0</TargetFramework>
     <RootNamespace>MonkeyLoader.Resonite</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Features>runtime-async=on</Features>
     
     <ResoniteInstallOnBuild>true</ResoniteInstallOnBuild>
   </PropertyGroup>
